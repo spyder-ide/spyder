@@ -15,12 +15,11 @@ given source file.
 # Standard library imports
 import logging
 
-# Qt imports
+# Third-party imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 
 # Local imports
-from spyder.plugins.completion.api import CompletionItemKind
-from spyder.plugins.completion.api import CompletionRequestTypes
 from spyder.plugins.completion.providers.snippets.trie import Trie
 
 
@@ -32,7 +31,7 @@ logger = logging.getLogger(__name__)
 class SnippetsActor(QObject):
     #: Signal emitted when the Thread is ready
     sig_snippets_ready = Signal()
-    sig_snippets_response = Signal(int, dict)
+    sig_snippets_response = Signal(int, object)
     sig_update_snippets = Signal(dict)
     sig_mailbox = Signal(dict)
 
@@ -83,13 +82,12 @@ class SnippetsActor(QObject):
         msg_type, _id, file, msg = [
             message[k] for k in ('type', 'id', 'file', 'msg')]
         logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
-        if msg_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
+        if msg_type == lsp.TEXT_DOCUMENT_COMPLETION:
             language = msg['language']
             current_word = msg['current_word']
             snippets = []
 
             if current_word is None:
-                snippets = {'params': snippets}
                 self.sig_snippets_response.emit(_id, snippets)
                 return
 
@@ -103,16 +101,17 @@ class SnippetsActor(QObject):
                             text = description_snippet['text']
                             remove_trigger = description_snippet[
                                 'remove_trigger']
-                            snippets.append({
-                                'kind': CompletionItemKind.SNIPPET,
-                                'insertText': text,
-                                'label': f'{trigger} ({description})',
-                                'sortText': f'zzz{trigger}',
-                                'filterText': trigger,
-                                'documentation': '',
-                                'provider': SNIPPETS_COMPLETION,
-                                'remove_trigger': remove_trigger
-                            })
+                            snippets.append(lsp.CompletionItem(
+                                label=f'{trigger} ({description})',
+                                kind=lsp.CompletionItemKind.Snippet,
+                                insert_text=text,
+                                insert_text_format=lsp.InsertTextFormat.Snippet,
+                                sort_text=f'zzz{trigger}',
+                                filter_text=trigger,
+                                data={
+                                    'provider': SNIPPETS_COMPLETION,
+                                    'remove_trigger': remove_trigger,
+                                },
+                            ))
 
-            snippets = {'params': snippets}
             self.sig_snippets_response.emit(_id, snippets)

@@ -104,6 +104,7 @@ class SourceMenuSections:
     Options = 'options_section'
     Linting = 'linting_section'
     Autofix = 'autofix_section'
+    Folding = 'folding_section'
 
 
 class RunMenuSections:

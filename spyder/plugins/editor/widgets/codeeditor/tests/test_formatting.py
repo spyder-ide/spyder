@@ -15,14 +15,15 @@ from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     autopep8,
     black,
+    get_formatter_values,
+    ruff,
     yapf,
-    get_formatter_values
 )
 
 
 # ---- Tests
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, yapf, black])
+@pytest.mark.parametrize('formatter', [autopep8, yapf, black, ruff])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_formatting(formatter, newline, completions_codeeditor,
                              qtbot):
@@ -62,17 +63,33 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
 
 
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, yapf, black])
+@pytest.mark.parametrize(
+    "formatter",
+    [
+        autopep8,
+        black,
+        pytest.param(
+            "ruff",
+            marks=pytest.mark.xfail(
+                reason="Range formatting is not supported by python-lsp-ruff"
+            ),
+        ),
+        pytest.param(
+            "yapf",
+            marks=(
+                pytest.mark.xfail(
+                    reason="Broken in PyLSP 1.5.0. We need to investigate why."
+                ),
+            ),
+        ),
+    ],
+)
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_range_formatting(formatter, newline, completions_codeeditor,
                                    qtbot):
     """Validate text range autoformatting."""
     code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter, newline, range_fmt=True)
-
-    # This is broken in PyLSP 1.5.0. We need to investigate why.
-    if formatter == 'yapf':
-        return
 
     # Set formatter
     CONF.set(
@@ -116,7 +133,7 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
 
 
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, black])
+@pytest.mark.parametrize('formatter', [autopep8, black, ruff])
 def test_max_line_length(formatter, completions_codeeditor, qtbot):
     """Validate autoformatting with a different value of max_line_length."""
     code_editor, completion_plugin = completions_codeeditor

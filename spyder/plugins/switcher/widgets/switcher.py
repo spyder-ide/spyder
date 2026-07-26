@@ -70,7 +70,7 @@ class SwitcherDelegate(HTMLDelegate):
         super().paint(painter, option, index)
 
 
-class Switcher(QDialog, SpyderFontsMixin):
+class Switcher(SpyderFontsMixin, QDialog):
     """
     A multi purpose switcher.
 
@@ -336,12 +336,6 @@ class Switcher(QDialog, SpyderFontsMixin):
 
         # Graphical setup
         self.setup_sections()
-
-        if self.count():
-            self.set_current_row(0)
-        else:
-            self.set_current_row(-1)
-
         self.set_height()
 
     def setup_sections(self):
@@ -543,6 +537,19 @@ class Switcher(QDialog, SpyderFontsMixin):
 
         # Ensure that the selected item is visible
         self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
+    
+    def init_current_row(self, row):
+        """Set the current row, center view, skip editor cursor jump."""
+        proxy_index = self.proxy.index(row, 0)
+        selection_model = self.list.selectionModel()
+
+        # Select current item without moving the editor view
+        with signals_blocked(self):
+            selection_model.setCurrentIndex(
+                proxy_index,
+                QItemSelectionModel.ClearAndSelect
+            )
+            self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
 
     def previous_row(self):
         """Select previous row in list widget."""

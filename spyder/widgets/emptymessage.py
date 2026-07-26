@@ -26,7 +26,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 
 
-class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
+class EmptyMessageWidget(SvgToScaledPixmap, SpyderFontsMixin, QFrame):
     """Widget to show a friendly message when another one is empty."""
 
     def __init__(

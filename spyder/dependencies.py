@@ -34,29 +34,30 @@ PLUGIN = 'spyder plugins'
 AIOHTTP_REQVER = '>=3.11.2'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
-ATOMICWRITES_REQVER = '>=1.2.0'
 BCRYPT_REQVER = ">=4.3.0"
-CHARDET_REQVER = '>=2.0.0'
+CHARDET_REQVER = '>=5.2.0,<8.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
-IPYTHON_REQVER = ">=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0"
+IPYTHON_REQVER = ">=9.15.0,<10.0.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
-JEDI_REQVER = '>=0.17.2,<0.20.0'
+JEDI_REQVER = '>=0.17.2,<0.21.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
+LSPROTOCOL_REQVER = '>=2025.0.0,<2026.0.0'
 LXML_REQVER = ">=4.9.0"
+MARKDOWN_IT_REQVER = ">=3.0.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
+OPENPYXL_REQVER = '>=3.0.0'
 PACKAGING_REQVER = '>=20.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
-PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGITHUB_REQVER = '>=2.3.0'
+PYGLS_REQVER = '>=2.0.0'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=3.1,<5'
 PYLINT_VENV_REQVER = '>=3.0.2'
@@ -67,15 +68,15 @@ PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=24.0.0'
-QDARKSTYLE_REQVER = '>=3.2.0,<3.3.0'
 QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.4.1,<1.5.0'
-QTCONSOLE_REQVER = '>=5.7.0,<5.8.0'
+QTCONSOLE_REQVER = '>=5.7.2,<5.8.0'
 QTPY_REQVER = '>=2.4.0'
 RTFUNICODE = '>=2.2,<3'
 RTREE_REQVER = '>=0.9.7'
 SPHINX_REQVER = '>=7.2.0'
-SPYDER_KERNELS_REQVER = '>=3.1.0b1,<3.2.0a2'
+SPYDER_KERNELS_REQVER = '>=3.2.0a1,<3.2.0a2'
+SPYDER_THEMES_REQVER = '>=1.0.5,<2.0.0'
 SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -112,10 +113,6 @@ DESCRIPTIONS = [
      'package_name': 'asyncssh',
      'features': _('Connect to remote kernels through SSH'),
      'required_version': ASYNCSSH_REQVER},
-    {'modname': "atomicwrites",
-     'package_name': "atomicwrites",
-     'features': _("Atomic file writes in the Editor"),
-     'required_version': ATOMICWRITES_REQVER},
     {'modname': "bcrypt",
      'package_name': "bcrypt",
      'features': _("Decrypt passphrase of SSH key files"),
@@ -136,10 +133,6 @@ DESCRIPTIONS = [
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
-    {'modname': 'importlib_metadata',
-     'package_name': 'importlib-metadata',
-     'features': _('Access the metadata for a Python package'),
-     'required_version': IMPORTLIB_METADATA_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
@@ -169,10 +162,18 @@ DESCRIPTIONS = [
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
      'required_version': KEYRING_REQVER},
+    {'modname': "lsprotocol",
+     'package_name': "lsprotocol",
+     'features': _("Python types for the Language Server Protocol specification"),
+     'required_version': LSPROTOCOL_REQVER},
     {'modname': "lxml",
      'package_name': "lxml",
      'features': _("Colorize SVG icons according to the interface theme"),
      'required_version': LXML_REQVER},
+    {'modname': "markdown_it",
+     'package_name': "markdown-it-py",
+     'features': _("Render markdown content to HTML"),
+     'required_version': MARKDOWN_IT_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
@@ -181,6 +182,10 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
+    {'modname': "openpyxl",
+     'package_name': "openpyxl",
+     'features': _("Export DataFrames to Excel files in the Variable Explorer"),
+     'required_version': OPENPYXL_REQVER},
     {'modname': "packaging",
      'package_name': "packaging",
      'features': _("Compare version numbers of Python packages"),
@@ -190,10 +195,6 @@ DESCRIPTIONS = [
      'features': _("Python parser that supports error recovery and "
                    "round-trip parsing"),
      'required_version': PARSO_REQVER},
-    {'modname': "pexpect",
-     'package_name': "pexpect",
-     'features': _("Stdio support for our language server client"),
-     'required_version': PEXPECT_REQVER},
     {'modname': "pickleshare",
      'package_name': "pickleshare",
      'features': _("Cache the list of installed Python modules"),
@@ -206,6 +207,10 @@ DESCRIPTIONS = [
      'package_name': "pygithub",
      'features': _("Python API for Github REST API"),
      'required_version': PYGITHUB_REQVER},
+    {'modname': "pygls",
+     'package_name': "pygls",
+     'features': _("Python implementation of the Language Server Protocol"),
+     'required_version': PYGLS_REQVER},
     {'modname': "pygments",
      'package_name': "pygments",
      'features': _("Syntax highlighting for a lot of file types in the Editor"),
@@ -249,10 +254,6 @@ DESCRIPTIONS = [
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)"),
      'required_version': PYZMQ_REQVER},
-    {'modname': "qdarkstyle",
-     'package_name': "qdarkstyle",
-     'features': _("Dark style for the entire interface"),
-     'required_version': QDARKSTYLE_REQVER},
     {'modname': "qstylizer",
      'package_name': "qstylizer",
      'features': _("Customize Qt stylesheets"),
@@ -285,6 +286,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "spyder_themes",
+     'package_name': "spyder-themes",
+     'features': _("Graphical themes for the entire application"),
+     'required_version': SPYDER_THEMES_REQVER},
      {'modname': "superqt",
      'package_name': "superqt",
      'features': _("Special widgets and utilities for PyQt applications"),

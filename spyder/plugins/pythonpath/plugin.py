@@ -28,7 +28,7 @@ class PythonpathManager(SpyderPluginV2):
     """
 
     NAME = "pythonpath_manager"
-    REQUIRES = [Plugins.Toolbar, Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu, Plugins.Toolbar]
     OPTIONAL = [Plugins.Projects]
     CONTAINER_CLASS = PythonpathContainer
     CONF_SECTION = NAME

@@ -407,7 +407,12 @@ class RunContainer(PluginMainContainer):
 
         self.metadata_model.set_current_run_configuration(uuid)
 
-        if uuid is not None:
+        # For now, the default executor for run_action is the IPython console,
+        # so we check if it's enabled to enable the action too.
+        # TODO: Fix this when we make the executor configurable.
+        if uuid is not None and self._plugin.is_plugin_enabled(
+            Plugins.IPythonConsole
+        ):
             self.run_action.setEnabled(True)
             self.configure_action.setEnabled(True)
 
@@ -467,8 +472,12 @@ class RunContainer(PluginMainContainer):
             status = key in self.executor_model
             status = status and key in input_provider_ext_ctxs
 
+            # Re-run actions execute the last executed configuration for
+            # their context, which doesn't need to belong to the currently
+            # focused file (see spyder-ide/spyder#23076), so their status
+            # must be computed from it.
             last_run_exists = (
-                (self.currently_selected_configuration,
+                (self._last_executed_configuration,
                  context) in self.last_executed_per_context)
 
             action, __ = self.re_run_actions[(context, act, mod)]

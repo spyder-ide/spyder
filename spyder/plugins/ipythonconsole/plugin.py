@@ -33,14 +33,26 @@ from spyder.plugins.ipythonconsole.api import (
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets import (
+    MatplotlibStatus,
+    PythonEnvironmentStatus,
+)
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
 )
 from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
+    ApplicationMenus,
+    ConsolesMenuSections,
+    HelpMenuSections,
+)
 from spyder.plugins.run.api import (
-    RunContext, RunExecutor, RunConfiguration,
-    ExtendedRunExecutionParameters, RunResult, run_execute)
+    ExtendedRunExecutionParameters,
+    RunContext,
+    RunConfiguration,
+    RunExecutor,
+    RunResult,
+    run_execute,
+)
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
 
 
@@ -52,18 +64,22 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     """
 
     NAME = 'ipython_console'
-    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
+    REQUIRES = [
+        Plugins.Application,
+        Plugins.Console,
+        Plugins.MainInterpreter,
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.WorkingDirectory,
+    ]
     OPTIONAL = [
         Plugins.Editor,
         Plugins.History,
-        Plugins.MainInterpreter,
-        Plugins.MainMenu,
         Plugins.Projects,
         Plugins.PythonpathManager,
         Plugins.RemoteClient,
         Plugins.Run,
         Plugins.StatusBar,
-        Plugins.WorkingDirectory,
     ]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
@@ -229,11 +245,19 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         Path to the new interpreter.
     """
 
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+
+        # Combined with RunExecutor via multiple inheritance; set up its
+        # state here since SpyderDockablePlugin.__init__ doesn't call
+        # RunExecutor.__init__ (which would also re-init the QObject part).
+        self.setup_run_executor()
+
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('IPython console')
+        return _('IPython Console')
 
     @staticmethod
     def get_description():
@@ -423,12 +447,19 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_statusbar_available(self):
         # Add status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+        widget = self.get_widget()
 
-        pythonenv_status = self.get_widget().pythonenv_status
+        pythonenv_status = PythonEnvironmentStatus(widget)
         statusbar.add_status_widget(pythonenv_status)
         pythonenv_status.register_ipythonconsole(self)
+        pythonenv_status.sig_interpreter_changed.connect(
+            widget.sig_interpreter_changed
+        )
+        pythonenv_status.sig_open_preferences_requested.connect(
+            widget.sig_open_preferences_requested
+        )
 
-        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status = MatplotlibStatus(widget)
         statusbar.add_status_widget(matplotlib_status)
         matplotlib_status.register_ipythonconsole(self)
 
@@ -436,14 +467,23 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_statusbar_teardown(self):
         # Remove status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+        widget = self.get_widget()
 
-        pythonenv_status = self.get_widget().pythonenv_status
+        pythonenv_status = statusbar.get_status_widget(
+            PythonEnvironmentStatus.ID
+        )
+        pythonenv_status.sig_interpreter_changed.disconnect(
+            widget.sig_interpreter_changed
+        )
+        pythonenv_status.sig_open_preferences_requested.disconnect(
+            widget.sig_open_preferences_requested
+        )
         pythonenv_status.unregister_ipythonconsole(self)
-        statusbar.remove_status_widget(pythonenv_status.ID)
+        statusbar.remove_status_widget(PythonEnvironmentStatus.ID)
 
-        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status = statusbar.get_status_widget(MatplotlibStatus.ID)
         matplotlib_status.unregister_ipythonconsole(self)
-        statusbar.remove_status_widget(matplotlib_status.ID)
+        statusbar.remove_status_widget(MatplotlibStatus.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -689,8 +729,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
+        projects = self.get_plugin(Plugins.Projects)
 
         if connection_file is not None:
+            # Projects plugin will not restart a console in this case, even if
+            # there is a current project path, so go ahead and start a console.
             cf_path = self.get_widget().find_connection_file(connection_file)
             if cf_path is None:
                 # Show an error if the connection file passed on the command
@@ -701,7 +744,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 client.show_kernel_connection_error()
             else:
                 self.create_client_for_kernel(cf_path, give_focus=False)
+        elif projects is not None and projects.get_active_project():
+            # If there is a current project path, the Projects plugin will
+            # start a console
+            pass
         else:
+            # If there is no current project path, Projects plugin will not
+            # restart a console, so go ahead and start a console
             self.create_new_client(give_focus=False)
 
     # ---- Private methods
@@ -907,14 +956,21 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         client: ClientWidget
             The created client.
         """
+        jupyter_api = None
+        files_api = None
+        if server_id is not None:
+            jupyter_api = self._remote_client.get_jupyter_api(server_id)
+            files_api = self._remote_client.get_file_api(server_id)()
+
         return self.get_widget().create_client_for_kernel(
-            connection_file,
-            hostname,
-            sshkey,
-            password,
-            server_id,
-            give_focus,
-            can_close,
+            connection_file=connection_file,
+            hostname=hostname,
+            sshkey=sshkey,
+            password=password,
+            jupyter_api=jupyter_api,
+            files_api=files_api,
+            give_focus=give_focus,
+            can_close=can_close,
         )
 
     def get_client_for_file(self, filename):
@@ -936,6 +992,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Close client tab from index or client (or close current tab)"""
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
+
     def undo(self) -> None:
         return self.get_widget().current_client_undo()
 
@@ -1255,6 +1312,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @Slot(str)
     def _on_remote_server_disconnected(self, server_id):
+        # Try to reconnect any remote consoles bound to this server before
+        # altering menus.
+        self.get_widget().reconnect_remote_clients(server_id)
         self.get_widget().clear_server_consoles_submenu(server_id)
 
     # ---- Methods related to the Application plugin

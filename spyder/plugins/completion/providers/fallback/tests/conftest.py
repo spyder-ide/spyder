@@ -17,8 +17,7 @@ class CompletionManagerMock(QObject):
     sig_recv_tokens = Signal(list)
 
     def handle_response(self, client, req_id, response):
-        tokens = list(response['params'])
-        self.sig_recv_tokens.emit(list(tokens))
+        self.sig_recv_tokens.emit(list(response))
 
 
 @pytest.fixture(scope='module')

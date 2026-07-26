@@ -337,7 +337,12 @@ def pylsp_code_actions(
     log.debug(f"textDocument/codeAction: {document} {range} {context}")
     code_actions = []
     for diagnostic in context.get("diagnostics", []):
-        if "undefined name" not in diagnostic.get("message", "").lower():
+        # Provided by flake8 and ruff (F821)
+        matched_message = "undefined name" in diagnostic.get("message", "").lower()
+        # Provided by mypy
+        matched_code = diagnostic.get("code", "") == "name-defined"
+
+        if not matched_message and not matched_code:
             continue
 
         word = get_name_or_module(document, diagnostic)

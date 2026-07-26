@@ -40,6 +40,7 @@ KERNEL_ENV="spyder-kernel"
 
 MICROMAMBA_VERSION="latest"
 BIN_FOLDER="${HOME}/.local/bin"
+MICROMAMBA="${BIN_FOLDER}/micromamba"
 PREFIX_LOCATION="${HOME}/micromamba"
 
 PYTHON_VERSION="3.12"
@@ -74,34 +75,39 @@ esac
 
 
 # Install micromamba
-RELEASE_URL="https://github.com/mamba-org/micromamba-releases/releases/${MICROMAMBA_VERSION}/download/micromamba-${PLATFORM}-${ARCH}"
+if [ ! -f "${MICROMAMBA}" ]; then
+    RELEASE_URL="https://github.com/mamba-org/micromamba-releases/releases/${MICROMAMBA_VERSION}/download/micromamba-${PLATFORM}-${ARCH}"
+    mkdir -p "${BIN_FOLDER}"
+    download "${RELEASE_URL}" "${MICROMAMBA}"
+    chmod +x "${MICROMAMBA}"
+fi
 
-mkdir -p "${BIN_FOLDER}"
-download "${RELEASE_URL}" "${BIN_FOLDER}/micromamba"
-chmod +x "${BIN_FOLDER}/micromamba"
 
-eval "$("${BIN_FOLDER}/micromamba" shell hook --shell ${shell})"
+# Create spyder-remote-services env
+if [ -z "$("${MICROMAMBA}" env list | grep spyder-remote)" ]; then
+    "${MICROMAMBA}" create -y -n $SERVER_ENV -c conda-forge "python=${PYTHON_VERSION}" pip
+fi
 
 
-# Install spyder-remote-services
-micromamba create -y -n $SERVER_ENV -c conda-forge "python=${PYTHON_VERSION}" pip
-
+# Install/update spyder-remote-services
 if [ $VERSION == "latest" ]; then
-  micromamba run -n $SERVER_ENV pip install ${PACKAGE_NAME}
+  "${MICROMAMBA}" run -n $SERVER_ENV pip install ${PACKAGE_NAME}
 elif [[ $VERSION != *"=="* ]] && [[ $VERSION != *">="* ]] && [[ $VERSION != *"<="* ]] && [[ $VERSION != *">"* ]] && [[ $VERSION != *"<"* ]]; then
-  micromamba run -n $SERVER_ENV pip install ${PACKAGE_NAME}==$VERSION
+  "${MICROMAMBA}" run -n $SERVER_ENV pip install ${PACKAGE_NAME}==$VERSION
 else
-  micromamba run -n $SERVER_ENV pip install ${PACKAGE_NAME}${VERSION}
+  "${MICROMAMBA}" run -n $SERVER_ENV pip install ${PACKAGE_NAME}${VERSION}
 fi
 
 
-# Install spyder-kernel
-if [ $KERNEL_VERSION == "latest" ]; then
-  micromamba create -y -n $KERNEL_ENV -c conda-forge -c conda-forge/label/spyder_kernels_rc "python=${PYTHON_VERSION}" spyder-kernels
-elif [[ $KERNEL_VERSION != *"="* ]] && [[ $KERNEL_VERSION != *">="* ]] && [[ $KERNEL_VERSION != *"<="* ]] && [[ $KERNEL_VERSION != *">"* ]] && [[ $KERNEL_VERSION != *"<"* ]]; then
-  micromamba create -y -n $KERNEL_ENV -c conda-forge -c conda-forge/label/spyder_kernels_rc "python=${PYTHON_VERSION}" "spyder-kernels=$KERNEL_VERSION"
-else
-  micromamba create -y -n $KERNEL_ENV -c conda-forge -c conda-forge/label/spyder_kernels_rc "python=${PYTHON_VERSION}" "spyder-kernels${KERNEL_VERSION}"
-fi
+# Create spyder-kernels env
+if [ -z "$("${MICROMAMBA}" env list | grep spyder-kernel)" ]; then
+    if [ $KERNEL_VERSION == "latest" ]; then
+      "${MICROMAMBA}" create -y -n $KERNEL_ENV -c conda-forge -c conda-forge/label/spyder_kernels_rc "python=${PYTHON_VERSION}" spyder-kernels
+    elif [[ $KERNEL_VERSION != *"="* ]] && [[ $KERNEL_VERSION != *">="* ]] && [[ $KERNEL_VERSION != *"<="* ]] && [[ $KERNEL_VERSION != *">"* ]] && [[ $KERNEL_VERSION != *"<"* ]]; then
+      "${MICROMAMBA}" create -y -n $KERNEL_ENV -c conda-forge -c conda-forge/label/spyder_kernels_rc "python=${PYTHON_VERSION}" "spyder-kernels=$KERNEL_VERSION"
+    else
+      "${MICROMAMBA}" create -y -n $KERNEL_ENV -c conda-forge -c conda-forge/label/spyder_kernels_rc "python=${PYTHON_VERSION}" "spyder-kernels${KERNEL_VERSION}"
+    fi
 
-micromamba run -n $KERNEL_ENV python -m ipykernel install --user --name $KERNEL_ENV
+    "${MICROMAMBA}" run -n $KERNEL_ENV python -m ipykernel install --user --name $KERNEL_ENV
+fi

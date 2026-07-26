@@ -28,6 +28,10 @@ spyder_crash.log
 MANIFEST
 .boot_branch.txt
 
+# CI passed-test recording (see conftest.py)
+passed_tests.txt
+passed_tests_skipped_on_first_run.txt
+
 # git .orig files
 *.orig
 

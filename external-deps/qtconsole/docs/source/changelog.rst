@@ -8,6 +8,21 @@ Changes in Jupyter Qt console
 5.7
 ~~~
 
+5.7.2
+-----
+
+`5.7.2 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.7.2>`__
+
+* Handle ANSI codes to show/hide cursor.
+
+5.7.1
+-----
+
+`5.7.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.7.1>`__
+
+* Handle restarting state in connected kernels.
+* Don't clear console after setting a new syntax style.
+
 5.7.0
 -----
 

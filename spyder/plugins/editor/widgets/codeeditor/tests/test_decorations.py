@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 from flaky import flaky
 import pytest
-from qtpy import PYQT6
+from qtpy import QT_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor
 
@@ -96,7 +96,11 @@ def test_decorations(codeeditor, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(
+    QT_VERSION.startswith("6"),
+    reason="Fails with Qt 6 (extra call after key-driven scrolling because "
+           "scrollbar valueChanged is now emitted for it, see QTBUG-25365)"
+)
 @pytest.mark.skipif(
     os.name == 'nt' and running_in_ci(),
     reason="Race condition(?) with update timer"
@@ -119,7 +123,7 @@ def test_update_decorations_when_scrolling(qtbot):
         editor = CodeEditor(parent=None)
         editor.setup_editor(
             language='Python',
-            color_scheme='spyder/dark',
+            color_scheme='spyder_themes.spyder/dark',
             font=QFont("Monospace", 10),
         )
         editor.resize(640, 480)
@@ -144,7 +148,7 @@ def test_update_decorations_when_scrolling(qtbot):
             scrollbar.setValue(i * 70)
             qtbot.wait(100)
 
-        # A new call is done here due to __cursor_position_changed being
+        # A new call is done here due to _cursor_position_changed being
         # called, which in turn calls highlight_current_cell and
         # highlight_current_line
         assert _update.call_count == 1

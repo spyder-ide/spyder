@@ -10,16 +10,15 @@ import configparser
 import sys
 
 import qstylizer.style
-from qtconsole.styles import dark_color
-from qtpy.QtCore import Qt, Slot
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
     QFontComboBox,
     QGridLayout,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QMessageBox,
-    QPushButton,
     QStackedWidget,
     QVBoxLayout,
 )
@@ -27,11 +26,12 @@ from qtpy.QtWidgets import (
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
-from spyder.config.gui import get_font, is_dark_font_color, set_font
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
-from spyder.utils import syntaxhighlighters
+from spyder.utils.fonts import get_font, set_font
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -51,54 +51,90 @@ class AppearanceConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         super().__init__(plugin, parent)
         self._is_shown = False
-        self.pre_apply_callback = self.check_color_scheme_notification
 
-        # Notifications for this option are disabled when the plugin is
-        # initialized, so we need to restore them here.
-        CONF.restore_notifications(section='appearance', option='ui_theme')
+        self._theme_changed_during_apply = False
+        self.pre_apply_callback = self.check_theme_changed
+        self.apply_callback = self.apply_theme_changes
 
-    def setup_page(self):
-        names = self.get_option("names")
+        for variant_name in THEME_MANAGER.get_available_theme_variants():
+            try:
+                self.get_option(f"{variant_name}/name")
+            except configparser.NoOptionError:
+                display_name = THEME_MANAGER.get_theme_display_name(
+                    variant_name
+                )
+                self.set_option(f"{variant_name}/name", display_name)
+
+        selected = self.get_option(
+            "selected", default="spyder_themes.spyder/dark"
+        )
+        resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
+        if resolved != selected:
+            self.set_option("selected", resolved)
+            selected = resolved
+
+        if selected and "/" in selected:
+            try:
+                self.get_option(f"{selected}/name")
+            except configparser.NoOptionError:
+                display_name = THEME_MANAGER.get_theme_display_name(
+                    selected
+                )
+                self.set_option(f"{selected}/name", display_name)
+
+    def _builtin_theme_variants(self):
+        """Registered theme variant ids.
+
+        Excludes placeholder ``Custom`` when present.
+        """
+        names = list(THEME_MANAGER.get_available_theme_variants())
+
         try:
-            names.pop(names.index(u'Custom'))
+            names.remove("Custom")
         except ValueError:
             pass
-        custom_names = self.get_option("custom_names", [])
 
-        # Interface options
-        theme_group = QGroupBox(_("Main interface"))
+        return names
 
-        # Interface Widgets
-        ui_theme_choices = [
-            (_('Automatic'), 'automatic'),
-            (_('Light'), 'light'),
-            (_('Dark'), 'dark')
-        ]
-        ui_theme_combo = self.create_combobox(
-            _('Interface theme'),
-            ui_theme_choices,
-            'ui_theme',
-            restart=True
+    def _remove_temp_syntax_options(self):
+        """Drop legacy ``temp/...`` syntax keys (preview scratch space)."""
+        for key in COLOR_SCHEME_KEYS:
+            try:
+                self.remove_option(f"temp/{key}")
+            except Exception:
+                pass
+
+    def setup_page(self):
+        for variant_name in THEME_MANAGER.get_available_theme_variants():
+            try:
+                self.get_option(f"{variant_name}/name")
+            except configparser.NoOptionError:
+                display_name = THEME_MANAGER.get_theme_display_name(
+                    variant_name
+                )
+                self.set_option(f"{variant_name}/name", display_name)
+
+        # Ensure every variant has full syntax keys in config so scheme editor
+        # stacks can be built (only fills missing keys; see ThemeManager).
+        THEME_MANAGER.export_all_themes_to_config()
+
+        names = self._builtin_theme_variants()
+        self._remove_temp_syntax_options()
+
+        # UI theme options
+        ui_group = QGroupBox(_("Interface Theme"))
+
+        # UI theme Widgets
+        edit_button = self.create_button(
+            icon=ima.icon("edit"),
+            callback=self.edit_scheme,
+            tooltip=_("Edit syntax highlighting colors"),
         )
-        self.ui_combobox = ui_theme_combo.combobox
-
-
-        theme_comboboxes_layout = QGridLayout()
-        theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
-        theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
-
-        theme_layout = QVBoxLayout()
-        theme_layout.addLayout(theme_comboboxes_layout)
-        theme_group.setLayout(theme_layout)
-
-        # Syntax coloring options
-        syntax_group = QGroupBox(_("Syntax highlighting theme"))
-
-        # Syntax Widgets
-        edit_button = QPushButton(_("Edit selected theme"))
-        create_button = QPushButton(_("Create new theme"))
-        self.delete_button = QPushButton(_("Delete theme"))
-        self.reset_button = QPushButton(_("Reset to defaults"))
+        self.reset_button = self.create_button(
+            icon=ima.icon("restart"),
+            callback=self.reset_to_default,
+            tooltip=_("Reset customized colors to defaults"),
+        )
 
         self.stacked_widget = QStackedWidget(self)
         self.scheme_editor_dialog = SchemeEditor(
@@ -108,24 +144,29 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.scheme_choices_dict = {}
         schemes_combobox_widget = self.create_combobox(
-            '', [('', '')], 'selected', items_elide_mode=Qt.ElideNone
+            '',
+            [('', '')],
+            'selected',
+            items_elide_mode=Qt.ElideNone,
+            restart=True,
         )
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        # Syntax layout
-        syntax_layout = QGridLayout(syntax_group)
+        # UI theme layout
+        ui_layout = QVBoxLayout(ui_group)
         if sys.platform == "darwin":
             # Default spacing is too big on Mac
-            syntax_layout.setVerticalSpacing(2 * AppStyle. MarginSize)
+            ui_layout.setSpacing(2 * AppStyle. MarginSize)
 
-        btns = [self.schemes_combobox, edit_button, self.reset_button,
-                create_button, self.delete_button]
-        for i, btn in enumerate(btns):
-            syntax_layout.addWidget(btn, i, 1)
-        syntax_layout.setColumnStretch(0, 1)
-        syntax_layout.setColumnStretch(1, 2)
-        syntax_layout.setColumnStretch(2, 1)
-        syntax_layout.setContentsMargins(0, 12, 0, 12)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(edit_button)
+        buttons_layout.addWidget(self.reset_button)
+        buttons_layout.addStretch()
+
+        ui_layout.addWidget(self.schemes_combobox)
+        ui_layout.addLayout(buttons_layout)
+        ui_layout.setContentsMargins(12, 12, 12, 12)
 
         # Fonts options
         fonts_group = QGroupBox(_("Fonts"))
@@ -161,7 +202,7 @@ class AppearanceConfigPage(PluginConfigPage):
         # Preview widgets
         preview_editor_label = QLabel(_("Editor"))
         self.preview_editor = SimpleCodeEditor(self)
-        self.preview_editor.setFixedWidth(260)
+        self.preview_editor.setFixedSize(260, 280)
         self.preview_editor.set_language('Python')
         self.preview_editor.set_text(PREVIEW_TEXT)
         self.preview_editor.set_blanks_enabled(False)
@@ -199,16 +240,17 @@ class AppearanceConfigPage(PluginConfigPage):
 
         fonts_layout = QVBoxLayout()
         fonts_layout.addLayout(fonts_grid_layout)
-        fonts_layout.addSpacing(5)
+        fonts_layout.addSpacing(3)
         fonts_layout.addWidget(system_font_checkbox)
+        fonts_layout.addStretch()
 
         fonts_group.setLayout(fonts_layout)
 
         # Left options layout
         options_layout = QVBoxLayout()
-        options_layout.addWidget(theme_group)
-        options_layout.addWidget(syntax_group)
+        options_layout.addWidget(ui_group)
         options_layout.addWidget(fonts_group)
+        options_layout.addStretch()
 
         # Right previews layout
         preview_group = QGroupBox(_("Previews"))
@@ -236,10 +278,6 @@ class AppearanceConfigPage(PluginConfigPage):
         self.setLayout(final_layout)
 
         # Signals and slots
-        create_button.clicked.connect(self.create_new_scheme)
-        edit_button.clicked.connect(self.edit_scheme)
-        self.reset_button.clicked.connect(self.reset_to_default)
-        self.delete_button.clicked.connect(self.delete_scheme)
         self.schemes_combobox.currentIndexChanged.connect(
             lambda index: self.update_editor_preview()
         )
@@ -252,6 +290,9 @@ class AppearanceConfigPage(PluginConfigPage):
             )
         )
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
+        self.schemes_combobox.currentIndexChanged.connect(
+            self.on_scheme_changed
+        )
         self.plain_text_font.fontbox.currentFontChanged.connect(
             lambda font: self.update_editor_preview()
         )
@@ -282,23 +323,13 @@ class AppearanceConfigPage(PluginConfigPage):
             self.update_app_font_group
         )
 
-        # Setup
+        # Now load the schemes into the editor dialog
         for name in names:
-            self.scheme_editor_dialog.add_color_scheme_stack(name)
-
-        valid_custom_names = []
-        for name in custom_names:
             try:
-                self.scheme_editor_dialog.add_color_scheme_stack(
-                    name, custom=True
-                )
-                valid_custom_names.append(name)
+                self.scheme_editor_dialog.add_color_scheme_stack(name)
             except configparser.NoOptionError:
-                # Ignore invalid custom syntax highlighting themes
-                # See spyder-ide/spyder#22492
+                # Skip themes that can't be loaded
                 pass
-
-        self.set_option("custom_names", valid_custom_names)
 
         if sys.platform == 'darwin':
             system_font_checkbox.checkbox.setEnabled(False)
@@ -321,44 +352,30 @@ class AppearanceConfigPage(PluginConfigPage):
             for plugin in plugins:
                 plugin.update_font()
 
-    def apply_settings(self):
-        ui_theme = self.get_option('ui_theme')
-        mismatch = self.color_scheme_and_ui_theme_mismatch(
-            self.current_scheme, ui_theme)
+    def check_theme_changed(self):
+        """
+        Check if theme actually changed before apply_settings.
 
-        if ui_theme == 'automatic':
-            if mismatch:
-                # Ask for a restart
-                self.changed_options.add('ui_theme')
-            else:
-                # Don't ask for a restart
-                if 'ui_theme' in self.changed_options:
-                    self.changed_options.remove('ui_theme')
-        else:
-            if 'ui_theme' in self.changed_options:
-                if not mismatch:
-                    # Don't ask for a restart
-                    self.changed_options.remove('ui_theme')
-            else:
-                if mismatch:
-                    # Ask for a restart
-                    self.changed_options.add('ui_theme')
+        This avoids requesting for a restart if the theme didn't actually
+        change.
+        """
+        current_scheme = self.current_scheme
+        saved_scheme = self.get_option('selected', default='')
+        theme_changed = (current_scheme != saved_scheme)
+        self._theme_changed_during_apply = theme_changed
 
-        # We need to restore notifications for these options so they can be
-        # changed when the user selects other values for them.
-        for option in ['selected', 'ui_theme']:
-            CONF.restore_notifications(section='appearance', option=option)
+    def apply_theme_changes(self):
+        """Apply changes to theme options."""
+        if not self._theme_changed_during_apply:
+            # Drop 'selected' from changed_options if theme didn't change.
+            # Avoids restart prompt when only font or other options changed.
+            self.changed_options.discard('selected')
 
-        self.update_combobox()
-        self.update_editor_preview()
-
-        # This applies changes to a custom color scheme to all open editors.
-        # Fixes spyder-ide/spyder#22693
-        for plugin_name in PLUGIN_REGISTRY:
-            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            plugin.update_font()
-
-        return set(self.changed_options)
+            # Update preview and plugins font/color scheme
+            self.update_editor_preview()
+            for plugin_name in PLUGIN_REGISTRY:
+                plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+                plugin.update_font()
 
     # ---- Helpers
     # -------------------------------------------------------------------------
@@ -369,14 +386,6 @@ class AppearanceConfigPage(PluginConfigPage):
     @property
     def current_scheme(self):
         return self.scheme_choices_dict[self.current_scheme_name]
-
-    @property
-    def current_scheme_index(self):
-        return self.schemes_combobox.currentIndex()
-
-    @property
-    def current_ui_theme_index(self):
-        return self.ui_combobox.currentIndex()
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -397,59 +406,55 @@ class AppearanceConfigPage(PluginConfigPage):
     # ---- Update contents
     # -------------------------------------------------------------------------
     def update_combobox(self):
-        """Recreates the combobox contents."""
-        index = self.current_scheme_index
+        """Populate the combobox contents."""
+        # Save currently selected theme (not index, since order may change)
+        current_scheme = self.get_option(
+            'selected', default='spyder_themes.spyder/dark'
+        )
+
         self.schemes_combobox.blockSignals(True)
-        names = self.get_option("names")
+
+        # Use theme manager to get available themes dynamically
+        names = THEME_MANAGER.get_available_theme_variants()
         try:
             names.pop(names.index(u'Custom'))
         except ValueError:
             pass
-        custom_names = self.get_option("custom_names", [])
 
-        # Useful for retrieving the actual data
-        for n in names + custom_names:
-            # Make option value a string to prevent errors when using it
-            # as widget text.
-            # See spyder-ide/spyder#18929
-            self.scheme_choices_dict[
-                str(self.get_option('{0}/name'.format(n)))
-            ] = n
-
-        if custom_names:
-            choices = names + [None] + custom_names
-        else:
-            choices = names
-
+        # Clear existing data
+        self.scheme_choices_dict.clear()
         combobox = self.schemes_combobox
         combobox.clear()
 
-        for name in choices:
-            if name is None:
-                continue
-            # Make option value a string to prevent errors when using it
-            # as widget text.
-            # See spyder-ide/spyder#18929
-            item_name = str(self.get_option('{0}/name'.format(name)))
-            combobox.addItem(item_name, name)
+        for name in names:
+            # Get display name (from config or generate it)
+            try:
+                display_name = str(self.get_option('{0}/name'.format(name)))
+            except configparser.NoOptionError:
+                display_name = THEME_MANAGER.get_theme_display_name(name)
 
-        if custom_names:
-            combobox.insertSeparator(len(names))
+            # Add to dictionary and combobox
+            self.scheme_choices_dict[display_name] = name
+            combobox.addItem(display_name, name)
+
+        # Find and select the current theme (by value, not index)
+        index = combobox.findData(current_scheme)
+
+        # Theme not found, default to bundled dark variant
+        if index == -1:
+            index = combobox.findData('spyder_themes.spyder/dark')
+
+        # Still not found, just use first item
+        if index == -1:
+            index = 0
 
         self.schemes_combobox.blockSignals(False)
         self.schemes_combobox.setCurrentIndex(index)
 
     def update_buttons(self):
-        """Updates the enable status of delete and reset buttons."""
-        current_scheme = self.current_scheme
-        names = self.get_option("names")
-        try:
-            names.pop(names.index(u'Custom'))
-        except ValueError:
-            pass
-        delete_enabled = current_scheme not in names
-        self.delete_button.setEnabled(delete_enabled)
-        self.reset_button.setEnabled(not delete_enabled)
+        """Enable reset only for built-in theme variants."""
+        names = self._builtin_theme_variants()
+        self.reset_button.setEnabled(self.current_scheme in names)
 
     def update_editor_preview(self, scheme_name=None, font_family=None):
         """Update the color scheme of the preview editor and adds text."""
@@ -492,50 +497,14 @@ class AppearanceConfigPage(PluginConfigPage):
 
     # ---- Actions
     # -------------------------------------------------------------------------
-    def create_new_scheme(self):
-        """Creates a new color scheme with a custom name."""
-        names = self.get_option('names')
-        custom_names = self.get_option('custom_names', [])
+    def on_scheme_changed(self):
+        """
+        Handle scheme selection change.
 
-        # Get the available number this new color scheme
-        counter = len(custom_names) - 1
-        custom_index = [int(n.split('-')[-1]) for n in custom_names]
-        for i in range(len(custom_names)):
-            if custom_index[i] != i:
-                counter = i - 1
-                break
-        custom_name = "custom-{0}".format(counter+1)
-
-        # Add the config settings, based on the current one.
-        custom_names.append(custom_name)
-        self.set_option('custom_names', custom_names)
-        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
-            name = "{0}/{1}".format(custom_name, key)
-            default_name = "{0}/{1}".format(self.current_scheme, key)
-            option = self.get_option(default_name)
-            self.set_option(name, option)
-        self.set_option('{0}/name'.format(custom_name), custom_name)
-
-        # Now they need to be loaded! how to make a partial load_from_conf?
-        dlg = self.scheme_editor_dialog
-        dlg.add_color_scheme_stack(custom_name, custom=True)
-        dlg.set_scheme(custom_name)
-        self.load_from_conf()
-
-        if dlg.exec_():
-            # This is needed to have the custom name updated on the combobox
-            name = dlg.get_scheme_name()
-            self.set_option('{0}/name'.format(custom_name), name)
-
-            # The +1 is needed because of the separator in the combobox
-            index = (names + custom_names).index(custom_name) + 1
-            self.update_combobox()
-            self.schemes_combobox.setCurrentIndex(index)
-        else:
-            # Delete the config ....
-            custom_names.remove(custom_name)
-            self.set_option('custom_names', custom_names)
-            dlg.delete_color_scheme_stack(custom_name)
+        Only update the preview, don't save to config yet. The theme will be
+        saved when user clicks Apply/OK.
+        """
+        self.update_editor_preview()
 
     def edit_scheme(self):
         """Edit current scheme."""
@@ -544,51 +513,10 @@ class AppearanceConfigPage(PluginConfigPage):
         dlg.rejected.connect(lambda: self.apply_button_enabled.emit(False))
 
         if dlg.exec_():
-            # Update temp scheme to reflect instant edits on the preview
-            temporal_color_scheme = dlg.get_edited_color_scheme()
-            for key in temporal_color_scheme:
-                option = "temp/{0}".format(key)
-                value = temporal_color_scheme[key]
-                self.set_option(option, value)
-
-            if not self.scheme_choices_dict.get("temp"):
-                self.scheme_choices_dict["temp"] = "temp"
-
-            self.update_editor_preview(scheme_name='temp')
-
-    def delete_scheme(self):
-        """Deletes the currently selected custom color scheme."""
-        scheme_name = self.current_scheme
-
-        answer = QMessageBox.warning(
-            self,
-            _("Warning"),
-            _("Are you sure you want to delete this theme?"),
-            QMessageBox.Yes | QMessageBox.No,
-        )
-        if answer == QMessageBox.Yes:
-            # Put the combobox in Spyder by default, when deleting a scheme
-            names = self.get_option('names')
-            default_theme = 'spyder'
-            if self.is_dark_interface():
-                default_theme = 'spyder/dark'
-            self.schemes_combobox.setCurrentIndex(names.index(default_theme))
-            self.set_option('selected', default_theme)
-
-            # Delete from custom_names
-            custom_names = self.get_option('custom_names', [])
-            if scheme_name in custom_names:
-                custom_names.remove(scheme_name)
-            self.set_option('custom_names', custom_names)
-
-            # Delete config options
-            for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
-                option = "{0}/{1}".format(scheme_name, key)
-                CONF.remove_option(self.CONF_SECTION, option)
-            CONF.remove_option(self.CONF_SECTION,
-                               "{0}/name".format(scheme_name))
-
-            self.update_combobox()
+            # Syntax values stay in widgets and ``changed_options`` until the
+            # user clicks Apply or OK, which runs save_to_conf/apply_changes.
+            self._remove_temp_syntax_options()
+            self.scheme_choices_dict.pop("temp", None)
             self.update_editor_preview()
 
     def set_scheme(self, scheme_name):
@@ -598,71 +526,34 @@ class AppearanceConfigPage(PluginConfigPage):
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(scheme_name)
 
-    @Slot()
     def reset_to_default(self):
         """Restore initial values for default color schemes."""
+        answer = QMessageBox.question(
+            self,
+            _("Reset to defaults"),
+            _(
+                "Do you want to reset all syntax highlighting colors to "
+                "default values?"
+            )
+        )
+
+        if answer == QMessageBox.No:
+            return
+
         # Checks that this is indeed a default scheme
         scheme = self.current_scheme
-        names = self.get_option('names')
+        names = self._builtin_theme_variants()
+
         if scheme in names:
-            for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
-                option = "{0}/{1}".format(scheme, key)
-                value = CONF.get_default(self.CONF_SECTION, option)
-                self.set_option(option, value)
+            try:
+                theme_name, ui_mode = scheme.rsplit('/', 1)
+                THEME_MANAGER.export_theme_to_config(
+                    theme_name, ui_mode, replace=True
+                )
+            except Exception:
+                for key in COLOR_SCHEME_KEYS:
+                    option = "{0}/{1}".format(scheme, key)
+                    value = CONF.get_default(self.CONF_SECTION, option)
+                    self.set_option(option, value)
 
             self.load_from_conf()
-
-    def is_dark_interface(self):
-        """
-        Check if our interface is dark independently from our config
-        system.
-
-        We need to do this because when applying settings we can't
-        detect correctly the current theme.
-        """
-        return dark_color(SpyderPalette.COLOR_BACKGROUND_1)
-
-    def color_scheme_and_ui_theme_mismatch(self, color_scheme, ui_theme):
-        """
-        Detect if there is a mismatch between the current color scheme and
-        UI theme.
-
-        Parameters
-        ----------
-        color_scheme: str
-            Name of one of Spyder's color schemes. For instance: 'Zenburn' or
-            'Monokai'.
-        ui_theme: str
-            Name of the one of Spyder's interface themes. This can 'automatic',
-            'dark' or 'light'.
-        """
-        # A dark color scheme is characterized by a light font and viceversa
-        is_dark_color_scheme = not is_dark_font_color(color_scheme)
-        if ui_theme == 'automatic':
-            mismatch = (
-                (self.is_dark_interface() and not is_dark_color_scheme) or
-                (not self.is_dark_interface() and is_dark_color_scheme)
-            )
-        else:
-            mismatch = (
-                (self.is_dark_interface() and ui_theme == 'light') or
-                (not self.is_dark_interface() and ui_theme == 'dark')
-            )
-
-        return mismatch
-
-    def check_color_scheme_notification(self):
-        """
-        Check if it's necessary to notify plugins to update their color scheme.
-        """
-        ui_theme_map = {0: 'automatic', 1: 'light', 2: 'dark'}
-        ui_theme = ui_theme_map[self.current_ui_theme_index]
-        mismatch = self.color_scheme_and_ui_theme_mismatch(
-            self.current_scheme, ui_theme)
-
-        # We don't need to apply the selected color scheme if there's a
-        # mismatch between it and the UI theme. Instead, we only we need to ask
-        # for a restart.
-        if mismatch:
-            for option in ['selected', 'ui_theme']:
-                CONF.disable_notifications(section='appearance', option=option)

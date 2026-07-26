@@ -12,9 +12,9 @@ import os
 import re
 import socket
 import sys
+import unicodedata
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
@@ -148,18 +148,15 @@ class ObjectComboBox(EditableComboBox):
                     self.valid.emit(False, False)
 
 
-class RichText(QWidget, SpyderWidgetMixin):
+class RichText(SpyderWidgetMixin, QWidget):
     """
     WebView widget with find dialog
     """
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         from qtpy.QtWebEngineWidgets import QWebEnginePage
         from spyder.widgets.browser import FrameWebView
@@ -554,13 +551,6 @@ class HelpWidget(PluginMainWidget):
             self.show_intro_message()
         else:
             self.force_refresh()
-
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def change_color_scheme(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        self.set_plain_text_color_scheme(value)
 
     def update_actions(self):
         pass
@@ -1059,6 +1049,33 @@ class HelpWidget(PluginMainWidget):
         is_code = False
 
         if self.get_conf('rich_mode'):
+            # Check if the function was declared in the console
+            is_interactive_function = False
+            if doc:
+                documentation = doc.get('docstring', '')
+                note = doc.get('note', '')
+                is_interactive_function = '__main__' in note
+
+            # Get signature from text
+            if is_interactive_function and source_text:
+                normalized_text = unicodedata.normalize("NFKD", source_text)
+                match = re.search(
+                    r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', normalized_text, re.S
+                )
+                args = ''
+
+                if match:
+                    definition = match.group(0)
+                    start = definition.find('(')
+                    args = definition[start:-1]
+
+                doc = {
+                    'name': obj_text,
+                    'argspec': args,
+                    'note': note,
+                    'docstring': documentation
+                }
+
             self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:

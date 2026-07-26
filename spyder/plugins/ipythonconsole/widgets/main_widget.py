@@ -17,6 +17,7 @@ import os.path as osp
 import shlex
 import sys
 import time
+import warnings
 
 # Third-party imports
 from jupyter_client.connect import find_connection_file
@@ -58,7 +59,6 @@ from spyder.plugins.ipythonconsole.widgets import (
     KernelConnectionDialog,
     MatplotlibStatus,
     PageControlWidget,
-    PythonEnvironmentStatus,
     ShellWidget,
 )
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
@@ -401,14 +401,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
-        # Create status widgets
-        self.matplotlib_status = MatplotlibStatus(self)
-        self.pythonenv_status = PythonEnvironmentStatus(self)
-        self.pythonenv_status.sig_interpreter_changed.connect(
-            self.sig_interpreter_changed
-        )
-        self.pythonenv_status.sig_open_preferences_requested.connect(
-            self.sig_open_preferences_requested)
+        # Create status widgets for tests
+        if running_under_pytest():
+            self.matplotlib_status = MatplotlibStatus(self)
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
@@ -469,6 +464,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             icon=self.create_icon('restart'),
             triggered=lambda checked: self.restart_kernel(),
             register_shortcut=True
+        )
+        self.reconnect_action = self.create_action(
+            IPythonConsoleWidgetActions.Reconnect,
+            text=_("Reconnect to remote kernel"),
+            icon=self.create_icon('reconnect'),
+            triggered=self.reconnect_kernel,
         )
         self.reset_action = self.create_action(
             IPythonConsoleWidgetActions.ResetNamespace,
@@ -685,6 +686,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
+                self.reconnect_action,
                 self.reset_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
@@ -757,10 +759,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.time_label.name = (
             IPythonConsoleWidgetCornerWidgets.TimeElapsedLabel
         )
+        self.reconnect_button = self.create_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.ReconnectButton,
+            text=_("Reconnect to remote kernel"),
+            tip=_("Reconnect to remote kernel"),
+            icon=self.create_icon("reconnect"),
+            triggered=self.reconnect_kernel,
+        )
 
         # --- Add tab corner widgets.
         self.add_corner_widget(self.stop_button)
         self.add_corner_widget(self.clear_button)
+        self.add_corner_widget(self.reconnect_button)
         self.add_corner_widget(self.time_label)
 
         # --- Tabs context menu
@@ -781,6 +791,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
+                self.reconnect_action,
                 self.reset_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
@@ -829,6 +840,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
 
+            # For remote clients
+            is_remote = client.is_remote()
+            self.reconnect_action.setVisible(is_remote)
+            self.reconnect_button.setMaximumWidth(
+                self.stop_button.width() if is_remote else 0
+            )
+
             # Client is loading or showing a kernel error
             if (
                 client.infowidget is not None
@@ -850,17 +868,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 client.get_control(pager=False).set_help_enabled,
                 value
             )
-
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def change_clients_color_scheme(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.set_color_scheme,
-                value)
 
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
@@ -1039,7 +1046,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 else:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
-                    interactive_backend = sw.get_mpl_interactive_backend()
+                    try:
+                        interactive_backend = sw.get_mpl_interactive_backend()
+                    except TimeoutError:
+                        # Show error message when it's not possible to get the
+                        # backend
+                        # Fixes spyder-ide/spyder#26173
+                        QMessageBox.critical(
+                            self,
+                            _('Error'),
+                            _(
+                                "It was not possible to detect the current "
+                                "Matplotlib backend in the kernel, so the one "
+                                "you selected can't be set."
+                            )
+                        )
 
                 if (
                     # There was an error getting the interactive backend in
@@ -1627,11 +1648,23 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         Refreshes corner widgets and actions as well as the info widget and
         sets the shellwidget and client signals
         """
+        # Don't refresh while the console is being torn down. This slot is
+        # connected to the tabwidget's currentChanged signal, which fires as
+        # tabs are removed during close_all_clients; at that point the current
+        # client's widgets may already be scheduled for deletion, so touching
+        # them (e.g. get_control().setFocus() below) crashes on PySide.
+        if self.mainwindow_close:
+            return
+
         client = None
         if self.tabwidget.count():
             for instance_client in self.clients:
                 try:
-                    instance_client.timer.timeout.disconnect()
+                    with warnings.catch_warnings():
+                        # RuntimeWarning: Failed to disconnect (None) from
+                        # signal "timeout()".
+                        warnings.simplefilter("ignore")
+                        instance_client.timer.timeout.disconnect()
                 except (RuntimeError, TypeError):
                     pass
 
@@ -1699,8 +1732,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and give_focus:
             self.sig_switch_to_plugin_requested.emit()
-        self.activateWindow()
-        client.get_control().setFocus()
+        # Only give focus when necessary to prevent the main window from
+        # stealing focus at startup.
+        # Fixes spyder-ide/spyder#24231.
+        if give_focus:
+            self.activateWindow()
+            client.get_control().setFocus()
+
         self.update_tabs_text()
 
         # Register client
@@ -1966,8 +2004,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Add client to widget
         self.add_tab(
-            client, name=client.get_name(), filename=filename,
-            give_focus=give_focus)
+            client,
+            name=client.get_name(),
+            filename=filename,
+            give_focus=give_focus,
+        )
 
         return client
 
@@ -2036,7 +2077,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         client.hostname = hostname
 
         # Adding a new tab for the client
-        self.add_tab(client, name=client.get_name())
+        self.add_tab(client, name=client.get_name(), give_focus=give_focus)
 
         # Set elapsed time, if possible
         if master_client is not None:
@@ -2281,11 +2322,34 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 client.is_remote()
                 and client.jupyter_api.server_id == server_id
             ):
+                # Since the server is being stopped, we can safely close the
+                # client's remote APIs (e.g. Jupyter and files). That will
+                # prevent sending additional requests to the server (e.g. to
+                # shutdown the kernel), which at some point it won't be able to
+                # process.
+                client.close_remote_apis()
+
                 is_last_client = (
                     len(self.get_related_clients(client, open_clients)) == 0
                 )
                 client.close_client(is_last_client)
                 open_clients.remove(client)
+
+        # Set clients list with those that are left open
+        self.clients = open_clients
+
+        # Create a new client if the console is about to become empty
+        if not self.tabwidget.count() and self.create_new_client_if_empty:
+            self.create_new_client()
+
+    def reconnect_remote_clients(self, server_id):
+        """Request reconnection for all clients bound to a remote server."""
+        for client in self.clients:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
+                client.reconnect_remote_kernel()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -2530,7 +2594,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Replace in all related clients
         for cl in self.get_related_clients(client):
-            cl.replace_kernel(kernel_handler.copy(), shutdown_kernel=False)
+            # Use shutdown_kernel=True here to prevent
+            # "QThread: Destroyed while thread is still running".
+            # Fixes spyder-ide/spyder#23973
+            cl.replace_kernel(kernel_handler.copy(), shutdown_kernel=True)
 
         client.replace_kernel(kernel_handler, shutdown_kernel=True)
 
@@ -2547,6 +2614,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if client is not None:
             self.sig_switch_to_plugin_requested.emit()
             client.stop_button_click_handler()
+
+    def reconnect_kernel(self):
+        """Reconnect remote kernel of current client."""
+        client = self.get_current_client()
+        if client is None or not client.is_remote():
+            return
+
+        self.sig_switch_to_plugin_requested.emit()
+        client.reconnect_remote_kernel()
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, method='runcell'):

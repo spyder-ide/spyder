@@ -8,22 +8,23 @@
 # -----------------------------------------------------------------------------
 
 """
-Contains the panels controller, drawing the panel inside CodeEditor's margins.
+Editor panels manager.
 
-Not all panels are using PanelsManager, but future panels should use it.
-
-Adapted from pyqode/core/managers/panels.py of the
-`PyQode project <https://github.com/pyQode/pyQode>`_.
-Original file:
-<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py>
+It draws all panels inside a CodeEditor.
 """
 
+# Standard library imports
+from __future__ import annotations
 import logging
-
+from typing import TYPE_CHECKING
 
 # Local imports
 from spyder.plugins.editor.api.manager import Manager
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 logger = logging.getLogger(__name__)
@@ -31,60 +32,79 @@ logger = logging.getLogger(__name__)
 
 class PanelsManager(Manager):
     """
-    Manage the list of panels and draw them inside the margins of
-    CodeEditor widgets.
+    Manage panels and draw them inside the margins of a CodeEditor widget.
     """
-    def __init__(self, editor):
+
+    def __init__(self, editor: "CodeEditor"):
         super().__init__(editor)
         self._cached_cursor_pos = (-1, -1)
         self._margin_sizes = (0, 0, 0, 0)
         self._top = self._left = self._right = self._bottom = -1
         self._panels = {
-            Panel.Position.TOP: {},
-            Panel.Position.LEFT: {},
-            Panel.Position.RIGHT: {},
-            Panel.Position.BOTTOM: {},
-            Panel.Position.FLOATING: {}
+            PanelPosition.TOP: {},
+            PanelPosition.LEFT: {},
+            PanelPosition.RIGHT: {},
+            PanelPosition.BOTTOM: {},
+            PanelPosition.FLOATING: {}
         }
+
         try:
             editor.blockCountChanged.connect(self._update_viewport_margins)
             editor.updateRequest.connect(self._update)
         except AttributeError:
             # QTextEdit
             editor.document().blockCountChanged.connect(
-                self._update_viewport_margins)
+                self._update_viewport_margins
+            )
 
-    def register(self, panel, position=Panel.Position.LEFT):
+    def register(self, panel: Panel, position=PanelPosition.LEFT) -> Panel:
         """
-        Installs a panel on the editor.
+        Register a panel in a CodeEditor.
 
-        :param panel: Panel to install
-        :param position: Position where the panel must be installed.
-        :return: The installed panel
+        Paramaters
+        ----------
+        panel: Panel
+            The panel to install.
+        position: PanelPosition
+            Position where the panel must be installed.
+
+        Returns
+        -------
+        panel: Panel
+            The installed panel.
         """
         assert panel is not None
         pos_to_string = {
-            Panel.Position.BOTTOM: 'bottom',
-            Panel.Position.LEFT: 'left',
-            Panel.Position.RIGHT: 'right',
-            Panel.Position.TOP: 'top',
-            Panel.Position.FLOATING: 'floating'
+            PanelPosition.BOTTOM: 'bottom',
+            PanelPosition.LEFT: 'left',
+            PanelPosition.RIGHT: 'right',
+            PanelPosition.TOP: 'top',
+            PanelPosition.FLOATING: 'floating'
         }
-        logger.debug('adding panel %s at %s' % (panel.name,
-                                                pos_to_string[position]))
+        logger.debug(
+            "adding panel %s at %s" % (panel.name, pos_to_string[position])
+        )
+
         panel.order_in_zone = len(self._panels[position])
         self._panels[position][panel.name] = panel
         panel.position = position
         panel.on_install(self.editor)
-        logger.debug('panel %s installed' % panel.name)
+
         return panel
 
-    def remove(self, name_or_class):
+    def remove(self, name_or_class: str | type[Panel]) -> Panel:
         """
-        Removes the specified panel.
+        Remove the specified panel.
 
-        :param name_or_class: Name or class of the panel to remove.
-        :return: The removed panel
+        Paramaters
+        ----------
+        name_or_class: str or type[Panel]
+            Name or class of the panel to remove.
+
+        Returns
+        -------
+        panel: Panel
+            The removed panel.
         """
         logger.debug('Removing panel %s' % name_or_class)
         panel = self.get(name_or_class)
@@ -93,30 +113,44 @@ class PanelsManager(Manager):
         panel.setParent(None)
         return self._panels[panel.position].pop(panel.name, None)
 
-    def clear(self):
-        """Removes all panels from the CodeEditor."""
-        for i in range(5):
-            while len(self._panels[i]):
-                key = sorted(list(self._panels[i].keys()))[0]
+    def clear(self) -> None:
+        """Remove all panels from the editor."""
+        for zone in PanelPosition:
+            while len(self._panels[zone]):
+                key = sorted(list(self._panels[zone].keys()))[0]
                 panel = self.remove(key)
                 panel.setParent(None)
 
-    def get(self, name_or_class):
+    def get(self, name_or_class: str | type[Panel]) -> Panel:
         """
-        Gets a specific panel instance.
+        Get a specific panel.
 
-        :param name_or_klass: Name or class of the panel to retrieve.
-        :return: The specified panel instance.
+        Paramaters
+        ----------
+        name_or_class: str or type[Panel]
+            Name or class of the panel to get.
+
+        Returns
+        -------
+        panel: Panel
+            The specified panel instance.
+
+        Raises
+        ------
+        KeyError
+            If panel is not among the installed ones.
         """
         if not isinstance(name_or_class, str):
             name_or_class = name_or_class.__name__
-        for zone in range(5):
+
+        for zone in PanelPosition:
             try:
                 panel = self._panels[zone][name_or_class]
             except KeyError:
                 pass
             else:
                 return panel
+
         raise KeyError(name_or_class)
 
     def __iter__(self):
@@ -133,24 +167,28 @@ class PanelsManager(Manager):
                 lst.append(panel)
         return len(lst)
 
-    def panels_for_zone(self, zone):
+    def panels_for_zone(self, zone: PanelPosition) -> list[Panel]:
         """
-        Gets the list of panels attached to the specified zone.
+        Get the list of panels attached to the specified zone.
 
-        :param zone: Panel position.
+        Paramaters
+        ----------
+        zone: PanelPosition
+            The zone to get the panels for.
 
-        :return: List of panels instances.
+        Returns
+        -------
+        list[Panel]
         """
         return list(self._panels[zone].values())
 
-    def refresh(self):
-        """Refreshes the editor panels (resize and update margins)."""
+    def refresh(self) -> None:
+        """Refresh the editor panels (resize and update margins)."""
         self.resize()
-        self._update(self.editor.contentsRect(), 0,
-                     force_update_margins=True)
+        self._update(self.editor.contentsRect(), 0, force_update_margins=True)
 
     def resize(self):
-        """Resizes panels."""
+        """Resize panels."""
         crect = self.editor.contentsRect()
         view_crect = self.editor.viewport().contentsRect()
         s_bottom, s_left, s_right, s_top = self._compute_zones_sizes()
@@ -158,8 +196,9 @@ class PanelsManager(Manager):
         th = s_bottom + s_top
         w_offset = crect.width() - (view_crect.width() + tw)
         h_offset = crect.height() - (view_crect.height() + th)
+
         left = 0
-        panels = self.panels_for_zone(Panel.Position.LEFT)
+        panels = self.panels_for_zone(PanelPosition.LEFT)
         panels.sort(key=lambda panel: panel.order_in_zone, reverse=True)
         for panel in panels:
             if not panel.isVisible():
@@ -171,8 +210,9 @@ class PanelsManager(Manager):
                               size_hint.width(),
                               crect.height() - s_bottom - s_top - h_offset)
             left += size_hint.width()
+
         right = 0
-        panels = self.panels_for_zone(Panel.Position.RIGHT)
+        panels = self.panels_for_zone(PanelPosition.RIGHT)
         panels.sort(key=lambda panel: panel.order_in_zone, reverse=True)
         for panel in panels:
             if not panel.isVisible():
@@ -184,8 +224,9 @@ class PanelsManager(Manager):
                 size_hint.width(),
                 crect.height() - h_offset)
             right += size_hint.width()
+
         top = 0
-        panels = self.panels_for_zone(Panel.Position.TOP)
+        panels = self.panels_for_zone(PanelPosition.TOP)
         panels.sort(key=lambda panel: panel.order_in_zone)
         for panel in panels:
             if not panel.isVisible():
@@ -196,8 +237,9 @@ class PanelsManager(Manager):
                               crect.width() - s_right - w_offset,
                               size_hint.height())
             top += size_hint.height()
+
         bottom = 0
-        panels = self.panels_for_zone(Panel.Position.BOTTOM)
+        panels = self.panels_for_zone(PanelPosition.BOTTOM)
         panels.sort(key=lambda panel: panel.order_in_zone)
         for panel in panels:
             if not panel.isVisible():
@@ -211,23 +253,25 @@ class PanelsManager(Manager):
             bottom += size_hint.height()
 
     def update_floating_panels(self):
-        """Update foating panels."""
+        """Update floating panels."""
         crect = self.editor.contentsRect()
-        panels = self.panels_for_zone(Panel.Position.FLOATING)
+        panels = self.panels_for_zone(PanelPosition.FLOATING)
         for panel in panels:
             if not panel.isVisible():
                 continue
             panel.set_geometry(crect)
 
     def _update(self, rect, delta_y, force_update_margins=False):
-        """Updates panels."""
+        """Update panels."""
         if not self:
             return
         line, col = self.editor.get_cursor_line_column()
         oline, ocol = self._cached_cursor_pos
         for zones_id, zone in self._panels.items():
-            if zones_id == Panel.Position.TOP or \
-               zones_id == Panel.Position.BOTTOM:
+            if (
+                zones_id == PanelPosition.TOP
+                or zones_id == PanelPosition.BOTTOM
+            ):
                 continue
             panels = list(zone.values())
             for panel in panels:
@@ -247,68 +291,82 @@ class PanelsManager(Manager):
         left = 0
         right = 0
         bottom = 0
-        for panel in self.panels_for_zone(Panel.Position.LEFT):
+
+        for panel in self.panels_for_zone(PanelPosition.LEFT):
             if panel.isVisible():
                 width = panel.sizeHint().width()
                 left += width
-        for panel in self.panels_for_zone(Panel.Position.RIGHT):
+
+        for panel in self.panels_for_zone(PanelPosition.RIGHT):
             if panel.isVisible():
                 width = panel.sizeHint().width()
                 right += width
-        for panel in self.panels_for_zone(Panel.Position.TOP):
+
+        for panel in self.panels_for_zone(PanelPosition.TOP):
             if panel.isVisible():
                 height = panel.sizeHint().height()
                 top += height
-        for panel in self.panels_for_zone(Panel.Position.BOTTOM):
+
+        for panel in self.panels_for_zone(PanelPosition.BOTTOM):
             if panel.isVisible():
                 height = panel.sizeHint().height()
                 bottom += height
+
         new_size = (top, left, right, bottom)
         if new_size != self._margin_sizes:
             self._margin_sizes = new_size
             self.editor.setViewportMargins(left, top, right, bottom)
 
-    def margin_size(self, position=Panel.Position.LEFT):
+    def margin_size(self, position=PanelPosition.LEFT) -> float:
         """
-        Gets the size of a specific margin.
+        Get the margin size of a specific position.
 
-        :param position: Margin position. See
-            :class:`spyder.api.Panel.Position`
-        :return: The size of the specified margin
-        :rtype: float
+        Paramaters
+        ----------
+        position: PanelPosition
+            The position to get the margin for.
+
+        Returns
+        -------
+        float:
+            The margin size of the specified position.
         """
-        return self._margin_sizes[position]
+        return self._margin_sizes[position.value]
 
     def _compute_zones_sizes(self):
         """Compute panel zone sizes."""
         # Left panels
         left = 0
-        for panel in self.panels_for_zone(Panel.Position.LEFT):
+        for panel in self.panels_for_zone(PanelPosition.LEFT):
             if not panel.isVisible():
                 continue
             size_hint = panel.sizeHint()
             left += size_hint.width()
+
         # Right panels
         right = 0
-        for panel in self.panels_for_zone(Panel.Position.RIGHT):
+        for panel in self.panels_for_zone(PanelPosition.RIGHT):
             if not panel.isVisible():
                 continue
             size_hint = panel.sizeHint()
             right += size_hint.width()
+
         # Top panels
         top = 0
-        for panel in self.panels_for_zone(Panel.Position.TOP):
+        for panel in self.panels_for_zone(PanelPosition.TOP):
             if not panel.isVisible():
                 continue
             size_hint = panel.sizeHint()
             top += size_hint.height()
+
         # Bottom panels
         bottom = 0
-        for panel in self.panels_for_zone(Panel.Position.BOTTOM):
+        for panel in self.panels_for_zone(PanelPosition.BOTTOM):
             if not panel.isVisible():
                 continue
             size_hint = panel.sizeHint()
             bottom += size_hint.height()
         self._top, self._left, self._right, self._bottom = (
             top, left, right, bottom)
+
         return bottom, left, right, top

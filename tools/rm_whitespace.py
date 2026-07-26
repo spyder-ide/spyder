@@ -294,7 +294,7 @@ def generate_arg_parser():
         help=("If passed, will only warn (and exit with a non-zero status) "
               "if trailing spaces are found in the files, rather than "
               "removing them. Intended for a CI-side check. "
-              "Also implictly triggers verbosity=2."))
+              "Also implicitly triggers verbosity=2."))
 
     arg_parser.add_argument(
         "--verbose", "-v", action="count",

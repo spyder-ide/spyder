@@ -91,19 +91,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             completers,
             'completion_type',
             tip=_(
-                "Graphical shows a list of completion matches in a GUI.\n"
-                "Plain displays matches in the Console output, like Bash.\n"
-                "Terminal is Plain plus Tab selecting matches, like Zsh.\n"
+                "Graphical shows a list of completion matches in a GUI. "
+                "Plain displays matches in the Console output, like Bash. "
+                "Terminal is Plain plus Tab selecting matches, like Zsh."
             ),
         )
         jedi_box = newcb(
             _("Use Jedi completion"),
             "jedi_completer",
             tip=_(
-                "Enable Jedi-based tab-completion in the IPython console.\n"
+                "Enable Jedi-based tab-completion in the IPython console. "
                 "Similar to the greedy completer, but without evaluating "
                 "the code and allows completion of dictionary keys, "
-                "nested lists and similar.\n"
+                "nested lists and similar. "
                 "Warning: Can slow down the Console when working with "
                 "large dataframes."
             ),
@@ -140,7 +140,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             step=100,
             tip=_(
                 "The maximum number of output lines "
-                "retained in each console at a time.\n"
+                "retained in each console at a time. "
                 "Warning; Buffer sizes greater than 10000 lines can slow "
                 "down Spyder."
             ),
@@ -149,8 +149,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Render SymPy symbolic math"),
             "symbolic_math",
             tip=_(
-                "Pretty-print the outputs of SymPy symbolic computations\n"
-                "(requires SymPy installed in the console environment).\n"
+                "Pretty-print the outputs of SymPy symbolic computations "
+                "(requires SymPy installed in the console environment). "
                 "Refer to SymPy's documentation for details on using it."
             ),
         )
@@ -168,7 +168,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Automatically import NumPy and Matplotlib modules"),
             'pylab/autoload',
             tip=_(
-                "This is a convenience to use NumPy and Matplotlib\n"
+                "This is a convenience to use NumPy and Matplotlib "
                 "in the console without explicitly importing the modules."
             )
         )
@@ -205,8 +205,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             'pylab/backend',
             default='inline',
             tip=_(
-                "If unsure, select {inline} to show figures in the Plots pane"
-                "\nor {auto} to interact with them (zoom and pan) "
+                "If unsure, select {inline} to show figures in the Plots pane "
+                "or {auto} to interact with them (zoom and pan) "
                 "in a new window."
             ).format(inline=inline, auto=automatic),
         )
@@ -277,15 +277,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             min_=0,
             max_=0.3,
             step=0.01,
-            tip=_("The position of the bottom edge of the subplots,\n"
+            tip=_("The position of the bottom edge of the subplots, "
                   "as a fraction of the figure height (default is 0.11).")
         )
         bottom_spin.spinbox.setDecimals(2)
         bbox_inches_box = newcb(
             _("Use a tight layout for inline plots"),
             'pylab/inline/bbox_inches',
-            tip=_("Sets 'bbox_inches' to 'tight' for inline plots.\n"
-                  "When enabled, figures displayed in the Plots pane\n"
+            tip=_("Sets 'bbox_inches' to 'tight' for inline plots. "
+                  "When enabled, figures displayed in the Plots pane "
                   "may look different from those output with 'savefig'."))
 
         inline_v_layout = QVBoxLayout()
@@ -317,7 +317,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Run lines group
         run_lines_group = QGroupBox(_("Run code"))
         run_lines_label = QLabel(_(
-            "Enter a code snippet to run when a new console is started.\n"
+            "Enter a code snippet to run when a new console is started. "
             "Separate multiple lines by semicolons, for example:<br>"
             "<tt>import os; import sys</tt>"
         ))
@@ -371,7 +371,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             default=0,
             tip=_(
                 "In {smart} mode, Autocall is not applied if there are no "
-                "arguments after the callable.\n"
+                "arguments after the callable. "
                 "In {full} mode, callable objects are called even if no "
                 "arguments are present."
             ).format(smart=smart, full=full),
@@ -415,7 +415,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Input prompt:"),
             'in_prompt',
             "",
-            _('Default is<br>'
+            _('Default is '
               '<tt>In [&lt;span class="in-prompt-number"&gt;%i&lt;/span&gt;]:</tt>'),
             alignment=Qt.Horizontal,
         )
@@ -423,7 +423,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Output prompt:"),
             'out_prompt',
             "",
-            _('Default is<br>'
+            _('Default is '
               '<tt>Out[&lt;span class="out-prompt-number"&gt;%i&lt;/span&gt;]:</tt>'),
             alignment=Qt.Horizontal,
         )

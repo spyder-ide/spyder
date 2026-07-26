@@ -25,6 +25,8 @@ from setuptools_scm import get_version
 # Local imports
 from utils import logger as logger, HERE, BUILD, DocFormatter
 
+
+# Constants
 EXTDEPS = HERE.parent / "external-deps"
 REQUIREMENTS = HERE.parent / "requirements"
 REQ_MAIN = REQUIREMENTS / 'main.yml'
@@ -81,6 +83,13 @@ def get_spy_feedstock_branch():
             feedstock_branch = "dev"
 
     return feedstock_branch
+
+
+def get_spy_python_min_version():
+    """Get the minimal Python version supported by Spyder."""
+    for line in (HERE.parent / "setup.py").read_text().split("\n"):
+        if "python_requires" in line:
+            return re.search(r"(\d+\.\d+)", line).group(1)
 
 
 class BuildCondaPkg:
@@ -175,7 +184,7 @@ class BuildCondaPkg:
         file.rename(file.parent / ("_" + file.name))  # copy of original
 
         pyver = sys.version_info
-        contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
+        contents['python'] = [f"{pyver.major}.{pyver.minor}"]
         yaml.dump(contents, file)
 
         self.logger.info(
@@ -285,6 +294,11 @@ class SpyderCondaPkg(BuildCondaPkg):
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     feedstock_branch = get_spy_feedstock_branch()
+
+    def __init__(
+        self, data={"python_min": get_spy_python_min_version()}, debug=False
+    ):
+        super().__init__(data, debug)
 
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")

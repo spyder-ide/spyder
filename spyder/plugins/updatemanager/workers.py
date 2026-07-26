@@ -247,6 +247,19 @@ def _check_asset_available(
     return asset_info
 
 
+def _read_updater_log(log_path: str) -> tuple[str, str | None]:
+    """Read a Spyder-updater log file and report OS errors separately."""
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read(), None
+    except OSError as err:
+        logger.warning(
+            "Unable to read Spyder-updater log file %s", log_path,
+            exc_info=err
+        )
+        return "", f"Unable to read {log_path}: {err}"
+
+
 def validate_download(file: str, checksum: str) -> bool:
     """
     Compute the sha256 checksum of the provided file and compare against
@@ -628,10 +641,17 @@ class WorkerUpdateUpdater(BaseWorker):
             # Check for errors there by reading the logs
             updater_stdout = osp.join(installer_dir, "updater_stdout.log")
             updater_stderr = osp.join(installer_dir, "updater_stderr.log")
-            with open(updater_stderr, "r") as f:
-                stderr = f.read()
-            with open(updater_stdout, "r") as f:
-                stdout = f.read()
+            stdout, __ = _read_updater_log(updater_stdout)
+            stderr, stderr_error = _read_updater_log(updater_stderr)
+
+            if stderr_error is not None:
+                raise subprocess.CalledProcessError(
+                    1,
+                    " ".join(cmd),
+                    output=stdout,
+                    stderr=stderr_error,
+                )
+
             if stderr:
                 raise subprocess.CalledProcessError(
                     1, " ".join(cmd), output=stdout, stderr=stderr
@@ -655,6 +675,20 @@ class WorkerUpdateUpdater(BaseWorker):
             elif self.asset_info is not None:
                 self._download_asset()
                 self._install_update()
+        except SSLError as err:
+            self.error = SSL_ERROR_MSG
+            logger.warning(err, exc_info=err)
+        except ConnectionError as err:
+            self.error = CONNECT_ERROR_MSG
+            logger.warning(err, exc_info=err)
+        except HTTPError as err:
+            status_code = err.response.status_code
+            self.error = HTTP_ERROR_MSG.format(status_code=status_code)
+            logger.warning(err, exc_info=err)
+        except OSError as err:
+            self.error = OS_ERROR_MSG.format(error=err)
+            self.checkbox = True
+            logger.warning(err, exc_info=err)
         except UpdateUpdaterUACCancelled as err:
             self.error = err
             logger.debug(err)

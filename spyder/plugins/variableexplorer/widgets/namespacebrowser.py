@@ -19,7 +19,6 @@ import tarfile
 from typing import Callable, TYPE_CHECKING
 
 # Third library imports
-from qtpy import PYSIDE2
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
@@ -35,10 +34,13 @@ from spyder.api.translations import _
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
-from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
+from spyder.widgets.collectionseditor import (
+    natsort,
+    RemoteCollectionsEditorTableView
+)
 from spyder.widgets.helperwidgets import FinderWidget
 
 
@@ -54,7 +56,7 @@ if TYPE_CHECKING:
     PlotFunction = Callable(Figure, None)
 
 class NamespaceBrowser(
-    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+    SpyderWidgetMixin, ShellConnectWidgetForStackMixin, QWidget
 ):
     """
     Namespace browser (global variables explorer widget).
@@ -83,11 +85,9 @@ class NamespaceBrowser(
     """
 
     def __init__(self, parent):
-        if not PYSIDE2:
-            super().__init__(parent=parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        ShellConnectWidgetForStackMixin.__init__(self)
 
         # Attributes
         self.filename = None
@@ -248,7 +248,7 @@ class NamespaceBrowser(
 
     def set_data(self, data):
         """Set data."""
-        data = dict(sorted(data.items()))
+        data = dict(sorted(data.items(), key=lambda x: natsort(x[0])))
         if data != self.editor.source_model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()

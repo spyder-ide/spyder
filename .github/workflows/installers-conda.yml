@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         target-platform: ${{ fromJson(needs.build-matrix.outputs.target_platform) }}
-        python-version: ['3.12']
+        python-version: ['3.13']
         branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
         include: ${{ fromJson(needs.build-matrix.outputs.include) }}
     defaults:
@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ matrix.branch }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Restore python-lsp-server Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
@@ -172,7 +172,7 @@ jobs:
 
       - name: Restore qtconsole Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: Restore ${{ matrix.spyk-arch }} spyder-kernels Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
@@ -190,7 +190,7 @@ jobs:
 
       - name: Setup Build Environment (Windows)
         if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
             conda_build:
@@ -213,7 +213,7 @@ jobs:
 
       - name: Setup Build Environment (macOS & Linux)
         if: runner.os != 'Windows'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
             conda_build:
@@ -322,18 +322,21 @@ jobs:
               echo No log found at %base_prefix%\install.log
           )
 
-          set mode=system
+          set error_occured=0
+
+          set mode=user
           for /F "tokens=*" %%i in (
               '%base_prefix%\python %base_prefix%\Scripts\menuinst_cli.py shortcut --mode=%mode%'
           ) do (
               set shortcut=%%~fi
           )
           echo.
+          echo Spyder shortcut: %shortcut%
           if exist "%shortcut%" (
-              echo Spyder installed successfully
+              echo Spyder shortcut installed successfully
           ) else (
-              echo Spyder NOT installed successfully
-              EXIT /B 1
+              echo Error: Spyder shortcut NOT installed successfully
+              set error_occured=1
           )
 
           set runtime_python=%base_prefix%\envs\spyder-runtime\python
@@ -347,10 +350,10 @@ jobs:
           echo Actual version   = %actual_version%
           if %SPYVER% neq %actual_version% (
               echo Error: installed Spyder version is incorrect!
-              EXIT /B 1
+              set error_occured=1
           )
 
-          EXIT /B %ERRORLEVEL%
+          EXIT /B %error_occured%
 
       - name: Notarize
         if: runner.os == 'macOS' && env.NOTARIZE == 'true'
@@ -358,7 +361,7 @@ jobs:
           ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: ${{ env.DISTDIR }}
           name: ${{ env.ARTIFACT_NAME }}
@@ -375,7 +378,7 @@ jobs:
 
     steps:
       - name: Download Assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           merge-multiple: 'true'
 
@@ -388,13 +391,13 @@ jobs:
           sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt || true
 
       - name: Upload Lock Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: spyder-conda-lock.zip
           name: spyder-conda-lock-artifact
 
       - name: Upload Checksums
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: Spyder-checksums.txt
           name: Spyder-checksums

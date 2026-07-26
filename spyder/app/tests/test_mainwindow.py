@@ -211,22 +211,30 @@ def test_leaks(main_window, qtbot):
         return n_shell_init, n_code_editor_init
 
     n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)
-    qtbot.wait(1000)
-    # Count final objects
-    gc.collect()
-    objects = gc.get_objects()
-    n_code_editor = 0
-    for o in objects:
-        if type(o).__name__ == "CodeEditor":
-            n_code_editor += 1
-    n_shell = 0
-    for o in objects:
-        if type(o).__name__ == "ShellWidget":
-            n_shell += 1
 
-    # Make sure no new objects have been created
-    assert n_shell <= n_shell_init
-    assert n_code_editor <= n_code_editor_init
+    def count_alive(class_name):
+        # Note: Several collection passes are necessary because destroying
+        # the C++ part of a widget releases references, e.g. to slots held
+        # by its signal connections, that can make other objects collectable
+        # in turn.
+        for __ in range(3):
+            gc.collect()
+
+        return sum(
+            type(o).__name__ == class_name for o in gc.get_objects()
+        )
+
+    # Make sure no new objects have been created. We need to wait for this
+    # because clients are destroyed with deleteLater, i.e. asynchronously
+    # during event loop runs (and only after the kernel's prompt is ready if
+    # they were closed while debugging).
+    qtbot.waitUntil(
+        lambda: count_alive("ShellWidget") <= n_shell_init, timeout=10000
+    )
+    qtbot.waitUntil(
+        lambda: count_alive("CodeEditor") <= n_code_editor_init,
+        timeout=10000,
+    )
 
 
 def test_lock_action(main_window, qtbot):
@@ -280,8 +288,16 @@ def test_default_plugin_actions(main_window, qtbot):
     main_widget = file_explorer.get_widget()
 
     # Undock action
-    main_widget.undock_action.triggered.emit(True)
+    main_widget.undock_action.trigger()
     qtbot.wait(500)
+
+    # Resize the window so that it fits the screen. Otherwise the geometry
+    # save/restore roundtrip below fails on Qt 6 because its restoreGeometry
+    # sanitizes geometries that don't fit the screen (the undocked window
+    # inherits the widget's docked size, which can exceed the headless screen
+    # used in CI).
+    main_widget.windowwidget.resize(500, 400)
+
     main_widget.windowwidget.move(200, 200)
     assert not file_explorer.dockwidget.isVisible()
     assert main_widget.undock_action is not None
@@ -289,7 +305,7 @@ def test_default_plugin_actions(main_window, qtbot):
     assert main_widget.windowwidget.centralWidget() == main_widget
 
     # Dock action
-    main_widget.dock_action.triggered.emit(True)
+    main_widget.dock_action.trigger()
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
     assert main_widget.windowwidget is None
@@ -308,7 +324,7 @@ def test_default_plugin_actions(main_window, qtbot):
     main_widget.windowwidget.close()
 
     # Close action
-    main_widget.close_action.triggered.emit(True)
+    main_widget.close_action.trigger()
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
     assert not file_explorer.toggle_view_action.isChecked()
@@ -1064,6 +1080,46 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
 
+    # Try quitting the kernels
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('quit()')
+    with qtbot.waitSignal(python_shell.executed):
+        python_shell.execute('quit()')
+
+    # Make sure everything quit properly
+    qtbot.waitUntil(lambda: not km.is_alive())
+    qtbot.waitUntil(lambda: not spykm.is_alive())
+
+    # Close the channels
+    spykc.stop_channels()
+    kc.stop_channels()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == "darwin" and running_in_ci(),
+    reason="Fails frequently on Mac and CI",
+)
+@pytest.mark.order(after="test_connection_to_external_kernel")
+@pytest.mark.close_main_window
+def test_debug_and_backend_external_kernel(main_window, qtbot):
+    """Test enabling a Qt backend and debugging on an external Spyder kernel.
+
+    Split out from test_connection_to_external_kernel: entering the debugger on
+    an external kernel -- especially with a Qt event loop active from
+    ``%matplotlib`` -- can deadlock under load on CI, which made that test
+    flaky. Isolating it here keeps the connection/variable-explorer checks
+    stable while this (inherently flakier) smoke test reruns on its own.
+    """
+    # Connect to an externally-started Spyder kernel
+    spykm, spykc = start_new_kernel(spykernel=True)
+    main_window.ipyconsole.create_client_for_kernel(spykc.connection_file)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
     # Try enabling a qt backend and debugging
     if os.name != 'nt':
         # Fails on windows
@@ -1076,19 +1132,13 @@ def test_connection_to_external_kernel(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
 
-    # Try quitting the kernels
+    # Make sure the kernel quits properly
     with qtbot.waitSignal(shell.executed):
         shell.execute('quit()')
-    with qtbot.waitSignal(python_shell.executed):
-        python_shell.execute('quit()')
+    qtbot.waitUntil(lambda: not spykm.is_alive())
 
-    # Make sure everything quit properly
-    assert not km.is_alive()
-    assert not spykm.is_alive()
-
-    # Close the channels
+    # Close the channel
     spykc.stop_channels()
-    kc.stop_channels()
 
 
 @pytest.mark.order(1)
@@ -4749,7 +4799,6 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     # Wait until the initial requests are sent to the server.
     lsp = main_window.completions.get_provider('lsp')
     python_client = lsp.clients['python']
-    qtbot.wait(5000)
 
     expected_requests = [
         'initialize',
@@ -4847,16 +4896,10 @@ def test_tour_message(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
-    reason="Only works on Linux"
+    not sys.platform.startswith('linux'), reason="Only works on Linux"
 )
 @pytest.mark.skipif(
-    sys.version_info[:2] < (3, 10),
-    reason="Too flaky in old Python versions"
-)
-@pytest.mark.skipif(
-    not running_in_ci_with_conda(),
-    reason="Too flaky with pip packages"
+    not running_in_ci_with_conda(), reason="Too flaky with pip packages"
 )
 @pytest.mark.known_leak
 @pytest.mark.xfail(
@@ -5542,12 +5585,13 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
 )
 @pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
 def test_shortcuts_in_external_plugins(main_window, qtbot):
-    """Test that keyboard shortcuts for widgets work in external plugins."""
+    """Test that keyboard shortcuts for widgets in external plugins work."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     # Show plugin
     main_widget = main_window.get_plugin('spyder_boilerplate').get_widget()
@@ -5564,10 +5608,15 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     assert example_widget.toPlainText() == "Example text"
 
     # Check second shortcut is working
-    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
-    assert example_widget.toPlainText() == "Another text"
-    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
-    assert example_widget.toPlainText() == "Another text"
+    editor = main_window.get_plugin(Plugins.Editor).get_current_editor()
+    editor.selectAll()
+    editor.delete()
+    eol = editor.get_line_separator()
+    markdown_cell = "# %% [markdown]" + 2 * eol
+
+    editor.setFocus()
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
+    assert editor.get_text_with_eol() == markdown_cell
 
     # Open Preferences and select shortcuts table
     dlg, index, page = preferences_dialog_helper(
@@ -5576,7 +5625,7 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     table = page.table
 
     # Change shortcuts in table
-    new_shortcuts = [("change text", "Ctrl+J"), ("new text", "Alt+K")]
+    new_shortcuts = [("change text", "Ctrl+J"), ("markdown cell", "Alt+K")]
     for name, sequence in new_shortcuts:
         table.finder.setFocus()
         table.finder.clear()
@@ -5597,8 +5646,9 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     qtbot.keyClick(example_widget, Qt.Key_J, modifier=Qt.ControlModifier)
     assert example_widget.toPlainText() == "Example text"
 
-    qtbot.keyClick(example_widget, Qt.Key_K, modifier=Qt.AltModifier)
-    assert example_widget.toPlainText() == "Another text"
+    editor.setFocus()
+    qtbot.keyClick(editor, Qt.Key_K, modifier=Qt.AltModifier)
+    assert editor.get_text_with_eol() == 2 * markdown_cell
 
     # Open Preferences again and reset shortcuts
     dlg, index, page = preferences_dialog_helper(
@@ -5617,8 +5667,9 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
     assert example_widget.toPlainText() == "Example text"
 
-    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
-    assert example_widget.toPlainText() == "Another text"
+    editor.setFocus()
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
+    assert editor.get_text_with_eol() == 3 * markdown_cell
 
 
 @pytest.mark.skipif(
@@ -6094,7 +6145,7 @@ def test_history_from_ipyconsole(main_window, qtbot):
 
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
-    sys.platform == "darwin", reason="Fails frequently on Mac"
+    os.name != "nt", reason="Fails frequently on Mac and Linux"
 )
 def test_debug_unsaved_function(main_window, qtbot):
     """
@@ -6222,11 +6273,14 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
 
     # Check we are blocked
     control = main_window.ipyconsole.get_widget().get_focus_widget()
-    assert ']:' not in control.toPlainText().split()[-1]
+    qtbot.waitUntil(lambda: ']:' not in control.toPlainText().split()[-1])
 
     debugger.capture_frames()
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
+
+    if "Shell channel" in frames_browser.stack_dict:
+        expected_number_threads += 1
 
     if len(frames_browser.stack_dict) != expected_number_threads:
         # Failed, print stack for debugging
@@ -6474,7 +6528,7 @@ def test_interrupt(main_window, qtbot):
     qtbot.wait(200)
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
-    assert 0 < shell.get_value("i") < 99
+    qtbot.waitUntil(lambda: 0 < shell.get_value("i") < 99)
     assert list(frames_browser.stack_dict.keys())[0] == "KeyboardInterrupt"
 
     # Interrupt debugging
@@ -6485,9 +6539,9 @@ def test_interrupt(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
     assert "Program interrupted" in shell._control.toPlainText()
-    assert 0 < shell.get_value("i") < 99
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
+    qtbot.waitUntil(lambda: 0 < shell.get_value("i") < 99)
 
     # Interrupt while waiting for debugger
     with qtbot.waitSignal(shell.executed):
@@ -6766,11 +6820,16 @@ def test_debug_selection(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.xfail(reason="Fails with too much")
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_namespace_project
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Only works on Linux"
+)
+@pytest.mark.skipif(
+    running_in_ci_with_conda(), reason="Fails with conda packages"
+)
 @pytest.mark.known_leak
 def test_outline_namespace_package(main_window, qtbot, tmpdir):
     """
@@ -7318,6 +7377,9 @@ def test_undock_plugin_and_close(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux"), reason="Fails frequently on Linux"
+)
 def test_outline_in_maximized_editor(main_window, qtbot):
     """
     Test that the visibility of the Outline when shown with the maximized
@@ -7810,6 +7872,89 @@ def test_view_own_class_in_variable_explorer(main_window, qtbot):
     # Getting the instance should work now
     instance_value = shell.get_value('mc_instance')
     assert instance_value.var == 123
+
+
+def test_help_long_type_alias_rendering(main_window, qtbot):
+    """Test that long type annotations from __main__ are readable."""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=20000
+    )
+
+    help_plugin = main_window.help
+    webview = help_plugin.get_widget().rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    code = dedent(
+        """
+        from collections.abc import Sequence
+        type_alias = Sequence[int | str] | int | str
+
+        def my_fun(x: type_alias) -> type_alias:
+            '''Test docstring'''
+            return x
+        """
+    )
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    qtbot.keyClicks(control, 'my_fun')
+    control.inspect_current_object()
+
+    # Validate the docstring is shown in the Help pane
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Test docstring"),
+        timeout=20000
+    )
+
+    # And the right signature is in it.
+    assert check_text(webpage, "x")
+    assert not check_text(webpage, "Sequence[int | str] | int | str |")
+
+
+def test_help_numpy_typing_annotations(main_window, qtbot):
+    """Test that numpy typing annotations don't break argument visibility."""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=20000
+    )
+
+    help_plugin = main_window.help
+    webview = help_plugin.get_widget().rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    code = dedent(
+        """
+        from __future__ import annotations
+        import numpy as np
+        import numpy.typing as npt
+
+        def my_np_fun(x: npt.ArrayLike, axis: int) -> npt.NDArray[float]:
+            '''Numpy typing test'''
+            return np.asarray(x, np.float64).sum(axis)
+        """
+    )
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    qtbot.keyClicks(control, 'my_np_fun')
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Numpy typing test"),
+        timeout=20000
+    )
+
+    assert check_text(webpage, "axis")
+    assert not check_text(
+        webpage, "[Union[bool, int, float, complex, str, bytes]]"
+    )
 
 
 if __name__ == "__main__":

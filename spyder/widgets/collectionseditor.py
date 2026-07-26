@@ -106,6 +106,7 @@ class CollectionsEditorActions:
     Save = 'save_action'
     ShowImage = 'show_image_action'
     ViewObject = 'view_object_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class CollectionsEditorMenus:
@@ -131,7 +132,8 @@ class CollectionsEditorContextMenuSections:
 
 class CollectionsEditorToolbarSections:
     AddDelete = 'add_delete_section'
-    ViewAndRest = 'view_section'
+    View = 'view_section'
+    CloseAndReset = 'close_and_rest_section'
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -204,7 +206,7 @@ class ProxyObject(object):
 # =============================================================================
 # ---- Widgets
 # =============================================================================
-class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
+class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
 
     sig_setting_data = Signal()
@@ -728,7 +730,7 @@ class BaseHeaderView(QHeaderView):
             self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
 
 
-class BaseTableView(QTableView, SpyderWidgetMixin):
+class BaseTableView(SpyderWidgetMixin, QTableView):
     """Base collection editor table view"""
     CONF_SECTION = 'variable_explorer'
 
@@ -739,7 +741,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
     sig_editor_shown = Signal()
 
     def __init__(self, parent):
-        super().__init__(parent=parent)
+        QTableView.__init__(self, parent=parent)
+        SpyderWidgetMixin.__init__(self)
 
         # Main attributes
         self.array_filename = None
@@ -947,8 +950,12 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 section=CollectionsEditorContextMenuSections.AddRemove
             )
 
-        for action in [self.view_action, self.plot_action,
-                       self.hist_action, self.imshow_action]:
+        for action in [
+            self.view_action,
+            self.plot_action,           
+            self.hist_action,
+            self.imshow_action,
+        ]:
             self.add_item_to_menu(
                 action,
                 menu,
@@ -1819,17 +1826,29 @@ class CollectionsEditorTableView(BaseTableView):
         self.dictfilter = dictfilter
 
 
-class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
+class CollectionsEditorWidget(SpyderWidgetMixin, QWidget):
     """Dictionary Editor Widget"""
     # Dummy conf section to avoid a warning from SpyderConfigurationObserver
     CONF_SECTION = "variable_explorer"
 
     sig_refresh_requested = Signal()
+    sig_close_window_requested = Signal()    
+    sig_close_all_editors_requested = Signal()
 
-    def __init__(self, parent, data, namespacebrowser=None,
-                 data_function: Optional[Callable[[], Any]] = None,
-                 readonly=False, title="", remote=False):
+    def __init__(
+        self,
+        parent,
+        data,
+        from_variable_explorer=False,
+        namespacebrowser=None,
+        data_function: Optional[Callable[[], Any]] = None,
+        readonly=False,
+        title="",
+        remote=False,
+    ):
         QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
+
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
                 self, data, readonly, create_menu=True)
@@ -1859,6 +1878,15 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         self.register_shortcut_for_widget(
             name='close', triggered=self.close_window
         )
+
+        self.close_all_editors_action = self.create_action(
+            name=CollectionsEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit,
+            register_action=False,
+        )
+        self.close_all_editors_action.setVisible(from_variable_explorer)
 
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
@@ -1902,7 +1930,16 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.editor.view_action,
             self.editor.plot_action,
             self.editor.hist_action,
-            self.editor.imshow_action,
+            self.editor.imshow_action
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar,
+                section=CollectionsEditorToolbarSections.View
+            )
+
+        for item in [
+            self.close_all_editors_action,
             stretcher,
             self.editor.resize_action,
             self.editor.resize_columns_action,
@@ -1912,7 +1949,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.add_item_to_toolbar(
                 item,
                 toolbar,
-                section=CollectionsEditorToolbarSections.ViewAndRest
+                section=CollectionsEditorToolbarSections.CloseAndReset
             )
 
         toolbar.render()
@@ -1938,11 +1975,13 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
 
     def close_window(self):
         if self.parent():
-            self.parent().reject()
+            self.sig_close_window_requested.emit()
 
 
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
+
+    sig_close_all_editors_requested = Signal()
 
     def __init__(
         self,
@@ -1977,6 +2016,7 @@ class CollectionsEditor(BaseDialog):
         parent=None,
         loading_msg=None,
         loading_img=None,
+        from_variable_explorer=False
     ):
         """Setup editor."""
         if isinstance(data, (dict, set, frozenset)):
@@ -2002,12 +2042,23 @@ class CollectionsEditor(BaseDialog):
             readonly = True
 
         self.widget = CollectionsEditorWidget(
-            self, self.data_copy, self.namespacebrowser, self.data_function,
-            title=title, readonly=readonly, remote=remote
+            self,
+            self.data_copy,
+            from_variable_explorer,
+            self.namespacebrowser,
+            self.data_function,
+            title=title,
+            readonly=readonly,
+            remote=remote,
         )
         self.widget.sig_refresh_requested.connect(self.refresh_editor)
+        self.widget.sig_close_window_requested.connect(self.reject)
         self.widget.editor.source_model.sig_setting_data.connect(
-            self.save_and_close_enable)
+            self.save_and_close_enable
+        )
+        self.widget.sig_close_all_editors_requested.connect(
+            self.sig_close_all_editors_requested
+        )
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
@@ -2239,6 +2290,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         except TypeError as e:
             QMessageBox.critical(self, _("Error"), "TypeError: %s" % str(e))
         self.namespacebrowser.refresh_namespacebrowser()
+
+    def close_all_editors(self):
+        """Close all editors opened from this table view."""
+        self.delegate.close_all_editors()
 
     def remove_values(self, names):
         """Remove values from data"""

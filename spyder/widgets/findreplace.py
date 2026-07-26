@@ -12,11 +12,11 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 import re
 import sys
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPixmap, QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
@@ -55,7 +55,7 @@ class SearchText(PatternComboBox):
         return QSize(self.recommended_width, AppStyle.FindHeight)
 
 
-class FindReplace(QWidget, SpyderShortcutsMixin):
+class FindReplace(SpyderShortcutsMixin, QWidget):
     """Find widget"""
 
     # For shortcuts
@@ -70,12 +70,16 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
     return_shift_pressed = Signal()
     return_pressed = Signal()
 
-    def __init__(self, parent, enable_replace=False):
-        if not PYSIDE2:
-            super().__init__(parent)
-        else:
-            QWidget.__init__(self, parent)
+    def __init__(
+        self,
+        parent: QWidget,
+        enable_replace: bool = False,
+        margin_top: int | None = None,
+        margin_bottom: int | None = None,
+    ):
+        QWidget.__init__(self, parent)
         SpyderShortcutsMixin.__init__(self)
+
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
@@ -83,9 +87,9 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
         glayout = QGridLayout()
         glayout.setContentsMargins(
             2 * AppStyle.MarginSize,
-            AppStyle.MarginSize,
+            AppStyle.MarginSize if margin_top is None else margin_top,
             2 * AppStyle.MarginSize,
-            0
+            0 if margin_bottom is None else margin_bottom,
         )
         if sys.platform == "darwin":
             # Spacing is too big on Mac, which makes the widget look bad

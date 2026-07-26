@@ -13,6 +13,7 @@ source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 
 # Standard library imports
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+import contextlib
 import tempfile
 import locale
 import re
@@ -24,8 +25,7 @@ import time
 import errno
 
 # Third-party imports
-from chardet.universaldetector import UniversalDetector
-from atomicwrites import atomic_write
+import chardet
 
 # Local imports
 from spyder.utils.external.binaryornot.check import is_binary
@@ -148,14 +148,9 @@ def get_coding(text, force_chardet=False, default_codec=None):
 
     # Fallback using chardet
     if isinstance(text, bytes) and (force_chardet or default_codec is None):
-        detector = UniversalDetector()
-        for line in text.splitlines()[:2]:
-            detector.feed(line)
-            if detector.done:
-                break
-
-        detector.close()
-        return detector.result['encoding']
+        # Use detect because it's thread-safe since Chardet 7.0
+        result = chardet.detect(text)
+        return result['encoding']
 
     return default_codec
 
@@ -245,6 +240,31 @@ def to_unicode(string):
     return string
 
 
+@contextlib.contextmanager
+def atomic_write(dest, overwrite, dir, mode):
+    """Atomically write a file"""
+    fd, src = tempfile.mkstemp(prefix=os.path.basename(dest), dir=dir)
+    file = os.fdopen(fd, mode=mode)
+
+    try:
+        yield file
+    except Exception:
+        file.close()
+        os.unlink(src)
+        raise
+    else:
+        file.close()
+
+        if overwrite:
+            os.replace(src, dest)
+        else:
+            os.link(src, dest)
+            os.unlink(src)
+    finally:
+        if os.path.exists(src):
+            os.unlink(src)
+
+
 def write(text, filename, encoding='utf-8', mode='wb'):
     """
     Write 'text' to file ('filename') assuming 'encoding' in an atomic way
@@ -274,6 +294,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         try:
             file_stat = os.stat(absolute_filename)
             original_mode = file_stat.st_mode
+            original_gid = file_stat.st_gid
             creation = file_stat.st_atime
         except FileNotFoundError:
             # Creating a new file, emulate what os.open() does
@@ -282,6 +303,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             # Set base permission of a file to standard permissions.
             # See #spyder-ide/spyder#14112.
             original_mode = 0o666 & ~umask
+            original_gid = None
             creation = time.time()
         try:
             # fixes issues with scripts in Dropbox leaving
@@ -300,6 +322,8 @@ def write(text, filename, encoding='utf-8', mode='wb'):
                     textfile.write(text)
         try:
             os.chmod(absolute_filename, original_mode)
+            if os.name != "nt" and original_gid is not None:
+                os.chown(absolute_filename, -1, original_gid)
             file_stat = os.stat(absolute_filename)
             # Preserve creation timestamps
             os.utime(absolute_filename, (creation, file_stat.st_mtime))

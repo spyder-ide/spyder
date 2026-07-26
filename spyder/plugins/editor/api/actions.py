@@ -32,7 +32,7 @@ class EditorWidgetActions:
     LinuxEOL = "linux_eol_action"
     MacEOL = "mac_eol_action"
     RemoveTrailingSpaces = "remove_trailing_spaces_action"
-    FormatCode = "autoformating"
+    FormatCode = "autoformatting"
     FixIndentation = "fix_indentation_action"
 
     # Checkable operations
@@ -43,6 +43,11 @@ class EditorWidgetActions:
     ShowClassFuncDropdown = "show_class_func_dropdown_action"
     ShowDoctringWarnings = "pydocstyle_action"
     UnderlineErrors = "underline_errors_action"
+
+    # Folding operations
+    CollapseAll = "fold all regions"
+    ExpandAll = "unfold all regions"
+    CollapseExpand = "fold or unfold current region"
 
     # Stack menu
     GoToLine = "Go to line"

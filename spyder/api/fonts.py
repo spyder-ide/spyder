@@ -13,7 +13,7 @@ Helper classes to get and set the fonts used in Spyder.
 from qtpy.QtGui import QFont
 
 # Local imports
-from spyder.config.gui import get_font
+from spyder.utils.fonts import get_font
 
 
 class SpyderFontType:

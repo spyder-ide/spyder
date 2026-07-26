@@ -17,16 +17,23 @@ Original file:
 """
 
 # Standard library imports
-import weakref
+from __future__ import annotations
 import os
 import os.path as osp
 import re
 import time
+import weakref
 
 # Third party imports
-from qtpy.QtCore import QTimer, Qt
-from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
-                        QTextDocument)
+from qtpy.QtCore import QTimer
+from qtpy.QtGui import (
+    QColor,
+    QTextBlockUserData,
+    QTextCursor,
+    QTextBlock,
+    QTextDocument,
+    QTextFormat,
+)
 
 # Local imports
 from spyder.utils import encoding
@@ -72,9 +79,12 @@ def is_block_safe(block):
 
 
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, color=None, selection_start=None,
-                 selection_end=None):
+
+    def __init__(
+        self, editor, color=None, selection_start=None, selection_end=None
+    ):
         QTextBlockUserData.__init__(self)
+
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
@@ -87,6 +97,9 @@ class BlockUserData(QTextBlockUserData):
         self.selection_start = selection_start
         self.selection_end = selection_end
 
+        # To tell where an inline completion text starts in the block
+        self.inline_completion_start: int | None = None
+
     def _selection(self):
         """
         Function to compute the selection.
@@ -97,19 +110,21 @@ class BlockUserData(QTextBlockUserData):
             return None
         document = self.editor.document()
         cursor = self.editor.textCursor()
-        block = document.findBlockByNumber(self.selection_start['line'])
+        block = document.findBlockByNumber(self.selection_start.line)
         cursor.setPosition(block.position())
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_start['character'])
+            QTextCursor.NextCharacter, n=self.selection_start.character
+        )
         block2 = document.findBlockByNumber(
-            self.selection_end['line'])
+            self.selection_end.line)
         cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
         cursor.movePosition(
             QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
         cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_end['character'],
-            mode=QTextCursor.KeepAnchor)
+            QTextCursor.NextCharacter, n=self.selection_end.character,
+            mode=QTextCursor.KeepAnchor
+        )
         return QTextCursor(cursor)
 
 
@@ -631,7 +646,7 @@ class TextHelper(object):
                     if r.start <= pos < (r.start + r.length):
                         for fmt_type in formats:
                             is_user_obj = (r.format.objectType() ==
-                                           r.format.UserObject)
+                                           QTextFormat.UserObject)
                             if (ref_formats[fmt_type] == r.format and
                                     is_user_obj):
                                 return True

@@ -11,16 +11,17 @@ Scroll flag panel for the editor.
 # Standard library imports
 import logging
 from math import ceil
+import os
 import sys
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import QSize, Qt, QThread
 from qtpy.QtGui import QColor, QCursor, QPainter
 from qtpy.QtWidgets import QApplication, QStyle, QStyleOptionSlider
 from superqt.utils import qdebounced
 
 # Local imports
-from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 
@@ -34,10 +35,24 @@ REFRESH_RATE = 1000
 # Maximum number of flags to paint in a file
 MAX_FLAGS = 1000
 
+_cfbundleid = os.getenv("__CFBundleIdentifier", "")
+
 
 class ScrollFlagArea(Panel):
     """Source code editor's scroll flag area"""
-    WIDTH = 24 if sys.platform == 'darwin' else 12
+
+    WIDTH = 12
+    if (
+        sys.platform == "darwin"
+        and not _cfbundleid.startswith("org.spyder-ide")
+    ):
+        # Increase width of scroll flag area on macOS when not launched from
+        # an application bundle so that it is not hidden by the scroll bars.
+        # Expects "AppleShowScrollBars Always" to be written to defaults for
+        # the application bundle ID. spyder-ide/spyder#13118
+        # the application bundle ID.
+        # See spyder-ide/spyder#13118
+        WIDTH = 24
     FLAGS_DX = 4
     FLAGS_DY = 2
 
@@ -151,7 +166,7 @@ class ScrollFlagArea(Panel):
             if data:
                 if data.code_analysis:
                     for _, _, severity, _ in data.code_analysis:
-                        if severity == DiagnosticSeverity.ERROR:
+                        if severity == lsp.DiagnosticSeverity.Error:
                             flag_type = 'error'
                             break
                     else:

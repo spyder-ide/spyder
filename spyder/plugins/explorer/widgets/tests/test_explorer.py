@@ -16,6 +16,7 @@ import sys
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtGui import QClipboard
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QInputDialog, QMessageBox, QTextEdit)
 
@@ -97,7 +98,7 @@ def test_copy_path(explorer_with_files, path_method):
     copied_from = project.explorer.treewidget._parent.__class__.__name__
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
-    cb_output = cb.text(mode=cb.Clipboard)
+    cb_output = cb.text(mode=QClipboard.Clipboard)
     path_list = [path.strip(',"') for path in cb_output.splitlines()]
     assert len(path_list) == len(file_paths)
     for path, expected_path in zip(path_list, file_paths):
@@ -400,6 +401,36 @@ def test_update_filters(file_explorer, qtbot):
     # Assert explorer.py is not view.
     idx1 = widget.get_index(explorer_file)
     assert not idx1.isValid()
+
+
+def test_go_to_current_file(file_explorer, tmp_path):
+    """Test that 'Go to current file' navigates to the file's directory."""
+    widget = file_explorer.explorer
+
+    # Action should be disabled initially (no editor file set)
+    assert not widget.go_to_dir_of_file_in_editor_action.isEnabled()
+
+    # Create a file in a subdirectory
+    subdir = tmp_path / "project" / "src"
+    subdir.mkdir(parents=True)
+    test_file = subdir / "main.py"
+    test_file.write_text("pass")
+
+    # Simulate the editor reporting its current file
+    widget.set_current_editor_file(str(test_file))
+    assert widget.go_to_dir_of_file_in_editor_action.isEnabled()
+
+    # Trigger the action
+    widget.go_to_current_file()
+    assert widget.get_current_folder() == str(subdir)
+
+    # Setting a file with a non-existent directory disables the action
+    widget.set_current_editor_file("/nonexistent/path/file.py")
+    assert not widget.go_to_dir_of_file_in_editor_action.isEnabled()
+
+    # Setting None disables the action
+    widget.set_current_editor_file(None)
+    assert not widget.go_to_dir_of_file_in_editor_action.isEnabled()
 
 
 if __name__ == "__main__":

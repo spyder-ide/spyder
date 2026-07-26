@@ -37,7 +37,7 @@ def findreplace_editor(qtbot, request):
     # Code editor
     editor = CodeEditor(parent=widget)
     editor.setup_editor(
-        color_scheme='spyder/dark',
+        color_scheme='spyder_themes.spyder/dark',
         font=QFont("Courier New", 10)
     )
     widget.editor = editor

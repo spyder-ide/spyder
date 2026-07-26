@@ -43,11 +43,19 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
         if ext not in ['.csv', '.txt', '.json']
     ]
 
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+
+        # Combined with ShellConnectPluginMixin via multiple inheritance;
+        # set up its state here since SpyderDockablePlugin.__init__ doesn't
+        # reach it.
+        ShellConnectPluginMixin.__init__(self)
+
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Variable explorer')
+        return _('Variable Explorer')
 
     @staticmethod
     def get_description():

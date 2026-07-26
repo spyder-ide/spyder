@@ -34,8 +34,8 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
         goto_definition_box = newcb(
             _("Enable Go to definition"),
             'jedi_definition',
-            tip=_("If enabled, left-clicking on an object name while \n"
-                  "pressing the {} key will go to that object's definition\n"
+            tip=_("If enabled, left-clicking on an object name while "
+                  "pressing the {} key will go to that object's definition "
                   "(if resolved).").format(self.CTRL))
         follow_imports_box = newcb(_("Follow imports when going to a "
                                      "definition"),
@@ -44,8 +44,8 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
             'enable_hover_hints',
-            tip=_("If enabled, hovering the mouse pointer over an object\n"
-                  "name will display that object's signature and/or\n"
+            tip=_("If enabled, hovering the mouse pointer over an object "
+                  "name will display that object's signature and/or "
                   "docstring (if present)."))
         introspection_layout = QVBoxLayout()
         introspection_layout.addWidget(goto_definition_box)

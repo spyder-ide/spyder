@@ -16,6 +16,8 @@ from typing import Optional
 import docstring_to_markdown
 import jedi
 
+from pylsp import IS_WIN
+
 JEDI_VERSION = jedi.__version__
 
 # Eol chars accepted by the LSP protocol
@@ -96,7 +98,13 @@ def find_parents(root, path, names):
     # Split the relative by directory, generate all the parent directories, then check each of them.
     # This avoids running a loop that has different base-cases for unix/windows
     # e.g. /a/b and /a/b/c/d/e.py -> ['/a/b', 'c', 'd']
-    dirs = [root] + os.path.relpath(os.path.dirname(path), root).split(os.path.sep)
+    try:
+        dirs = [root] + os.path.relpath(os.path.dirname(path), root).split(os.path.sep)
+    except ValueError:
+        # On Windows, relpath raises ValueError when path and root are on different mounts
+        # (e.g. a UNC share root vs a drive-letter path). Nothing to find in this case.
+        log.warning("Path %r not in %r", path, root)
+        return []
 
     # Search each of /a/b/c, /a/b, /a
     while dirs:
@@ -133,14 +141,33 @@ def match_uri_to_workspace(uri, workspaces):
         workspace_parts = pathlib.Path(workspace).parts
         if len(workspace_parts) > len(path):
             continue
+
         match_len = 0
+        is_parent = True
         for workspace_part, path_part in zip(workspace_parts, path):
+            # filename match is case insensitive on windows
+            # also, uris._normalize_win_path() lowercases the drive letter
+            if IS_WIN:
+                workspace_part = workspace_part.lower()
+                path_part = path_part.lower()
+
             if workspace_part == path_part:
                 match_len += 1
+            else:
+                # give up, any subsequent match is no longer relevant
+                is_parent = False
+                break
+
+        # prefer a match that is actually a parent of uri
+        # otherwise fall back to longest matching non-parent
+        if is_parent and match_len > 0:
+            match_len += 1000
+
         if match_len > 0:
             if match_len > max_len:
                 max_len = match_len
                 chosen_workspace = workspace
+
     return chosen_workspace
 
 

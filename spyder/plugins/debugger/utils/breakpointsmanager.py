@@ -72,15 +72,18 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
     sig_repaint_breakpoints = Signal()
 
     def __init__(self, editor):
-        super().__init__(editor)
+        QObject.__init__(self, editor)
+        Manager.__init__(self, editor)
+        SpyderConfigurationObserver.__init__(self)
+
         self.filename = editor.filename
         self._breakpoint_blocks = {}
         self.breakpoints = []
 
-        # Debugger panel (Breakpoints)
-        self.debugger_panel = DebuggerPanel(self)
-        editor.panels.register(self.debugger_panel)
-        self.debugger_panel.order_in_zone = 1
+        # Setup debugger panel
+        self.debugger_panel: DebuggerPanel = editor.panels.get(DebuggerPanel)
+        self.debugger_panel.breakpoints_manager = self
+        self.debugger_panel.on_state_changed(state=True)
         self.update_panel_visibility()
 
         # Load breakpoints

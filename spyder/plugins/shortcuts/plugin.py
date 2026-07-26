@@ -49,9 +49,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     """
 
     NAME = 'shortcuts'
-    # TODO: Fix requires to reflect the desired order in the preferences
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu, Plugins.Preferences]
     CONF_WIDGET_CLASS = ShortcutsConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -63,6 +61,13 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     """
     This signal is emitted to inform shortcuts have been updated.
     """
+
+    def __init__(self, parent, configuration=None):
+        SpyderPluginV2.__init__(self, parent, configuration)
+
+        # Combined with SpyderShortcutsMixin via multiple inheritance; set
+        # up its state here since SpyderPluginV2.__init__ doesn't reach it.
+        SpyderShortcutsMixin.__init__(self)
 
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
@@ -141,8 +146,8 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     @Slot()
     def show_summary(self):
         """Reset shortcuts."""
-        dlg = ShortcutsSummaryDialog(None)
-        dlg.exec_()
+        dlg = ShortcutsSummaryDialog(self._main)
+        dlg.show()
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_shortcut_to_tip=True, plugin_name=None):

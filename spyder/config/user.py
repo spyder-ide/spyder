@@ -454,7 +454,7 @@ class UserConfig(DefaultsConfig):
     def reset_to_defaults(self, save=True, verbose=False, section=None):
         """Reset config to Default values."""
         for sec, options in self.defaults:
-            if section == None or section == sec:
+            if section is None or section == sec:
                 for option in options:
                     value = options[option]
                     self._set(sec, option, value, verbose)
@@ -933,6 +933,15 @@ class MultiUserConfig(object):
         """Return all the options for the given section."""
         config = self._get_config(section, None)
         return config.options(section=section)
+
+    def has_option(self, section, option):
+        """
+        Return whether *option* exists in *section*.
+
+        It uses the backing file that owns the option.
+        """
+        config = self._get_config(section, option)
+        return config.has_option(section, option)
 
     def get_default(self, section, option):
         """

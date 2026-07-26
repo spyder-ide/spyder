@@ -403,9 +403,10 @@ class ToolbarContainer(PluginMainContainer):
                 toolbars_order
                 + [ApplicationToolbars.WorkingDirectory]
             ):
-                toolbar = app_toolbars[toolbar_id]
-                self._plugin.main.addToolBar(toolbar)
-                toolbar.render()
+                toolbar = app_toolbars.get(toolbar_id)
+                if toolbar:
+                    self._plugin.main.addToolBar(toolbar)
+                    toolbar.render()
         else:
             logger.debug("Render application toolbars")
 

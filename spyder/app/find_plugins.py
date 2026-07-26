@@ -8,21 +8,14 @@ Plugin dependency solver.
 """
 
 import importlib
+from importlib.metadata import entry_points
 import logging
-import sys
 import traceback
 
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins
 from spyder.api.utils import get_class_values
 from spyder.config.base import STDERR
-
-# See compatibility note on `group` keyword:
-# https://docs.python.org/3/library/importlib.metadata.html#entry-points
-if sys.version_info < (3, 10):  # pragma: no cover
-    from importlib_metadata import entry_points
-else:  # pragma: no cover
-    from importlib.metadata import entry_points
 
 
 logger = logging.getLogger(__name__)

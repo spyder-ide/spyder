@@ -248,6 +248,7 @@ class ResultsTree(OneColumnTree):
                 else:
                     parent = title_item
 
+                message_string = ""
                 if len(msg_id) > 1:
                     if not message_name:
                         message_string = "{msg_id} "

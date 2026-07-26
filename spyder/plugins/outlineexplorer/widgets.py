@@ -14,6 +14,7 @@ import uuid
 
 # Third party imports
 from intervaltree import IntervalTree
+from lsprotocol import types as lsp
 from packaging.version import parse
 from qtpy import PYSIDE2, PYSIDE_VERSION
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
@@ -23,9 +24,20 @@ from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
-from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
+from spyder.plugins.completion.api import (
+    SpyderSymbolKind,
+    SYMBOL_KIND_ICON,
+)
 from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
+
+
+def _symbol_range(symbol):
+    """Return the lsp.Range of a DocumentSymbol or SymbolInformation."""
+    if isinstance(symbol, lsp.SymbolInformation):
+        return symbol.location.range
+
+    return symbol.range
 
 
 # For logging
@@ -35,34 +47,34 @@ logger = logging.getLogger(__name__)
 # ---- Constants
 # -----------------------------------------------------------------------------
 SYMBOL_NAME_MAP = {
-    SymbolKind.FILE: _('File'),
-    SymbolKind.MODULE: _('Module'),
-    SymbolKind.NAMESPACE: _('Namespace'),
-    SymbolKind.PACKAGE: _('Package'),
-    SymbolKind.CLASS: _('Class'),
-    SymbolKind.METHOD: _('Method'),
-    SymbolKind.PROPERTY: _('Property'),
-    SymbolKind.FIELD: _('Attribute'),
-    SymbolKind.CONSTRUCTOR: _('constructor'),
-    SymbolKind.ENUM: _('Enum'),
-    SymbolKind.INTERFACE: _('Interface'),
-    SymbolKind.FUNCTION: _('Function'),
-    SymbolKind.VARIABLE: _('Variable'),
-    SymbolKind.CONSTANT: _('Constant'),
-    SymbolKind.STRING: _('String'),
-    SymbolKind.NUMBER: _('Number'),
-    SymbolKind.BOOLEAN: _('Boolean'),
-    SymbolKind.ARRAY: _('Array'),
-    SymbolKind.OBJECT: _('Object'),
-    SymbolKind.KEY: _('Key'),
-    SymbolKind.NULL: _('Null'),
-    SymbolKind.ENUM_MEMBER: _('Enum member'),
-    SymbolKind.STRUCT: _('Struct'),
-    SymbolKind.EVENT: _('Event'),
-    SymbolKind.OPERATOR: _('Operator'),
-    SymbolKind.TYPE_PARAMETER: _('Type parameter'),
-    SymbolKind.CELL: _('Cell'),
-    SymbolKind.BLOCK_COMMENT: _('Block comment')
+    lsp.SymbolKind.File: _('File'),
+    lsp.SymbolKind.Module: _('Module'),
+    lsp.SymbolKind.Namespace: _('Namespace'),
+    lsp.SymbolKind.Package: _('Package'),
+    lsp.SymbolKind.Class: _('Class'),
+    lsp.SymbolKind.Method: _('Method'),
+    lsp.SymbolKind.Property: _('Property'),
+    lsp.SymbolKind.Field: _('Attribute'),
+    lsp.SymbolKind.Constructor: _('constructor'),
+    lsp.SymbolKind.Enum: _('Enum'),
+    lsp.SymbolKind.Interface: _('Interface'),
+    lsp.SymbolKind.Function: _('Function'),
+    lsp.SymbolKind.Variable: _('Variable'),
+    lsp.SymbolKind.Constant: _('Constant'),
+    lsp.SymbolKind.String: _('String'),
+    lsp.SymbolKind.Number: _('Number'),
+    lsp.SymbolKind.Boolean: _('Boolean'),
+    lsp.SymbolKind.Array: _('Array'),
+    lsp.SymbolKind.Object: _('Object'),
+    lsp.SymbolKind.Key: _('Key'),
+    lsp.SymbolKind.Null: _('Null'),
+    lsp.SymbolKind.EnumMember: _('Enum member'),
+    lsp.SymbolKind.Struct: _('Struct'),
+    lsp.SymbolKind.Event: _('Event'),
+    lsp.SymbolKind.Operator: _('Operator'),
+    lsp.SymbolKind.TypeParameter: _('Type parameter'),
+    SpyderSymbolKind.Cell: _('Cell'),
+    SpyderSymbolKind.BlockComment: _('Block comment'),
 }
 
 
@@ -580,22 +592,27 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Create tree with items that come from the LSP
         for symbol in items:
-            symbol_name = symbol['name']
-            symbol_kind = symbol['kind']
+            symbol_name = symbol.name
+            symbol_kind = symbol.kind
             if language.lower() == 'python':
-                if symbol_kind == SymbolKind.MODULE:
-                    continue
-                if (symbol_kind == SymbolKind.VARIABLE and
-                        not self.display_variables):
-                    continue
-                if (symbol_kind == SymbolKind.FIELD and
-                        not self.display_variables):
+                if symbol_kind == lsp.SymbolKind.Module:
                     continue
 
-            # NOTE: This could be also a DocumentSymbol
-            symbol_range = symbol['location']['range']
-            symbol_start = symbol_range['start']['line']
-            symbol_end = symbol_range['end']['line']
+                if (
+                    symbol_kind == lsp.SymbolKind.Variable
+                    and not self.display_variables
+                ):
+                    continue
+
+                if (
+                    symbol_kind == lsp.SymbolKind.Field
+                    and not self.display_variables
+                ):
+                    continue
+
+            symbol_range = _symbol_range(symbol)
+            symbol_start = symbol_range.start.line
+            symbol_end = symbol_range.end.line
             symbol_repr = SymbolStatus(symbol_name, symbol_kind,
                                        (symbol_start, symbol_end), None)
             if self._symbols_expanded_state.get(symbol_name):

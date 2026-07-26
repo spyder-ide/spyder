@@ -58,6 +58,7 @@ class ExplorerWidgetActions:
     ToggleFilter = 'toggle_filter_files_action'
 
     # Triggers
+    GoToDirOfFileinEditor = 'go_to_dir_of_file_in_editor_action'
     Next = 'next_action'
     Parent = 'parent_action'
     Previous = 'previous_action'
@@ -195,6 +196,8 @@ class ExplorerWidget(PluginMainWidget):
         """
         super().__init__(name, plugin=plugin, parent=parent)
 
+        self._current_editor_file = None
+
         # Widgets
         self.stackwidget = QStackedWidget(parent=self)
         self.treewidget = ExplorerTreeWidget(parent=self)
@@ -261,6 +264,13 @@ class ExplorerWidget(PluginMainWidget):
             icon=self.create_icon('up'),
             triggered=self.go_to_parent_directory
         )
+        self.go_to_dir_of_file_in_editor_action = self.create_action(
+            ExplorerWidgetActions.GoToDirOfFileinEditor,
+            text=_("Go to the directory of the current file in the Editor"),
+            icon=self.create_icon('fromcursor'),
+            triggered=self.go_to_current_file,
+        )
+        self.go_to_dir_of_file_in_editor_action.setEnabled(False)
         self.refresh_action = self.create_action(
             ExplorerWidgetActions.Refresh,
             text=_("Refresh"),
@@ -334,6 +344,7 @@ class ExplorerWidget(PluginMainWidget):
             self.previous_action,
             self.next_action,
             self.parent_action,
+            self.go_to_dir_of_file_in_editor_action,
         ]:
             self.add_item_to_toolbar(
                 item,
@@ -356,6 +367,9 @@ class ExplorerWidget(PluginMainWidget):
         self.refresh_action.setVisible(visible_remote_actions)
         self.remote_treewidget.upload_file_action.setVisible(
             visible_remote_actions
+        )
+        self.go_to_dir_of_file_in_editor_action.setVisible(
+            not visible_remote_actions
         )
 
     # ---- Public API
@@ -493,6 +507,28 @@ class ExplorerWidget(PluginMainWidget):
 
     def change_filter_state(self):
         self.stackwidget.currentWidget().change_filter_state()
+
+    def go_to_current_file(self):
+        """Navigate to the directory of the currently active editor file."""
+        if self._current_editor_file:
+            directory = osp.dirname(self._current_editor_file)
+            if osp.isdir(directory):
+                self.chdir(directory)
+
+    def set_current_editor_file(self, filename):
+        """
+        Set the current editor file path.
+
+        Parameters
+        ----------
+        filename: str
+            Path of the currently active file in the editor.
+        """
+        self._current_editor_file = filename
+        self.go_to_dir_of_file_in_editor_action.setEnabled(
+            filename is not None
+            and osp.isdir(osp.dirname(filename))
+        )
 
     def update_history(self, directory):
         """

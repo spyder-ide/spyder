@@ -494,5 +494,11 @@ def test_polars_dataframe():
     assert get_human_readable_type(df) == 'Polars DataFrame'
 
 
+def test_polars_series():
+    import polars
+    s = polars.Series("a", [1, 2, 3])
+    assert get_human_readable_type(s) == 'Polars Series'
+
+
 if __name__ == "__main__":
     pytest.main()

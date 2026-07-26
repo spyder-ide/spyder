@@ -133,7 +133,7 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin,
         )
 
 
-class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
+class SpyderErrorDialog(SpyderConfigurationAccessor, QDialog):
     """Custom error dialog for error reporting."""
 
     def __init__(self, parent=None, is_report=False):

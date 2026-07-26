@@ -11,6 +11,7 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
+from __future__ import annotations
 import logging
 
 # Third party imports
@@ -44,7 +45,9 @@ class UpdateManagerContainer(PluginMainContainer):
     def setup(self):
         self.dialog_manager = DialogManager()
         self.update_manager = UpdateManagerWidget(parent=self)
-        self.update_manager_status = UpdateManagerStatus(parent=self)
+
+        # This is set by the plugin
+        self.update_manager_status: UpdateManagerStatus | None = None
 
         # Actions
         self.check_update_action = self.create_action(
@@ -54,26 +57,34 @@ class UpdateManagerContainer(PluginMainContainer):
         )
 
         # Signals
-        self.update_manager.sig_set_status.connect(self.set_status)
         self.update_manager.sig_disable_actions.connect(
             self._set_actions_state
         )
-        self.update_manager.sig_block_status_signals.connect(
-            self.update_manager_status.blockSignals)
-        self.update_manager.sig_download_progress.connect(
-            self.update_manager_status.set_download_progress)
         self.update_manager.sig_exception_occurred.connect(
             self.sig_exception_occurred
         )
         self.update_manager.sig_install_on_close.connect(
-            self.set_install_on_close)
+            self.set_install_on_close
+        )
         self.update_manager.sig_quit_requested.connect(self.sig_quit_requested)
 
-        self.update_manager_status.sig_check_update.connect(
-            self.start_check_update)
-        self.update_manager_status.sig_start_update.connect(self.start_update)
-        self.update_manager_status.sig_show_progress_dialog.connect(
-            self.update_manager.show_progress_dialog)
+        if self.update_manager_status is not None:
+            self.update_manager.sig_set_status.connect(self.set_status)
+            self.update_manager.sig_block_status_signals.connect(
+                self.update_manager_status.blockSignals
+            )
+            self.update_manager.sig_download_progress.connect(
+                self.update_manager_status.set_download_progress
+            )
+            self.update_manager_status.sig_check_update.connect(
+                self.start_check_update
+            )
+            self.update_manager_status.sig_start_update.connect(
+                self.start_update
+            )
+            self.update_manager_status.sig_show_progress_dialog.connect(
+                self.update_manager.show_progress_dialog
+            )
 
     def update_actions(self):
         pass

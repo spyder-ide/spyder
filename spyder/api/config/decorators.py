@@ -13,14 +13,8 @@ from __future__ import annotations
 
 # Standard library imports
 import functools
-import sys
 from collections.abc import Callable
-from typing import Union
-
-if sys.version_info < (3, 10):
-    from typing_extensions import TypeAlias
-else:
-    from typing import TypeAlias  # noqa: ICN003
+from typing import TypeAlias, Union
 
 # Local imports
 from spyder.config.types import ConfigurationKey

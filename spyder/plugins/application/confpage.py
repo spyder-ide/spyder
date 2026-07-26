@@ -62,7 +62,7 @@ class ApplicationConfigPage(PluginConfigPage):
 
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
-                                    tip=_("Set this to open external<br> "
+                                    tip=_("Set this to open external "
                                           "Python files in an already running "
                                           "instance (Requires a restart)"))
 
@@ -227,7 +227,7 @@ class ApplicationConfigPage(PluginConfigPage):
             "",
             'high_dpi_custom_scale_factors',
             tip=_("Enter values for different screens separated by semicolons "
-                  "';'.\n Float values are supported"),
+                  "';'. Float values are supported"),
             alignment=Qt.Horizontal,
             regex=r"[1-9]+(?:\.[0-9]*)(;[1-9]+(?:\.[0-9]*))*",
             restart=True

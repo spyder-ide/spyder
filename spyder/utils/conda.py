@@ -110,13 +110,13 @@ def find_pixi(pyexec=None):
     `pyexec` is a python executable, the relative location from which to
     attempt to locate a pixi executable.
     """
-    # Try the `PIXI_HOME` environment variable
-    pixi = os.environ.get('PIXI_HOME', None)
+    pixi_home = os.environ.get('PIXI_HOME', None)
+    pixi_exec = 'pixi.exe' if WINDOWS else 'pixi'
 
-    # Next try searching for the executable in default paths
-    if pixi is None:
-        pixi_exec = 'pixi.exe' if WINDOWS else 'pixi'
+    if pixi_home is None:
         pixi = find_program(pixi_exec)
+    else:
+        pixi = os.path.join(pixi_home, "bin", pixi_exec)
 
     return pixi
 

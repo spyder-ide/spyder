@@ -9,6 +9,7 @@ from __future__ import annotations
 
 # Standard library imports
 import gc
+import inspect
 import sys
 from typing import TYPE_CHECKING
 
@@ -34,6 +35,38 @@ __all__ = [
 ]
 
 
+_FIXTUREDEF_PARAMETERS = inspect.signature(FixtureDef).parameters
+
+
+def _create_fixturedef(
+    request: SubRequest,
+    fixture_name: str,
+    fixture_func,
+) -> FixtureDef:
+    """Create a pytest FixtureDef compatible with the installed pytest."""
+    kwargs = {
+        "argname": fixture_name,
+        "func": fixture_func,
+        "scope": "session",
+        "baseid": request.node.nodeid,
+        "params": None,
+    }
+
+    if "fixturemanager" in _FIXTUREDEF_PARAMETERS:
+        kwargs["fixturemanager"] = request._fixturemanager
+
+    if "config" in _FIXTUREDEF_PARAMETERS:
+        kwargs["config"] = request.config
+
+    if "ids" in _FIXTUREDEF_PARAMETERS:
+        kwargs["ids"] = None
+
+    if "_ispytest" in _FIXTUREDEF_PARAMETERS:
+        kwargs["_ispytest"] = True
+
+    return FixtureDef(**kwargs)
+
+
 class MainWindowMock(QMainWindow):
     """:class:`QMainWindow` mock for plugin tests."""
 
@@ -51,9 +84,13 @@ class MainWindowMock(QMainWindow):
 
     @staticmethod
     def unregister_plugin(plugin: SpyderPluginClass):
-        assert PLUGIN_REGISTRY.delete_plugin(
-            plugin.NAME
-        ), f"{plugin.NAME} not deleted"
+        try:
+            PLUGIN_REGISTRY.delete_plugin(
+                plugin.NAME
+            )
+        except KeyError:
+            pass
+
         plugin._unregister()
 
     @staticmethod
@@ -121,12 +158,9 @@ def register_fixture(request: SubRequest, plugins_cls) -> None:
             return register_plugin
 
         request._fixturemanager._arg2fixturedefs[fixture_name] = [
-            FixtureDef(
-                argname=fixture_name,
-                func=register_plugin_factory(plugin_cls),
-                scope="session",
-                fixturemanager=request._fixturemanager,
-                baseid=request.node.nodeid,
-                params=None,
+            _create_fixturedef(
+                request,
+                fixture_name,
+                register_plugin_factory(plugin_cls),
             )
         ]

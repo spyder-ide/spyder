@@ -49,7 +49,7 @@ class OnlineHelp(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Online help')
+        return _('Online Help')
 
     @staticmethod
     def get_description():

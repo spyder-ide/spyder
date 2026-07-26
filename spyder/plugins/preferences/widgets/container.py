@@ -10,7 +10,9 @@ from qtpy.QtWidgets import QAction
 from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
-from spyder.api.plugin_registration.registry import PreferencesAdapter
+from spyder.api.plugin_registration.registry import (
+    _PluginRegistryPreferencesAdapter,
+)
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences import MOST_IMPORTANT_PAGES
@@ -53,7 +55,7 @@ class PreferencesContainer(PluginMainContainer):
 
             for page_name in config_pages:
                 # Add separator before the Plugins page
-                if page_name == PreferencesAdapter.NAME:
+                if page_name == _PluginRegistryPreferencesAdapter.NAME:
                     dlg.add_separator()
 
                 (api, ConfigPage, plugin) = config_pages[page_name]

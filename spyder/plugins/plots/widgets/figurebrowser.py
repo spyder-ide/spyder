@@ -18,7 +18,6 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
-from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QEvent,
@@ -85,12 +84,15 @@ def get_unique_figname(dirname, root, ext, start_at_zero=False):
 
 
 class FigureBrowser(
-    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+    SpyderWidgetMixin, ShellConnectWidgetForStackMixin, QWidget
 ):
     """
     Widget to browse the figures that were sent by the kernel to the IPython
     console to be plotted inline.
     """
+
+    # This is needed to run tests that work only for this widget
+    CONF_SECTION = "plots"
 
     sig_figure_loaded = Signal()
     """This signal is emitted when a new figure is loaded."""
@@ -149,13 +151,23 @@ class FigureBrowser(
     zoom_value: int
         The new value for the zoom property.
     """
+    
+    sig_show_info_message_requested = Signal(str, str)
+    """
+    This signal is emitted to request showing the main widget info message.
+
+    Parameters
+    ----------
+    text: str
+        Text of the message.
+    option: str
+        Config option to not show the message in the future.
+    """
 
     def __init__(self, parent=None, background_color=None):
-        if not PYSIDE2:
-            super().__init__(parent=parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        ShellConnectWidgetForStackMixin.__init__(self)
 
         self.shellwidget = None
         self.figviewer = None
@@ -187,6 +199,9 @@ class FigureBrowser(
             self.sig_save_dir_changed)
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
+        self.thumbnails_sb.sig_show_info_message_requested.connect(
+            self.sig_show_info_message_requested
+        )
 
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
@@ -340,7 +355,7 @@ class FigureBrowser(
         super().showEvent(event)
 
 
-class FigureViewer(QScrollArea, SpyderWidgetMixin):
+class FigureViewer(SpyderWidgetMixin, QScrollArea):
     """
     A scrollarea that displays a single FigureCanvas with zooming and panning
     capability with CTRL + Mouse_wheel and Left-press mouse button event.
@@ -370,11 +385,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QScrollArea.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QScrollArea.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
@@ -723,6 +735,18 @@ class ThumbnailScrollBar(QFrame):
     sig_free_memory_requested = Signal()
     """Request to free memory after thumbnail is removed."""
 
+    sig_show_info_message_requested = Signal(str, str)
+    """
+    This signal is emitted to request showing the main widget info message.
+
+    Parameters
+    ----------
+    text: str
+        Text of the message.
+    option: str
+        Config option to not show the message in the future.
+    """
+
     def __init__(
         self, figure_viewer, parent=None, background_color=None, max_plots=30
     ):
@@ -757,7 +781,10 @@ class ThumbnailScrollBar(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+
         layout.addWidget(self.setup_scrollarea())
+
+        self.update_limit_label()
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
@@ -807,6 +834,7 @@ class ThumbnailScrollBar(QFrame):
         remove_thumbnails = self._thumbnails[:-self._max_plots]
         for thumbnail in remove_thumbnails:
             self.remove_thumbnail(thumbnail)
+        self.update_limit_label()
 
     def eventFilter(self, widget, event):
         """
@@ -1040,6 +1068,7 @@ class ThumbnailScrollBar(QFrame):
 
         if not is_first and (not stick_at_end or not select_last):
             self._scroll_to_last_thumbnail = False
+        self.update_limit_label()
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -1102,6 +1131,7 @@ class ThumbnailScrollBar(QFrame):
         # This is necessary to free memory faster than Python itself does it.
         # See https://github.com/spyder-ide/spyder/issues/25249#issuecomment-3473017854
         self._free_memory()
+        self.update_limit_label()
 
     def _remove_thumbnail_parent(self, thumbnail):
         try:
@@ -1195,6 +1225,18 @@ class ThumbnailScrollBar(QFrame):
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(int(vsb.value() + vsb.singleStep()))
 
+    def update_limit_label(self):
+        """Update plots usage label."""
+        message = _(
+            "The maximum number of plots was reached, so the oldest ones will "
+            "be discarded. If you want to increase it, check the Options menu "
+            "on the top right (a large number can consume a lot of memory)."
+        )
+
+        if len(self._thumbnails) >= self._max_plots:
+            self.sig_show_info_message_requested.emit(
+                message, "show_max_plots_message"
+            )
 
 
 class FigureThumbnail(QWidget):
@@ -1306,7 +1348,10 @@ class FigureThumbnail(QWidget):
         clicked.
         """
         if event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            # It seems some events don't have the 'button' attribute, so we
+            # need to check for it first.
+            # Fixes spyder-ide/spyder#25980
+            if hasattr(event, "button") and event.button() == Qt.LeftButton:
                 self.sig_canvas_clicked.emit(self)
 
         return super().eventFilter(widget, event)
@@ -1333,7 +1378,7 @@ class FigureThumbnail(QWidget):
             drag.exec_(Qt.MoveAction)
 
 
-class FigureCanvas(QFrame, SpyderConfigurationAccessor):
+class FigureCanvas(SpyderConfigurationAccessor, QFrame):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """

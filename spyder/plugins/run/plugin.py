@@ -45,8 +45,13 @@ class Run(SpyderPluginV2):
     """
 
     NAME = "run"
-    REQUIRES = [Plugins.Preferences, Plugins.WorkingDirectory]
-    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar, Plugins.Shortcuts]
+    REQUIRES = [
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.Shortcuts,
+        Plugins.Toolbar,
+        Plugins.WorkingDirectory,
+    ]
     CONTAINER_CLASS = RunContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
@@ -141,6 +146,9 @@ class Run(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.create_application_toolbar(
+            ApplicationToolbars.Run, _("Run toolbar")
+        )
         toolbar.add_item_to_application_toolbar(
             self.get_action(RunActions.Run), ApplicationToolbars.Run
         )
@@ -208,13 +216,17 @@ class Run(SpyderPluginV2):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.remove_item_from_application_toolbar(
-            RunActions.Run, ApplicationToolbars.Run)
+            RunActions.Run, ApplicationToolbars.Run
+        )
+
         for key in self.toolbar_actions:
             (_, count, action_id) = self.all_run_actions[key]
             if count > 0:
                 toolbar.remove_item_from_application_toolbar(
                     action_id, ApplicationToolbars.Run
                 )
+
+        toolbar.remove_application_toolbar(ApplicationToolbars.Run)
 
     @on_plugin_teardown(plugin=Plugins.Shortcuts)
     def on_shortcuts_teardown(self):
@@ -521,7 +533,7 @@ class Run(SpyderPluginV2):
                 before = add_to_toolbar.get('before')
                 before_section = add_to_toolbar.get('before_section')
 
-            toolbar = self.get_plugin(Plugins.Toolbar)
+            toolbar = self.get_plugin(Plugins.Toolbar, error=False)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
                     action,
@@ -744,7 +756,7 @@ class Run(SpyderPluginV2):
                 before = add_to_toolbar.get('before')
                 before_section = add_to_toolbar.get('before_section')
 
-            toolbar = self.get_plugin(Plugins.Toolbar)
+            toolbar = self.get_plugin(Plugins.Toolbar, error=False)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
                     action,
@@ -888,7 +900,7 @@ class Run(SpyderPluginV2):
     ):
         if register_shortcut:
             action = self.get_action(action_name)
-            shortcuts = self.get_plugin(Plugins.Shortcuts)
+            shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)

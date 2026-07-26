@@ -11,4 +11,4 @@ tmp_update_dir="$(dirname $spy_updater_lock)"
 
 set -x
 "$conda_exe" $conda_cmd -q --yes --prefix "$env_path" --file "$spy_updater_lock"
-"$conda_exe" install -q --yes --prefix "$env_path" --no-deps --force-reinstall "$spy_udater_conda"
+"$conda_exe" install -q --yes --prefix "$env_path" --no-deps --force-reinstall "$spy_updater_conda"

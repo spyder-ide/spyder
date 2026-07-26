@@ -9,16 +9,23 @@ A Class and Function Dropdown Panel for Spyder.
 
 # Third party imports
 from intervaltree import IntervalTree
+from lsprotocol import types as lsp
 from qtpy.QtCore import QSize, Qt, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBoxWithIcons
-from spyder.plugins.completion.api import SymbolKind
 from spyder.plugins.editor.api.panel import Panel
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle
+
+
+def _symbol_range(symbol):
+    """Return the lsp.Range of a DocumentSymbol or SymbolInformation."""
+    if isinstance(symbol, lsp.SymbolInformation):
+        return symbol.location.range
+    return symbol.range
 
 
 class ClassFunctionDropdown(Panel):
@@ -98,7 +105,7 @@ class ClassFunctionDropdown(Panel):
         item = sender.itemData(sender.currentIndex())
 
         if item:
-            line = item['location']['range']['start']['line'] + 1
+            line = _symbol_range(item).start.line + 1
             self.editor.go_to_line(line)
 
         if sender == self.class_cb:
@@ -109,9 +116,9 @@ class ClassFunctionDropdown(Panel):
         possible_parents = list(sorted(self._tree[linenum]))
         for iv in possible_parents:
             item = iv.data
-            kind = item.get('kind')
+            kind = item.kind
 
-            if kind in [SymbolKind.CLASS]:
+            if kind in [lsp.SymbolKind.Class]:
                 # Update class combobox
                 for idx in range(self.class_cb.count()):
                     if self.class_cb.itemData(idx) == item:
@@ -119,7 +126,7 @@ class ClassFunctionDropdown(Panel):
                         break
                 else:
                     self.class_cb.setCurrentIndex(0)
-            elif kind in [SymbolKind.FUNCTION, SymbolKind.METHOD]:
+            elif kind in [lsp.SymbolKind.Function, lsp.SymbolKind.Method]:
                 # Update func combobox
                 for idx in range(self.method_cb.count()):
                     if self.method_cb.itemData(idx) == item:
@@ -160,12 +167,13 @@ class ClassFunctionDropdown(Panel):
 
         cb_data = []
         for item in data:
-            fqn = item['name']
+            fqn = item.name
 
             # Create a list of fully-qualified names if requested
             if add_parents:
-                begin = item['location']['range']['start']['line']
-                end = item['location']['range']['end']['line']
+                r = _symbol_range(item)
+                begin = r.start.line
+                end = r.end.line
                 possible_parents = sorted(self._tree.overlap(begin, end),
                                           reverse=True)
                 for iv in possible_parents:
@@ -174,18 +182,19 @@ class ClassFunctionDropdown(Panel):
 
                     # Check if it is a real parent
                     p_item = iv.data
-                    p_begin = p_item['location']['range']['start']['line']
-                    p_end = p_item['location']['range']['end']['line']
+                    p_r = _symbol_range(p_item)
+                    p_begin = p_r.start.line
+                    p_end = p_r.end.line
                     if p_begin <= begin and p_end >= end:
-                        fqn = p_item['name'] + "." + fqn
+                        fqn = p_item.name + "." + fqn
 
             cb_data.append((fqn, item))
 
         for fqn, item in cb_data:
             # Set the icon (See: editortools.py)
             icon = None
-            name = item['name']
-            if item['kind'] in [SymbolKind.CLASS]:
+            name = item.name
+            if item.kind in [lsp.SymbolKind.Class]:
                 icon = ima.icon('class')
             else:
                 if name.startswith('__'):
@@ -219,9 +228,10 @@ class ClassFunctionDropdown(Panel):
         self.funcs = []
 
         for item in data:
-            line_start = item['location']['range']['start']['line']
-            line_end = item['location']['range']['end']['line']
-            kind = item.get('kind')
+            r = _symbol_range(item)
+            line_start = r.start.line
+            line_end = r.end.line
+            kind = item.kind
 
             block = self._editor.document().findBlockByLineNumber(line_start)
             line_text = line_text = block.text() if block else ''
@@ -231,9 +241,9 @@ class ClassFunctionDropdown(Panel):
             if line_start != line_end and ' import ' not in line_text:
                 self._tree[line_start:line_end] = item
 
-                if kind in [SymbolKind.CLASS]:
+                if kind in [lsp.SymbolKind.Class]:
                     self.classes.append(item)
-                elif kind in [SymbolKind.FUNCTION, SymbolKind.METHOD]:
+                elif kind in [lsp.SymbolKind.Function, lsp.SymbolKind.Method]:
                     self.funcs.append(item)
 
         self.class_cb.clear()

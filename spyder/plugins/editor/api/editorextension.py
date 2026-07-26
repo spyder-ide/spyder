@@ -8,24 +8,23 @@
 # -----------------------------------------------------------------------------
 
 """
-This module contains the editor extension API.
-
-Adapted from pyqode/core/api/mode.py of the
-`PyQode project <https://github.com/pyQode/pyQode>`_.
-Original file:
-<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/mode.py>
+API for editor extensions.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-class EditorExtension(object):
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+
+
+class EditorExtension:
     """
     Base class for editor extensions.
 
-    An extension is a "thing" that can be installed on an editor to add new
+    An extension is an object that can be installed on an editor to add new
     behaviours or to modify its appearance.
-
-    A panel (model child class) is added to an editor by using PanelsManager,
-    :meth:`spyder.plugins.editor.widgets.codeeditor.CodeEditor.panels.append`.
 
     Subclasses may/should override the following methods:
 
@@ -33,31 +32,31 @@ class EditorExtension(object):
         - :meth:`spyder.api.EditorExtension.on_uninstall`
         - :meth:`spyder.api.EditorExtension.on_state_changed`
 
-    ..warning: The editor extension will be identified by its class name, this
-    means that **there cannot be two editor extensions of the same type on the
-    same editor instance!**
+    Notes
+    -----
+    * The editor extension will be identified by its class name, this
+      means that there cannot be two editor extensions of the same type on
+      the same editor instance.
     """
 
     @property
-    def editor(self):
+    def editor(self) -> "CodeEditor":
         """
         Returns a reference to the parent code editor widget.
 
-        **READ ONLY**
+        This is a read-only attribute.
 
         :rtype: spyder.plugins.editor.widgets.codeeditor.CodeEditor
         """
         return self._editor
 
     @property
-    def enabled(self):
+    def enabled(self) -> bool:
         """
         Tells if the editor extension is enabled.
 
         :meth:`spyder.api.EditorExtension.on_state_changed` will be called as
         soon as the editor extension state changed.
-
-        :type: bool
         """
         return self._enabled
 
@@ -68,65 +67,47 @@ class EditorExtension(object):
             self.on_state_changed(enabled)
 
     def __init__(self):
-        """
-        EditorExtension name/identifier.
-        :class:`spyder.widgets.sourcecode.CodeEditor` uses that as the
-        attribute key when you install a editor extension.
-        """
         self.name = self.__class__.__name__
-        # EditorExtension description
         self.description = self.__doc__
+
         self._enabled = False
         self._editor = None
         self._on_close = False
 
-    def on_install(self, editor):
+    def on_install(self, editor: "CodeEditor"):
         """
-        Installs the extension on the editor.
+        Install the extension in the editor.
 
-        :param editor: editor widget instance
-        :type editor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        Parameters
+        ----------
+        editor: CodeEditor
+            The editor widget instance.
 
-        .. note:: This method is called by editor when you install a
-                  EditorExtension.
-                  You should never call it yourself, even in a subclasss.
-
-        .. warning:: Don't forget to call **super** when subclassing
+        Notes
+        -----
+        This method is called when the extension is added to the editor. You
+        should never call it yourself, even in a subclasss.
         """
         self._editor = editor
         self.enabled = True
 
     def on_uninstall(self):
-        """Uninstalls the editor extension from the editor."""
+        """Uninstall the editor extension from the editor."""
         self._on_close = True
         self.enabled = False
         self._editor = None
 
-    def on_state_changed(self, state):
+    def on_state_changed(self, state: bool):
         """
-        Called when the enable state has changed.
+        This is called when the enabled state has changed.
 
         This method does not do anything, you may override it if you need
         to connect/disconnect to the editor's signals (connect when state is
         true and disconnect when it is false).
 
-        :param state: True = enabled, False = disabled
-        :type state: bool
-        """
-        pass
-
-    def clone_settings(self, original):
-        """
-        Clone the settings from another editor extension (same class).
-
-        This method is called when splitting an editor widget.
-        # TODO at the current estate this is not working
-
-        :param original: other editor extension (must be the same class).
-
-        .. note:: The base method does not do anything, you must implement
-            this method for every new editor extension/panel (if you plan on
-            using the split feature). You should also make sure any properties
-            will be propagated to the clones.
+        Parameters
+        ----------
+        state: bool
+            Whether the extension is enabled or disabled.
         """
         pass

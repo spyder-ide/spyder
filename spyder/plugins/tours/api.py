@@ -6,7 +6,6 @@
 
 """Tours API."""
 
-from spyder.plugins.editor.api.panel import Panel
 
 # TODO: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython
@@ -19,10 +18,6 @@ class SpyderWidgets:
     # Panes
     ipython_console = 'ipyconsole'
     editor = 'editor'
-    panel = Panel.Position.LEFT
-    editor_line_number_area = (
-        f'editor.get_current_editor().panels._panels[{panel}].values()')
-    editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
     file_explorer = 'explorer'
     help_plugin = 'help'
     variable_explorer = 'variableexplorer'
@@ -31,6 +26,13 @@ class SpyderWidgets:
     find_plugin = "findinfiles"
     profiler = "profiler"
     code_analysis = "pylint"
+
+    # Editor objects
+    editor_line_number_area = (
+        'editor.get_current_editor().panels._panels[PanelPosition.LEFT].'
+        'values()'
+    )
+    editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
 
     # Toolbars
     toolbars = ''

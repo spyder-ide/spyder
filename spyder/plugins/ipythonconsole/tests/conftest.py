@@ -24,12 +24,12 @@ from spyder_kernels.utils.style import create_style_class
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.app.cli_options import get_options
-from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 # =============================================================================
@@ -37,7 +37,7 @@ from spyder.utils.conda import get_list_conda_envs
 # =============================================================================
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 NEW_DIR = 'new_workingdir'
-PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
+PY313_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
 
 # =============================================================================
@@ -58,7 +58,9 @@ def pytest_runtest_makereport(item, call):
 # ---- Utillity Functions
 # =============================================================================
 def get_console_font_color(syntax_style):
-    styles = create_style_class(get_color_scheme(syntax_style)).styles
+    styles = create_style_class(
+        THEME_MANAGER.get_color_scheme(syntax_style)
+    ).styles
     font_color = styles[Name]
     return font_color
 
@@ -201,8 +203,12 @@ def ipyconsole(qtbot, request, tmpdir):
     def get_plugin(name):
         if name == Plugins.IPythonConsole:
             return console
+        elif name == Plugins.Debugger:
+            return debugger
+
         return None
 
+    console.get_plugin = get_plugin
     debugger.get_plugin = get_plugin
     debugger.on_ipython_console_available()
 

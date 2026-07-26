@@ -30,9 +30,15 @@ from qtpy.QtWidgets import QDateEdit, QLineEdit, QMessageBox, QWidget
 # Local imports
 from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
-    CollectionsEditor, CollectionsEditorTableView, CollectionsEditorWidget,
-    CollectionsModel, LARGE_NROWS, natsort, RemoteCollectionsEditorTableView,
-    ROWS_TO_LOAD)
+    CollectionsEditor,
+    CollectionsEditorTableView,
+    CollectionsEditorWidget,
+    CollectionsModel,
+    LARGE_NROWS,
+    natsort,
+    RemoteCollectionsEditorTableView,
+    ROWS_TO_LOAD,
+)
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     SELECT_ROW_BUTTON_SIZE
 )
@@ -1266,6 +1272,18 @@ def test_collectionseditor_select_row_button(qtbot):
     # Click again and check the row was deselected
     qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
     assert table_view.selected_rows() == set()
+
+
+def test_collectionseditorwidget_close_action(mocker, qtbot):
+    """Test CollectionsEditorWidget.close_action is working as expected"""
+    mocker.patch.object(CollectionsEditor, "reject")
+
+    li = [1, 2]
+    editor = CollectionsEditor()
+    editor.setup(li)
+
+    editor.widget.close_action.trigger()
+    assert CollectionsEditor.reject.call_count == 1
 
 
 if __name__ == "__main__":

@@ -61,7 +61,7 @@ class StatusBar(SpyderPluginV2):
     # ---- SpyderPluginV2 API
     @staticmethod
     def get_name():
-        return _('Status bar')
+        return _('Status Bar')
 
     @classmethod
     def get_icon(cls):
@@ -76,7 +76,8 @@ class StatusBar(SpyderPluginV2):
         self.add_status_widget(self.mem_status, StatusBarWidgetPosition.Right)
         self.add_status_widget(self.cpu_status, StatusBarWidgetPosition.Right)
         self.add_status_widget(
-            self.clock_status, StatusBarWidgetPosition.Right)
+            self.clock_status, StatusBarWidgetPosition.Right
+        )
 
     def on_close(self, _unused):
         self._statusbar.setVisible(False)

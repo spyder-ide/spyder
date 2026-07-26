@@ -6,194 +6,202 @@
 
 """Spyder Language Server Protocol Client workspace handler routines."""
 
+from __future__ import annotations
+from collections.abc import Callable
 import logging
+from typing import TypedDict, TYPE_CHECKING
+
+from lsprotocol import types as lsp
 
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
-from spyder.plugins.completion.api import (
-    CompletionRequestTypes, ClientConstants, WorkspaceUpdateKind)
+from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.completion.providers.languageserver.decorators import (
-    handles, send_request, send_response, send_notification)
+    handles,
+    send_request,
+    send_notification,
+)
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
+
+
+class WatchedFolder(TypedDict):
+    uri: str
+    instance: LSPMixin
+
 
 logger = logging.getLogger(__name__)
 
 
 class WorkspaceProvider:
-    @send_notification(method=CompletionRequestTypes.WORKSPACE_CONFIGURATION_CHANGE)
+
+    watched_folders: dict[str, WatchedFolder]
+    server_capabilites: lsp.ServerCapabilities | None
+    language: str
+    req_reply: dict[int, Callable]
+
+    # ---- workspace/didChangeConfiguration
+    # -------------------------------------------------------------------------
+    @send_notification(method=lsp.WORKSPACE_DID_CHANGE_CONFIGURATION)
     def send_configurations(self, configurations, *args):
         self.configurations = configurations
-        params = {
-            'settings': configurations
-        }
-        return params
+        return lsp.DidChangeConfigurationParams(
+            settings=configurations,
+        )
 
-    @send_response
-    @handles(CompletionRequestTypes.WORKSPACE_FOLDERS)
-    def send_workspace_folders(self, response):
-        workspace_folders = []
-        for folder_name in self.watched_folders:
-            folder_uri = self.watched_folders[folder_name]
-            workspace_folders.append({
-                'uri': folder_uri,
-                'name': folder_name
-            })
-        return workspace_folders
-
-    @send_notification(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE)
+    # ---- workspace/didChangeWorkspaceFolders
+    # -------------------------------------------------------------------------
+    @send_notification(method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS)
     def send_workspace_folders_change(self, params):
         folder = params['folder']
         workspace_watcher = params['instance']
         folder_uri = path_as_uri(folder)
-        added_folders = []
-        removed_folders = []
+        added: list[lsp.WorkspaceFolder] = []
+        removed: list[lsp.WorkspaceFolder] = []
+
         if params['kind'] == WorkspaceUpdateKind.ADDITION:
             if folder not in self.watched_folders:
                 self.watched_folders[folder] = {
                     'uri': folder_uri,
-                    'instance': workspace_watcher
+                    'instance': workspace_watcher,
                 }
-                added_folders.append({
-                    'uri': folder_uri,
-                    'name': folder
-                })
+                added.append(lsp.WorkspaceFolder(uri=folder_uri, name=folder))
         elif params['kind'] == WorkspaceUpdateKind.DELETION:
             if folder in self.watched_folders:
                 self.watched_folders.pop(folder)
-                removed_folders.append({
-                    'uri': folder_uri,
-                    'name': folder
-                })
+                removed.append(
+                    lsp.WorkspaceFolder(uri=folder_uri, name=folder)
+                )
 
-        workspace_settings = self.server_capabilites['workspace']
-        request_params = {
-            'event': {
-                'added': added_folders,
-                'removed': removed_folders
-            }
-        }
+        ws = (
+            self.server_capabilites.workspace
+            if self.server_capabilites
+            else None
+        )
+        wf = ws.workspace_folders if ws else None
+        if not (wf and wf.supported):
+            return None  # Server doesn't support workspace folders, cancel.
 
-        if workspace_settings['workspaceFolders']['supported']:
-            logger.debug(
-                u'Workspace folders change: {0} -> {1}'.format(
-                    folder, params['kind'])
-            )
-        else:
-            request_params[ClientConstants.CANCEL] = True
+        logger.debug(
+            "Workspace folders change: %s -> %s", folder, params["kind"]
+        )
+        return lsp.DidChangeWorkspaceFoldersParams(
+            event=lsp.WorkspaceFoldersChangeEvent(
+                added=added,
+                removed=removed,
+            ),
+        )
 
-        return request_params
-
-    @send_response
-    @handles(CompletionRequestTypes.WORKSPACE_CONFIGURATION)
-    def send_workspace_configuration(self, params):
-        logger.debug(params)
-        return self.configurations
-
-    @send_notification(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE)
+    # ---- workspace/didChangeWatchedFiles
+    # -------------------------------------------------------------------------
+    @send_notification(method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES)
     def send_watched_files_change(self, params):
-        changes = []
-        entries = params.get('params', [])
-        for entry in entries:
-            changes.append({
-                'uri': path_as_uri(entry['file']),
-                'type': entry['kind']
-            })
-        params = {
-            'changes': changes
-        }
-        return params
+        changes = [
+            lsp.FileEvent(
+                uri=path_as_uri(entry['file']),
+                type=lsp.FileChangeType(entry['kind']),
+            )
+            for entry in params.get('params', [])
+        ]
+        return lsp.DidChangeWatchedFilesParams(changes=changes)
 
-    @send_request(method=CompletionRequestTypes.WORKSPACE_SYMBOL)
+    # ---- workspace/symbol
+    # -------------------------------------------------------------------------
+    @send_request(method=lsp.WORKSPACE_SYMBOL)
     def send_symbol_request(self, params):
-        params = {
-            'query': params['query']
-        }
-        return params
+        return lsp.WorkspaceSymbolParams(query=params['query'])
 
-    @handles(CompletionRequestTypes.WORKSPACE_SYMBOL)
-    def handle_symbol_response(self, response):
+    @handles(lsp.WORKSPACE_SYMBOL)
+    def handle_symbol_response(self, response, *args):
+        """
+        Distribute symbol results to the corresponding workspace instances.
+        """
+        if not response:
+            return
+
         folders = list(self.watched_folders.keys())
         assigned_symbols = {folder: [] for folder in self.watched_folders}
-        for symbol_info in response:
-            location = symbol_info['location']
-            path = process_uri(location['uri'])
-            location['file'] = path
+
+        for sym in response:
+            # response is list[SymbolInformation] | list[WorkspaceSymbol]
+            if isinstance(sym, lsp.SymbolInformation):
+                path = process_uri(sym.location.uri)
+            else:  # WorkspaceSymbol
+                path = process_uri(sym.location.uri)
+
             workspace = match_path_to_folder(folders, path)
-            assigned_symbols[workspace].append(symbol_info)
+            if workspace is not None:
+                assigned_symbols[workspace].append(sym)
 
-        for workspace in assigned_symbols:
-            workspace_edits = assigned_symbols[workspace]
-            workspace_instance = self.watched_folders[workspace]['instance']
-            workspace_instance.handle_response(
-                CompletionRequestTypes.WORKSPACE_SYMBOL,
-                {'params': workspace_edits})
+        for workspace, syms in assigned_symbols.items():
+            instance = self.watched_folders[workspace]['instance']
+            instance.handle_response(
+                lsp.WORKSPACE_SYMBOL,
+                syms,
+            )
 
-    @send_request(method=CompletionRequestTypes.WORKSPACE_EXECUTE_COMMAND)
+    # ---- workspace/executeCommand
+    # -------------------------------------------------------------------------
+    @send_request(method=lsp.WORKSPACE_EXECUTE_COMMAND)
     def send_execute_command(self, params):
-        # It is not clear how this call is invoked
-        params = {
-            'command': params['command'],
-            'arguments': params['args']
-        }
-        return params
+        return lsp.ExecuteCommandParams(
+            command=params['command'],
+            arguments=params.get('args'),
+        )
 
-    @handles(CompletionRequestTypes.WORKSPACE_EXECUTE_COMMAND)
+    @handles(lsp.WORKSPACE_EXECUTE_COMMAND)
     def handle_execute_command_response(self, response, req_id):
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.WORKSPACE_EXECUTE_COMMAND,
-                {'params': response}
+                lsp.WORKSPACE_EXECUTE_COMMAND,
+                response,
             )
 
-        return response
-
-    @send_response(method=CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
-    def send_edit_response(self, edits):
-        params = {
-            'applied': edits['applied']
-        }
-        if 'error' in edits:
-            params['failureReason'] = edits['error']
-        return params
-
-    @handles(CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
-    def apply_edit(self, response):
-        logger.debug("Editing: {0}".format(response['label']))
-        response = response['edit']
+    @handles(lsp.WORKSPACE_APPLY_EDIT)
+    def apply_edit(self, params: lsp.ApplyWorkspaceEditParams) -> None:
+        logger.debug('Applying edit: %s', params.label)
+        edit = params.edit
         folders = list(self.watched_folders.keys())
         assigned_files = {folder: [] for folder in self.watched_folders}
-        if 'documentChanges' in response:
-            for change in response['documentChanges']:
-                if 'textDocument' in change:
-                    uri = change['textDocument']['uri']
-                    path = process_uri(uri)
-                    change['textDocument']['path'] = path
-                    workspace = match_path_to_folder(folders, path)
-                    assigned_files[workspace].append({path: change})
-                elif 'uri' in change:
-                    path = process_uri(change['uri'])
-                    change['path'] = path
-                    workspace = match_path_to_folder(folders, path)
-                    assigned_files[workspace].append({path: change})
-                elif 'oldUri' in change:
-                    old_path = process_uri(change['oldUri'])
-                    change['old_path'] = old_path
-                    new_path = process_uri(change['newUri'])
-                    change['new_path'] = new_path
-                    workspace = match_path_to_folder(folders, new_path)
-                    assigned_files[workspace].append({old_path: change})
-        elif 'changes' in response:
-            changes = response['changes']
-            uris = list(changes.keys())
-            for uri in uris:
-                path = process_uri(uri)
-                change = changes.pop(uri)
-                workspace = match_path_to_folder(folders, path)
-                assigned_files[workspace].append({path: change})
 
-        for workspace in assigned_files:
-            workspace_edits = assigned_files[workspace]
-            workspace_instance = self.watched_folders[workspace]['instance']
-            workspace_instance.handle_response(
-                CompletionRequestTypes.WORKSPACE_APPLY_EDIT,
-                {'params': {'edits': workspace_edits,
-                            'language': self.language}})
+        if edit.document_changes:
+            for change in edit.document_changes:
+                if isinstance(change, lsp.TextDocumentEdit):
+                    uri = change.text_document.uri
+                    path = process_uri(uri)
+                    workspace = match_path_to_folder(folders, path)
+                    if workspace is not None:
+                        assigned_files[workspace].append(change)
+                elif isinstance(
+                    change, (lsp.CreateFile, lsp.RenameFile, lsp.DeleteFile)
+                ):
+                    ref_uri = (
+                        change.new_uri
+                        if isinstance(change, lsp.RenameFile)
+                        else change.uri
+                    )
+                    path = process_uri(ref_uri)
+                    workspace = match_path_to_folder(folders, path)
+                    if workspace is not None:
+                        assigned_files[workspace].append(change)
+        elif edit.changes:
+            for uri, text_edits in edit.changes.items():
+                path = process_uri(uri)
+                workspace = match_path_to_folder(folders, path)
+                if workspace is not None:
+                    assigned_files[workspace].append(
+                        lsp.TextDocumentEdit(
+                            text_document=lsp.OptionalVersionedTextDocumentIdentifier(
+                                uri=uri
+                            ),
+                            edits=text_edits,
+                        )
+                    )
+
+        for workspace, file_edits in assigned_files.items():
+            instance = self.watched_folders[workspace]['instance']
+            instance.handle_response(
+                lsp.WORKSPACE_APPLY_EDIT,
+                {'edits': file_edits, 'language': self.language},
+            )

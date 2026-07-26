@@ -30,7 +30,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import is_conda_based_app, running_under_pytest
-from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
@@ -46,6 +45,7 @@ from spyder.plugins.ipythonconsole.widgets import (
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
+from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 if typing.TYPE_CHECKING:
@@ -341,6 +341,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""
+        # This can be called after the shell started to shut down (e.g. when
+        # pending events are processed while closing a client), in which case
+        # we must not set up the kernel or show the banner (the latter makes
+        # a blocking kernel call that would never be answered).
+        if self.shutting_down:
+            return
+
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
@@ -576,6 +583,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Executes source or the input buffer, possibly prompting for more
         input.
         """
+        # Start remote wait indicator for network loss
+        if self.is_remote():
+            self.ipyclient._start_execution_loading_timer()
+
         # Needed for cases where there is no kernel initialized but
         # an execution is triggered like when setting initial configs.
         # See spyder-ide/spyder#16896
@@ -767,7 +778,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
         )
-        color_scheme = get_color_scheme(self.syntax_style)
+        color_scheme = THEME_MANAGER.get_color_scheme(self.syntax_style)
         self.set_kernel_configuration(
             "traceback_highlight_style",
             color_scheme,
@@ -1063,7 +1074,7 @@ overrided by the Sympy module (e.g. plot)
 
         # This makes the header text have good contrast against its background
         # for the light theme.
-        if is_dark_interface():
+        if THEME_MANAGER.is_dark_interface():
             font_color = SpyderPalette.COLOR_TEXT_1
         else:
             font_color = 'white'
@@ -1308,6 +1319,9 @@ overrided by the Sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
+        if self.is_remote():
+            self.ipyclient._stop_execution_loading()
+
         # This catches an error when doing the teardown of a test.
         try:
             super()._handle_execute_reply(msg)
@@ -1452,17 +1466,15 @@ overrided by the Sympy module (e.g. plot)
         )
         stop_button.setEnabled(False)
 
-        if self.is_remote():
-            self._kernel_restarted_message(died=True)
-            self.ipyclient.reconnect_remote_kernel()
-        else:
-            super()._handle_kernel_died(since_last_heartbeat)
+        super()._handle_kernel_died(since_last_heartbeat)
 
-    def _kernel_restarted_message(self, died=True):
-        msg = (
-            _("The kernel died, restarting...") if died
-            else _("Restarting kernel...")
-        )
+    def _kernel_restarted_message(self, died=True, reconnected=False):
+        if died:
+            msg = _("The kernel died, restarting...")
+        elif reconnected:
+            msg = _("Kernel reconnected...")
+        else:
+            msg = _("Restarting kernel...")
 
         if (
             died
@@ -1502,7 +1514,7 @@ overrided by the Sympy module (e.g. plot)
             # ignore premature calls
             return
         if self.syntax_style:
-            color_scheme = get_color_scheme(self.syntax_style)
+            color_scheme = THEME_MANAGER.get_color_scheme(self.syntax_style)
             self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
         else:
@@ -1513,7 +1525,7 @@ overrided by the Sympy module (e.g. plot)
         Get a color as qtconsole.styles._get_color() would return from
         a builtin Pygments style.
         """
-        color_scheme = get_color_scheme(self.syntax_style)
+        color_scheme = THEME_MANAGER.get_color_scheme(self.syntax_style)
         return dict(
             bgcolor=color_scheme['background'],
             select=color_scheme['background'],

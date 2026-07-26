@@ -130,6 +130,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.default_button_group = None
         self.tabs = None
         self.is_modified = False
+        self.is_loaded = False
 
         if getattr(parent, "main", None):
             self.main = parent.main
@@ -384,6 +385,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             cb_italic.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
                                             self.has_been_modified(sect, opt))
 
+        self.is_loaded = True
+
     def save_to_conf(self):
         """Save settings to configuration file"""
         for checkbox, (sec, option, _default) in list(
@@ -510,7 +513,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         help_label = TipWidget(
             tip_text=tip_text,
             icon=ima.icon('question_tip'),
-            hover_icon=ima.icon('question_tip_hover')
+            hover_icon=ima.icon('question_tip_hover'),
+            wrap_text=True
         )
 
         layout.addWidget(help_label)
@@ -784,7 +788,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_browsefile(self, text, option, default=NoDefault, section=None,
                           tip=None, filters=None, alignment=Qt.Horizontal,
                           status_icon=None, validate_callback=None,
-                          validate_reason=None):
+                          validate_reason=None, word_wrap=True):
         widget = self.create_lineedit(
             text,
             option,
@@ -797,6 +801,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             status_icon=status_icon,
             validate_callback=validate_callback,
             validate_reason=validate_reason,
+            word_wrap=word_wrap,
         )
 
         for edit in self.lineedits:

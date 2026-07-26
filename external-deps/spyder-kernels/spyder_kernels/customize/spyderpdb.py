@@ -81,10 +81,10 @@ class SpyderPdb(ipyPdb):
      - Add completion to non-command code.
     """
 
-    def __init__(self, completekey='tab', stdin=None, stdout=None,
-                 skip=None, nosigint=False):
+    def __init__(self, *args, **kwargs):
         """Init Pdb."""
-        self.curframe_locals = None
+        if sys.version_info[:2] <= (3, 12):
+            self.curframe_locals = None
         # Only set to true when calling debugfile
         self.continue_if_has_breakpoints = False
         self.pdb_ignore_lib = False
@@ -101,8 +101,7 @@ class SpyderPdb(ipyPdb):
         # content of tuple: (filename, line number)
         self._previous_step = None
 
-        # Don't report hidden frames for IPython 7.24+. This attribute
-        # has no effect in previous versions.
+        # Don't report hidden frames
         self.report_skipped = False
 
         # Keep track of remote filename
@@ -160,7 +159,10 @@ class SpyderPdb(ipyPdb):
             if cmd == "debug":
                 return self.do_debug(arg)
 
-        local_ns = self.curframe_locals
+        if sys.version_info[:2] >= (3, 13):
+            local_ns = self.curframe.f_locals
+        else:
+            local_ns = self.curframe_locals
         global_ns = self.curframe.f_globals
 
         if self.pdb_use_exclamation_mark:
@@ -287,6 +289,7 @@ class SpyderPdb(ipyPdb):
         if self.stopframe == self.botframe and self.stoplineno == -1:
             return False
         if self.continue_if_has_breakpoints and self.should_continue(frame):
+            self._wait_for_mainpyfile = False
             self.set_continue()
             return False
         if (
@@ -421,12 +424,22 @@ class SpyderPdb(ipyPdb):
         if ipython_do_complete:
             # Make complete call with current frame
             if self.curframe:
-                if self.curframe_locals:
-                    Frame = namedtuple("Frame", ["f_locals", "f_globals"])
-                    frame = Frame(self.curframe_locals,
-                                  self.curframe.f_globals)
+                if sys.version_info[:2] >= (3, 13):
+                    if self.curframe.f_locals:
+                        Frame = namedtuple("Frame", ["f_locals", "f_globals"])
+                        frame = Frame(
+                            self.curframe.f_locals, self.curframe.f_globals
+                        )
+                    else:
+                        frame = self.curframe
                 else:
-                    frame = self.curframe
+                    if self.curframe_locals:
+                        Frame = namedtuple("Frame", ["f_locals", "f_globals"])
+                        frame = Frame(
+                            self.curframe_locals, self.curframe.f_globals
+                        )
+                    else:
+                        frame = self.curframe
                 self.shell.set_completer_frame(frame)
             result = await self.shell.kernel._do_complete(code, cursor_pos)
             # Reset frame

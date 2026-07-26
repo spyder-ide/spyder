@@ -16,12 +16,21 @@ NumPy Array Editor Dialog based on Qt
 # Standard library imports
 from __future__ import annotations
 import io
+import sys
 from typing import Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
-                         QItemSelectionRange, QModelIndex, Qt, Slot)
+from qtpy.QtCore import (
+    QAbstractTableModel,
+    QItemSelection,
+    QItemSelectionRange,
+    QLocale,
+    QModelIndex,
+    Qt,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
     QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
@@ -58,6 +67,7 @@ class ArrayEditorActions:
     Preferences = 'preferences_action'
     Refresh = 'refresh_action'
     Resize = 'resize_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class ArrayEditorMenus:
@@ -144,7 +154,7 @@ def get_idx_rect(index_list):
 # ---- Main classes
 #==============================================================================
 
-class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
+class ArrayModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Array Editor Table Model
 
@@ -423,7 +433,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
         self.endResetModel()
 
 
-class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
+class ArrayDelegate(SpyderFontsMixin, QItemDelegate):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -471,13 +481,14 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
 
 
 #TODO: Implement "Paste" (from clipboard) feature
-class ArrayView(QTableView, SpyderWidgetMixin):
+class ArrayView(SpyderWidgetMixin, QTableView):
     """Array view class"""
 
     CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
 
         self.setModel(model)
         self.setItemDelegate(ArrayDelegate(dtype, self))
@@ -605,6 +616,7 @@ class ArrayView(QTableView, SpyderWidgetMixin):
         """Copy an array portion to a unicode string"""
         if not cell_range:
             return
+
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         if col_min == 0 and col_max == (self.model().cols_loaded-1):
             # we've selected a whole column. It isn't possible to
@@ -615,17 +627,33 @@ class ArrayView(QTableView, SpyderWidgetMixin):
             row_max = self.model().total_rows-1
 
         _data = self.model().get_data()
-        output = io.BytesIO()
+        output = io.StringIO()
         try:
-            fmt = '%' + self.model().get_format_spec()
-            np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t', fmt=fmt)
-        except:
-            QMessageBox.warning(self, _("Warning"),
-                                _("It was not possible to copy values for "
-                                  "this array"))
+            # Use the right format to copy non-numeric arrays
+            # Fixes spyder-ide/spyder#26088
+            if any(
+                name in _data.dtype.name
+                for name in ["str", "bytes", "object", "bool"]
+            ):
+                fmt = "%s"
+            else:
+                fmt = '%' + self.model().get_format_spec()
+
+            np.savetxt(
+                output,
+                _data[row_min : row_max + 1, col_min : col_max + 1],
+                delimiter="\t",
+                fmt=fmt,
+            )
+        except Exception:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _("It was not possible to copy values for this array")
+            )
             return
-        contents = output.getvalue().decode('utf-8')
+
+        contents = output.getvalue()
         output.close()
         return contents
 
@@ -651,10 +679,10 @@ class ArrayEditorWidget(QWidget):
         self.old_data_shape = None
         if len(self.data.shape) == 1:
             self.old_data_shape = self.data.shape
-            self.data.shape = (self.data.shape[0], 1)
+            self.data = self.data.reshape((self.data.shape[0], 1))
         elif len(self.data.shape) == 0:
             self.old_data_shape = self.data.shape
-            self.data.shape = (1, 1)
+            self.data = self.data.reshape((1, 1))
 
         # Use '' as default format specifier, because 's' does not produce
         # a `str` for arrays with strings, see spyder-ide/spyder#22466
@@ -662,7 +690,9 @@ class ArrayEditorWidget(QWidget):
 
         self.model = ArrayModel(self.data, format_spec=format_spec,
                                 readonly=readonly, parent=self)
-        self.view = ArrayView(self, self.model, data.dtype, data.shape)
+        self.view = ArrayView(
+            self, self.model, self.data.dtype, self.data.shape
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(self.view)
@@ -674,12 +704,12 @@ class ArrayEditorWidget(QWidget):
         for (i, j), value in list(self.model.changes.items()):
             self.data[i, j] = value
         if self.old_data_shape is not None:
-            self.data.shape = self.old_data_shape
+            self.data = self.data.reshape(self.old_data_shape)
 
     def reject_changes(self):
         """Reject changes"""
         if self.old_data_shape is not None:
-            self.data.shape = self.old_data_shape
+            self.data = self.data.reshape(self.old_data_shape)
 
     @Slot()
     def change_format(self):
@@ -702,6 +732,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
     """Array Editor Dialog"""
 
     CONF_SECTION = 'variable_explorer'
+
+    sig_close_all_editors_requested = Signal()
 
     def __init__(
         self,
@@ -739,16 +771,18 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
 
-    def setup_and_check(self, data, title='', readonly=False):
+    def setup_and_check(
+        self, data, title='', readonly=False, from_variable_explorer=False
+    ):
         """
         Setup the editor.
 
         It returns False if data is not supported, True otherwise.
         """
-        self.setup_ui(title, readonly)
+        self.setup_ui(from_variable_explorer, title, readonly)
         return self.set_data_and_check(data, readonly)
 
-    def setup_ui(self, title='', readonly=False):
+    def setup_ui(self, from_variable_explorer, title='', readonly=False):
         """
         Create the user interface.
 
@@ -800,6 +834,14 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=do_nothing,
             register_action=False
         )
+        self.close_all_editors_action = self.create_action(
+            name=ArrayEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit,
+            register_action=False,
+        )
+        self.close_all_editors_action.setVisible(from_variable_explorer)
 
         # ---- Toolbar and options menu
 
@@ -824,8 +866,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             register=False
         )
         stretcher = self.create_stretcher(ArrayEditorWidgets.ToolbarStretcher)
-        for item in [stretcher, self.resize_action, self.refresh_action,
-                     options_button]:
+        for item in [
+            self.close_all_editors_action,
+            stretcher,
+            self.resize_action,
+            self.refresh_action,
+            options_button
+        ]:
             self.add_item_to_toolbar(item, toolbar)
 
         toolbar.render()
@@ -914,8 +961,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # Set minimum size
         self.setMinimumSize(500, 300)
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # This makes the dialog stay on top.
+            # Fixes spyder-ide/spyder#22901
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
     def set_data_and_check(self, data, readonly=False):
         """
@@ -963,8 +1015,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
                 # We don't know what's inside these arrays, so we can't handle
                 # edits
                 self.readonly = readonly = True
-            elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
-                    and not dtn.startswith('unicode')):
+            elif (
+                dtn not in SUPPORTED_FORMATS
+                and not dtn.startswith("str")
+                and not dtn.startswith("bytes")
+            ):
                 arr = _("%s arrays") % dtn
                 self.error(_("%s are currently not supported") % arr)
                 return False

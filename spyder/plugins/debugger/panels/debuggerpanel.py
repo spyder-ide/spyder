@@ -6,6 +6,11 @@
 """
 This module contains the DebuggerPanel panel
 """
+
+# Standard library imports
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QRect, Slot
 from qtpy.QtGui import QPainter, QFontMetrics
@@ -16,21 +21,35 @@ from spyder.plugins.editor.api.panel import Panel
 from spyder.utils.icon_manager import ima
 
 
-class DebuggerPanel(Panel):
-    """Debugger panel for show information about the debugging in process."""
+if TYPE_CHECKING:
+    from spyder.plugins.debugger.utils.breakpointsmanager import (
+        BreakpointsManager,
+    )
 
-    def __init__(self, breakpoints_manager):
+
+class DebuggerPanel(Panel):
+    """Debugger panel to show information about the debugging in process."""
+
+    def __init__(self):
         """Initialize panel."""
         Panel.__init__(self)
 
-        self.breakpoints_manager = breakpoints_manager
-
-        self.setMouseTracking(True)
+        # Panel API
+        self.order_in_zone = 1
         self.scrollable = True
 
+        # Attributes
+        self.breakpoints_manager: BreakpointsManager | None = None
         self.line_number_hint = None
         self._current_line_arrow = None
         self.stop = False
+
+        # For mouseMoveEvent
+        self.setMouseTracking(True)
+
+        # The panel will be made visible by the breakpoints manager only for
+        # Python files
+        self.setVisible(False)
 
         # Diccionary of QIcons to draw in the panel
         self.icons = {
@@ -150,6 +169,10 @@ class DebuggerPanel(Panel):
         Args:
             state (bool): Activate/deactivate.
         """
+        # The breakpoints manager is created after the panel is registered.
+        if self.breakpoints_manager is None:
+            return
+
         if state:
             self.breakpoints_manager.sig_repaint_breakpoints.connect(
                 self.repaint

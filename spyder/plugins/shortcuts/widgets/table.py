@@ -325,6 +325,12 @@ class ShortcutEditor(QDialog):
         translator = ShortcutTranslator()
         event_keyseq = translator.keyevent_to_keyseq(event)
         event_keystr = event_keyseq.toString(QKeySequence.PortableText)
+
+        # Prevent repeated sequences when entering shortcuts
+        # Fixes spyder-ide/spyder#26032
+        if event_keystr in self._qsequences:
+            return
+
         self._qsequences.append(event_keystr)
         self.update_warning()
 
@@ -336,13 +342,20 @@ class ShortcutEditor(QDialog):
 
         new_qsequence = self.new_qsequence
         no_match = QKeySequence.SequenceMatch.NoMatch
+
+        global_contexts = ['_', 'find_replace']
+
         for shortcut in self.shortcuts:
             shortcut_qsequence = QKeySequence.fromString(str(shortcut.key))
             if shortcut_qsequence.isEmpty():
                 continue
             if (shortcut.context, shortcut.name) == (self.context, self.name):
                 continue
-            if shortcut.context in [self.context, '_'] or self.context == '_':
+            if (
+                shortcut.context == self.context
+                or shortcut.context in global_contexts
+                or self.context in global_contexts
+            ):
                 if (shortcut_qsequence.matches(new_qsequence) != no_match or
                         new_qsequence.matches(shortcut_qsequence) != no_match):
                     conflicts.append(shortcut)

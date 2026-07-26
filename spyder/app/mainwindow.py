@@ -20,9 +20,9 @@ Licensed under the terms of the MIT License
 # Stdlib imports
 # =============================================================================
 from collections import OrderedDict
-import configparser as cp
 from enum import Enum
 import errno
+import functools
 import gc
 import logging
 import os
@@ -32,7 +32,6 @@ import signal
 import socket
 import sys
 import threading
-import traceback
 
 #==============================================================================
 # Check requirements before proceeding
@@ -45,7 +44,7 @@ requirements.check_qt()
 #==============================================================================
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtGui import QColor, QKeySequence, QMoveEvent, QResizeEvent
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
@@ -56,7 +55,7 @@ from qtpy import QtSvg  # analysis:ignore
 try:
     from qtpy.QtWebEngineWidgets import WEBENGINE
 except ImportError:
-    WEBENGINE = False
+    WEBENGINE = None
 
 from qtawesome import get_fonts_info
 from qtawesome.iconic_font import FontError
@@ -68,8 +67,6 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import __version__
-from spyder.app.find_plugins import (
-    find_external_plugins, find_internal_plugins)
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window, ORIGINAL_SYS_EXIT,
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
@@ -78,10 +75,14 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
-from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                get_home_dir, is_conda_based_app,
-                                running_under_pytest, STDERR)
-from spyder.config.gui import is_dark_font_color
+from spyder.config.base import (
+    DEV,
+    get_conf_path,
+    get_debug_level,
+    get_home_dir,
+    is_conda_based_app,
+    running_under_pytest,
+)
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.utils import encoding, programs
@@ -93,7 +94,7 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
 
 #==============================================================================
 # Windows only local imports
@@ -120,7 +121,7 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
+class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -135,8 +136,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")
-    sig_moved = Signal("QMoveEvent")
+    sig_resized = Signal(QResizeEvent)
+    sig_moved = Signal(QMoveEvent)
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     sig_window_state_changed = Signal(object)
@@ -182,6 +183,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # Save command line options for plugins to access them
         self._cli_options = options
+
+        # To tell if WebEngine is available
+        self.is_webengine_available = True if WEBENGINE else False
 
         logger.info("Start of MainWindow constructor")
 
@@ -233,17 +237,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # Preferences
         self.prefs_dialog_instance = None
-
-        # Actions
-        self.undo_action = None
-        self.redo_action = None
-        self.copy_action = None
-        self.cut_action = None
-        self.paste_action = None
-        self.selectall_action = None
-
-        # TODO: Is this being used somewhere?
-        self.menus = []
 
         if running_under_pytest():
             # Show errors in internal console when testing.
@@ -415,7 +408,13 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
-        plugin.sig_unmaximize_plugin_requested.connect(self.unmaximize_plugin)
+
+        # Note: connect each overload explicitly. A slot is attached to a
+        # single overload only, so the no-arg one needs a slot that can't take
+        # arguments -- hence the partial (see CONTRIBUTING.md for why).
+        plugin.sig_unmaximize_plugin_requested.connect(
+            functools.partial(self.unmaximize_plugin)
+        )
         plugin.sig_unmaximize_plugin_requested[object].connect(
             self.unmaximize_plugin)
 
@@ -557,7 +556,11 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         this plugin to view (if it's hidden) and gives it focus (if
         possible).
         """
-        self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
+        # This is necessary to avoid an error when layouts is not ready.
+        # Fixes spyder-ide/spyder#22639
+        logger.debug(f"Switch to {plugin} while Layouts plugin is {self.layouts}")
+        if self.layouts is not None:
+            self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
 
     def unmaximize_plugin(self, not_this_plugin=None):
         """
@@ -646,7 +649,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Setup main window."""
         PLUGIN_REGISTRY.sig_plugin_ready.connect(
             lambda plugin_name, omit_conf: self.register_plugin(
-                plugin_name, omit_conf=omit_conf))
+                plugin_name, omit_conf=omit_conf
+            )
+        )
 
         PLUGIN_REGISTRY.main = self
 
@@ -665,19 +670,13 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
+        from spyder.utils.theme_manager import THEME_MANAGER
 
-        ui_theme = self.get_conf('ui_theme', section='appearance')
-        color_scheme = self.get_conf('selected', section='appearance')
-
-        if ui_theme == 'dark':
+        # Determine CSS path based on whether interface is dark
+        if THEME_MANAGER.is_dark_interface():
             css_path = DARK_CSS_PATH
-        elif ui_theme == 'light':
+        else:
             css_path = CSS_PATH
-        elif ui_theme == 'automatic':
-            if not is_dark_font_color(color_scheme):
-                css_path = DARK_CSS_PATH
-            else:
-                css_path = CSS_PATH
 
         self.set_conf('css_path', css_path, section='appearance')
 
@@ -686,87 +685,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        # Load and register internal and external plugins
-        external_plugins = find_external_plugins()
-        internal_plugins = find_internal_plugins()
-        all_plugins = external_plugins.copy()
-        all_plugins.update(internal_plugins.copy())
-
-        # Determine 'enable' config for plugins that have it.
-        enabled_plugins = {}
-        registry_internal_plugins = {}
-        registry_external_plugins = {}
-
-        for plugin in all_plugins.values():
-            plugin_name = plugin.NAME
-            plugin_main_attribute_name = (
-                self._INTERNAL_PLUGINS_MAPPING[plugin_name]
-                if plugin_name in self._INTERNAL_PLUGINS_MAPPING
-                else plugin_name)
-
-            if plugin_name in internal_plugins:
-                registry_internal_plugins[plugin_name] = (
-                    plugin_main_attribute_name, plugin)
-                enable_option = "enable"
-                enable_section = plugin_main_attribute_name
-            else:
-                registry_external_plugins[plugin_name] = (
-                    plugin_main_attribute_name, plugin)
-
-                # This is a workaround to allow disabling external plugins.
-                # Because of the way the current config implementation works,
-                # an external plugin config option (e.g. 'enable') can only be
-                # read after the plugin is loaded. But here we're trying to
-                # decide if the plugin should be loaded if it's enabled. So,
-                # for now we read (and save, see the config page associated to
-                # PLUGIN_REGISTRY) that option in our internal config options.
-                # See spyder-ide/spyder#17464 for more details.
-                enable_option = f"{plugin_main_attribute_name}/enable"
-                enable_section = PLUGIN_REGISTRY._external_plugins_conf_section
-
-            try:
-                if self.get_conf(enable_option, section=enable_section):
-                    enabled_plugins[plugin_name] = plugin
-                    PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
-            except (cp.NoOptionError, cp.NoSectionError):
-                enabled_plugins[plugin_name] = plugin
-                PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
-
-        PLUGIN_REGISTRY.all_internal_plugins = registry_internal_plugins
-        PLUGIN_REGISTRY.all_external_plugins = registry_external_plugins
-
-        # Instantiate internal Spyder 5 plugins
-        for plugin_name in internal_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = internal_plugins[plugin_name]
-                if issubclass(PluginClass, SpyderPluginV2):
-                    # Disable plugins that use web widgets (currently Help and
-                    # Online Help) if the user asks for it.
-                    # See spyder-ide/spyder#16518
-                    # The plugins that require QtWebengine must declare
-                    # themselves as needing that dependency
-                    # https://github.com/spyder-ide/spyder/pull/
-                    # 22196#issuecomment-2189377043
-                    if PluginClass.REQUIRE_WEB_WIDGETS and (
-                        not WEBENGINE or
-                        self._cli_options.no_web_widgets
-                    ):
-                        continue
-
-                    PLUGIN_REGISTRY.register_plugin(self, PluginClass,
-                                                    external=False)
-
-        # Instantiate external Spyder 5+ plugins
-        for plugin_name in external_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = external_plugins[plugin_name]
-                try:
-                    PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass, external=True
-                    )
-                except Exception as error:
-                    print("%s: %s" % (PluginClass, str(error)), file=STDERR)
-                    traceback.print_exc(file=STDERR)
+        # Load and register all plugins
+        PLUGIN_REGISTRY._load_and_register_plugins()
 
         # Set window title
         self.set_window_title()
@@ -809,6 +729,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         if self.splash is not None:
             self.splash.hide()
+
+        # Hide status bar if its plugin is disabled
+        if not self.is_plugin_enabled(Plugins.StatusBar):
+            self.statusBar().hide()
 
         # Register custom layouts
         if self.layouts is not None:

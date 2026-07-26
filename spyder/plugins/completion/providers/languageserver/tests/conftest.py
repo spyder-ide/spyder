@@ -11,20 +11,34 @@ from qtpy.QtWidgets import QWidget
 import pytest
 from pytestqt.qtbot import QtBot
 
+from lsprotocol import types as lsp
+
 from spyder.config.manager import CONF
-from spyder.plugins.completion.api import SERVER_CAPABILITES
 from spyder.plugins.completion.tests.conftest import qtbot_module
 from spyder.plugins.completion.providers.languageserver.provider import (
     LanguageServerProvider)
 
 
-class CompletionPluginMock(QObject, MagicMock):
-    """Mock for the completion plugin."""
+class CompletionPluginMock(QObject):
+    """
+    Mock for the completion plugin.
+
+    This is a genuine QObject subclass (rather than a MagicMock/QObject
+    multiple-inheritance mix) because unittest.mock's __new__ reassigns
+    each instance's __class__ to a freshly-created dynamic subclass, which
+    breaks Shiboken's ability to associate the Python wrapper with its C++
+    QObject counterpart under PySide6. Arbitrary attribute access still
+    behaves like a mock via delegation to an internal MagicMock.
+    """
     CONF_SECTION = 'completions'
 
     def __init__(self, conf):
-        super().__init__()
+        QObject.__init__(self)
         self.conf = conf
+        self._mock = MagicMock()
+
+    def __getattr__(self, name):
+        return getattr(self._mock, name)
 
     def get_conf(self, option, default=None, section=None):
         if section == 'completions':
@@ -53,8 +67,7 @@ def lsp_context(is_stdio):
             provider.start_completion_services_for_language('python')
 
         capabilities, _ = block.args
-        assert all(
-            [option in SERVER_CAPABILITES for option in capabilities.keys()])
+        assert isinstance(capabilities, lsp.ServerCapabilities)
 
         def teardown():
             provider.shutdown()

@@ -533,7 +533,12 @@ def get_application_icon(fpath):
                 if os.path.isfile(icon_path):
                     icon = QIcon(icon_path)
                 else:
-                    icon = QIcon.fromTheme(icon_path)
+                    theme_icon = QIcon.fromTheme(icon_path)
+                    # Keep the default icon if the theme doesn't provide this
+                    # one (e.g. when no icon theme is available, which gives
+                    # a null icon).
+                    if not theme_icon.isNull():
+                        icon = theme_icon
     else:
         icon = ima.icon('help')
 
@@ -772,7 +777,7 @@ def run_general_file_in_terminal(
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start {windows_shell} ""{executable}" '
-        cmd += ' '.join(p_args)  # + '"'
+        cmd += ' '.join(p_args) + '"'
         logger.info('Executing on external console: %s', cmd)
 
         try:

@@ -156,9 +156,37 @@ def main():
         return
 
     from spyder.config.manager import CONF
+    from spyder.utils.theme_manager import THEME_MANAGER
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
+
+    # Export only the selected theme to config early to ensure colors are
+    # available before any editor widgets are created (fixes first-run color
+    # issues).
+    # Don't export all themes at startup as it loads all theme resources
+    # unnecessarily.
+    try:
+        # Get the selected theme and export only that one
+        selected = CONF.get(
+            'appearance', 'selected', default='spyder_themes.spyder/dark'
+        )
+        resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
+        if resolved != selected:
+            CONF.set('appearance', 'selected', resolved)
+
+        selected = resolved
+        if '/' in selected:
+            theme_name, ui_mode = selected.rsplit('/', 1)
+            # Only fill missing syntax keys; do not overwrite user overrides
+            THEME_MANAGER.export_theme_to_config(
+                theme_name, ui_mode, replace=False
+            )
+    except Exception as e:
+        # Don't fail startup if theme export fails, but print message
+        print(
+            f"Failed to export selected theme to config during startup: {e}"
+        )
 
     #==========================================================================
     # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must

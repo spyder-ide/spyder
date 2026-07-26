@@ -13,13 +13,8 @@ from __future__ import annotations
 
 from abc import ABCMeta as BaseABCMeta
 import collections.abc
-import sys
 import typing
-
-if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec
-else:
-    from typing import ParamSpec  # noqa: ICN003
+from typing import ParamSpec
 
 _P = ParamSpec("_P")
 _T = typing.TypeVar("_T")

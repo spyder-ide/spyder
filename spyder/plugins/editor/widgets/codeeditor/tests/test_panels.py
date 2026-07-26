@@ -22,7 +22,7 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 # --- Fixtures
 # -----------------------------------------------------------------------------
 def construct_editor(*args, **kwargs):
-    app = qapplication()
+    app = qapplication()  # noqa
     editor = CodeEditor(parent=None)
     kwargs['language'] = 'Python'
     editor.setup_editor(*args, **kwargs)
@@ -53,6 +53,13 @@ def test_activate_panels(setting, panelclass, state):
             assert panel.enabled == state
             found = True
     assert found
+
+
+def test_clear_panels(codeeditor):
+    """Test clearing all panels in an editor."""
+    # Clear panels
+    codeeditor.panels.clear()
+    assert len(codeeditor.panels) == 0
 
 
 if __name__ == '__main__':

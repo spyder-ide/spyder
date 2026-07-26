@@ -582,8 +582,39 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def setup(self):
         # --- Header
-        self.header_label = QLabel(self)
-        self.header_label.setObjectName("run-header-label")
+        header_label = QLabel(
+            _("Configure runner settings for a specific file")
+        )
+
+        font = self.get_font(SpyderFontType.Interface)
+        font.setPointSize(font.pointSize() + 1)
+        header_label.setFont(font)
+
+        header_tip_text = _(
+            "Configure file-specific options here for each available runner, "
+            "such as the IPython Console, Debugger or External Terminal. "
+            "To execute your code in a specific runner, use its action in the "
+            "Run menu or elsewhere, such as 'Run > Run in external terminal'."
+        )
+        header_tip = TipWidget(
+            tip_text=header_tip_text,
+            icon=ima.icon('info_tip'),
+            hover_icon=ima.icon('info_tip_hover'),
+            size=AppStyle.ConfigPageIconSize + 2,
+            wrap_text=True,
+        )
+
+        # Layout
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(0)
+        header_layout.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(header_label)
+        header_layout.addWidget(header_tip)
+
+        # --- Filename
+        file_label = QLabel(_("File:"))
+        self.fname_label = QLabel(self)
 
         # --- File combobox
         # It's hidden by default to decrease the complexity of this dialog
@@ -617,12 +648,14 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         )
 
         executor_g_layout = QGridLayout()
-        executor_g_layout.addWidget(executor_label, 0, 0)
-        executor_g_layout.addWidget(self.executor_combo, 0, 1)
-        executor_g_layout.addWidget(executor_tip, 0, 2)
-        executor_g_layout.addWidget(parameters_label, 1, 0)
-        executor_g_layout.addWidget(self.parameters_combo, 1, 1)
-        executor_g_layout.addWidget(parameters_tip, 1, 2)
+        executor_g_layout.addWidget(file_label, 0, 0)
+        executor_g_layout.addWidget(self.fname_label, 0, 1)
+        executor_g_layout.addWidget(executor_label, 1, 0)
+        executor_g_layout.addWidget(self.executor_combo, 1, 1)
+        executor_g_layout.addWidget(executor_tip, 1, 2)
+        executor_g_layout.addWidget(parameters_label, 2, 0)
+        executor_g_layout.addWidget(self.parameters_combo, 2, 1)
+        executor_g_layout.addWidget(parameters_tip, 2, 2)
 
         executor_layout = QHBoxLayout()
         executor_layout.addLayout(executor_g_layout)
@@ -716,9 +749,11 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         # --- Final layout
         layout = self.add_widgets(
-            self.header_label,
+            header_layout,
+            4 * AppStyle.MarginSize,
             self.configuration_combo,  # Hidden for simplicity
             executor_layout,
+            2 * AppStyle.MarginSize,
             custom_config,
             (-2 if MAC else 1) * AppStyle.MarginSize,
         )
@@ -761,7 +796,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.executor_combo.view().setVerticalScrollBarPolicy(
             Qt.ScrollBarAsNeeded)
 
-        self.setWindowTitle(_("Run configuration per file"))
+        self.setWindowTitle(_("Run configuration"))
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
 
         self.setStyleSheet(self._stylesheet)
@@ -932,7 +967,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
     def get_configuration(
         self
-    ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
 
         return self.saved_conf
 
@@ -1075,23 +1110,20 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     def showEvent(self, event):
         """Adjustments when the widget is shown."""
         if not self._is_shown:
-            # Set file name as the header
+            # Set file name in corresponding label
             fname = self.configuration_combo.currentText()
-            header_font = (
-                self.get_font(SpyderFontType.Interface, font_size_delta=1)
-            )
+            font = self.get_font(SpyderFontType.Interface)
 
-            # Elide fname in case fname is too long
-            fm = QFontMetrics(header_font)
+            # Elide fname in case it's too long
+            fm = QFontMetrics(font)
             text = fm.elidedText(
-                fname, Qt.ElideLeft, self.header_label.width()
+                fname, Qt.ElideMiddle, self.fname_label.width()
             )
 
-            self.header_label.setFont(header_font)
-            self.header_label.setAlignment(Qt.AlignCenter)
-            self.header_label.setText(text)
+            self.fname_label.setFont(font)
+            self.fname_label.setText(text)
             if text != fname:
-                self.header_label.setToolTip(fname)
+                self.fname_label.setToolTip(fname)
 
             self._is_shown = True
 
@@ -1101,14 +1133,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     @property
     def _stylesheet(self):
-        # --- Style for the header
-        self._css["QLabel#run-header-label"].setValues(
-            # Add good enough margin with the widgets below it.
-            marginBottom=f"{3 * AppStyle.MarginSize}px",
-            # This is necessary to align the label to the widgets below it.
-            marginLeft="4px",
-        )
-
         # --- Style for the collapsible
         self._css["CollapsibleWidget"].setValues(
             # Separate it from the widgets above it

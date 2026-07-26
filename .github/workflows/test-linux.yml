@@ -70,12 +70,8 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.9', '3.12']
+        PYTHON_VERSION: ['3.11', '3.13']
         TEST_TYPE: ['fast', 'slow']
-        exclude:
-          # Only test Python 3.9 with pip to save CI time
-          - INSTALL_TYPE: 'conda'
-            PYTHON_VERSION: '3.9'
     timeout-minutes: 90
 
     steps:
@@ -88,13 +84,13 @@ jobs:
 
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Fetch branches
         run: git fetch --prune --unshallow
@@ -105,14 +101,14 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
 
       - name: Create conda test environment
         if: env.USE_CONDA == 'true'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml
@@ -122,15 +118,18 @@ jobs:
 
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/setup-micromamba@v2
+        uses: actions/setup-python@v6
         with:
-          micromamba-version: '1.5.10-0'
-          environment-name: test
-          cache-downloads: true
-          create-args: python=${{ matrix.PYTHON_VERSION }}
-          condarc: |
-            channels:
-              - conda-forge
+          python-version: ${{ matrix.PYTHON_VERSION }}
+
+      - name: Install Pixi
+        uses: prefix-dev/setup-pixi@v0.9.6
+        with:
+          run-install: false
+
+      - name: Create environment with Pixi
+        shell: bash -l {0}
+        run: pixi global install pip --expose pip-for-testing=pip
 
       - name: Install additional dependencies
         shell: bash -l {0}
@@ -174,7 +173,7 @@ jobs:
           .github/scripts/run_tests.sh -n 3
 
       - name: Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: false
           verbose: true

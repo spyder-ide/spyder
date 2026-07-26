@@ -35,13 +35,15 @@ class Explorer(SpyderDockablePlugin):
     """File and Directories Explorer DockWidget."""
 
     NAME = 'explorer'
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [
-        Plugins.IPythonConsole,
-        Plugins.Editor,
-        Plugins.WorkingDirectory,
-        Plugins.RemoteClient,
+    REQUIRES = [
         Plugins.Application,
+        Plugins.Preferences,
+        Plugins.WorkingDirectory,
+    ]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.IPythonConsole,
+        Plugins.RemoteClient,
     ]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = ExplorerWidget
@@ -202,6 +204,9 @@ class Explorer(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_dir_opened.connect(self.chdir)
+        editor.sig_editor_focus_changed.connect(
+            self._update_current_editor_file
+        )
         self.sig_file_created.connect(lambda t: editor.new(text=t))
         self.sig_file_removed.connect(editor.removed)
         self.sig_file_renamed.connect(editor.renamed)
@@ -252,6 +257,9 @@ class Explorer(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_dir_opened.disconnect(self.chdir)
+        editor.sig_editor_focus_changed.disconnect(
+            self._update_current_editor_file
+        )
         self.sig_file_created.disconnect()
         self.sig_file_removed.disconnect(editor.removed)
         self.sig_file_renamed.disconnect(editor.renamed)
@@ -293,9 +301,11 @@ class Explorer(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         if len(self._file_managers):
             for file_manager in self._file_managers.values():
-                AsyncDispatcher(
-                    loop=file_manager.session._loop, early_return=False
-                )(file_manager.close)()
+                if not file_manager.closed:
+                    AsyncDispatcher(
+                        loop=file_manager.session._loop, early_return=False
+                    )(file_manager.close)()
+
             self._file_managers = {}
 
     # ---- Public API
@@ -338,6 +348,13 @@ class Explorer(SpyderDockablePlugin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    def _update_current_editor_file(self):
+        """Update the current editor file tracked by the explorer."""
+        editor = self.get_plugin(Plugins.Editor)
+        self.get_widget().set_current_editor_file(
+            editor.get_current_filename()
+        )
+
     @qdebounced(timeout=100)
     def _chdir_from_working_directory(
         self, directory, sender_plugin, server_id=None

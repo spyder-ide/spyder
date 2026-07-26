@@ -10,6 +10,7 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 """
 
 # Standard library imports
+from __future__ import annotations
 import builtins
 import keyword
 import os
@@ -26,15 +27,13 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.translations import _
-from spyder.config.manager import CONF
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qstringhelpers import qstring_length
-
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 # =============================================================================
@@ -51,48 +50,6 @@ DEFAULT_PATTERNS = {
     'url':
         r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
 }
-
-COLOR_SCHEME_KEYS = {
-    "background":     _("Background:"),
-    "currentline":    _("Current line:"),
-    "currentcell":    _("Current cell:"),
-    "occurrence":     _("Occurrence:"),
-    "ctrlclick":      _("Link:"),
-    "sideareas":      _("Side areas:"),
-    "matched_p":      _("Matched <br>parens:"),
-    "unmatched_p":    _("Unmatched <br>parens:"),
-    "normal":         _("Normal text:"),
-    "keyword":        _("Keyword:"),
-    "builtin":        _("Builtin:"),
-    "definition":     _("Definition:"),
-    "comment":        _("Comment:"),
-    "string":         _("String:"),
-    "number":         _("Number:"),
-    "instance":       _("Instance:"),
-    "magic":          _("Magic:"),
-}
-
-COLOR_SCHEME_DEFAULT_VALUES = {
-    "background":  "#19232D",
-    "currentline": "#3a424a",
-    "currentcell": "#292d3e",
-    "occurrence":  "#1A72BB",
-    "ctrlclick":   "#179ae0",
-    "sideareas":   "#222b35",
-    "matched_p":   "#0bbe0b",
-    "unmatched_p": "#ff4340",
-    "normal":     ("#ffffff", False, False),
-    "keyword":    ("#c670e0", False, False),
-    "builtin":    ("#fab16c", False, False),
-    "definition": ("#57d6e4", True, False),
-    "comment":    ("#999999", False, False),
-    "string":     ("#b0e686", False, True),
-    "number":     ("#faed5c", False, False),
-    "instance":   ("#ee6772", False, True),
-    "magic":      ("#c670e0", False, False),
-}
-
-COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
 
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
@@ -128,18 +85,6 @@ def get_span(match, key=None):
     start16 = qstring_length(match.string[:start])
     end16 = start16 + qstring_length(match.string[start:end])
     return start16, end16
-
-
-def get_color_scheme(name):
-    """Get a color scheme from config using its name"""
-    name = name.lower()
-    scheme = {}
-    for key in COLOR_SCHEME_KEYS:
-        try:
-            scheme[key] = CONF.get('appearance', name+'/'+key)
-        except:
-            scheme[key] = CONF.get('appearance', 'spyder/'+key)
-    return scheme
 
 
 def any(name, alternates):
@@ -194,7 +139,7 @@ class BaseSH(QSyntaxHighlighter):
 
         self.font = font
         if isinstance(color_scheme, str):
-            self.color_scheme = get_color_scheme(color_scheme)
+            self.color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 
@@ -207,7 +152,8 @@ class BaseSH(QSyntaxHighlighter):
         self.matched_p_color = None
         self.unmatched_p_color = None
 
-        self.formats = None
+        self.formats = {}
+        self.inline_formats = {}
         self.setup_formats(font)
 
         self.cell_separators = None
@@ -255,12 +201,16 @@ class BaseSH(QSyntaxHighlighter):
 
     def setup_formats(self, font=None):
         base_format = QTextCharFormat()
+        inline_format = QTextCharFormat()
+
         if font is not None:
             self.font = font
+
         if self.font is not None:
             base_format.setFont(self.font)
+            inline_format.setFont(self.font)
             self.sig_font_changed.emit()
-        self.formats = {}
+
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
         self.currentline_color = colors.pop("currentline")
@@ -270,17 +220,28 @@ class BaseSH(QSyntaxHighlighter):
         self.sideareas_color = colors.pop("sideareas")
         self.matched_p_color = colors.pop("matched_p")
         self.unmatched_p_color = colors.pop("unmatched_p")
+
         for name, (color, bold, italic) in list(colors.items()):
-            format = QTextCharFormat(base_format)
-            format.setForeground(QColor(color))
-            if bold:
-                format.setFontWeight(QFont.Bold)
-            format.setFontItalic(italic)
-            self.formats[name] = format
+            for i, fmt in enumerate(
+                [QTextCharFormat(base_format), QTextCharFormat(inline_format)]
+            ):
+                color = QColor(color)
+                if i != 0:
+                    color.setAlphaF(0.75)
+                fmt.setForeground(color)
+
+                if bold:
+                    fmt.setFontWeight(QFont.Bold)
+                fmt.setFontItalic(italic)
+
+                if i == 0:
+                    self.formats[name] = fmt
+                else:
+                    self.inline_formats[name] = fmt
 
     def set_color_scheme(self, color_scheme):
         if isinstance(color_scheme, str):
-            self.color_scheme = get_color_scheme(color_scheme)
+            self.color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 
@@ -348,7 +309,7 @@ class BaseSH(QSyntaxHighlighter):
         This only has an effect when 'Show blank space' is turned on.
         """
         flags_text = self.document().defaultTextOption().flags()
-        show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
+        show_blanks = flags_text & QTextOption.ShowTabsAndSpaces
         if show_blanks:
             format_leading = self.formats.get("leading", None)
             format_trailing = self.formats.get("trailing", None)
@@ -434,14 +395,14 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
     for repeated_element in repeated:
         kwlist.remove(repeated_element)
     kw = r"\b" + any("keyword", kwlist) + r"\b"
-    builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
+    builtin = r"(?<![.'\"\\#])\b" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
                                 r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
-    match_kw = r"\s*(?P<match_kw>match)(?=\s+.+:)"
-    case_kw = r"\s+(?P<case_kw>case)(?=\s+.+:)"
+    match_kw = r"(?<!\w)(?P<match_kw>match)(?!\w)(?=\s+.+:)"
+    case_kw = r"(?<!\w)(?P<case_kw>case)(?!\w)(?=\s+.+:)"
 
     prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
@@ -483,9 +444,10 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
     ufstring4 = any("uf_dq3string", [uf_dq3string])
     ufstring5 = any("ufe_sqstring", [ufe_sqstring])
     ufstring6 = any("ufe_dqstring", [ufe_dqstring])
+    symbol_pat = r"(?P<symbol>[()\[\]{}:=<>.,%+\-*/&|~;!])"
     return "|".join([instance, kw, builtin, comment, match_kw, case_kw,
                      ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
-                     ufstring6, string, number, any("SYNC", [r"\n"])])
+                     ufstring6, string, number, symbol_pat, any("SYNC", [r"\n"])])
 
 
 def make_ipython_patterns(additional_keywords=[], additional_builtins=[]):
@@ -531,33 +493,56 @@ class PythonSH(BaseSH):
         self.outline_explorer_data_update_timer = QTimer()
         self.outline_explorer_data_update_timer.setSingleShot(True)
 
-    def highlight_match(self, text, match, key, value, offset,
-                        state, import_stmt, oedata):
+    def select_formats(self, start: int, inline_completion_start: int | None):
+        """Decide if we need to use inline formats for highlighting."""
+        formats = self.formats
+        if (
+            inline_completion_start is not None
+            and start >= inline_completion_start
+        ):
+            formats = self.inline_formats
+
+        return formats
+
+    def highlight_match(
+        self,
+        text,
+        match,
+        key,
+        value,
+        offset,
+        state,
+        import_stmt,
+        oedata,
+        inline_completion_start: int | None,
+    ):
         """Highlight a single match."""
         start, end = get_span(match, key)
         start = max([0, start + offset])
         end = max([0, end + offset])
         length = end - start
 
+        formats = self.select_formats(start, inline_completion_start)
+
         if key == "uf_sq3string":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_SQ3STRING
         elif key == "uf_dq3string":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_DQ3STRING
         elif key == "uf_sqstring":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_SQSTRING
         elif key == "uf_dqstring":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_DQSTRING
         elif key in ["ufe_sqstring", "ufe_dqstring"]:
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_NON_MULTILINE_STRING
         elif key in ["match_kw", "case_kw"]:
-            self.setFormat(start, length, self.formats["keyword"])
+            self.setFormat(start, length, formats["keyword"])
         else:
-            self.setFormat(start, length, self.formats[key])
+            self.setFormat(start, length, formats[key])
             if key == "comment":
                 if text.lstrip().startswith(self.cell_separators):
                     oedata = OutlineExplorerData(self.currentBlock())
@@ -586,15 +571,23 @@ class PythonSH(BaseSH):
                     match1 = self.IDPROG.match(text, end)
                     if match1:
                         start1, end1 = get_span(match1, 1)
-                        self.setFormat(start1, end1-start1,
-                                       self.formats["definition"])
+
+                        def_formats = self.select_formats(
+                            start1, inline_completion_start
+                        )
+                        self.setFormat(
+                            start1, end1 - start1, def_formats["definition"]
+                        )
+
                         oedata = OutlineExplorerData(self.currentBlock())
                         oedata.text = str(text)
-                        oedata.fold_level = (qstring_length(text)
-                                             - qstring_length(text.lstrip()))
+                        oedata.fold_level = (
+                            qstring_length(text)
+                            - qstring_length(text.lstrip())
+                        )
                         oedata.def_type = self.DEF_TYPES[str(value)]
                         oedata.def_name = text[start1:end1]
-                        oedata.color = self.formats["definition"]
+                        oedata.color = formats["definition"]
                 elif value in ("elif", "else", "except", "finally",
                                "for", "if", "try", "while",
                                "with"):
@@ -613,19 +606,28 @@ class PythonSH(BaseSH):
                         endpos = qstring_length(text[:text.index('#')])
                     else:
                         endpos = qstring_length(text)
+
                     while True:
                         match1 = self.ASPROG.match(text, end, endpos)
                         if not match1:
                             break
-                        start, end = get_span(match1, 1)
-                        self.setFormat(start, length, self.formats["keyword"])
+
+                        start2, end2 = get_span(match1, 1)
+
+                        kw_formats = self.select_formats(
+                            start2, inline_completion_start
+                        )
+                        self.setFormat(start, length, kw_formats["keyword"])
 
         return state, import_stmt, oedata
 
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
         text = str(text)
-        prev_state = tbh.get_state(self.currentBlock().previous())
+        block = self.currentBlock()
+        data = block.userData()
+
+        prev_state = tbh.get_state(block.previous())
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
             text = r'""" '+text
@@ -642,20 +644,51 @@ class PythonSH(BaseSH):
             offset = 0
             prev_state = self.NORMAL
 
+        # Get start column for inline completions
+        inline_completion_start = (
+            data.inline_completion_start if data else None
+        )
+
+        # Set normal format for all text
+        if inline_completion_start is None:
+            self.setFormat(0, qstring_length(text), self.formats["normal"])
+        else:
+            if inline_completion_start == 0:
+                self.setFormat(
+                    0, qstring_length(text), self.inline_formats["normal"]
+                )
+            else:
+                self.setFormat(
+                    0,
+                    qstring_length(text[:inline_completion_start]),
+                    self.formats["normal"]
+                )
+                self.setFormat(
+                    inline_completion_start,
+                    qstring_length(text),
+                    self.inline_formats["normal"]
+                )
+
+        # Set format for matches
+        state = self.NORMAL
         oedata = None
         import_stmt = None
-
-        self.setFormat(0, qstring_length(text), self.formats["normal"])
-
-        state = self.NORMAL
         for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     state, import_stmt, oedata = self.highlight_match(
-                        text, match, key, value, offset,
-                        state, import_stmt, oedata)
+                        text,
+                        match,
+                        key,
+                        value,
+                        offset,
+                        state,
+                        import_stmt,
+                        oedata,
+                        inline_completion_start,
+                    )
 
-        tbh.set_state(self.currentBlock(), state)
+        tbh.set_state(block, state)
 
         # Use normal format for indentation and trailing spaces
         # Unless we are in a string
@@ -672,11 +705,7 @@ class PythonSH(BaseSH):
             self.formats['trailing'] = self.formats['string']
         self.highlight_extras(text, offset)
 
-        block = self.currentBlock()
-        data = block.userData()
-
         need_data = (oedata or import_stmt)
-
         if need_data and not data:
             data = BlockUserData(self.editor)
 
@@ -791,6 +820,7 @@ class CppSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     INSIDE_COMMENT = 1
+
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
 
@@ -932,7 +962,7 @@ def make_idl_patterns():
     number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-		  r"\b\.[0-9]d0|\.d0+[lL]?\b",
+                  r"\b\.[0-9]d0|\.d0+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'

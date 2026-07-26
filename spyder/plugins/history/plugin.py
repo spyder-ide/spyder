@@ -28,8 +28,7 @@ class HistoryLog(SpyderDockablePlugin):
     """
 
     NAME = 'historylog'
-    REQUIRES = [Plugins.Preferences, Plugins.Console]
-    OPTIONAL = [Plugins.IPythonConsole]
+    REQUIRES = [Plugins.Console, Plugins.IPythonConsole, Plugins.Preferences]
     TABIFY = Plugins.IPythonConsole
     WIDGET_CLASS = HistoryWidget
     CONF_SECTION = NAME

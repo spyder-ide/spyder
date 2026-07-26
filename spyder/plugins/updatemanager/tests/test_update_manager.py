@@ -7,14 +7,16 @@
 import os
 from functools import lru_cache
 import logging
-from packaging.version import parse
+import subprocess
+from types import SimpleNamespace
 
 import pytest
+from packaging.version import parse
 
 from spyder.config.base import running_in_ci
 from spyder.plugins.updatemanager import workers
 from spyder.plugins.updatemanager.workers import (
-    UpdateType, get_asset_info, WorkerUpdate
+    UpdateType, get_asset_info, WorkerUpdate, WorkerUpdateUpdater
 )
 from spyder.plugins.updatemanager.widgets import update
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
@@ -152,6 +154,33 @@ def test_get_asset_info(qtbot, mocker, app, version, release, update_type):
     else:
         assert info['url'].endswith(".zip")
         assert info['filename'].endswith(".zip")
+
+
+def test_update_updater_missing_windows_stderr_log(tmp_path, mocker):
+    """Test missing updater stderr logs are reported as handled errors."""
+    worker = WorkerUpdateUpdater(False)
+    worker.updater_version = parse("0.2.0")
+    worker.installer_path = str(tmp_path / "spyder-conda-lock.zip")
+
+    (tmp_path / "spyder-updater-0.2.0.conda").write_text("")
+    (tmp_path / "updater_stdout.log").write_text("")
+
+    mocker.patch.object(workers, "find_conda", return_value="conda")
+    mocker.patch.object(workers, "find_program", return_value="powershell")
+    mocker.patch.object(workers, "is_installed_all_users", return_value=False)
+    mocker.patch.object(workers, "os", new=SimpleNamespace(name="nt"))
+    mocker.patch.object(
+        workers.subprocess,
+        "run",
+        return_value=subprocess.CompletedProcess(
+            args="powershell", returncode=0, stdout="", stderr=""
+        ),
+    )
+
+    with pytest.raises(subprocess.CalledProcessError) as error:
+        worker._install_update()
+
+    assert "updater_stderr.log" in error.value.stderr
 
 
 # ---- Test WorkerDownloadInstaller

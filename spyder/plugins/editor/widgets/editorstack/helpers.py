@@ -5,8 +5,10 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+from __future__ import annotations
 from collections.abc import MutableSequence
 import logging
+from typing import TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import Signal, QFileInfo, QObject, QTimer, QThread
@@ -14,6 +16,11 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.utils.findtasks import find_tasks
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +124,7 @@ class ThreadManager(QObject):
 
 class FileInfo(QObject):
     """File properties."""
+
     todo_results_changed = Signal()
     sig_save_bookmarks = Signal(str, str)
     text_changed_at = Signal(str, tuple)
@@ -126,9 +134,17 @@ class FileInfo(QObject):
     sig_show_object_info = Signal(bool)
     sig_show_completion_object_info = Signal(str, str)
 
-    def __init__(self, filename, encoding, editor, new, threadmanager):
+    def __init__(
+        self,
+        filename: str,
+        encoding: str,
+        editor: "CodeEditor",
+        new: bool,
+        threadmanager: ThreadManager,
+    ):
         """Initialize the FileInfo."""
         QObject.__init__(self)
+
         self.threadmanager = threadmanager
         self._filename = filename
         self.newly_created = new
@@ -157,6 +173,7 @@ class FileInfo(QObject):
     def filename(self, value):
         """Filename setter."""
         self._filename = value
+        self.editor.filename = value
         self.sig_filename_changed.emit(value)
 
     def text_changed(self):

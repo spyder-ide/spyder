@@ -1,7 +1,6 @@
 from spyder_remote_services.app import SpyderRemoteServices
 
-
-__version__ = '1.0.0'
+__version__ = "1.0.3"
 
 
 def _jupyter_server_extension_points():

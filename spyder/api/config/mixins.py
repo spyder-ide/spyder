@@ -12,16 +12,11 @@ Spyder API configuration helper mixins.
 from __future__ import annotations
 
 # Standard library imports
+import inspect
 import logging
-import sys
 import warnings
 from collections.abc import Callable
-from typing import Union
-
-if sys.version_info < (3, 10):
-    from typing_extensions import TypeAlias
-else:
-    from typing import TypeAlias  # noqa: ICN003
+from typing import TypeAlias, Union
 
 # Third-party imports
 from qtpy import PYSIDE6
@@ -285,7 +280,6 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         -------
         None
         """
-        super().__init__()
         if self.CONF_SECTION is None:
             warnings.warn(
                 "A SpyderConfigurationObserver must define a `CONF_SECTION` "
@@ -319,14 +313,12 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     def _gather_observers(self):
         """Gather all the methods decorated with :func:`on_conf_change`."""
         for method_name in dir(self):
-            # Avoid crash at startup due to MRO
-            if PYSIDE6 and method_name in {
-                # PySide seems to require that the class is instantiated to
-                # access this method
-                "painters",
-                # Method is debounced
-                "restart_kernel",
-            }:
+            # Use getattr_static first to avoid triggering descriptors
+            # (e.g. properties/cached_properties, or debounce wrappers that
+            # lazily create Qt objects) that have side effects or should
+            # only be evaluated later on, once the instance is fully set up.
+            static_attr = inspect.getattr_static(self, method_name, None)
+            if not hasattr(static_attr, "_conf_listen"):
                 continue
 
             method = getattr(self, method_name, None)

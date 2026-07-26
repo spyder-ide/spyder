@@ -47,6 +47,7 @@ class VariableExplorerWidgetActions:
     # Resize
     ResizeRowsAction = 'resize_rows_action'
     ResizeColumnsAction = 'resize_columns_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class VariableExplorerWidgetOptionsMenuSections:
@@ -197,6 +198,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             triggered=self.resize_columns
         )
 
+        close_all_editors_action = self.create_action(
+            VariableExplorerWidgetActions.CloseAllEditors,
+            _("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.close_all_editors
+        )
+
         self.paste_action = self.create_action(
             VariableExplorerContextMenuActions.PasteAction,
             _("Paste"),
@@ -309,7 +317,11 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self._enable_filter_actions(self.get_conf('filter_on'))
 
         # Resize
-        for item in [resize_rows_action, resize_columns_action]:
+        for item in [
+            resize_rows_action,
+            resize_columns_action,
+            close_all_editors_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -318,8 +330,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [import_data_action, save_action, save_as_action,
-                     reset_namespace_action]:
+        for item in [
+            import_data_action,
+            save_action,
+            save_as_action,
+            reset_namespace_action,
+            close_all_editors_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -615,6 +632,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def resize_columns(self):
         if self._current_editor is not None:
             self._current_editor.resize_column_contents()
+
+    def close_all_editors(self):
+        for index in range(self.count()):
+            nsb = self._stack.widget(index)
+            editor = getattr(nsb, 'editor', None)
+            if editor is not None:
+                editor.close_all_editors()
 
     def paste(self):
         self._current_editor.paste()

@@ -11,8 +11,10 @@ Tests for the IPython console plugin.
 """
 
 # Standard library imports
+import json
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import shutil
 import sys
@@ -27,7 +29,7 @@ from flaky import flaky
 import numpy as np
 from packaging.version import parse
 import pytest
-from qtpy import PYQT6
+from qtpy import PYQT6, PYSIDE6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -36,14 +38,21 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 import sympy
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
-from spyder.config.gui import get_color_scheme
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
-    get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
-from spyder.plugins.ipythonconsole.widgets import ShellWidget
-from spyder.utils.conda import get_list_conda_envs
+    get_conda_test_env,
+    get_console_background_color,
+    get_console_font_color,
+    NEW_DIR,
+    PY313_OR_GREATER,
+    SHELL_TIMEOUT,
+)
+from spyder.utils.programs import run_shell_command
+from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
+from spyder.utils.conda import get_list_conda_envs, find_pixi
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 @flaky(max_runs=3)
@@ -164,7 +173,7 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
@@ -448,7 +457,7 @@ def test_console_coloring(ipyconsole, qtbot):
 
     selected_color_scheme = ipyconsole.get_conf(
         'selected', section='appearance')
-    color_scheme = get_color_scheme(selected_color_scheme)
+    color_scheme = THEME_MANAGER.get_color_scheme(selected_color_scheme)
     editor_background_color = color_scheme['background']
     editor_font_color = color_scheme['normal'][0]
 
@@ -1969,7 +1978,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     control = ipyconsole.get_widget().get_focus_widget()
 
     # Code to run
-    code = "locals = 1\nx = [locals + i for i in range(2)]"
+    code = "locals = 1\nx = [\n\tlocals + i for i in range(2)\n]"
 
     # Write code to file on disk
     file = tmpdir.join('test_breakpoint.py')
@@ -1980,7 +1989,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.execute(f"%debugfile {repr(str(file))}")
 
     # steps into the comprehension
-    comprehension_steps = 2 if PY312_OR_GREATER else 4
+    comprehension_steps = 4
     for i in range(comprehension_steps):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute("s")
@@ -1990,7 +1999,11 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.pdb_execute("print('test', locals + i + 10)")
 
     assert "Error" not in control.toPlainText()
-    assert "test 11" in control.toPlainText()
+    assert (
+        "test 12" in control.toPlainText()
+        if PY313_OR_GREATER
+        else "test 11" in control.toPlainText()
+    )
 
     settings = {
         'check_all': False,
@@ -2020,7 +2033,10 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+# Note: PySide6 is skipped until our Spyder-kernels copy detects it as a Qt
+# binding in automatic_backend() (otherwise the auto backend resolves to tk);
+# revisit once that change is synced here (see spyder-ide/spyder#25422).
+@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different
@@ -2356,10 +2372,10 @@ def test_old_kernel_version(ipyconsole, qtbot):
     info_page = w.get_current_client().infowidget.page()
 
     qtbot.waitUntil(
-        lambda: check_text(info_page, "1.0.0"), timeout=6000
+        lambda: check_text(info_page, "1.0.0"), timeout=SHELL_TIMEOUT
     )
     qtbot.waitUntil(
-        lambda: check_text(info_page, "pip install spyder"), timeout=6000
+        lambda: check_text(info_page, "pip install spyder"), timeout=SHELL_TIMEOUT
     )
 
 
@@ -2600,7 +2616,7 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
-def test_time_elapsed(ipyconsole, qtbot, tmp_path):
+def test_time_elapsed(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     # Create a new IPython console client
     ipyconsole.create_new_client()
@@ -2688,6 +2704,138 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
 
     # Check that the elapsed time is not shown
     assert '' == main_widget.time_label.text()
+
+
+def test_no_stop_on_first_line(ipyconsole, qtbot, tmp_path):
+    """
+    Test that we stop on breakpoints set on modules when 'Stop debugging on
+    first line of files without breakpoints' is disabled.
+
+    This is a regression test for issue spyder-ide/spyder#22035
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Code to test
+    code_m1 = dedent("""
+    import m2
+
+    def main():
+        print('calling func in 2.py')
+        m2.func()
+    """
+    )
+    code_m2 = dedent("""
+    def func():
+        print(f" in {__file__} running {func}")
+        return
+    """
+    )
+
+    # Write code to files
+    code_dir = tmp_path / "test_no_stop_on_first_line"
+    code_dir.mkdir()
+
+    m1 = code_dir / "m1.py"
+    m1.write_text(code_m1)
+
+    m2 = code_dir / "m2.py"
+    m2.write_text(code_m2)
+
+    # File/dir names in the format used when running magics from the main
+    # toolbar
+    code_dir_name = str(code_dir).replace('\\', '/')
+    m1_name = str(m1).replace('\\', '/')
+
+    # Disable option and set breakpoint
+    debugger = ipyconsole.get_plugin(Plugins.Debugger)
+    debugger.set_conf("pdb_stop_first_line", False)
+    debugger.set_conf("breakpoints", {str(m2): [(2, None)]})
+    debugger.get_widget().sig_breakpoints_saved.emit()
+
+    # Debug code
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%debugfile {m1_name} --wdir {code_dir_name}")
+
+    # Check we entered the debugger and stopped where the breakpoint was set
+    assert "\nIPdb [1]" in control.toPlainText()
+    assert "---> 2 def func():\n" in control.toPlainText()
+
+
+def test_add_tab_give_focus(ipyconsole, qtbot, mocker):
+    """Test that add_tab respects the give_focus parameter."""
+
+    class DummyClient(ClientWidget):
+        def __init__(self):
+            pass
+
+    widget = ipyconsole.get_widget()
+    mock_client = mocker.MagicMock(spec=DummyClient)
+
+    # Mock activateWindow on the widget
+    mock_activate = mocker.patch.object(widget, 'activateWindow')
+
+    # Mock client.get_control().setFocus
+    mock_control = mocker.MagicMock()
+    mock_client.get_control.return_value = mock_control
+
+    # Stub out the Qt/tab methods and other side-effects to isolate the test
+    mocker.patch.object(widget.tabwidget, 'addTab', return_value=0)
+    mocker.patch.object(widget.tabwidget, 'setCurrentIndex')
+    mocker.patch.object(widget, 'update_tabs_text')
+    mocker.patch.object(widget, 'register_client')
+
+    # 1. Test with give_focus=False
+    widget.add_tab(mock_client, name="TestFocusFalse", give_focus=False)
+    mock_activate.assert_not_called()
+    mock_control.setFocus.assert_not_called()
+
+    # Clean up clients list to avoid issues
+    widget.clients.remove(mock_client)
+
+    # 2. Test with give_focus=True
+    widget.add_tab(mock_client, name="TestFocusTrue", give_focus=True)
+    mock_activate.assert_called_once()
+    mock_control.setFocus.assert_called_once()
+
+    # Clean up
+    widget.clients.remove(mock_client)
+
+
+@pytest.mark.order(1)
+@pytest.mark.skipif(not running_in_ci(), reason="Only works on CIs")
+@pytest.mark.skipif(not find_pixi(), reason="Needs Pixi to work")
+def test_pixi_global_envs(ipyconsole, qtbot):
+    """Test that the console works with Pixi global envs."""
+    # Get Pixi info
+    cmd = ' '.join([find_pixi(), 'info', '--json'])
+    out, __ = run_shell_command(cmd).communicate()
+    pixi_info = json.loads(out)
+    global_envs_dir = Path(pixi_info["global_info"]["env_dir"])
+
+    # Python executable for the global env to test
+    if os.name == "nt":
+        pyexec = global_envs_dir / "pip" / "python.exe"
+    else:
+        pyexec = global_envs_dir / "pip" / "bin" / "python"
+
+    # Create client for that env
+    ipyconsole.get_widget().create_environment_client(
+        "pixi-global", str(pyexec)
+    )
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Check prompt is available and no errors are present
+    control = shell._control
+    assert "In [1]" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "Error" not in control.toPlainText()
 
 
 if __name__ == "__main__":

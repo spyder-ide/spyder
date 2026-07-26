@@ -10,6 +10,7 @@ Tests for the Plots plugin.
 
 from unittest.mock import Mock
 
+from qtpy.QtWidgets import QMessageBox
 import pytest
 
 from spyder.config.base import running_in_ci
@@ -144,3 +145,42 @@ def test_zoom_actions(plots_plugin, qtbot, tmpdir):
     # Move to next plot and check zoom level is restored
     main_widget.next_plot()
     assert main_widget.zoom_disp.value() == zoom_2
+
+
+def test_max_plots_info_message(plots_plugin, mocker, tmp_path):
+    """
+    Test that info message that warns users about discarded plots works as
+    expected.
+    """
+    main_widget = plots_plugin.get_widget()
+
+    # Check message is not visible
+    assert not main_widget._info_message.isVisible()
+
+    # Set a smaller number of max plots
+    main_widget.set_conf("max_plots", 10)
+
+    # Add less than max plots
+    figbrowser = main_widget.current_widget()
+    add_figures_to_browser(figbrowser, 5, tmp_path)
+    assert not main_widget._info_message.isVisible()
+
+    # Add more than max plots
+    add_figures_to_browser(figbrowser, 10, tmp_path)
+    assert main_widget._info_message.isVisible()
+
+    # Dismiss message without hiding it in the future, then generate more plots
+    mocker.patch.object(QMessageBox, "question", return_value=QMessageBox.No)
+    main_widget._info_message._close_button.clicked.emit()
+    assert not main_widget._info_message.isVisible()
+
+    add_figures_to_browser(figbrowser, 5, tmp_path)
+    assert main_widget._info_message.isVisible()
+
+    # Dismiss message and hide it, then generate more plots
+    mocker.patch.object(QMessageBox, "question", return_value=QMessageBox.Yes)
+    main_widget._info_message._close_button.clicked.emit()
+    assert not main_widget._info_message.isVisible()
+
+    add_figures_to_browser(figbrowser, 5, tmp_path)
+    assert not main_widget._info_message.isVisible()
