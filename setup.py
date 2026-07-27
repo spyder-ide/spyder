@@ -301,7 +301,7 @@ install_requires += [
     'pyls-spyder>=0.4.0',
     'python-lsp-black>=2.0.0,<3.0.0',
     'python-lsp-ruff>=2.3.0,<3.0.0',
-    'python-lsp-server[all]>=1.14.0,<1.15.0',
+    'python-lsp-server[all]>=1.15.0,<1.16.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=24.0.0',
@@ -330,7 +330,7 @@ if 'dev' in __version__:
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
 
-    install_requires.append('python-lsp-server[all]>=1.13.2,<1.15.0')
+    install_requires.append('python-lsp-server[all]>=1.15.0,<1.17.0')
     install_requires.append('qtconsole>=5.7.2,<5.9.0')
 
 extras_require = {
