@@ -1369,6 +1369,20 @@ class SpyderPluginV2(
         """
         return True
 
+    def on_reenabled(self) -> None:
+        """
+        Actions to be performed after the plugin is reenabled.
+
+        Since Spyder 6.2.0, plugins can be disabled/reenabled in the same
+        session. This method will be run after the plugin is re-registered and
+        all connections to other plugins reestablished.
+
+        Returns
+        -------
+        None
+        """
+        pass
+
     def update_font(self) -> None:
         """
         Modify the font used in the plugin's interface.
