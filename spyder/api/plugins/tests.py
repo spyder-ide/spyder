@@ -76,6 +76,7 @@ class MainWindowMock(QMainWindow):
         self._cli_options = get_options(sys_argv)[0]
         super().__init__()
         PLUGIN_REGISTRY.main = self
+        self.is_setting_up = True
 
     def register_plugin(self, plugin_class: type[SpyderPluginClass]):
         plugin = PLUGIN_REGISTRY.register_plugin(self, plugin_class)
