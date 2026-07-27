@@ -124,8 +124,14 @@ class LSPClient(LSPMethodProviderMixIn, SpyderConfigurationAccessor, QObject):
 
         self.server_host = server_settings['host']
         self.configurations = server_settings.get('configurations', {})
+
+        # NOTE: Spyder LSP configurations are synced via `workspace/didChangeConfiguration`
+        # notification, and is always sent after `initialize` (see `_process_server_capabilities`).
+        # As Pylsp merges initializations options with configuration updates with union of
+        # list values, if any list values are sent in `initialization_options`, it becomes
+        # impossible to remove it later (e.g. `flake8/extendIgnore`) without restarting the server.
         self.initialization_options = server_settings.get(
-            'initialization_options', self.configurations
+            'initialization_options'
         )
 
         if not server_settings['external']:
