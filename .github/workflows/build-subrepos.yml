@@ -27,6 +27,9 @@ concurrency:
 
 name: Create Subrepo Conda Packages
 
+env:
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+
 jobs:
   build-pkgs:
     name: Build ${{ matrix.pkg }} ${{ matrix.cache-arch }} Python-${{ matrix.python-version }}
