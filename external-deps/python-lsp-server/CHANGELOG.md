@@ -1,5 +1,35 @@
 # History of changes
 
+## Version 1.15.0 (2026/07/27)
+
+### New features
+* Add compatibility with Jedi 0.20, which comes with official support for
+  Python 3.14.
+
+### Issues Closed
+
+* [Issue 712](https://github.com/python-lsp/python-lsp-server/issues/712) - Compatibility with Jedi 0.20 ([PR 718](https://github.com/python-lsp/python-lsp-server/pull/718) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 705](https://github.com/python-lsp/python-lsp-server/issues/705) - ValueError when opening notebooks on UNC network shares ([PR 708](https://github.com/python-lsp/python-lsp-server/pull/708) by [@meitham](https://github.com/meitham))
+* [Issue 623](https://github.com/python-lsp/python-lsp-server/issues/623) - TypeError in definitions when handling line and column values ([PR 715](https://github.com/python-lsp/python-lsp-server/pull/715) by [@metheoryt](https://github.com/metheoryt))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 718](https://github.com/python-lsp/python-lsp-server/pull/718) - Add support for Jedi 0.20, by [@ccordoba12](https://github.com/ccordoba12) ([712](https://github.com/python-lsp/python-lsp-server/issues/712))
+* [PR 717](https://github.com/python-lsp/python-lsp-server/pull/717) - Fix extra backtick in Readme, by [@deeferentleeg](https://github.com/deeferentleeg)
+* [PR 716](https://github.com/python-lsp/python-lsp-server/pull/716) - Use macOS 14 runner on CI and update Github actions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 715](https://github.com/python-lsp/python-lsp-server/pull/715) - Fix crash in `pylsp_definitions` due to definitions without a source position, by [@metheoryt](https://github.com/metheoryt) ([623](https://github.com/python-lsp/python-lsp-server/issues/623))
+* [PR 709](https://github.com/python-lsp/python-lsp-server/pull/709) - Fix `test_snippets_completion` to not depend on typeshed overload ordering, by [@frenzymadness](https://github.com/frenzymadness)
+* [PR 708](https://github.com/python-lsp/python-lsp-server/pull/708) - Fix error when when opening notebooks on UNC network shares, by [@meitham](https://github.com/meitham) ([705](https://github.com/python-lsp/python-lsp-server/issues/705))
+* [PR 703](https://github.com/python-lsp/python-lsp-server/pull/703) - Fix types of `maxComplexity` and `line_length`, by [@krassowski](https://github.com/krassowski)
+* [PR 682](https://github.com/python-lsp/python-lsp-server/pull/682) - Prefer parent uri when matching uri, by [@mnauw](https://github.com/mnauw)
+* [PR 676](https://github.com/python-lsp/python-lsp-server/pull/676) - Continue on name-defined diagnostics provided by Mypy on autoimport, by [@LarsMichelsen](https://github.com/LarsMichelsen)
+
+In this release 9 pull requests were closed.
+
+----
+
 ## Version 1.14.0 (2025/12/06)
 
 ### New features
