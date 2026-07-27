@@ -575,12 +575,17 @@ def test_completions(completions_codeeditor, qtbot, request):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert completion.count() == 7 if sys.version_info[:2] >= (3, 13) else 6
+    # The number of `math.f*` functions varies depending on the
+    # Python and jedi versions.
+    # `math.fma` exists in Python 3.13 but is only in the stubs
+    # shipped by Jedi 0.20+.
+    math_f_count = completion.count()
+    assert math_f_count in (6, 7)
     assert "floor(x)" in [x.label for x in sig.args[0]]
     qtbot.keyClicks(completion, 'l')
     assert completion.count() == 1
     qtbot.keyPress(completion, Qt.Key_Backspace)
-    assert completion.count() == 7 if sys.version_info[:2] >= (3, 13) else 6
+    assert completion.count() == math_f_count
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
