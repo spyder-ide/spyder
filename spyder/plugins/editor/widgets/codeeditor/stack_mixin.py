@@ -798,7 +798,7 @@ class EditsStackMixin(TextEditBaseWidget):
         self.__revision_in_sync = False
         self.__undo_recording_depth = 0
         self.__undo_last_text = bytearray(
-            self.toPlainText().encode(QT_UTF16_ENCODING)
+            self.get_text_with_eol(linesep="\n").encode(QT_UTF16_ENCODING)
         )  # TODO: optimize to avoid full text snapshots
         self.__undo_cursor_state = CursorState.from_editor(self)
         self.__undo_last_revision = 0
@@ -973,7 +973,9 @@ class EditsStackMixin(TextEditBaseWidget):
             position=position,
             line=line,
             col=col,
-            inserted_text=UTF16String(self.get_selected_text(cursor)),
+            inserted_text=UTF16String(
+                self.get_selected_text(cursor, linesep="\n")
+            ),
             removed_text=UTF16String(self.__undo_last_text[
                 bytes_position:bytes_removed_position
             ]),

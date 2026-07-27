@@ -777,13 +777,14 @@ class BaseEditMixin(object):
         else:
             return os.linesep
 
-    def get_text_with_eol(self):
+    def get_text_with_eol(self, linesep=None) -> str:
         """
         Same as 'toPlainText', replacing '\n' by correct end-of-line
         characters.
         """
         text = self.toPlainText()
-        linesep = self.get_line_separator()
+        if linesep is None:
+            linesep = self.get_line_separator()
         for symbol in EOL_SYMBOLS:
             text = text.replace(symbol, linesep)
         return text
@@ -1274,17 +1275,20 @@ class BaseEditMixin(object):
         """Returns True if some text is selected."""
         return bool(str(self.textCursor().selectedText()))
 
-    def get_selected_text(self, cursor=None):
+    def get_selected_text(self, cursor=None, linesep=None):
         """
         Return text selected by current text cursor, converted in unicode.
 
         Replace the unicode line separator character \u2029 by
-        the line separator characters returned by get_line_separator
+        the given line separator if provided or use the current
+        line separator by default.
         """
         if cursor is None:
             cursor = self.textCursor()
+        if linesep is None:
+            linesep = self.get_line_separator()
         return str(cursor.selectedText()).replace(
-            u"\u2029", self.get_line_separator()
+            u"\u2029", linesep
         )
 
     def remove_selected_text(self):

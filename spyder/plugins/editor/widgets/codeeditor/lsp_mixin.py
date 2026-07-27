@@ -503,19 +503,24 @@ class LSPMixin:
             return
 
         is_ipython = self.is_ipython()
+        linesep = self.get_line_separator()
 
         if edit:
             content_changes = [
                 lsp.TextDocumentContentChangePartial(
                     range=self._get_edit_range(delta),
-                    text=self.ipython_to_python(str(delta.inserted_text)) if is_ipython else str(delta.inserted_text),
+                    text=self._text_for_server(
+                        str(delta.inserted_text).replace("\n", linesep),
+                        is_ipython,
+                    ),
                 ) for delta in edit.deltas if delta.inserted_text or delta.removed_text
             ]
         else:
-            text = self.get_text_with_eol()
             content_changes = [
                 lsp.TextDocumentContentChangeWholeDocument(
-                    text=self.ipython_to_python(text) if is_ipython else text
+                    text=self._text_for_server(
+                        self.get_text_with_eol(), is_ipython
+                    )
                 )
             ]
 
@@ -524,6 +529,12 @@ class LSPMixin:
             "version": self.text_version,
             "content_changes": content_changes,
         }
+
+    def _text_for_server(self, text: str, is_ipython: bool) -> str:
+        """Convert text to what the server expects to receive."""
+        # TODO: LSP now supports IPython, update this workaround when
+        #       using a language server that also supports it.
+        return self.ipython_to_python(text) if is_ipython else text
 
     @handles(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
