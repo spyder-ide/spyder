@@ -291,7 +291,8 @@ class ToolbarContainer(PluginMainContainer):
         section: str | None = None,
         before: str | None = None,
         before_section: str | None = None,
-        omit_id: bool = False
+        omit_id: bool = False,
+        render: bool = False,
     ):
         """
         Add action or widget `item` to given application toolbar `section`.
@@ -313,6 +314,8 @@ class ToolbarContainer(PluginMainContainer):
             If True, then the toolbar will check if the item to add declares an
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
+        render: bool
+            If True, then the toolbar will be rendered after the item is added.
         """
         if toolbar_id not in self._APPLICATION_TOOLBARS:
             pending_items = self._ITEMS_QUEUE.get(toolbar_id, [])
@@ -320,8 +323,16 @@ class ToolbarContainer(PluginMainContainer):
             self._ITEMS_QUEUE[toolbar_id] = pending_items
         else:
             toolbar = self.get_application_toolbar(toolbar_id)
-            toolbar.add_item(item, section=section, before=before,
-                             before_section=before_section, omit_id=omit_id)
+            toolbar.add_item(
+                item,
+                section=section,
+                before=before,
+                before_section=before_section,
+                omit_id=omit_id,
+            )
+
+            if render:
+                toolbar.render()
 
     def remove_item_from_application_toolbar(
         self,
