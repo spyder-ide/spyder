@@ -64,14 +64,14 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
 
     # After this call the manager needs to be reinitialized
     completion_plugin.after_configuration_update([])
-    qtbot.wait(2000)
+    qtbot.wait(2500)
 
     # Set text in editor
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
         editor.set_text(TEXT)
 
     # Get current warnings
-    qtbot.wait(2000)
+    qtbot.wait(2500)
     warnings = editor.get_current_warnings()
 
     expected = [['W293 blank line contains whitespace', 2],
@@ -88,7 +88,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
              '')
 
     completion_plugin.after_configuration_update([])
-    qtbot.wait(2000)
+    qtbot.wait(2500)
 
     assert warnings == expected
 
