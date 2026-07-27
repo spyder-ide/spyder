@@ -406,6 +406,9 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                 kind=dependencies.PLUGIN,
             )
 
+        if self.main and not self.main.is_setting_up:
+            plugin_instance.on_reenabled()
+
         return plugin_instance
 
     def _notify_plugin_dependencies(self, plugin_name: str):

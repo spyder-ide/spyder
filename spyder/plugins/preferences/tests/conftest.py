@@ -38,6 +38,7 @@ class MainWindowMock(QMainWindow):
         self.thirdparty_plugins = []
         self.shortcut_data = []
         self.prefs_dialog_instance = None
+        self.is_setting_up = False
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
