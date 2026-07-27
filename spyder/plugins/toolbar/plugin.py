@@ -156,13 +156,16 @@ class Toolbar(SpyderPluginV2):
         """
         self.get_container().remove_application_toolbar(toolbar_id)
 
-    def add_item_to_application_toolbar(self,
-                                        item: Union[SpyderAction, QWidget],
-                                        toolbar_id: Optional[str] = None,
-                                        section: Optional[str] = None,
-                                        before: Optional[str] = None,
-                                        before_section: Optional[str] = None,
-                                        omit_id: bool = False):
+    def add_item_to_application_toolbar(
+        self,
+        item: Union[SpyderAction, QWidget],
+        toolbar_id: Optional[str] = None,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False,
+        render: bool = False,
+    ):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -183,19 +186,22 @@ class Toolbar(SpyderPluginV2):
             If True, then the toolbar will check if the item to add declares an
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
+        render: bool
+            If True, then the toolbar will be rendered after the item is added.
         """
         if before is not None:
             if not isinstance(before, str):
                 raise ValueError('before argument must be a str')
 
         return self.get_container().add_item_to_application_toolbar(
-                item,
-                toolbar_id=toolbar_id,
-                section=section,
-                before=before,
-                before_section=before_section,
-                omit_id=omit_id
-            )
+            item,
+            toolbar_id=toolbar_id,
+            section=section,
+            before=before,
+            before_section=before_section,
+            omit_id=omit_id,
+            render=render,
+        )
 
     def remove_item_from_application_toolbar(self, item_id: str,
                                              toolbar_id: Optional[str] = None):
