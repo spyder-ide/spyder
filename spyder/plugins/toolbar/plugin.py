@@ -5,26 +5,27 @@
 # (see spyder/__init__.py for details)
 
 """
-Toolbar Plugin.
+Toolbar plugin.
 """
-
-# Standard library imports
-from typing import Union, Optional
 
 # Third-party imports
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, WindowMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import (
-    ToolbarContainer, ToolbarMenus, ToolbarActions)
-from spyder.utils.qthelpers import SpyderAction
+    ToolbarActions,
+    ToolbarContainer,
+    ToolbarItem,
+    ToolbarMenus,
+)
 
 
 class Toolbar(SpyderPluginV2):
@@ -158,11 +159,11 @@ class Toolbar(SpyderPluginV2):
 
     def add_item_to_application_toolbar(
         self,
-        item: Union[SpyderAction, QWidget],
-        toolbar_id: Optional[str] = None,
-        section: Optional[str] = None,
-        before: Optional[str] = None,
-        before_section: Optional[str] = None,
+        item: ToolbarItem,
+        toolbar_id: str | None = None,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
         omit_id: bool = False,
         render: bool = False,
     ):
@@ -203,8 +204,9 @@ class Toolbar(SpyderPluginV2):
             render=render,
         )
 
-    def remove_item_from_application_toolbar(self, item_id: str,
-                                             toolbar_id: Optional[str] = None):
+    def remove_item_from_application_toolbar(
+        self, item_id: str, toolbar_id: str | None = None
+    ):
         """
         Remove action or widget `item` from given application menu by id.
 
