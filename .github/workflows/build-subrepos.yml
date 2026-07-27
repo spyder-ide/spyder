@@ -77,6 +77,8 @@ jobs:
         uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
+            channels:
+              - conda-forge
             conda_build:
               pkg_format: '2'
               zstd_compression_level: '19'
@@ -99,6 +101,5 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
-          python_min: '3.9'
         run: |
           python build_conda_pkgs.py --build $pkg
