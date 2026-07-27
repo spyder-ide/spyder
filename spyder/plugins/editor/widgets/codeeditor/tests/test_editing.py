@@ -131,7 +131,7 @@ def type_chars(editor, qtbot, text):
     qtbot.keyClicks(editor, text)
 
 
-def replay_content_changes(text, changes):
+def replay_content_changes(text, changes, linesep="\n"):
     """Reconstruct a document by applying incremental LSP changes in order.
 
     This mirrors how a downstream consumer (e.g. the fallback completion
@@ -140,10 +140,10 @@ def replay_content_changes(text, changes):
     UTF-16 code units map 1:1 to Python characters.
     """
     for start_line, start_col, end_line, end_col, new_text in changes:
-        lines = text.split("\n")
+        lines = text.split(linesep)
 
         def offset(line, col):
-            return sum(len(lines[i]) + 1 for i in range(line)) + col
+            return sum(len(lines[i]) + len(linesep) for i in range(line)) + col
 
         start = offset(start_line, start_col)
         end = offset(end_line, end_col)
@@ -534,3 +534,29 @@ def test_document_did_change_retype_word_then_newline_char_by_char(qtbot):
     assert editor.toPlainText() == "another\na\n"
     # Whatever the merge produces, replaying it must rebuild the document.
     assert replay_content_changes("wh\n", changes) == editor.toPlainText()
+
+
+def test_document_did_change_typing_across_newline_in_crlf_document(qtbot):
+    # Ensure that typing across a newline in a CRLF document produces a single insert change
+    # with the correct line break characters, and that replaying the change 
+    # stream reconstructs the document with the editor's EOL chars.
+    editor = create_lsp_editor(qtbot, "import mat")
+    editor.eol_chars = "\r\n"
+
+    set_cursor(editor, block_position(editor, 0, 10))
+    type_chars(editor, qtbot, "h")
+    qtbot.keyClick(editor, Qt.Key.Key_Enter)
+    type_chars(editor, qtbot, "math.h")
+
+    payload = flush_document_change(editor, qtbot)
+    changes = [change_signature(change) for change in payload["content_changes"]]
+
+    assert editor.toPlainText() == "import math\nmath.h"
+    # A single insert, with the line break sent using the editor's EOL chars.
+    assert changes == [(0, 10, 0, 10, "h\r\nmath.h")]
+    # Replaying the stream must rebuild the text as the server received it on
+    # didOpen, i.e. with the editor's EOL chars.
+    assert (
+        replay_content_changes("import mat", changes, "\r\n")
+        == editor.get_text_with_eol()
+    )
