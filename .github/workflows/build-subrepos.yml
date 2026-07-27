@@ -1,12 +1,4 @@
 on:
-  push:
-    branches:
-      - 'master'
-      - '6.x'
-    paths:
-      - '**.gitrepo'
-      - '.github/workflows/build-subrepos.yml'
-
   workflow_call:
     inputs:
       branch:
