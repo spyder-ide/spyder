@@ -1,31 +1,28 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.5 is released!
+**Subject**: [ANN] Spyder 6.1.6 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.5** has been released and is available for
+I'm pleased to announce that Spyder **6.1.6** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes eleven weeks after version 6.1.4 and with the following interesting new features, fixes and API changes:
+This release comes four weeks after version 6.1.5 and with the following interesting new features and fixes:
 
 - New features
-    * Add support to use Ruff as code formatter in
-        `Preferences > Completion and linting > Code formatting`.
+    * Add support for Jedi 0.20.0
+    * Add support for python-lsp-server 1.15.0
 
 - Important fixes
-    * Make the IPython console work for Pixi global environments.
-    * Increase max number of plots in the Plots pane to 10,000. Also, show message
-      when that number is reached.
-    * Correctly show signatures with type annotations in the Help pane.
-    * Fix hard crash when restarting the kernel of related IPython consoles.
-    * Several fixes to the update process of the standalone installers.
-
-- API changes
-    * Add `SHOW_INFO_MESSAGE` and `set_info_message` to `PluginMainWidget` to show
-      informative messages in dockable plugins.
+    * Prevent Variable Explorer editors for arrays and dataframes to go to the background.
+    * Prevent IPython Console to steal focus on startup.
+    * Improvements to shortcuts dialog UI and prevent duplicated key sequences additions.
+    * Fix syntax highlighting of `match` and `case` builtins.
+    * Show error message for lack of disk space while updating.
+    * Fix batch script run when a space is present in the file path.
+    * Fix docstring generation with nested functions.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
