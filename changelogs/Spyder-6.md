@@ -70,6 +70,65 @@ In this release 20 pull requests were closed.
 
 ----
 
+## Version 6.1.6 (2026-07-28)
+
+### New features
+
+* Add support for Jedi 0.20.0
+* Add support for python-lsp-server 1.15.0
+
+### Important fixes
+
+* Prevent Variable Explorer editors for arrays and dataframes to go to the background.
+* Prevent IPython Console to steal focus on startup.
+* Improvements to shortcuts dialog UI and prevent duplicated key sequences additions.
+* Fix syntax highlighting of `match` and `case` builtins.
+* Show error message for lack of disk space while updating.
+* Fix batch script run when a space is present in the file path.
+* Fix docstring generation with nested functions.
+
+### Issues Closed
+
+* [Issue 26210](https://github.com/spyder-ide/spyder/issues/26210) - Installers are failing to build on CIs ([PR 26213](https://github.com/spyder-ide/spyder/pull/26213) by [@mrclary](https://github.com/mrclary))
+* [Issue 26173](https://github.com/spyder-ide/spyder/issues/26173) - TimeoutError when changing Matplotlib backend in Preferences ([PR 26175](https://github.com/spyder-ide/spyder/pull/26175) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26162](https://github.com/spyder-ide/spyder/issues/26162) - Running batch script on Windows fails with space in file path ([PR 26193](https://github.com/spyder-ide/spyder/pull/26193) by [@athompson673](https://github.com/athompson673))
+* [Issue 26129](https://github.com/spyder-ide/spyder/issues/26129) - Spyder updater tries to find nonexistent start menu file on Windows
+* [Issue 26119](https://github.com/spyder-ide/spyder/issues/26119) - TypeError when generating docstring for parent of nested function ([PR 26178](https://github.com/spyder-ide/spyder/pull/26178) by [@CAM-Gerlach](https://github.com/CAM-Gerlach))
+* [Issue 26111](https://github.com/spyder-ide/spyder/issues/26111) - Tooltip width inconsistencies in the Preferences window ([PR 26112](https://github.com/spyder-ide/spyder/pull/26112) by [@ProcyonLotor42](https://github.com/ProcyonLotor42))
+* [Issue 26033](https://github.com/spyder-ide/spyder/issues/26033) - Support Jedi 0.20.0 ([PR 26186](https://github.com/spyder-ide/spyder/pull/26186) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26032](https://github.com/spyder-ide/spyder/issues/26032) - When setting a Keyboard shortcut via the IDE, the key is registered twice ([PR 26106](https://github.com/spyder-ide/spyder/pull/26106) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 25621](https://github.com/spyder-ide/spyder/issues/25621) - `OSError: No space left on device` when updating Spyder ([PR 26153](https://github.com/spyder-ide/spyder/pull/26153) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 24231](https://github.com/spyder-ide/spyder/issues/24231) - Spyder window forces itself into foreground multiple times during startup ([PR 26109](https://github.com/spyder-ide/spyder/pull/26109) by [@reachout-sreeram](https://github.com/reachout-sreeram))
+* [Issue 22901](https://github.com/spyder-ide/spyder/issues/22901) - Variable Explorer viewers go to the background when opening them on Mac ([PR 26068](https://github.com/spyder-ide/spyder/pull/26068) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 22305](https://github.com/spyder-ide/spyder/issues/22305) - Other incorrect syntax highlighting of the words "match" and "case" outside of match/case structures ([PR 26152](https://github.com/spyder-ide/spyder/pull/26152) by [@jsbautista](https://github.com/jsbautista))
+
+In this release 12 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26213](https://github.com/spyder-ide/spyder/pull/26213) - PR: Explicitly add `conda-forge` to `condarc` channels in subrepo build workflow (Installers), by [@mrclary](https://github.com/mrclary) ([26210](https://github.com/spyder-ide/spyder/issues/26210))
+* [PR 26212](https://github.com/spyder-ide/spyder/pull/26212) - PR: Update `python-lsp-server` to 1.15.0 (for Spyder 6.1.6), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26193](https://github.com/spyder-ide/spyder/pull/26193) - PR: Fix running batch files on paths with spaces (External Terminal), by [@athompson673](https://github.com/athompson673) ([26162](https://github.com/spyder-ide/spyder/issues/26162))
+* [PR 26192](https://github.com/spyder-ide/spyder/pull/26192) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 26191](https://github.com/spyder-ide/spyder/pull/26191) - PR: Update translations for 6.1.6, by [@dalthviz](https://github.com/dalthviz)
+* [PR 26186](https://github.com/spyder-ide/spyder/pull/26186) - PR: Add support for Jedi 0.20, by [@ccordoba12](https://github.com/ccordoba12) ([26033](https://github.com/spyder-ide/spyder/issues/26033))
+* [PR 26178](https://github.com/spyder-ide/spyder/pull/26178) - PR: Fix docstring generation bug with nested functions, by [@CAM-Gerlach](https://github.com/CAM-Gerlach) ([26119](https://github.com/spyder-ide/spyder/issues/26119))
+* [PR 26175](https://github.com/spyder-ide/spyder/pull/26175) - PR: Catch error when trying to get Matplotlib backend (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([26173](https://github.com/spyder-ide/spyder/issues/26173))
+* [PR 26174](https://github.com/spyder-ide/spyder/pull/26174) - PR: Clean up reference cycle in CodeEditor, by [@larsoner](https://github.com/larsoner)
+* [PR 26164](https://github.com/spyder-ide/spyder/pull/26164) - PR: Improve CI robustness, by [@larsoner](https://github.com/larsoner)
+* [PR 26153](https://github.com/spyder-ide/spyder/pull/26153) - PR: Show error message when update extraction fails due to lack of disk space (Installers), by [@jsbautista](https://github.com/jsbautista) ([25621](https://github.com/spyder-ide/spyder/issues/25621))
+* [PR 26152](https://github.com/spyder-ide/spyder/pull/26152) - PR: Fix syntax highlighting of `match` and `case` builtins, by [@jsbautista](https://github.com/jsbautista) ([22305](https://github.com/spyder-ide/spyder/issues/22305))
+* [PR 26112](https://github.com/spyder-ide/spyder/pull/26112) - PR: Add HTML markup to Preferences tooltips, by [@ProcyonLotor42](https://github.com/ProcyonLotor42) ([26111](https://github.com/spyder-ide/spyder/issues/26111))
+* [PR 26109](https://github.com/spyder-ide/spyder/pull/26109) - PR: Prevent IPython console from stealing focus during startup, by [@reachout-sreeram](https://github.com/reachout-sreeram) ([24231](https://github.com/spyder-ide/spyder/issues/24231))
+* [PR 26106](https://github.com/spyder-ide/spyder/pull/26106) - PR: Prevent duplicate key sequences from being added when entering shortcuts (Preferences), by [@jsbautista](https://github.com/jsbautista) ([26032](https://github.com/spyder-ide/spyder/issues/26032))
+* [PR 26089](https://github.com/spyder-ide/spyder/pull/26089) - PR: Prevent `NameError` when running static code analysis (Pylint), by [@M-Reimer](https://github.com/M-Reimer)
+* [PR 26068](https://github.com/spyder-ide/spyder/pull/26068) - PR: Make array and dataframe editors stay on top when open on macOS (Variable Explorer), by [@jsbautista](https://github.com/jsbautista) ([22901](https://github.com/spyder-ide/spyder/issues/22901))
+* [PR 26057](https://github.com/spyder-ide/spyder/pull/26057) - PR: Improve UI of shortcuts summary dialog, by [@jsbautista](https://github.com/jsbautista)
+
+In this release 18 pull requests were closed.
+
+----
+
 ## Version 6.1.5 (2026-06-26)
 
 ### New features
