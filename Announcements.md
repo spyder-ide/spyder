@@ -16,13 +16,13 @@ This release comes four weeks after version 6.1.5 and with the following interes
     * Add support for python-lsp-server 1.15.0
 
 - Important fixes
-    * Prevent Variable Explorer editors for arrays and dataframes to go to the background.
-    * Prevent IPython Console to steal focus on startup.
-    * Improvements to shortcuts dialog UI and prevent duplicated key sequences additions.
+    * Prevent Variable Explorer viewers for arrays and dataframes to go to the
+      background on macOS.
+    * Prevent Spyder to steal focus from other applications at startup.
+    * Prevent duplicate key sequences when changing shortcuts in Preferences.
     * Fix syntax highlighting of `match` and `case` builtins.
-    * Show error message for lack of disk space while updating.
-    * Fix batch script run when a space is present in the file path.
-    * Fix docstring generation with nested functions.
+    * Fix running batch scripts with spaces in their path on Windows.
+    * Fix docstring generation for nested functions.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
