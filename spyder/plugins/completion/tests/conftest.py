@@ -76,6 +76,15 @@ def create_completion_plugin():
         main_window = MainWindowMock()
         completions = CompletionPlugin(main_window, CONF)
 
+        def teardown():
+            for provider_info in completions.providers.values():
+                CONF.unobserve_configuration(provider_info['instance'])
+            CONF.unobserve_configuration(completions)
+            PLUGIN_REGISTRY.reset()
+            main_window.close()
+
+        request.addfinalizer(teardown)
+
         return completions
     return completion_plugin_wrap
 
@@ -161,7 +170,8 @@ def completion_plugin_all_started(request, qtbot_module,
     _warmup_python_provider(completion_plugin, qtbot_module)
 
     def teardown():
-        completion_plugin.stop_all_providers()
+        for provider_name in list(completion_plugin.providers):
+            completion_plugin.shutdown_provider_instance(provider_name)
 
     request.addfinalizer(teardown)
     return completion_plugin, capabilities
