@@ -273,7 +273,6 @@ install_requires += [
     'chardet>=5.2.0,<8.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
-    'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
     'ipython>=9.15.0,<10.0.0',
     'ipython_pygments_lexers>=1.0',
