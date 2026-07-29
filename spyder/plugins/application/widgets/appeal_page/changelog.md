@@ -1,17 +1,18 @@
 # History of changes
 
-## Version 6.1.5 (2026-06-26)
+## Version 6.1.6 (2026-07-28)
 
 ### New features
 
-* Add support to use Ruff as code formatter in
-  `Preferences > Completion and linting > Code formatting`.
+* Add support for Jedi 0.20.0
+* Add support for python-lsp-server 1.15.0
 
 ### Important fixes
 
-* Make the IPython console work for Pixi global environments.
-* Increase max number of plots in the Plots pane to 10,000. Also, show message
-  when that number is reached.
-* Correctly show signatures with type annotations in the Help pane.
-* Fix hard crash when restarting the kernel of related IPython consoles.
-* Several fixes to the update process of the standalone installers.
+* Prevent Variable Explorer viewers for arrays and dataframes to go to the
+  background on macOS.
+* Prevent Spyder to steal focus from other applications at startup.
+* Prevent duplicate key sequences when changing shortcuts in Preferences.
+* Fix syntax highlighting of `match` and `case` builtins.
+* Fix running batch scripts with spaces in their path on Windows.
+* Fix docstring generation for nested functions.
