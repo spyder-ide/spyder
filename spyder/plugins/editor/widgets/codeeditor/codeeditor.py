@@ -43,6 +43,7 @@ from qtpy.QtGui import (
     QDesktopServices,
     QFont,
     QKeyEvent,
+    QKeySequence,
     QMouseEvent,
     QPaintEvent,
     QPainter,
@@ -3697,6 +3698,18 @@ class CodeEditor(
                 if self._handle_goto_definition_event(pos):
                     event.accept()
                     return
+            return
+
+        # Explicitly handle undo/redo for custom undo stack
+        if event.matches(QKeySequence.Undo):
+            self.undo()
+            event.accept()
+            self.setOverwriteMode(False)
+            return
+        elif event.matches(QKeySequence.Redo):
+            self.redo()
+            event.accept()
+            self.setOverwriteMode(False)
             return
 
         # ---- Handle hard coded and builtin actions
