@@ -134,11 +134,16 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
 
     # Signals
     restore_scrollbar_position = Signal()
-    sig_setup_finished = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal(QResizeEvent)
     sig_moved = Signal(QMoveEvent)
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
+
+    sig_setup_finished = Signal()
+    """Tell plugins that the application is fully setup or loaded."""
+
+    sig_closing_started = Signal()
+    """Tell plugins that the application started to close."""
 
     sig_window_state_changed = Signal(object)
     """
@@ -432,6 +437,8 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         self.sig_focused_plugin_changed.connect(
             plugin.sig_focused_plugin_changed
         )
+        self.sig_setup_finished.connect(plugin._set_app_started)
+        self.sig_closing_started.connect(plugin._set_app_closing)
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
@@ -1051,6 +1058,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 return False
 
         self.is_closing = True
+        self.sig_closing_started.emit()
 
         # Save visible plugins
         if self.layouts is not None:
