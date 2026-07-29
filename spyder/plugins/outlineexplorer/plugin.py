@@ -73,7 +73,7 @@ class OutlineExplorer(SpyderDockablePlugin):
         widget.edit.connect(editor.load_edit)
 
         # Reconnect open CodeEditors if the plugin is reenabled
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             for editorstack in editor.get_editorstacks():
                 # Editor windows have their own Outline, so stacks in them
                 # don't need to be reconnected to this one.

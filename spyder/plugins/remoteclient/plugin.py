@@ -172,7 +172,7 @@ class RemoteClient(SpyderPluginV2):
 
             # Inform other plugins the client is stopped if the plugin is
             # disabled while the session is active
-            if not self.main.is_closing:
+            if not self.is_app_closing:
                 self.sig_server_stopped.emit(config_id)
 
             AsyncDispatcher(

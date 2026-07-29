@@ -1236,7 +1236,7 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.set_outlineexplorer(self.outlineexplorer)
 
         # This is necessary when the Outline plugin is disabled/reenabled
-        if not self._plugin.main.is_setting_up:
+        if not self._plugin.is_app_starting:
             for window in self.editorwindows:
                 window.set_outlineexplorer(self.outline_plugin)
 

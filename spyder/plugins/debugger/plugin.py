@@ -315,7 +315,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         editor.add_panel(DebuggerPanel)
 
         # Reconnect CodeEditors if the plugin is reenabled
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             for editorstack in editor.get_editorstacks():
                 for finfo in editorstack.data:
                     self._add_codeeditor(finfo.editor)
@@ -436,7 +436,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
 
         # Readd toolbar to active editor windows
         editor = self.get_plugin(Plugins.Editor)
-        if editor and not self.main.is_setting_up:
+        if editor and not self.is_app_starting:
             # This is necessary to be able to grab the toolbar actions to
             # create the corresponding toolbar in editor windows
             debug_toolbar.render()
@@ -476,7 +476,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
                 window.remove_toolbar(ApplicationToolbars.Debug)
 
     def on_close(self, cancelable: bool = False) -> None:
-        if not self.main.is_closing:
+        if not self.is_app_closing:
             # Stop debugging in all consoles if the plugin is disabled while
             # the session is active. Otherwise it's not possible to correctly
             # restore the debugging session after the plugin is re-enabled.
