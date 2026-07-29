@@ -3156,11 +3156,15 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
     # Create base temporary directory
     basedir = tmpdir.mkdir('foo')
 
-    # Open some files
-    for idx in range(2):
+    # Create and populate the files before opening them.
+    filenames = []
+    for idx in range(4):
         fh = basedir.join('{}.py'.format(idx))
-        fname = str(fh)
         fh.write('print("Hello world!")')
+        filenames.append(str(fh))
+
+    # Open some files
+    for fname in filenames[:2]:
         application_plugin.open_file_in_plugin(fname)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
@@ -3172,10 +3176,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
     qtbot.wait(500)
 
     # Open other files
-    for idx in range(4):
-        fh = basedir.join('{}.py'.format(idx))
-        fh.write('print("Hello world!")')
-        fname = str(fh)
+    for fname in filenames:
         application_plugin.open_file_in_plugin(fname)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
