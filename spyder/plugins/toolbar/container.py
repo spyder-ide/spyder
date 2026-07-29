@@ -235,7 +235,7 @@ class ToolbarContainer(PluginMainContainer):
 
         # Actions to take when the plugin that creates this toolbar is
         # reenabled
-        if not self._plugin.main.is_setting_up:
+        if not self._plugin.is_app_starting:
             # Reload toolbars to show toolbars of reenabled plugins again
             self.load_application_toolbars(reload=True)
 
@@ -281,7 +281,7 @@ class ToolbarContainer(PluginMainContainer):
             self._visible_toolbars.remove(toolbar)
 
         # Rebuild menu to account for the removed toolbar
-        if not self._plugin.main.is_closing:
+        if not self._plugin.is_app_closing:
             self.create_toolbars_menu(rebuild=True)
 
     def add_item_to_application_toolbar(

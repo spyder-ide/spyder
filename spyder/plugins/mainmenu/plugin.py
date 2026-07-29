@@ -197,7 +197,7 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                 )
 
         # Actions to take when the plugin that creates this menu is reenabled
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             # This enables global shortcuts for actions in the menu
             menu.render()
 
