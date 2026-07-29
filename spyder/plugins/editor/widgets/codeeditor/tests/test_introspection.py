@@ -368,7 +368,6 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Set cursor to start
     code_editor.set_text('my_list = [1, 2, 3]\nlist_copy = list((my))')
     qtbot.wait(500)
-    cursor = code_editor.textCursor()
     code_editor.moveCursor(QTextCursor.End)
 
     # Move cursor next to list((my$))
@@ -388,7 +387,6 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = my_dic[on]')
     qtbot.wait(500)
-    cursor = code_editor.textCursor()
     code_editor.moveCursor(QTextCursor.End)
 
     # Move cursor next to my_dic[on$]
@@ -407,7 +405,6 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
     qtbot.wait(500)
-    cursor = code_editor.textCursor()
     code_editor.moveCursor(QTextCursor.End)
 
     # Move cursor next to {on*}
@@ -577,12 +574,12 @@ def test_completions(completions_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert completion.count() == 6
+    assert completion.count() == 7 if sys.version_info[:2] >= (3, 13) else 6
     assert "floor(x)" in [x.label for x in sig.args[0]]
     qtbot.keyClicks(completion, 'l')
     assert completion.count() == 1
     qtbot.keyPress(completion, Qt.Key_Backspace)
-    assert completion.count() == 6
+    assert completion.count() == 7 if sys.version_info[:2] >= (3, 13) else 6
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
