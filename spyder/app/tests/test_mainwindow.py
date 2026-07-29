@@ -2571,16 +2571,19 @@ def test_plot_from_collectioneditor(main_window, qtbot):
     """
     CONF.set('plots', 'mute_inline_plotting', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window console is fully up. The Plots and Variable
+    # Explorer widgets for this shell only exist after that, so they need to be
+    # requested afterwards.
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
     figbrowser = main_window.plots.current_widget()
     nsb = main_window.variableexplorer.current_widget()
 
     # Check that we start with no plots
     assert len(figbrowser.thumbnails_sb._thumbnails) == 0
-
-    # Wait until the window console is fully up
-    qtbot.waitUntil(
-        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
 
     # Create variable
     with qtbot.waitSignal(shell.executed):
@@ -2591,6 +2594,10 @@ def test_plot_from_collectioneditor(main_window, qtbot):
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
+    # `edit_item` operates on the current index, which is only set implicitly
+    # by Qt when the view actually receives a focus-in event. That doesn't
+    # happen reliably in headless runs, so we select the row explicitly.
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(0, 0))
     nsb.editor.edit_item()
 
     # Find the collection editor
