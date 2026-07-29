@@ -158,6 +158,61 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
 
 @pytest.mark.order(2)
+def test_outline_ignores_superseded_symbols(qtbot,
+                                            completions_codeeditor_outline):
+    """
+    Test that the tree is not updated with symbols of a partially typed
+    statement.
+
+    Typing `=` requests a signature, which sends the text typed so far to the
+    server. If symbols are requested for that text (i.e. while the statement is
+    still incomplete), its response must not overwrite the tree because a newer
+    request was sent in the meantime.
+    """
+    code_editor, outlineexplorer = completions_codeeditor_outline
+    treewidget = outlineexplorer.treewidget
+    treewidget.is_visible = True
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text(
+        "class Class1:\n"
+        "    def __init__(self):\n"
+        "        self.x = 2\n"
+    )
+    qtbot.wait(3000)
+
+    # Set cursor at the end of `self.x = 2`
+    code_editor.go_to_line(3)
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.EndOfBlock)
+    code_editor.setTextCursor(cursor)
+
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        qtbot.keyPress(code_editor, Qt.Key_Return)
+        qtbot.keyClicks(code_editor, 'self.y =')
+
+        # Request symbols for the incomplete statement, which is what the
+        # timer to sync symbols and folding does when it times out here.
+        code_editor.sync_symbols_and_folding()
+
+        qtbot.keyClicks(code_editor, ' None')
+        qtbot.keyPress(code_editor, Qt.Key_Return)
+
+    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
+        code_editor.request_symbols()
+
+    root_tree = get_tree_elements(treewidget)
+    assert root_tree == {
+        'test.py': [
+            {'Class1': [{'__init__': [{'x': []}, {'y': []}]}]}
+        ]
+    }
+
+
+@pytest.mark.order(2)
 def test_empty_file(qtbot, completions_codeeditor_outline):
     """
     Test that the outline explorer is updated correctly when

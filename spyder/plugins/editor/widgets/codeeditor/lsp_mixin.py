@@ -109,6 +109,14 @@ class LSPMixin:
     # Timeout (in milliseconds) to send pending requests to LSP server
     LSP_REQUESTS_DELAY = 50
 
+    # Requests whose results describe the document as a whole, so a response
+    # is only meaningful while it's the answer to the last request we sent.
+    # See _is_outdated_response.
+    WHOLE_DOCUMENT_REQUESTS = frozenset({
+        lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL,
+        lsp.TEXT_DOCUMENT_FOLDING_RANGE,
+    })
+
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_completion_request = Signal(str, str, dict)
@@ -216,6 +224,10 @@ class LSPMixin:
 
         self._text_version = 0
 
+        # Number of requests already sent to the server that are still waiting
+        # for a response, per method. Only tracked for WHOLE_DOCUMENT_REQUESTS.
+        self._requests_in_flight = {}
+
     @property
     def text_version(self):
         """Return the current text version."""
@@ -227,10 +239,39 @@ class LSPMixin:
         """Process server requests."""
         # Send pending requests
         for method, params, requires_response in self._pending_server_requests:
+            if method in self.WHOLE_DOCUMENT_REQUESTS:
+                self._requests_in_flight[method] = (
+                    self._requests_in_flight.get(method, 0) + 1
+                )
             self.emit_request(method, params, requires_response)
 
         # Clear pending requests
         self._pending_server_requests = []
+
+    def _is_outdated_response(self, method: str, sync_version: int) -> bool:
+        """
+        Check if the response for `method` doesn't describe the current text.
+
+        The response is considered outdated if the current text version is
+        greater than `sync_version` and there are no pending requests for `method`.
+
+        Parameters
+        ----------
+        method: str
+            LSP method for which the response was received.
+        sync_version: int
+            Text version for which the request was sent.
+
+        """
+        if self._requests_in_flight.get(method, 0) > 0:
+            return True
+
+        if any(
+            pending[0] == method for pending in self._pending_server_requests
+        ):
+            return True
+
+        return self.text_version > sync_version
 
     def _get_edit_range(self, delta: TextDelta) -> lsp.Range:
         """Get the range of text removed in a text change."""
@@ -265,6 +306,10 @@ class LSPMixin:
     # -------------------------------------------------------------------------
     @Slot(str, object)
     def handle_response(self, method, params):
+        in_flight = self._requests_in_flight.get(method, 0)
+        if in_flight:
+            self._requests_in_flight[method] = in_flight - 1
+
         if method in self.handler_registry:
             handler_name = self.handler_registry[method]
             handler = getattr(self, handler_name)
@@ -294,6 +339,9 @@ class LSPMixin:
     def start_completion_services(self):
         """Start completion services for this instance."""
         self.completions_available = True
+
+        # Requests sent to a previous server instance will never be answered.
+        self._requests_in_flight.clear()
 
         if self.is_cloned:
             additional_msg = "cloned editor"
@@ -395,6 +443,10 @@ class LSPMixin:
         logger.debug("Stopping completion services for %s" % self.filename)
         self.completions_available = False
 
+        # Requests that were not answered before stopping the server won't be
+        # answered at all.
+        self._requests_in_flight.clear()
+
     @request(method=lsp.TEXT_DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
@@ -459,7 +511,9 @@ class LSPMixin:
     @handles(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
-        if self.text_version > self.symbols_sync_version:
+        if self._is_outdated_response(
+            lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL, self.symbols_sync_version
+        ):
             # Ignore outdated response
             return
         try:
@@ -578,6 +632,11 @@ class LSPMixin:
         """
         Synchronize symbols and folding after linting results arrive.
         """
+        # Send the pending edit before deciding what is out of sync. Otherwise
+        # folding would be requested for the text the server currently has,
+        # which we already know is outdated, and its response discarded.
+        self._commit_pending_edit()
+
         if self.text_version > self.folding_sync_version:
             self.request_folding()
         if self.text_version > self.symbols_sync_version:
@@ -1374,7 +1433,9 @@ class LSPMixin:
     @handles(lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
-        if self.text_version > self.folding_sync_version:
+        if self._is_outdated_response(
+            lsp.TEXT_DOCUMENT_FOLDING_RANGE, self.folding_sync_version
+        ):
             return
         ranges = response or []
         if not ranges:
