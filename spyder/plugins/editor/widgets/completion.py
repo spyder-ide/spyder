@@ -148,9 +148,8 @@ class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
             if isinstance(completion, lsp.CompletionItem):
                 check_text = completion.filter_text or completion.label
                 current_word = self.textedit.get_current_word(completion=True)
-                if (
-                    check_text == current_word
-                    and not (completion.text_edit and completion.text_edit.new_text)
+                if check_text == current_word and not (
+                    completion.text_edit and completion.text_edit.new_text
                 ):
                     self.hide()
                     return

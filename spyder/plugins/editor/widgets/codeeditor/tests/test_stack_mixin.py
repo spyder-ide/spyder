@@ -16,7 +16,7 @@ from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# ---- Helpers
 # ---------------------------------------------------------------------------
 
 def cursor(position: int) -> tuple[int, int]:
@@ -74,7 +74,7 @@ def assert_deltas(actual_list, expected):
 
 
 # ---------------------------------------------------------------------------
-# CursorState
+# ---- CursorState
 # ---------------------------------------------------------------------------
 
 def test_cursor_state_equality_uses_signature_not_identity():
@@ -104,7 +104,7 @@ def test_cursor_state_inequality_detects_anchor_change():
 
 
 # ---------------------------------------------------------------------------
-# TextDelta.normalized
+# ---- TextDelta.normalized
 # ---------------------------------------------------------------------------
 
 def test_text_delta_normalized_strips_common_prefix_suffix():
@@ -155,7 +155,7 @@ def test_text_delta_normalized_tracks_line_col_across_newline():
 
 
 # ---------------------------------------------------------------------------
-# TextDelta.merge_text_delta
+# ---- TextDelta.merge_text_delta
 # ---------------------------------------------------------------------------
 
 def test_text_delta_merge_replace_overwrite_same_position():
@@ -308,7 +308,7 @@ def test_text_delta_merge_text_delta_none_for_non_matching_patterns(left, right)
 
 
 # ---------------------------------------------------------------------------
-# TextDelta.exploded
+# ---- TextDelta.exploded
 # ---------------------------------------------------------------------------
 
 def test_text_delta_exploded_splits_wrap_replace_into_two_inserts():
@@ -356,7 +356,7 @@ def test_text_delta_exploded_can_return_empty_delta_for_complete_cancellation():
 
 
 # ---------------------------------------------------------------------------
-# TextDelta.shift / net_length
+# ---- TextDelta.shift / net_length
 # ---------------------------------------------------------------------------
 
 def test_text_delta_shift_and_net_length():
@@ -364,7 +364,9 @@ def test_text_delta_shift_and_net_length():
     assert delta.net_length() == 2
     assert delta.shift(0) is delta
     # A plain position shift does not move line/col (no col_shift given).
-    assert_delta(delta.shift(5), position=15, inserted="abcd", removed="xy", col=10)
+    assert_delta(
+        delta.shift(5), position=15, inserted="abcd", removed="xy", col=10
+    )
     # An explicit line/col shift moves all three coordinates.
     assert_delta(
         delta.shift(5, line_shift=1, col_shift=3),
@@ -373,7 +375,7 @@ def test_text_delta_shift_and_net_length():
 
 
 # ---------------------------------------------------------------------------
-# EditBlock.merge
+# ---- EditBlock.merge
 # ---------------------------------------------------------------------------
 
 def test_edit_block_merge_rejects_empty_or_mismatched_before_state():
@@ -500,21 +502,29 @@ def test_merge_delta_lists_shifts_later_positions_for_multicursor_typing():
     # When the first delta merges to '12', the second delta must be shifted
     # to keep it mergeable and replayable.
     existing = EditBlock(
-        before=CursorState(main_cursor=cursor(2180), extra_cursors=(cursor(2182),)),
+        before=CursorState(
+            main_cursor=cursor(2180), extra_cursors=(cursor(2182),)
+        ),
         deltas=[
             td(position=2180, inserted="1", removed=""),
             td(position=2182, inserted="1", removed=""),
         ],
-        after=CursorState(main_cursor=cursor(2181), extra_cursors=(cursor(2183),)),
+        after=CursorState(
+            main_cursor=cursor(2181), extra_cursors=(cursor(2183),)
+        ),
     )
 
     incoming = EditBlock(
-        before=CursorState(main_cursor=cursor(2181), extra_cursors=(cursor(2183),)),
+        before=CursorState(
+            main_cursor=cursor(2181), extra_cursors=(cursor(2183),)
+        ),
         deltas=[
             td(position=2181, inserted="2", removed=""),
             td(position=2184, inserted="2", removed=""),
         ],
-        after=CursorState(main_cursor=cursor(2182), extra_cursors=(cursor(2184),)),
+        after=CursorState(
+            main_cursor=cursor(2182), extra_cursors=(cursor(2184),)
+        ),
     )
 
     assert existing.merge(incoming)

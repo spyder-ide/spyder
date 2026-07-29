@@ -949,11 +949,8 @@ def test_ipython_files(base_editor_bot, qtbot):
     cursor.movePosition(QTextCursor.End)
     with qtbot.waitSignal(editor.sig_perform_completion_request) as blocker:
         cursor.insertText('\n# %%\n%%timeit 1+1\n')
-        
 
-    
     params = blocker.args[2]
-
     assert 'get_ipython' in params['content_changes'][0].text
 
     # Mock linting results for this file. This is actually what's returned by

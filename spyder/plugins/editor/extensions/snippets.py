@@ -124,7 +124,8 @@ class SnippetsExtension(EditorExtension):
                 self.editor.sig_will_remove_selection.disconnect(
                     self.remove_selection)
                 self.editor.sig_document_change.disconnect(
-                    self._on_last_doc_change)
+                    self._on_last_doc_change
+                )
                 self.editor.sig_undo.disconnect(self._undo)
                 self.editor.sig_redo.disconnect(self._redo)
             except TypeError:
@@ -136,10 +137,12 @@ class SnippetsExtension(EditorExtension):
     def _num_pops_from_last_edit(self):
         if self._last_doc_edit is None:
             return 1
+
         total = sum(
             len(delta.inserted_text) + len(delta.removed_text)
             for delta in self._last_doc_edit.deltas
         )
+
         return max(total, 1)
 
     def update_undo_stack(self):

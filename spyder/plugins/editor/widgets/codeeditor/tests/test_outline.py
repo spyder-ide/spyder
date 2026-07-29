@@ -53,9 +53,7 @@ def wait_for_tree(qtbot, treewidget, expected):
         return tree_elements == expected
 
     try:
-        qtbot.waitUntil(
-            check_tree, timeout=30000
-        )
+        qtbot.waitUntil(check_tree, timeout=30000)
     except Exception:
         assert tree_elements == expected
 
@@ -165,8 +163,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
 
 @pytest.mark.order(2)
-def test_outline_ignores_superseded_symbols(qtbot,
-                                            completions_codeeditor_outline):
+def test_outline_ignores_superseded_symbols(
+    qtbot, completions_codeeditor_outline
+):
     """
     Test that the tree is not updated with symbols of a partially typed
     statement.
@@ -197,7 +196,8 @@ def test_outline_ignores_superseded_symbols(qtbot,
     code_editor.setTextCursor(cursor)
 
     with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+        code_editor.completions_response_signal, timeout=30000
+    ):
         qtbot.keyPress(code_editor, Qt.Key_Return)
         qtbot.keyClicks(code_editor, 'self.y =')
 

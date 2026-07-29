@@ -158,7 +158,8 @@ class FallbackActor(QObject):
         content_changes : list
             List of changes, each being either:
             - lsp.TextDocumentContentChangePartial (incremental range change)
-            - lsp.TextDocumentContentChangeWholeDocument (full document replacement)
+            - lsp.TextDocumentContentChangeWholeDocument (full document
+              replacement)
         """
         if not content_changes:
             return

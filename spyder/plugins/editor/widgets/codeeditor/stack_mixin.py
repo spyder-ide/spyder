@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 """Undo stack support for CodeEditor."""
 
 from __future__ import annotations
@@ -14,11 +20,13 @@ from qtpy.QtGui import QTextCursor
 
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 
+
 logger = logging.getLogger(__name__)
 
 _COMMIT_TIMEOUT_MS = 1_200  # 1.2 seconds, similar to Qt's default
 
 QT_UTF16_ENCODING = "utf-16-le" if sys_byteorder == "little" else "utf-16-be"
+
 
 class UTF16String:
     __slots__ = ("_byteorder", "_encoding", "_bytes")
@@ -27,7 +35,11 @@ class UTF16String:
     _encoding: str
     _bytes: bytes
 
-    def __init__(self, text: str | bytes | bytearray = b"", byteorder: Literal['little', 'big'] = sys_byteorder):
+    def __init__(
+        self,
+        text: str | bytes | bytearray = b"",
+        byteorder: Literal["little", "big"] = sys_byteorder,
+    ):
         self._byteorder = byteorder
         self._encoding = "utf-16-le" if byteorder == "little" else "utf-16-be"
         if isinstance(text, bytes):
@@ -37,8 +49,10 @@ class UTF16String:
         elif isinstance(text, str):
             self._bytes = text.encode(self._encoding)
         else:
-            msg = f"UTF16String must be initialized with str or bytes, got {type(text).__name__}"
-            raise TypeError(msg)
+            raise TypeError(
+                f"UTF16String must be initialized with str or bytes, got "
+                f"{type(text).__name__}"
+            )
 
     def __eq__(self, other) -> bool:
         if isinstance(other, UTF16String):
@@ -55,7 +69,9 @@ class UTF16String:
 
     def __iter__(self):
         for byte_char in range(0, len(self._bytes), 2):
-            yield UTF16String(self._bytes[byte_char:byte_char + 2], self._byteorder)
+            yield UTF16String(
+                self._bytes[byte_char : byte_char + 2], self._byteorder
+            )
 
     def __getitem__(self, index) -> UTF16String:
         # ``index`` is a position in UTF-16 code units; each code unit is two
@@ -67,6 +83,7 @@ class UTF16String:
                 return UTF16String(
                     self._bytes[start * 2:stop * 2], self._byteorder
                 )
+
             # A plain byte-slice step would break the 2-byte code units, so
             # gather each selected code unit explicitly.
             result = bytearray()
@@ -79,7 +96,9 @@ class UTF16String:
                 index += length
             if index < 0 or index >= length:
                 raise IndexError("UTF16String index out of range")
-            return UTF16String(self._bytes[index * 2:index * 2 + 2], self._byteorder)
+            return UTF16String(
+                self._bytes[index * 2 : index * 2 + 2], self._byteorder
+            )
 
         return NotImplemented
 
@@ -122,8 +141,13 @@ class UTF16String:
         return self._bytes.endswith(suffix.encode(self._encoding))
 
     @classmethod
-    def join(cls, iterable: Iterable[UTF16String | str], byteorder: Literal["big", "little"] = sys_byteorder) -> UTF16String:
+    def join(
+        cls,
+        iterable: Iterable[UTF16String | str],
+        byteorder: Literal["big", "little"] = sys_byteorder,
+    ) -> UTF16String:
         return cls("".join(str(item) for item in iterable), byteorder)
+
 
 @dataclass(frozen=True, slots=True)
 class CursorState:
@@ -158,6 +182,7 @@ class CursorState:
         )
         return cls(main_cursor=main_state, extra_cursors=extra_states)
 
+
 @dataclass(frozen=True, slots=True)
 class TextDelta:
     """Single document change item"""
@@ -174,7 +199,10 @@ class TextDelta:
         return self._advance_line_col(self.line, self.col, self.removed_text)
 
     def reverse(self) -> TextDelta:
-        """Return the reverse of this delta, i.e. a delta that would undo this change."""
+        """
+        Return the reverse of this delta, i.e. a delta that would undo this
+        change.
+        """
         return TextDelta(
             position=self.position,
             line=self.line,
@@ -210,7 +238,9 @@ class TextDelta:
             common_prefix += 1
 
         if common_prefix:
-            line, col = self._advance_line_col(line, col, inserted[:common_prefix])
+            line, col = self._advance_line_col(
+                line, col, inserted[:common_prefix]
+            )
             inserted = inserted[common_prefix:]
             removed = removed[common_prefix:]
             position += common_prefix
@@ -268,8 +298,6 @@ class TextDelta:
                     position=delta.position,
                     line=delta.line,
                     col=delta.col,
-                    
-                    
                 ),
             )
         elif not prefix:
@@ -283,7 +311,6 @@ class TextDelta:
                     line=suffix_line,
                     col=suffix_col,
                     inserted_text=suffix,
-                    
                 ),
             )
         elif not suffix:
@@ -293,7 +320,6 @@ class TextDelta:
                     line=delta.line,
                     col=delta.col,
                     inserted_text=prefix,
-                    
                 ),
             )
         else:
@@ -308,19 +334,19 @@ class TextDelta:
                     line=delta.line,
                     col=delta.col,
                     inserted_text=prefix,
-                    
                 ),
                 TextDelta(
                     position=delta.position + len(prefix) + len(removed),
                     line=suffix_line,
                     col=suffix_col,
                     inserted_text=suffix,
-                    
                 ),
             )
 
     @staticmethod
-    def merge_text_delta(left: TextDelta, right: TextDelta) -> TextDelta | None:
+    def merge_text_delta(
+        left: TextDelta, right: TextDelta
+    ) -> TextDelta | None:
         """Apply merge rules for insert/remove deltas."""
         left = left.normalized()
 
@@ -337,7 +363,6 @@ class TextDelta:
                 line=left.line,
                 col=left.col,
                 inserted_text=left.inserted_text + right.inserted_text,
-                
             )
 
         # Replacement inside a previous pure-insert: when the new delta is a
@@ -367,7 +392,6 @@ class TextDelta:
                     line=left.line,
                     col=left.col,
                     inserted_text=new_inserted,
-                    
                 )
 
         # Fold removals of text that was just inserted back into the insert.
@@ -393,7 +417,6 @@ class TextDelta:
                         left.inserted_text[:offset]
                         + left.inserted_text[offset + len(right.removed_text) :]
                     ),
-                    
                 )
 
         # Treat a removal followed by an insertion at the same location as a
@@ -425,7 +448,6 @@ class TextDelta:
                 position=left.position,
                 line=left.line,
                 col=left.col,
-                
                 removed_text=left.removed_text + right.removed_text,
             )
 
@@ -441,7 +463,6 @@ class TextDelta:
                 position=right.position,
                 line=right.line,
                 col=right.col,
-                
                 removed_text=right.removed_text + left.removed_text,
             )
 
@@ -455,31 +476,40 @@ class TextDelta:
             and left.removed_text
             and right.removed_text
         ):
-            a_start, a_end = left.position, left.position + len(left.removed_text)
-            b_start, b_end = right.position, right.position + len(right.removed_text)
+            a_start, a_end = left.position, left.position + len(
+                left.removed_text
+            )
+            b_start, b_end = right.position, right.position + len(
+                right.removed_text
+            )
+
             # Check for overlap or adjacency
             if not (a_end < b_start or b_end < a_start):
                 new_start = min(a_start, b_start)
                 new_end = max(a_end, b_end)
                 length = new_end - new_start
                 chars: list[UTF16String | None] = [None] * length
-                # write left removed_text
+
+                # Write left removed_text
                 for i, ch in enumerate(left.removed_text):
                     chars[left.position - new_start + i] = ch
-                # write right removed_text (overwrites matching overlap)
+
+                # Write right removed_text (overwrites matching overlap)
                 for i, ch in enumerate(right.removed_text):
                     chars[right.position - new_start + i] = ch
 
                 # Replace any None with empty string (shouldn't happen for
                 # fully covered unions in our tests) and join
-                new_removed = UTF16String.join(c if c is not None else "" for c in chars)
+                new_removed = UTF16String.join(
+                    c if c is not None else "" for c in chars
+                )
+
                 # The union starts at whichever delta has the lower position.
                 base = left if left.position <= right.position else right
                 return TextDelta(
                     position=new_start,
                     line=base.line,
                     col=base.col,
-                    
                     removed_text=new_removed,
                 )
 
@@ -508,7 +538,9 @@ class TextDelta:
             # New replacement happens inside the previous inserted text and
             # replaces a suffix of it.
             if left.inserted_text.endswith(right.removed_text):
-                overlap_start = len(left.inserted_text) - len(right.removed_text)
+                overlap_start = len(left.inserted_text) - len(
+                    right.removed_text
+                )
                 if right.position == left.position + overlap_start:
                     return TextDelta(
                         position=left.position,
@@ -632,12 +664,14 @@ class TextDelta:
         )
 
     @staticmethod
-    def _advance_line_col(line: int, col: int, text: UTF16String) -> tuple[int, int]:
+    def _advance_line_col(
+        line: int, col: int, text: UTF16String
+    ) -> tuple[int, int]:
         """Advance a ``(line, col)`` position over ``text``.
 
         Each newline increments the line and resets the column to the number of
-        characters following the last newline; otherwise the column simply grows
-        by the length of ``text``.
+        characters following the last newline; otherwise the column simply
+        grows by the length of ``text``.
         """
         newlines = text.count("\n")
         if newlines:
@@ -647,15 +681,22 @@ class TextDelta:
 
 @dataclass(slots=True)
 class EditBlock:
-    """Logical edit unit that can be merged with subsequent edits when possible."""
+    """
+    Logical edit unit that can be merged with subsequent edits when possible.
+    """
 
     before: CursorState
     deltas: list[TextDelta]
     after: CursorState
-    timestamp: datetime = field(default_factory=lambda: datetime.now().astimezone())
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now().astimezone()
+    )
 
     def reverse(self) -> EditBlock:
-        """Return the reverse of this edit, i.e. an edit that would undo this change."""
+        """
+        Return the reverse of this edit, i.e. an edit that would undo this
+        change.
+        """
         return EditBlock(
             before=self.after,
             deltas=[delta.reverse() for delta in reversed(self.deltas)],
@@ -687,7 +728,9 @@ class EditBlock:
                 length_diff = merged.net_length() - current.net_length()
                 line_diff = merged.net_newlines() - current.net_newlines()
 
-                current_end_line = current.line + current.inserted_text.count("\n")
+                current_end_line = current.line + current.inserted_text.count(
+                    "\n"
+                )
 
                 # The merge changed how many characters live on the line where
                 # the edited region ends; deltas sharing that line move with it.
@@ -707,9 +750,9 @@ class EditBlock:
                     )
                     col_diff = merged_end_col - current_end_col
                 else:
-                    # Single-line edit: following columns shift by the net number
-                    # of characters added or removed. Using the inserted end
-                    # column alone would miss net removals.
+                    # Single-line edit: following columns shift by the net
+                    # number of characters added or removed. Using the inserted
+                    # end column alone would miss net removals.
                     col_diff = length_diff
 
                 self.deltas[i] = merged
@@ -733,7 +776,10 @@ class EditBlock:
         return True
 
     def __str__(self):
-        return f"EditBlock(before={self.before}, deltas={self.deltas}, after={self.after}, timestamp={self.timestamp.isoformat()})"
+        return (
+            f"EditBlock(before={self.before}, deltas={self.deltas}, "
+            f"after={self.after}, timestamp={self.timestamp.isoformat()})"
+        )
 
 
 class UndoStack:
@@ -807,12 +853,16 @@ class EditsStackMixin(TextEditBaseWidget):
         self._commit_timer.setSingleShot(True)
         self._commit_timer.setInterval(_COMMIT_TIMEOUT_MS)
         self._commit_timer.timeout.connect(self._commit_pending_edit)
+
         document = self.document()
         assert document is not None
         self.__undo_last_revision = document.revision()
         document.setUndoRedoEnabled(False)
         document.contentsChange.connect(self._on_document_contents_change)
-        self.sig_cursor_position_changed.connect(self._on_cursor_position_changed)
+
+        self.sig_cursor_position_changed.connect(
+            self._on_cursor_position_changed
+        )
 
     def undo(self):
         edit = self.undo_stack.get_previous()
@@ -838,14 +888,19 @@ class EditsStackMixin(TextEditBaseWidget):
         self._undo_stack.clear()
         self.__pending_edit = None
         self.__undo_cursor_state = CursorState.from_editor(self)
+
         document = self.document()
-        self.__undo_last_revision = document.revision() if document is not None else 0
+        self.__undo_last_revision = (
+            document.revision() if document is not None else 0
+        )
+
         self.__revision_in_sync = False  # revision changes after setting text
 
     @contextmanager
     def suspend_undo_recording(self):
         """Temporarily disable undo recording while applying a state."""
         self.__undo_recording_depth += 1
+
         try:
             yield
         finally:
@@ -857,7 +912,7 @@ class EditsStackMixin(TextEditBaseWidget):
         This is needed so edits that happen after a pure cursor move capture a
         correct `before` state.
 
-        Important: during an actual text edit, Qt can emit cursor-position
+        Important: During an actual text edit, Qt can emit cursor-position
         changes around the same time as `contentsChange`. We avoid overwriting
         the pre-edit snapshot by only updating when the document revision has
         not changed since the last recorded revision.
@@ -917,11 +972,13 @@ class EditsStackMixin(TextEditBaseWidget):
     def apply_edit(self, edit: EditBlock):
         for delta in edit.deltas:
             self._apply_delta(delta)
+
         self._apply_cursor_state(edit.after)
 
     def _apply_delta(self, delta: TextDelta):
         cursor = QTextCursor(self.document())
         cursor.setPosition(delta.position)
+
         cursor.beginEditBlock()
         if delta.removed_text:
             cursor.setPosition(
@@ -929,9 +986,11 @@ class EditsStackMixin(TextEditBaseWidget):
                 QTextCursor.KeepAnchor,
             )
             cursor.removeSelectedText()
+
         if delta.inserted_text:
             cursor.setPosition(delta.position)
             cursor.insertText(str(delta.inserted_text))
+
         cursor.endEditBlock()
 
     def _commit_pending_edit(self):
@@ -953,16 +1012,22 @@ class EditsStackMixin(TextEditBaseWidget):
         document = self.document()
         if document is None:
             return
+
         # Create a fresh cursor as contentsChange sometimes resets document's
-        # internal cursor, causing `textCursor()` to return an invalid/null cursor.
+        # internal cursor, causing `textCursor()` to return an invalid/null
+        # cursor.
         cursor = QTextCursor(document)
-        # Qt always appends an implicit paragraph separator at the end of the document,
-        # clamp the selection to end of document to avoid out-of-range.
+
+        # Qt always appends an implicit paragraph separator at the end of the
+        # document, clamp the selection to end of document to avoid
+        # out-of-range.
         cursor.movePosition(QTextCursor.End)
         end = min(position + chars_added, cursor.position())
         cursor.setPosition(position)
         line = cursor.blockNumber()
-        # QTextCursor.columnNumber() is unreliable when contentsChange is emitted
+
+        # QTextCursor.columnNumber() is unreliable when contentsChange is
+        # emitted
         col = position - cursor.block().position()
         cursor.setPosition(end, QTextCursor.KeepAnchor)
 
@@ -976,9 +1041,9 @@ class EditsStackMixin(TextEditBaseWidget):
             inserted_text=UTF16String(
                 self.get_selected_text(cursor, linesep="\n")
             ),
-            removed_text=UTF16String(self.__undo_last_text[
-                bytes_position:bytes_removed_position
-            ]),
+            removed_text=UTF16String(
+                self.__undo_last_text[bytes_position:bytes_removed_position]
+            ),
         )
 
         self.__undo_last_revision = document.revision()
@@ -1000,7 +1065,11 @@ class EditsStackMixin(TextEditBaseWidget):
 
         edit = EditBlock(
             before=self.__undo_cursor_state,
-            deltas=[d for d in delta.exploded() if (d.inserted_text or d.removed_text)],
+            deltas=[
+                d
+                for d in delta.exploded()
+                if (d.inserted_text or d.removed_text)
+            ],
             after=CursorState.from_editor(self),
         )
         self.__undo_cursor_state = edit.after
@@ -1035,5 +1104,6 @@ class EditsStackMixin(TextEditBaseWidget):
                 and self.__pending_edit.timestamp != self.__edit_block_tstmp
             ):
                 self._commit_pending_edit()
+
             self.__edit_block_tstmp = None
             self.__edit_block = False

@@ -66,7 +66,9 @@ def test_get_signature(lsp_client_and_completion, qtbot):
         'file': 'test.py',
         'language': 'python',
         'version': 1,
-        'content_changes': [lsp.TextDocumentContentChangeWholeDocument("import os\nos.walk(\n")],
+        'content_changes': [
+            lsp.TextDocumentContentChangeWholeDocument("import os\nos.walk(\n")
+        ],
         'codeeditor': completion,
         'requires_response': False
     }
@@ -106,7 +108,9 @@ def test_get_completions(lsp_client_and_completion, qtbot):
         'file': 'test.py',
         'language': 'python',
         'version': 1,
-        'content_changes': [lsp.TextDocumentContentChangeWholeDocument("import o")],
+        'content_changes': [
+            lsp.TextDocumentContentChangeWholeDocument("import o")
+        ],
         'codeeditor': completion,
         'requires_response': False
     }
@@ -144,7 +148,9 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
         'file': 'test.py',
         'language': 'python',
         'version': 1,
-        'content_changes': [lsp.TextDocumentContentChangeWholeDocument("import os\nos.walk\n")],
+        'content_changes': [
+            lsp.TextDocumentContentChangeWholeDocument("import os\nos.walk\n")
+        ],
         'codeeditor': completion,
         'requires_response': False
     }

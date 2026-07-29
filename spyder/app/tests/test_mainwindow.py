@@ -201,7 +201,9 @@ def test_leaks(main_window, qtbot):
             timeout=SHELL_TIMEOUT)
         with qtbot.waitSignal(shell.executed):
             shell.execute("%debug print()")
+
         qtbot.wait(1000)
+
         # Close all files and consoles
         main_window.editor.close_all_files()
         main_window.ipyconsole.restart()
@@ -2577,7 +2579,8 @@ def test_plot_from_collectioneditor(main_window, qtbot):
     # requested afterwards.
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     figbrowser = main_window.plots.current_widget()
     nsb = main_window.variableexplorer.current_widget()
@@ -2594,6 +2597,7 @@ def test_plot_from_collectioneditor(main_window, qtbot):
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
+
     # `edit_item` operates on the current index, which is only set implicitly
     # by Qt when the view actually receives a focus-in event. That doesn't
     # happen reliably in headless runs, so we select the row explicitly.
@@ -5088,7 +5092,10 @@ def test_update_outline(main_window, qtbot, tmpdir):
 @pytest.mark.preload_namespace_project
 @pytest.mark.known_leak
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Doesn't work on Mac")
-@pytest.mark.xfail  #TODO(hlouzada): Custom edits stack and lsp changes introduced flaky behavior on this test. Needs to be fixed.
+@pytest.mark.xfail(
+    reason="Custom edits stack and lsp changes introduced flaky behavior on "
+    "this test. Needs to be fixed."
+)
 def test_no_update_outline(main_window, qtbot, tmpdir):
     """
     Test the Outline is not updated in different scenarios.

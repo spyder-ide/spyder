@@ -48,7 +48,11 @@ from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils import sourcecode
 
 if typ.TYPE_CHECKING:
-    from spyder.plugins.editor.widgets.codeeditor.stack_mixin import EditBlock, TextDelta
+    from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
+        EditBlock,
+        TextDelta,
+    )
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +78,11 @@ def schedule_request(
         if _cancel_previous or cancel_previous:
             pending_reqeusts = self._pending_server_requests
             index = next(
-                (i for i, item in enumerate(pending_reqeusts) if item[0] == method),
+                (
+                    i
+                    for i, item in enumerate(pending_reqeusts)
+                    if item[0] == method
+                ),
                 None,
             )
             if index is not None:
@@ -83,7 +91,9 @@ def schedule_request(
                 )
 
         if params is not None and self.completions_available:
-            self._pending_server_requests.append((method, params, requires_response))
+            self._pending_server_requests.append(
+                (method, params, requires_response)
+            )
             self._server_requests_timer.start()
 
     return wrapper
@@ -261,7 +271,6 @@ class LSPMixin:
             LSP method for which the response was received.
         sync_version: int
             Text version for which the request was sent.
-
         """
         if self._requests_in_flight.get(method, 0) > 0:
             return True
@@ -280,15 +289,19 @@ class LSPMixin:
         if not delta.removed_text:
             return lsp.Range(start=start, end=start)
 
-        return lsp.Range(start=start, end=lsp.Position(*delta.get_end_line_col()))
+        return lsp.Range(
+            start=start, end=lsp.Position(*delta.get_end_line_col())
+        )
 
     def _handle_document_change(self, edit: EditBlock):
         """Handle document change."""
         self._text_version += 1
+
         if self.sync_mode == lsp.TextDocumentSyncKind.Incremental:
             self.document_did_change(edit)
         else:
             self.document_did_change(_cancel_previous=True)
+
         self.do_automatic_completions()
 
     def _handle_new_text_set(self):
@@ -378,7 +391,8 @@ class LSPMixin:
             and capabilities.position_encoding != self.position_encoding
         ):
             raise LSPHandleError(
-                f"Unsupported position encoding: {capabilities.position_encoding}"
+                f"Unsupported position encoding: "
+                f"{capabilities.position_encoding}"
             )
 
         if isinstance(tds, lsp.TextDocumentSyncOptions):
@@ -495,13 +509,17 @@ class LSPMixin:
 
     # ---- Symbols
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL, cancel_previous=True)
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL, cancel_previous=True
+    )
     def request_symbols(self):
         """Request document symbols."""
         if not self.document_symbols_enabled:
             return
-        # ensure document is up to date before requesting symbols
+
+        # Ensure document is up to date before requesting symbols
         self._commit_pending_edit()
+
         if self.oe_proxy is not None:
             self.oe_proxy.emit_request_in_progress()
         params = {"file": self.filename}
@@ -567,7 +585,9 @@ class LSPMixin:
                         str(delta.inserted_text).replace("\n", linesep),
                         is_ipython,
                     ),
-                ) for delta in edit.deltas if delta.inserted_text or delta.removed_text
+                )
+                for delta in edit.deltas
+                if delta.inserted_text or delta.removed_text
             ]
         else:
             content_changes = [
@@ -639,6 +659,7 @@ class LSPMixin:
 
         if self.text_version > self.folding_sync_version:
             self.request_folding()
+
         if self.text_version > self.symbols_sync_version:
             self.request_symbols()
 
@@ -788,7 +809,9 @@ class LSPMixin:
 
     # ---- Completion
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_COMPLETION, cancel_previous=True)
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_COMPLETION, cancel_previous=True
+    )
     def do_completion(self, automatic=False):
         """Trigger completion."""
         cursor = self.textCursor()
@@ -806,8 +829,11 @@ class LSPMixin:
             "current_word": current_word,
         }
         self.completion_args = (self.textCursor().position(), automatic)
-        # Make sure that the document is up to date before requesting completions.
+
+        # Make sure that the document is up to date before requesting
+        # completions.
         self._commit_pending_edit()
+
         return params
 
     @handles(lsp.TEXT_DOCUMENT_COMPLETION)
@@ -830,8 +856,11 @@ class LSPMixin:
         try:
             completions = params or []
             completions = [
-                c for c in completions
-                if c.insert_text or c.label or (c.text_edit and c.text_edit.new_text)
+                c
+                for c in completions
+                if c.insert_text
+                or c.label
+                or (c.text_edit and c.text_edit.new_text)
             ]
 
             prefix = self.get_current_word(
@@ -840,7 +869,8 @@ class LSPMixin:
 
             if (
                 len(completions) == 1
-                and (completions[0].insert_text or completions[0].label) == prefix
+                and (completions[0].insert_text or completions[0].label)
+                == prefix
                 and not (
                     completions[0].text_edit
                     and completions[0].text_edit.new_text
@@ -947,12 +977,15 @@ class LSPMixin:
 
     # ---- Signature Hints
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP, cancel_previous=True)
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP, cancel_previous=True
+    )
     def request_signature(self):
         """Ask for signature."""
         # Ensure the pending edit is committed so that document_did_change is
         # queued before the signatureHelp request.
         self._commit_pending_edit()
+
         line, column = self.get_cursor_line_column()
         offset = self.get_position("cursor")
         params = {
@@ -1421,7 +1454,9 @@ class LSPMixin:
         """Cleanup folding pane."""
         self.folding_panel.folding_regions = {}
 
-    @schedule_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE, cancel_previous=True)
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_FOLDING_RANGE, cancel_previous=True
+    )
     def request_folding(self):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
@@ -1437,6 +1472,7 @@ class LSPMixin:
             lsp.TEXT_DOCUMENT_FOLDING_RANGE, self.folding_sync_version
         ):
             return
+
         ranges = response or []
         if not ranges:
             return
@@ -1515,7 +1551,6 @@ class LSPMixin:
             self._server_requests_timer.stop()
         except RuntimeError:
             pass
-
 
         if self.completions_available:
             # This is necessary to prevent an error in our tests.

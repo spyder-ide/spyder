@@ -2721,7 +2721,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
         editor.sig_perform_completion_request.connect(
-            self.sig_perform_completion_request)
+            self.sig_perform_completion_request
+        )
         editor.sig_start_operation_in_progress.connect(self.spinner.start)
         editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(

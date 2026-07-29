@@ -42,7 +42,8 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
 
     # Set text in editor
     with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+        code_editor.completions_response_signal, timeout=30000
+    ):
         code_editor.set_text(text)
 
     # Assert eols are the expected ones
@@ -99,7 +100,8 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
 
     # Set text in editor
     with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+        code_editor.completions_response_signal, timeout=30000
+    ):
         code_editor.set_text(text)
 
     # Assert eols are the expected ones

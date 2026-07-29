@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 """Tests for CodeEditor LSP text change buffering and merge behavior."""
 
 from __future__ import annotations
@@ -48,7 +54,9 @@ def flush_document_change(editor, qtbot):
     editor._commit_pending_edit()
     editor._server_requests_timer.stop()
 
-    with qtbot.waitSignal(editor.sig_perform_completion_request, timeout=1000) as blocker:
+    with qtbot.waitSignal(
+        editor.sig_perform_completion_request, timeout=1000
+    ) as blocker:
         editor._process_server_requests()
 
     assert blocker.args[1] == lsp.TEXT_DOCUMENT_DID_CHANGE
@@ -104,7 +112,9 @@ def set_multicursor_selections(editor, selections):
     for start, end in selections:
         cursor = QTextCursor(editor.document())
         cursor.setPosition(resolve_position(editor, start))
-        cursor.setPosition(resolve_position(editor, end), QTextCursor.KeepAnchor)
+        cursor.setPosition(
+            resolve_position(editor, end), QTextCursor.KeepAnchor
+        )
         cursors.append(cursor)
 
     editor.setTextCursor(cursors[-1])
@@ -117,7 +127,9 @@ def assert_document_change(editor, qtbot, expected_text, expected_changes):
 
     assert editor.toPlainText() == expected_text
     assert len(payload["content_changes"]) == len(expected_changes)
-    assert [change_signature(change) for change in payload["content_changes"]] == expected_changes
+    assert [
+        change_signature(change) for change in payload["content_changes"]
+    ] == expected_changes
     return payload
 
 
@@ -148,6 +160,7 @@ def replay_content_changes(text, changes, linesep="\n"):
         start = offset(start_line, start_col)
         end = offset(end_line, end_col)
         text = text[:start] + new_text + text[end:]
+
     return text
 
 
@@ -167,13 +180,15 @@ def test_document_did_change_merges_sequential_single_cursor_inserts(qtbot):
         editor,
         qtbot,
         "axybc",
-        [(
-        0,
-        1,
-        0,
-        1,
-        "xy",
-        )],
+        [
+            (
+                0,
+                1,
+                0,
+                1,
+                "xy",
+            )
+        ],
     )
 
 
@@ -239,7 +254,9 @@ def test_document_did_change_merges_insert_followed_by_backspace(qtbot):
 def test_document_did_change_merges_delete_then_insert_at_same_position(qtbot):
     editor = create_lsp_editor(qtbot, "abc")
 
-    apply_single_cursor_steps(editor, [("move", (0, 1)), ("delete",), ("insert", "X")])
+    apply_single_cursor_steps(
+        editor, [("move", (0, 1)), ("delete",), ("insert", "X")]
+    )
 
     assert_document_change(editor, qtbot, "aXc", [(0, 1, 0, 2, "X")])
 
@@ -247,7 +264,9 @@ def test_document_did_change_merges_delete_then_insert_at_same_position(qtbot):
 def test_document_did_change_reports_multiline_replacement(qtbot):
     editor = create_lsp_editor(qtbot, "abc\ndef\nghi\n")
 
-    apply_single_cursor_steps(editor, [("select", (1, 0), (1, 3)), ("insert", "D\nE")])
+    apply_single_cursor_steps(
+        editor, [("select", (1, 0), (1, 3)), ("insert", "D\nE")]
+    )
 
     assert_document_change(
         editor,
@@ -260,7 +279,9 @@ def test_document_did_change_reports_multiline_replacement(qtbot):
 def test_document_did_change_preserves_trailing_newline_ranges(qtbot):
     editor = create_lsp_editor(qtbot, "abc\ndef\nghi\n")
 
-    apply_single_cursor_steps(editor, [("select", (1, 0), (2, 0)), ("remove",)])
+    apply_single_cursor_steps(
+        editor, [("select", (1, 0), (2, 0)), ("remove",)]
+    )
 
     assert_document_change(editor, qtbot, "abc\nghi\n", [(1, 0, 2, 0, "")])
 
@@ -276,7 +297,9 @@ def test_document_did_change_deletes_first_character_before_blank_lines(qtbot):
 def test_document_did_change_deletes_entire_line_inclusive_of_newline(qtbot):
     editor = create_lsp_editor(qtbot, "alpha\nbeta\ngamma\n")
 
-    apply_single_cursor_steps(editor, [("select", (1, 0), (2, 0)), ("remove",)])
+    apply_single_cursor_steps(
+        editor, [("select", (1, 0), (2, 0)), ("remove",)]
+    )
 
     assert_document_change(editor, qtbot, "alpha\ngamma\n", [(1, 0, 2, 0, "")])
 
@@ -284,9 +307,13 @@ def test_document_did_change_deletes_entire_line_inclusive_of_newline(qtbot):
 def test_document_did_change_replaces_line_prefix_with_multiline_text(qtbot):
     editor = create_lsp_editor(qtbot, "one\ntwo\n")
 
-    apply_single_cursor_steps(editor, [("select", (0, 0), (0, 3)), ("insert", "1\nuno")])
+    apply_single_cursor_steps(
+        editor, [("select", (0, 0), (0, 3)), ("insert", "1\nuno")]
+    )
 
-    assert_document_change(editor, qtbot, "1\nuno\ntwo\n", [(0, 0, 0, 3, "1\nuno")])
+    assert_document_change(
+        editor, qtbot, "1\nuno\ntwo\n", [(0, 0, 0, 3, "1\nuno")]
+    )
 
 
 def test_document_did_change_replaces_multiline_span_across_blank_lines(qtbot):
@@ -374,7 +401,9 @@ def test_document_did_change_multiline_replacement_matrix(
     assert_document_change(editor, qtbot, expected_text, [expected_change])
 
 
-def test_document_did_change_merges_multicursor_inserts_and_shifts_positions(qtbot):
+def test_document_did_change_merges_multicursor_inserts_and_shifts_positions(
+    qtbot,
+):
     editor = create_lsp_editor(qtbot, "ab\ncd\n")
 
     main_cursor = set_cursor(editor, block_position(editor, 1, 1))
@@ -390,7 +419,9 @@ def test_document_did_change_merges_multicursor_inserts_and_shifts_positions(qtb
 
     assert editor.toPlainText() == "axb\ncxd\n"
     assert len(payload["content_changes"]) == 2
-    assert [change_signature(change) for change in payload["content_changes"]] == [
+    assert [
+        change_signature(change) for change in payload["content_changes"]
+    ] == [
         (0, 1, 0, 1, "x"),
         (1, 1, 1, 1, "x"),
     ]
@@ -415,7 +446,9 @@ def test_document_did_change_handles_three_cursor_column_inserts(qtbot):
 
     assert editor.toPlainText() == "axb\ncxd\nexf\n"
     assert len(payload["content_changes"]) == 1
-    assert [change_signature(change) for change in payload["content_changes"]] == [
+    assert [
+        change_signature(change) for change in payload["content_changes"]
+    ] == [
         (0, 1, 2, 1, "xb\ncxd\nex"),
     ]
 
@@ -437,7 +470,9 @@ def test_document_did_change_handles_multicursor_backspace(qtbot):
 
     assert editor.toPlainText() == "a\nc\n"
     assert len(payload["content_changes"]) == 1
-    assert [change_signature(change) for change in payload["content_changes"]] == [
+    assert [
+        change_signature(change) for change in payload["content_changes"]
+    ] == [
         (0, 1, 1, 2, "\nc"),
     ]
 
@@ -477,7 +512,9 @@ def test_document_did_change_multicursor_multiline_span_matrix(
 
     assert editor.toPlainText() == expected_text
     assert len(payload["content_changes"]) == len(expected_changes)
-    assert [change_signature(change) for change in payload["content_changes"]] == expected_changes
+    assert [
+        change_signature(change) for change in payload["content_changes"]
+    ] == expected_changes
 
 
 def test_document_did_change_char_by_char_typing_merges_midline(qtbot):
@@ -507,7 +544,9 @@ def test_document_did_change_retype_word_char_by_char_after_delete(qtbot):
     type_chars(editor, qtbot, "another")
 
     payload = flush_document_change(editor, qtbot)
-    changes = [change_signature(change) for change in payload["content_changes"]]
+    changes = [
+        change_signature(change) for change in payload["content_changes"]
+    ]
 
     assert editor.toPlainText() == "another\n"
     # The second change must start at column 5 (after 'anoth'), not column 0.
@@ -529,7 +568,9 @@ def test_document_did_change_retype_word_then_newline_char_by_char(qtbot):
     type_chars(editor, qtbot, "a")
 
     payload = flush_document_change(editor, qtbot)
-    changes = [change_signature(change) for change in payload["content_changes"]]
+    changes = [
+        change_signature(change) for change in payload["content_changes"]
+    ]
 
     assert editor.toPlainText() == "another\na\n"
     # Whatever the merge produces, replaying it must rebuild the document.
@@ -537,9 +578,9 @@ def test_document_did_change_retype_word_then_newline_char_by_char(qtbot):
 
 
 def test_document_did_change_typing_across_newline_in_crlf_document(qtbot):
-    # Ensure that typing across a newline in a CRLF document produces a single insert change
-    # with the correct line break characters, and that replaying the change 
-    # stream reconstructs the document with the editor's EOL chars.
+    # Ensure that typing across a newline in a CRLF document produces a single
+    # insert change with the correct line break characters, and that replaying
+    # the change stream reconstructs the document with the editor's EOL chars.
     editor = create_lsp_editor(qtbot, "import mat")
     editor.eol_chars = "\r\n"
 
@@ -549,7 +590,9 @@ def test_document_did_change_typing_across_newline_in_crlf_document(qtbot):
     type_chars(editor, qtbot, "math.h")
 
     payload = flush_document_change(editor, qtbot)
-    changes = [change_signature(change) for change in payload["content_changes"]]
+    changes = [
+        change_signature(change) for change in payload["content_changes"]
+    ]
 
     assert editor.toPlainText() == "import math\nmath.h"
     # A single insert, with the line break sent using the editor's EOL chars.
