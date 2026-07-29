@@ -1459,7 +1459,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             if (
                 # Don't run this while the window is being created to not
                 # affect setting up the layout at startup.
-                not self._plugin.main.is_setting_up
+                not self._plugin.is_app_starting
                 and self.get_conf(
                     "window_was_undocked_before_hiding", default=False
                 )

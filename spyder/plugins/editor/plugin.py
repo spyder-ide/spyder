@@ -374,7 +374,7 @@ class Editor(SpyderDockablePlugin):
         self.get_widget().add_run_actions_to_codeeditor_context_menu()
 
         # Re-register open files to the plugin if it's reenabled
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             editorstack = self.get_current_editorstack()
             for finfo in editorstack.data:
                 widget.handle_run_status(finfo.filename)
@@ -1315,7 +1315,7 @@ class Editor(SpyderDockablePlugin):
         self.extensions.append(extension)
 
         # This is necessary to readd the extension for reenabled plugins
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             for editorstack in self.get_editorstacks():
                 editorstack.add_extension(extension)
 
@@ -1370,7 +1370,7 @@ class Editor(SpyderDockablePlugin):
         self.panels.append((panel, position))
 
         # This is necessary to readd the panel for reenabled plugins
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             for editorstack in self.get_editorstacks():
                 editorstack.add_panel(panel, position)
 
@@ -1450,7 +1450,7 @@ class Editor(SpyderDockablePlugin):
         self.shortcuts.append((name, triggered, plugin_name))
 
         # This is necessary to readd the shortcut for reenabled plugins
-        if not self.main.is_setting_up:
+        if not self.is_app_starting:
             for editorstack in self.get_editorstacks():
                 editorstack.add_shortcut(name, triggered, plugin_name)
 

@@ -145,7 +145,7 @@ class Run(SpyderPluginV2):
 
         # Add menu to active editor windows
         editor = self.get_plugin(Plugins.Editor)
-        if editor and not self.main.is_setting_up:
+        if editor and not self.is_app_starting:
             for window in editor.get_widget().editorwindows:
                 window.add_menu(ApplicationMenus.Run, readd=True)
 
@@ -183,7 +183,7 @@ class Run(SpyderPluginV2):
 
         # Readd toolbar to active editor windows
         editor = self.get_plugin(Plugins.Editor)
-        if editor and not self.main.is_setting_up:
+        if editor and not self.is_app_starting:
             for window in editor.get_widget().editorwindows:
                 window.add_toolbar(ApplicationToolbars.Run, reload=True)
 
@@ -959,7 +959,7 @@ class Run(SpyderPluginV2):
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)
 
-                if not self.main.is_setting_up:
+                if not self.is_app_starting:
                     shortcuts.apply_shortcuts()
             else:
                 self.pending_shortcut_actions.append(

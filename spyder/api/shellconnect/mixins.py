@@ -217,7 +217,7 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         is closed, shellwidgets are removed automatically when the IPython
         console is closed too.
         """
-        if not self.main.is_closing:
+        if not self.is_app_closing:
             ipythonconsole = self.get_plugin(Plugins.IPythonConsole)
             clients = ipythonconsole.get_clients()
             for client in clients:

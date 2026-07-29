@@ -300,7 +300,7 @@ class Projects(SpyderDockablePlugin):
 
     def on_close(self, cancelable=False):
         """Perform actions when the plugin is closed."""
-        if self.main.is_closing:
+        if self.is_app_closing:
             # Actions to take when the main window is closed. We don't close
             # the project here so that Spyder opens it automatically in the
             # next session
