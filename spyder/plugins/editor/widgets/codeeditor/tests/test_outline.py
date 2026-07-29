@@ -41,6 +41,25 @@ def get_tree_elements(treewidget):
     return root_tree
 
 
+def wait_for_tree(qtbot, treewidget, expected):
+    """
+    Wait and check that the Outline tree is as `expected`.
+    """
+    tree_elements = None
+
+    def check_tree():
+        nonlocal tree_elements
+        tree_elements = get_tree_elements(treewidget)
+        return tree_elements == expected
+
+    try:
+        qtbot.waitUntil(
+            check_tree, timeout=30000
+        )
+    except Exception:
+        assert tree_elements == expected
+
+
 @pytest.mark.order(2)
 def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
@@ -67,12 +86,10 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     # Put example text in editor
     code_editor.set_text(lines)
-    qtbot.wait(3000)
 
     # Check that the outline tree was initialized successfully
     tree = trees[0]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Remove "d" symbol
     code_editor.go_to_line(14)
@@ -83,11 +100,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     cursor.setPosition(end, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     code_editor.cut()
-    qtbot.wait(3000)
 
     tree = trees[1]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Add "d" symbol elsewhere
     code_editor.go_to_line(36)
@@ -100,11 +115,8 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     qtbot.keyPress(code_editor, Qt.Key_Up)
     code_editor.paste()
 
-    qtbot.wait(3000)
-
     tree = trees[2]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Move method1
     code_editor.go_to_line(56)
@@ -115,11 +127,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     cursor.setPosition(end, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     code_editor.cut()
-    qtbot.wait(3000)
 
     tree = trees[3]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Add method1
     code_editor.go_to_line(49)
@@ -131,11 +141,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     qtbot.keyPress(code_editor, Qt.Key_Up)
     code_editor.paste()
-    qtbot.wait(3000)
 
     tree = trees[4]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Add attribute "y"
     code_editor.go_to_line(48)
@@ -153,8 +161,7 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
         code_editor.request_symbols()
 
     tree = trees[5]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
 
 @pytest.mark.order(2)
@@ -239,21 +246,18 @@ def foo():
     a = 10
     return a
 """)
-    qtbot.wait(3000)
 
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == {'test.py': [{'foo': [{'a': []}]}]}
+    tree = {'test.py': [{'foo': [{'a': []}]}]}
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Remove content
     code_editor.selectAll()
 
     qtbot.keyPress(code_editor, Qt.Key_Delete)
 
-    qtbot.wait(3000)
-
     # Assert the tree is empty and the spinner is not shown.
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == {'test.py': []}
+    tree = {'test.py': []}
+    wait_for_tree(qtbot, treewidget, tree)
     assert not outlineexplorer._spinner.isSpinning()
 
 
