@@ -828,7 +828,7 @@ class UndoStack:
         return self.__index >= 0
 
 
-class EditsStackMixin(TextEditBaseWidget):
+class EditsStackMixin:
     """Mixin for undo/redo and changes tracking logic.
 
     Changes are captured from `QTextDocument.contentsChange`, grouped into
