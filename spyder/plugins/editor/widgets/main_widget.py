@@ -949,6 +949,10 @@ class EditorMainWidget(PluginMainWidget):
                 and RunContext.File in ext_contexts
             ):
                 self.register_file_run_metadata(filename)
+
+            # This avoids registering as pending to run files in cloned
+            # editors, which is not necessary.
+            if filename in self.id_per_file:
                 able_to_run_file = True
 
         if not able_to_run_file:
