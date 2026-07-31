@@ -411,7 +411,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        toolbar.create_application_toolbar(
+        debug_toolbar = toolbar.create_application_toolbar(
             ApplicationToolbars.Debug, _("Debug toolbar")
         )
 
@@ -427,9 +427,12 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
                 toolbar_id=ApplicationToolbars.Debug,
             )
 
-        debug_toolbar = toolbar.get_application_toolbar(
-            ApplicationToolbars.Debug
-        )
+        # This is necessary to (i) get the expected result when connecting the
+        # signal below; and (ii) be able to grab the toolbar actions to
+        # recreate the debug toolbar in editor windows, both after the plugin
+        # is reenabled.
+        debug_toolbar.render()
+
         debug_toolbar.sig_is_rendered.connect(
             self.get_widget().on_debug_toolbar_rendered
         )
@@ -437,10 +440,6 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         # Readd toolbar to active editor windows
         editor = self.get_plugin(Plugins.Editor)
         if editor and not self.is_app_starting:
-            # This is necessary to be able to grab the toolbar actions to
-            # create the corresponding toolbar in editor windows
-            debug_toolbar.render()
-
             for window in editor.get_widget().editorwindows:
                 window.add_toolbar(ApplicationToolbars.Debug, reload=True)
 
