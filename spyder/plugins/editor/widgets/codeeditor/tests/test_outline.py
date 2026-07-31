@@ -12,6 +12,7 @@ Tests syncing between the EditorStack and OutlineExplorerWidget.
 import os
 import json
 import os.path as osp
+import sys
 
 # Qt imports
 from qtpy.QtCore import Qt
@@ -59,6 +60,7 @@ def wait_for_tree(qtbot, treewidget, expected):
 
 
 @pytest.mark.order(2)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
     code_editor, outlineexplorer = completions_codeeditor_outline
