@@ -375,9 +375,10 @@ class Editor(SpyderDockablePlugin):
 
         # Re-register open files to the plugin if it's reenabled
         if not self.is_app_starting:
-            editorstack = self.get_current_editorstack()
-            for finfo in editorstack.data:
-                widget.handle_run_status(finfo.filename)
+            editorstacks = self.get_editorstacks()
+            for es in editorstacks:
+                for finfo in es.data:
+                    widget.handle_run_status(finfo.filename)
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
