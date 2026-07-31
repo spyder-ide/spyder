@@ -146,10 +146,10 @@ class DocstringContext(TypedDict):
 
 class CodeEditor(
     LSPMixin,
-    EditsStackMixin,
-    TextEditBaseWidget,
     MultiCursorMixin,
     InlineCompletionsMixin,
+    EditsStackMixin,
+    TextEditBaseWidget
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
