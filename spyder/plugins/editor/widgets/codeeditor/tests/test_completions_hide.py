@@ -39,6 +39,9 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
 
     # No completion for 'something' as already complete
     qtbot.keyClicks(code_editor, 'thing', delay=delay)
+    # Minimum average wait time for completion to show up during the test
+    # this value was determined by running the test multiple times and
+    # measuring the time it took for the completion to show up.
     qtbot.wait(1255)
     assert completion.isHidden()
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
