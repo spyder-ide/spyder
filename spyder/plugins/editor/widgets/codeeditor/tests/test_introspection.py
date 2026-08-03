@@ -57,10 +57,9 @@ def test_fallback_completions(completions_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Add some words in comments
-    qtbot.keyClicks(code_editor, '# some comment and whole words')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, '# some comment and whole words')
 
     # Enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
@@ -96,9 +95,9 @@ def test_fallback_completions(completions_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyClicks(code_editor, 'a')
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'a')
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
     word_set = {x.insert_text for x in sig.args[0]}
@@ -135,10 +134,9 @@ def test_space_completion(completions_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Complete from numpy --> from numpy import
-    qtbot.keyClicks(code_editor, 'from numpy ')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'from numpy ')
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -177,10 +175,9 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Complete from numpy import --> from numpy import ?
-    qtbot.keyClicks(code_editor, 'from numpy import ')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'from numpy import ')
 
     # Press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -422,10 +419,21 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
 
 @pytest.mark.order(1)
 @flaky(max_runs=5)
-def test_completions(completions_codeeditor, qtbot):
+def test_completions(completions_codeeditor, qtbot, request):
     """Exercise code completion in several ways."""
-    code_editor, _ = completions_codeeditor
+    code_editor, completion_plugin = completions_codeeditor
     completion = code_editor.completion_widget
+
+    # This test asserts on the exact set of completions returned by the Python
+    # language server (exactly Jedi's six ``math.f*`` functions and the
+    # single-match auto-insert for ``math.h``). The fallback (buffer words and
+    # keywords) and snippet providers race with file registration on the shared
+    # completion plugin and also adds items to member-access popups.
+    language_status = completion_plugin.language_status['python']
+    saved_status = dict(language_status)
+    for provider in ('fallback', 'snippets'):
+        language_status[provider] = False
+    request.addfinalizer(lambda: language_status.update(saved_status))
 
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
@@ -434,10 +442,9 @@ def test_completions(completions_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Complete dunder imports from _ --> import _foo/_foom
-    qtbot.keyClicks(code_editor, 'from _')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'from _')
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -448,10 +455,9 @@ def test_completions(completions_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Complete underscore variables
-    qtbot.keyClicks(code_editor, '_foo = 1;_foom = 2;_fo')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, '_foo = 1;_foom = 2;_fo')
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -464,10 +470,9 @@ def test_completions(completions_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Complete import mat--> import math
-    qtbot.keyClicks(code_editor, 'import mat')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'import mat')
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -483,10 +488,9 @@ def test_completions(completions_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.h() -> math.hypot()
-    qtbot.keyClicks(code_editor, 'math.h')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.h')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -520,12 +524,11 @@ def test_completions(completions_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.h() -> math.degrees()
-    qtbot.keyClicks(code_editor, 'math.h(')
-    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
-    qtbot.keyClicks(code_editor, 'y')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.h(')
+        qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+        qtbot.keyClicks(code_editor, 'y')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -544,10 +547,9 @@ def test_completions(completions_codeeditor, qtbot):
                                         'math.hypot()\n'
 
     # Complete math.a <tab> ... s <enter> to math.asin
-    qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.a')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -566,20 +568,26 @@ def test_completions(completions_codeeditor, qtbot):
                                         'math.hypot()\nmath.asin\n'
 
     # Check can get list back
-    qtbot.keyClicks(code_editor, 'math.f')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.f')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert completion.count() == 7 if sys.version_info[:2] >= (3, 13) else 6
+
+    # The number of `math.f*` functions varies depending on the
+    # Python and jedi versions.
+    # `math.fma` exists in Python 3.13 but is only in the stubs
+    # shipped by Jedi 0.20+.
+    math_f_count = completion.count()
+    assert math_f_count in (6, 7)
+
     assert "floor(x)" in [x.label for x in sig.args[0]]
     qtbot.keyClicks(completion, 'l')
     assert completion.count() == 1
     qtbot.keyPress(completion, Qt.Key_Backspace)
-    assert completion.count() == 7 if sys.version_info[:2] >= (3, 13) else 6
+    assert completion.count() == math_f_count
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -588,10 +596,9 @@ def test_completions(completions_codeeditor, qtbot):
                                         'math.f\n'
 
     # Complete math.a <tab> s ...<enter> to math.asin
-    qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.a')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -607,13 +614,13 @@ def test_completions(completions_codeeditor, qtbot):
                                         'math.f\nmath.asin\n'
 
     # Complete math.a|angle <tab> s ...<enter> to math.asin|angle
-    qtbot.keyClicks(code_editor, 'math.aangle')
-    for i in range(len('angle')):
-        qtbot.keyClick(code_editor, Qt.Key_Left)
-
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.aangle')
+        for i in range(len('angle')):
+            qtbot.keyClick(code_editor, Qt.Key_Left)
+
+
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -631,10 +638,9 @@ def test_completions(completions_codeeditor, qtbot):
                                         'math.asinangle\n'
 
     # Check math.a <tab> <backspace> <escape> do not emit sig_show_completions
-    qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'math.a')
 
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
@@ -686,10 +692,9 @@ def test_code_snippets(completions_codeeditor, qtbot):
     """
     text = textwrap.dedent(text)
 
-    code_editor.insert_text(text)
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        code_editor.insert_text(text)
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -902,10 +907,9 @@ def test_completion_order(completions_codeeditor, qtbot):
 
     # Set cursor to start
     code_editor.go_to_line(1)
-    qtbot.keyClicks(code_editor, 'impo')
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'impo')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -955,8 +959,7 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
     ]
 
     # Assert all retrieved words start with 'f'
-    assert all({x.sort_text.split('_', 1)[-1] in {'for', 'from'}
-                for x in results})
+    assert all({x.filter_text in {'for', 'from'} for x in results})
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
@@ -983,7 +986,7 @@ def spam():
     qtbot.keyClicks(code_editor, 'import foo')
     qtbot.keyPress(code_editor, Qt.Key_Enter)
     qtbot.keyClicks(code_editor, 'foo.s')
-    code_editor.document_did_change()
+    
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.wait(500)
     assert code_editor.toPlainText() == 'import foo\nfoo.s'
@@ -997,7 +1000,7 @@ def spam():
     print(extra_paths)
     CONF.set('pythonpath_manager', 'spyder_pythonpath', extra_paths)
     completion_plugin.after_configuration_update([])
-    code_editor.document_did_change()
+    
     qtbot.wait(500)
 
     with qtbot.waitSignal(completion.sig_show_completions,
