@@ -27,7 +27,7 @@ from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_formatting(formatter, newline, completions_codeeditor,
                              qtbot):
-    """Validate text autoformatting via autopep8, yapf or black."""
+    """Validate text autoformatting via autopep8, yapf, black or ruff."""
     code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter, newline)
 
