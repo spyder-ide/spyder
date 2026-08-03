@@ -1898,7 +1898,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Merge QtConsole and Spyder configs. Spyder prefs will have
         # prevalence over QtConsole ones
-        cfg._merge(spy_cfg)
+        cfg.merge(spy_cfg)
         return cfg
 
     def additional_options(self, special=None):
