@@ -443,13 +443,17 @@ class CloseButtonTabBarStyle(QCommonStyle, SpyderConfigurationAccessor):
             section="main"
         )
         if position == "left":
-            self.close_btn_side = QTabBar.LeftSide
+            self.close_btn_side = QTabBar.ButtonPosition.LeftSide
         elif position == "right":
-            self.close_btn_side = QTabBar.RightSide
+            self.close_btn_side = QTabBar.ButtonPosition.RightSide
         else:
             self.close_btn_side = (
-                QTabBar.LeftSide if MAC else QTabBar.RightSide
+                QTabBar.ButtonPosition.LeftSide
+                if MAC
+                else QTabBar.ButtonPosition.RightSide
             )
+        if isinstance(self.close_btn_side, QTabBar.ButtonPosition):
+            self.close_btn_side = self.close_btn_side.value
         
     def styleHint(self, hint, options=None, widget=None, returnData=None):
         if hint == QStyle.SH_TabBar_CloseButtonPosition:
