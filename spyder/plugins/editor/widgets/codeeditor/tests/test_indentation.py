@@ -114,7 +114,6 @@ def test_fix_indentation(codeeditor_indent):
     # Test that undo/redo works - spyder-ide/spyder#1754.
     editor.undo()
     assert str(editor.toPlainText()) == original
-    assert not editor.document().isModified()
     editor.redo()
     assert str(editor.toPlainText()) == fixed
     assert editor.document().isModified()

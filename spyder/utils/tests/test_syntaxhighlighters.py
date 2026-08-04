@@ -54,7 +54,7 @@ def test_PythonSH_UTF16_number():
     sh = PythonSH(doc, color_scheme='Spyder')
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 9, 'normal'),
-           (9, 1, 'symbols'),
+           (9, 1, 'symbol'),
            (10, 1, 'normal'),
            (11, 9, 'number')]
     compare_formats(doc.firstBlock().layout().formats(), res, sh)
@@ -67,7 +67,7 @@ def test_PythonSH_UTF16_string():
     sh = PythonSH(doc, color_scheme='Spyder')
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 9, 'normal'),
-           (9, 1, 'symbols'),
+           (9, 1, 'symbol'),
            (10, 1, 'normal'),
            (11, 10, 'string')]
     compare_formats(doc.firstBlock().layout().formats(), res, sh)
@@ -85,12 +85,12 @@ def test_python_string_prefix():
         sh.rehighlightBlock(doc.firstBlock())
 
         offset = len(prefix)
-        res = [(0, 1, 'symbols'),                     # |[|
+        res = [(0, 1, 'symbol'),                     # |[|
                (1, 6 + offset, 'string'),            # |{prefix}'test'|
-               (7 + offset, 1, 'symbols'), 
+               (7 + offset, 1, 'symbol'),
                (8 + offset, 1, 'normal'),            # |, |
                (9 + offset, 10 + offset, 'string'),  # |{prefix}'''test'''|
-               (19 + 2*offset, 1, 'symbols')]         # | |
+               (19 + 2*offset, 1, 'symbol')]         # | |
 
         compare_formats(doc.firstBlock().layout().formats(), res, sh)
 

@@ -35,12 +35,13 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 # Standard library imports
 from __future__ import annotations
 import io
+import sys
 from time import perf_counter
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from packaging.version import parse
-from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.compat import from_qvariant, getsavefilename, to_qvariant
 from qtpy.QtCore import (
     QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, QPoint, Qt,
     Signal, Slot)
@@ -79,6 +80,7 @@ from spyder.plugins.variableexplorer.widgets.preferences import (
     PreferencesDialog
 )
 from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
@@ -122,6 +124,7 @@ class DataframeEditorActions:
     ResizeColumns = 'resize_columns_action'
     ResizeRows = 'resize_rows_action'
     CloseAllEditors = 'close_all_editors_action'
+    Export = 'export_action'
 
 
 class DataframeEditorMenus:
@@ -215,7 +218,7 @@ def global_max(col_vals, index):
 # ---- Main classes
 # =============================================================================
 
-class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
+class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Model encapsulating a dataframe for the datafgrame editor
 
@@ -691,7 +694,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         self.endResetModel()
 
 
-class DataFrameView(QTableView, SpyderWidgetMixin):
+class DataFrameView(SpyderWidgetMixin, QTableView):
     """
     View displaying a dataframe in the dataframe editor
 
@@ -744,6 +747,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         readonly: bool = False
     ):
         QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
 
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
@@ -766,6 +770,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.resize_action = None
         self.resize_columns_action = None
         self.histogram_action = None
+        self.export_action = None
+        self.export_filename = None
 
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
@@ -1002,11 +1008,19 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             triggered=self.plot_hist,
             register_action=False
         )
+        self.export_action = self.create_action(
+            name=DataframeEditorActions.Export,
+            text=_("Export..."),
+            tip=_("Export DataFrame to CSV, Excel or JSON file"),
+            icon=ima.icon('fileexport'),
+            triggered=self.export_data,
+            register_action=False
+        )
 
         # ---- Create context menu and fill it
 
         menu = self.create_menu(DataframeEditorMenus.Context, register=False)
-        for action in [self.copy_action, self.edit_action]:
+        for action in [self.copy_action, self.edit_action, self.export_action]:
             self.add_item_to_menu(
                 action,
                 menu,
@@ -1028,6 +1042,69 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             )
 
         return menu
+
+    @Slot()
+    def export_data(self):
+        """Export DataFrame to CSV or Excel file."""
+        title = _("Export DataFrame")
+        if self.export_filename is None:
+            self.export_filename = getcwd_or_home()
+
+        filename, selected_filter = getsavefilename(
+            self,
+            title,
+            self.export_filename,
+            _("CSV file") + " (*.csv);;" +
+            _("Excel file") + " (*.xlsx);;" +
+            _("JSON file") + " (*.json)"
+        )
+
+        if filename:
+            self.export_filename = filename
+            # Append correct extension if missing
+            if "xlsx" in selected_filter:
+                if not filename.endswith(('.xlsx', '.xls')):
+                    filename += '.xlsx'
+                    self.export_filename = filename
+            elif "json" in selected_filter:
+                if not filename.endswith('.json'):
+                    filename += '.json'
+                    self.export_filename = filename
+            elif "csv" in selected_filter:
+                if not filename.endswith('.csv'):
+                    filename += '.csv'
+                    self.export_filename = filename
+
+            df = self.model().get_data()
+
+            # If the index is a RangeIndex with no name, do not export it
+            if isinstance(df.index, pd.RangeIndex) and df.index.name is None:
+                index = False
+            else:
+                index = True
+
+            try:
+                if filename.endswith(('.xlsx', '.xls')):
+                    df.to_excel(filename, index=index)
+                elif filename.endswith('.json'):
+                    if (
+                        isinstance(df.index, pd.RangeIndex)
+                        and df.index.name is None
+                    ):
+                        df.to_json(filename, orient='records', indent=4)
+                    else:
+                        df.to_json(filename, orient='index', indent=4)
+                else:
+                    df.to_csv(filename, index=index)
+            except Exception as error:
+                QMessageBox.critical(
+                    self,
+                    title,
+                    _(
+                        "It was not possible to export this DataFrame."
+                        "<br><br>The error was:<br>%s"
+                    ) % str(error)
+                )
 
     @Slot()
     def copy(self):
@@ -1516,7 +1593,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.namespacebrowser.plot(plot_function)
 
 
-class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
+class DataFrameHeaderModel(SpyderFontsMixin, QAbstractTableModel):
     """
     This class is the model for the header and index of the DataFrameEditor.
 
@@ -1728,7 +1805,7 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         return False
 
 
-class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
+class DataFrameLevelModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Data Frame level class.
 
@@ -2005,8 +2082,13 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         self.setWindowTitle(title)
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # This makes the dialog stay on top.
+            # Fixes spyder-ide/spyder#22901
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
     def set_data_and_check(self, data) -> bool:
         """
@@ -2097,6 +2179,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.close_all_editors_action,
             stretcher,
             self.dataTable.histogram_action,
+            self.dataTable.export_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
             self.refresh_action,

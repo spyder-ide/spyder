@@ -325,6 +325,12 @@ class ShortcutEditor(QDialog):
         translator = ShortcutTranslator()
         event_keyseq = translator.keyevent_to_keyseq(event)
         event_keystr = event_keyseq.toString(QKeySequence.PortableText)
+
+        # Prevent repeated sequences when entering shortcuts
+        # Fixes spyder-ide/spyder#26032
+        if event_keystr in self._qsequences:
+            return
+
         self._qsequences.append(event_keystr)
         self.update_warning()
 

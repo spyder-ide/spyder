@@ -40,7 +40,7 @@ class FramesBrowserState:
 
 
 class FramesBrowser(
-    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+    SpyderWidgetMixin, ShellConnectWidgetForStackMixin, QWidget
 ):
     """Frames browser (global debugger widget)"""
     CONF_SECTION = 'debugger'
@@ -80,7 +80,10 @@ class FramesBrowser(
     """
 
     def __init__(self, parent, shellwidget):
-        super().__init__(parent)
+        QWidget.__init__(self, parent)
+        ShellConnectWidgetForStackMixin.__init__(self)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         self.shellwidget = shellwidget
         self.results_browser = None
         # -1 means never clear, otherwise number of calls
@@ -318,7 +321,7 @@ class FramesBrowser(
         })
 
 
-class LineFrameItem(QTreeWidgetItem, SpyderFontsMixin):
+class LineFrameItem(SpyderFontsMixin, QTreeWidgetItem):
 
     def __init__(self, parent, index, filename, line, lineno, name):
         self.index = index

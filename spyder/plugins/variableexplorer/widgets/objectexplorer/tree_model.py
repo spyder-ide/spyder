@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # The main window inherits from a Qt class, therefore it has many
 # ancestors public methods and attributes.
-class TreeModel(QAbstractItemModel, SpyderFontsMixin):
+class TreeModel(SpyderFontsMixin, QAbstractItemModel):
     """
     Model that provides an interface to an objectree
     that is build of TreeItems.

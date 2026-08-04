@@ -14,6 +14,7 @@ import uuid
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QClipboard
 from qtpy.QtWidgets import QApplication, QInputDialog, QMessageBox
 
 # Local imports
@@ -319,7 +320,7 @@ def test_copy_paths(
 
     # Check copied paths
     cb = QApplication.clipboard()
-    cb_output = cb.text(mode=cb.Clipboard)
+    cb_output = cb.text(mode=QClipboard.Clipboard)
     path_list = [path.strip(',"') for path in cb_output.split(" ")]
     expected_path_list = [
         f"/home/ubuntu/{dirname}/{fname}" for fname in files_to_copy_paths

@@ -37,10 +37,10 @@ from spyder.widgets.mixins import BaseEditMixin
 
 
 class TextEditBaseWidget(
-    QPlainTextEdit,
     BaseEditMixin,
     SpyderFontsMixin,
-    SpyderWidgetMixin
+    SpyderWidgetMixin,
+    QPlainTextEdit,
 ):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')

@@ -7,6 +7,7 @@
 """Update Manager widgets."""
 
 # Standard library imports
+import errno
 import json
 import logging
 import os
@@ -16,7 +17,7 @@ import sys
 from sysconfig import get_path
 
 # Third-party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Signal
+from qtpy.QtCore import QEvent, Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import (
     QGridLayout,
     QMessageBox,
@@ -33,7 +34,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app, is_installed_all_users
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
     UpdateType,
     validate_download,
@@ -49,6 +49,7 @@ from spyder.utils.programs import (
     is_program_installed,
     find_program
 )
+from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 # Logger setup
@@ -76,7 +77,7 @@ SKIP_CHECK_UPDATE = (
 )
 
 
-class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
+class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
     """Check for updates widget."""
 
     CONF_SECTION = "update_manager"
@@ -296,10 +297,26 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _validate_download(self):
         update_downloaded = False
-        if osp.exists(self.installer_path):
-            update_downloaded = validate_download(
-                self.installer_path, self.asset_info["checksum"]
-            )
+        try:
+            if osp.exists(self.installer_path):
+                update_downloaded = validate_download(
+                    self.installer_path, self.asset_info["checksum"]
+                )
+        except OSError as err:
+            # Catch error when there's not enough space to perform the update.
+            # Fixes spyder-ide/spyder#25621
+            if err.errno == errno.ENOSPC:
+                error_messagebox(
+                    self,
+                    _(
+                        "There is not enough space in your computer to "
+                        "perform the update. Please free some space and try "
+                        "again."
+                    )
+                )
+                return False
+
+            raise
 
         logger.debug(f"Update already downloaded: {update_downloaded}")
 
@@ -633,7 +650,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             "monospace_font_size": int(
                 self.get_conf("monospace_app_font/size", section="appearance")
             ),
-            "interface_theme": "dark" if is_dark_interface() else "light",
+            "interface_theme": (
+                # FIXME
+                "dark" if THEME_MANAGER.is_dark_interface() else "light"
+            ),
             "icon_color": SpyderPalette.ICON_1,
         }
 
@@ -698,7 +718,7 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
         self.details = self.findChild(QTextEdit)
 
         self.details.setFont(self.get_font(SpyderFontType.Monospace))
-        self.details.setLineWrapMode(self.details.NoWrap)
+        self.details.setLineWrapMode(QTextEdit.NoWrap)
         self.details.setMinimumSize(400, 110)
         self.details.setLineWrapMode(0)
 
@@ -708,8 +728,8 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
 
     def event(self, event):
         """Override to allow resizing the dialog when details are visible."""
-        if event.type() in (event.LayoutRequest, event.Resize):
-            if event.type() == event.Resize:
+        if event.type() in (QEvent.LayoutRequest, QEvent.Resize):
+            if event.type() == QEvent.Resize:
                 result = super().event(event)
             else:
                 result = False

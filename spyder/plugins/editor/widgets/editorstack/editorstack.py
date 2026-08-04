@@ -23,7 +23,6 @@ import unicodedata
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QTextCursor
@@ -38,7 +37,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
-from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
@@ -58,7 +56,7 @@ from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.plugins.switcher.api import SwitcherActions
-from spyder.utils import encoding, sourcecode, syntaxhighlighters
+from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import mimedata2url, create_waitspinner
@@ -100,7 +98,7 @@ class EditorStackMenuSections:
     MainWidgetSection = "main_widget_section"
 
 
-class EditorStack(QWidget, SpyderWidgetMixin):
+class EditorStack(SpyderWidgetMixin, QWidget):
 
     # This is necessary for the EditorStack tests to run independently of the
     # Editor plugin.
@@ -221,11 +219,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -386,11 +381,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             'column_cursor': 'Ctrl+Alt+Shift'
         }
 
-        # Set default color scheme
-        color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'
-        if color_scheme not in syntaxhighlighters.COLOR_SCHEME_NAMES:
-            color_scheme = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
-        self.color_scheme = color_scheme
+        # Get color scheme from config
+        self.color_scheme = self.get_conf(
+            "selected",
+            default="spyder_themes.spyder/dark",
+            section="appearance",
+        )
 
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
@@ -820,14 +816,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)
-
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def on_color_scheme_change(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        logger.debug(f"Set color scheme to {value}")
-        self.set_color_scheme(value)
 
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
@@ -1674,6 +1662,15 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
+
+            # Explicitly schedule the C++ objects for deletion. This is
+            # necessary on PySide because signal connections there hold
+            # strong, GC-invisible references to lambda/closure slots, so
+            # these widgets would otherwise never be garbage-collected, i.e.
+            # leak, because the C++ side is only destroyed with the Python
+            # wrapper.
+            editor.deleteLater()
+            editor.completion_widget.deleteLater()
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -2723,11 +2720,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
-        def perform_completion_request(lang, method, params):
-            self.sig_perform_completion_request.emit(lang, method, params)
-
         editor.sig_perform_completion_request.connect(
-            perform_completion_request)
+            self.sig_perform_completion_request
+        )
         editor.sig_start_operation_in_progress.connect(self.spinner.start)
         editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(

@@ -31,13 +31,14 @@ from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
                             QStylePainter, QToolTip)
 
 # Local imports
-from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 BACKGROUND_COLOR = (
-    SpyderPalette.COLOR_BACKGROUND_4 if is_dark_interface() else
-    SpyderPalette.COLOR_BACKGROUND_2
+    SpyderPalette.COLOR_BACKGROUND_4
+    if THEME_MANAGER.is_dark_interface()
+    else SpyderPalette.COLOR_BACKGROUND_2
 )
 
 

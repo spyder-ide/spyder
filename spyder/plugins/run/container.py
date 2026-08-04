@@ -472,8 +472,12 @@ class RunContainer(PluginMainContainer):
             status = key in self.executor_model
             status = status and key in input_provider_ext_ctxs
 
+            # Re-run actions execute the last executed configuration for
+            # their context, which doesn't need to belong to the currently
+            # focused file (see spyder-ide/spyder#23076), so their status
+            # must be computed from it.
             last_run_exists = (
-                (self.currently_selected_configuration,
+                (self._last_executed_configuration,
                  context) in self.last_executed_per_context)
 
             action, __ = self.re_run_actions[(context, act, mod)]

@@ -27,7 +27,7 @@ import warnings
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.config.base import DEV
-from spyder.config.gui import is_dark_interface
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 class CustomHTMLDoc(Doc, SpyderFontsMixin):
@@ -665,7 +665,7 @@ def _url_handler(url, content_type="text/html"):
         def page(self, title, contents):
             """Format an HTML page."""
 
-            if is_dark_interface():
+            if THEME_MANAGER.is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"
             else:
                 css_path = "static/css/light_pydoc.css"

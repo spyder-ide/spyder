@@ -15,7 +15,7 @@ from unittest.mock import Mock
 
 # Third party imports
 import pytest
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QClipboard, QFont
 from qtpy.QtCore import QMimeData, QUrl
 from qtpy.QtWidgets import QApplication
 
@@ -128,7 +128,7 @@ def codeeditor_factory():
                         markers=True,
                         close_quotes=True,
                         close_parentheses=True,
-                        color_scheme='spyder/dark',
+                        color_scheme='spyder_themes.spyder/dark',
                         font=QFont("Monospace", 10),
                         automatic_completions=True,
                         automatic_completions_after_chars=1,
@@ -150,7 +150,7 @@ def mock_completions_codeeditor(qtbot_module, request):
     qtbot_module.addWidget(editor)
     editor.show()
 
-    mock_response = Mock()
+    mock_response = Mock(return_value=None)
 
     def perform_request(lang, method, params):
         resp = mock_response(lang, method, params)
@@ -244,7 +244,8 @@ def codeeditor(qtbot):
                         markers=True,
                         tab_mode=False,
                         font=QFont("Courier New", 10),
-                        show_blanks=True, color_scheme='spyder/dark',
+                        show_blanks=True,
+                        color_scheme='spyder_themes.spyder/dark',
                         scroll_past_end=True)
     widget.setup_editor(language='Python')
     widget.resize(640, 480)
@@ -272,5 +273,5 @@ def copy_files_clipboard(create_folders_files):
     file_content = QMimeData()
     file_content.setUrls([QUrl.fromLocalFile(fname) for fname in file_paths])
     cb = QApplication.clipboard()
-    cb.setMimeData(file_content, mode=cb.Clipboard)
+    cb.setMimeData(file_content, mode=QClipboard.Clipboard)
     return file_paths

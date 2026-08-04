@@ -15,7 +15,6 @@ import sys
 import unicodedata
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
@@ -149,18 +148,15 @@ class ObjectComboBox(EditableComboBox):
                     self.valid.emit(False, False)
 
 
-class RichText(QWidget, SpyderWidgetMixin):
+class RichText(SpyderWidgetMixin, QWidget):
     """
     WebView widget with find dialog
     """
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         from qtpy.QtWebEngineWidgets import QWebEnginePage
         from spyder.widgets.browser import FrameWebView
@@ -555,13 +551,6 @@ class HelpWidget(PluginMainWidget):
             self.show_intro_message()
         else:
             self.force_refresh()
-
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def change_color_scheme(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        self.set_plain_text_color_scheme(value)
 
     def update_actions(self):
         pass

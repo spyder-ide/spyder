@@ -16,7 +16,6 @@ import logging
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2
 from qtpy.QtCore import QByteArray, Qt, Slot
 from qtpy.QtWidgets import QSplitter
 
@@ -31,7 +30,7 @@ from spyder.utils.qthelpers import qbytearray_to_str
 logger = logging.getLogger(__name__)
 
 
-class EditorSplitter(QSplitter, SpyderWidgetMixin):
+class EditorSplitter(SpyderWidgetMixin, QSplitter):
     """QSplitter for editor windows."""
 
     CONF_SECTION = "editor"
@@ -57,11 +56,8 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
                         Defaults to main_widget.unregister_editorstack() to
                         unregister the EditorStack with the EditorMainWidget.
         """
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=main_widget)
-        else:
-            QSplitter.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=main_widget)
+        QSplitter.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=main_widget)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)

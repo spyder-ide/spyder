@@ -27,7 +27,7 @@ def editor_close_quotes(qtbot):
     """Set up Editor with close quotes activated."""
     editor = CodeEditor(parent=None)
     editor.setup_editor(
-        color_scheme='spyder/dark',
+        color_scheme='spyder_themes.spyder/dark',
         font=QFont("Courier New", 10),
         language='Python',
         close_quotes=True

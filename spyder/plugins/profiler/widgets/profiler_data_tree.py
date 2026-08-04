@@ -22,7 +22,6 @@ import tempfile
 import textwrap
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (
@@ -69,7 +68,7 @@ class ProfilerKey:
 
 
 class ProfilerSubWidget(
-    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+    SpyderWidgetMixin, ShellConnectWidgetForStackMixin, QWidget
 ):
     """Profiler widget for shellwidget"""
 
@@ -79,11 +78,9 @@ class ProfilerSubWidget(
     sig_refresh = Signal()
 
     def __init__(self, parent=None):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        ShellConnectWidgetForStackMixin.__init__(self)
 
         self.data_tree: ProfilerDataTree | None = None
         self.finder: FinderWidget | None = None
@@ -463,7 +460,7 @@ class TreeWidgetItem(QTreeWidgetItem):
         self.setToolTip(self.index_dict["file:line"], fname_tip)
 
 
-class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
+class ProfilerDataTree(SpyderConfigurationAccessor, QTreeWidget):
     """
     Convenience tree widget (with built-in model)
     to store and view profiler data.
@@ -493,10 +490,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
     sig_refresh = Signal()
 
     def __init__(self, parent=None):
-        if not PYSIDE2:
-            super().__init__(parent)
-        else:
-            QTreeWidget.__init__(self, parent)
+        QTreeWidget.__init__(self, parent)
 
         self.header_list = [
             _("Function/Module"),
@@ -835,7 +829,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 grandchildren_list = self.find_children(child_key)
                 if grandchildren_list:
                     child_item.setChildIndicatorPolicy(
-                        child_item.ShowIndicator
+                        QTreeWidgetItem.ShowIndicator
                     )
                     self.items_to_be_shown[id(child_item)] = grandchildren_list
 

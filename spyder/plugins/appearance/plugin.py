@@ -11,9 +11,11 @@ Appearance Plugin.
 """
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
+from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.plugins.appearance.confpage import AppearanceConfigPage
 
@@ -49,12 +51,7 @@ class Appearance(SpyderPluginV2):
         return cls.create_icon('eyedropper')
 
     def on_initialize(self):
-        # NOTES:
-        # 1. This avoids applying the color scheme twice at startup, which is
-        #    quite resource intensive.
-        # 2. Notifications for this option are restored when creating the
-        #    config page.
-        self.disable_conf('ui_theme')
+        pass
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def register_preferences(self):

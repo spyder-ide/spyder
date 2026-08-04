@@ -53,7 +53,7 @@ class PanelPosition(Enum):
     """Floating panel"""
 
 
-class Panel(QWidget, EditorExtension):
+class Panel(EditorExtension, QWidget):
     """
     Base class for editor panels.
 
@@ -61,8 +61,8 @@ class Panel(QWidget, EditorExtension):
     """
 
     def __init__(self):
-        EditorExtension.__init__(self)
         QWidget.__init__(self)
+        EditorExtension.__init__(self)
 
         self.position: PanelPosition | None = None
         """Position in the editor (top, left, right, bottom)."""

@@ -43,6 +43,7 @@ from qtpy.QtGui import (
     QDesktopServices,
     QFont,
     QKeyEvent,
+    QKeySequence,
     QMouseEvent,
     QPaintEvent,
     QPainter,
@@ -88,6 +89,9 @@ from spyder.plugins.editor.widgets.codeeditor.inline_completions_mixin import (
 from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
     MultiCursorMixin
+)
+from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
+    EditsStackMixin,
 )
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
@@ -141,7 +145,11 @@ class DocstringContext(TypedDict):
 
 
 class CodeEditor(
-    LSPMixin, TextEditBaseWidget, MultiCursorMixin, InlineCompletionsMixin
+    LSPMixin,
+    MultiCursorMixin,
+    InlineCompletionsMixin,
+    EditsStackMixin,
+    TextEditBaseWidget
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -286,7 +294,10 @@ class CodeEditor(
             list[tuple[str, Callable[[CodeEditor], None], str]] | None
         ) = None,
     ):
-        super().__init__(parent, class_parent=parent)
+        TextEditBaseWidget.__init__(self, parent, class_parent=parent)
+        EditsStackMixin.__init__(self)  # load after text edit (requires document)
+        InlineCompletionsMixin.__init__(self)
+        LSPMixin.__init__(self)
 
         # Editor extensions
         self.external_extensions = extensions
@@ -328,6 +339,16 @@ class CodeEditor(
         self._timer_mouse_moving.setInterval(350)
         self._timer_mouse_moving.setSingleShot(True)
         self._timer_mouse_moving.timeout.connect(self._handle_hover)
+
+        # Timer to show the docstring popup after typing triple quotes.
+        # See delayed_popup_docstring
+        self._popup_docstring_text = ""
+        self._popup_docstring_position = 0
+        self._timer_popup_docstring = QTimer(self)
+        self._timer_popup_docstring.setInterval(300)
+        self._timer_popup_docstring.setSingleShot(True)
+        self._timer_popup_docstring.timeout.connect(
+            self._popup_docstring_saved)
 
         # Typing keys / handling for on the fly completions
         self._last_key_pressed_text = ''
@@ -381,11 +402,11 @@ class CodeEditor(
 
         self.highlighter_class = sh.TextSH
         self.highlighter = None
-        ccs = 'Spyder'
-        if ccs not in sh.COLOR_SCHEME_NAMES:
-            ccs = sh.COLOR_SCHEME_NAMES[0]
-        self.color_scheme = ccs
-
+        self.color_scheme = self.get_conf(
+            "selected",
+            default="spyder_themes.spyder/dark",
+            section="appearance",
+        )
         self.highlight_current_line_enabled = False
 
         # Vertical scrollbar
@@ -454,9 +475,6 @@ class CodeEditor(
         self.verticalScrollBar().valueChanged.connect(
             lambda value: self.hide_calltip()
         )
-
-        # QTextEdit + LSPMixin
-        self.textChanged.connect(self._schedule_document_did_change)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -707,12 +725,16 @@ class CodeEditor(
             )
 
     def closeEvent(self, event):
-        if isinstance(self.highlighter, sh.PygmentsSH):
+        if hasattr(self, "highlighter") and isinstance(
+            self.highlighter, sh.PygmentsSH
+        ):
             self.highlighter.stop()
-        self.update_folding_thread.quit()
-        self.update_folding_thread.wait()
-        self.update_diagnostics_thread.quit()
-        self.update_diagnostics_thread.wait()
+        if hasattr(self, "update_folding_thread"):
+            self.update_folding_thread.quit()
+            self.update_folding_thread.wait()
+        if hasattr(self, "update_diagnostics_thread"):
+            self.update_diagnostics_thread.quit()
+            self.update_diagnostics_thread.wait()
         TextEditBaseWidget.closeEvent(self, event)
 
     def get_document_id(self):
@@ -2163,22 +2185,19 @@ class CodeEditor(
         """
         Reimplementation of undo with additional functionality.
 
-        For instance, this decreases the ``text_version`` number and emits some
-        required signals.
-
         Parameters
         ----------
         delete_inline_completion: bool, optional
             Whether this is called to delete an inline completion.
         """
-        if self.document().isUndoAvailable():
+        # Flush pending edits to undo immediately
+        self._commit_pending_edit()
+        if self.undo_stack.can_undo():
             if not delete_inline_completions:
                 self.reject_inline_completions()
-
-            self.text_version -= 1
             self.skip_rstrip = True
             self.is_undoing = True
-            TextEditBaseWidget.undo(self)
+            super().undo()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.is_undoing = False
@@ -2187,11 +2206,11 @@ class CodeEditor(
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
-        if self.document().isRedoAvailable():
-            self.text_version += 1
+        self._commit_pending_edit()
+        if self.undo_stack.can_redo():
             self.skip_rstrip = True
             self.is_redoing = True
-            TextEditBaseWidget.redo(self)
+            super().redo()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.is_redoing = False
@@ -3681,6 +3700,18 @@ class CodeEditor(
                     return
             return
 
+        # Explicitly handle undo/redo for custom undo stack
+        if event.matches(QKeySequence.Undo):
+            self.undo()
+            event.accept()
+            self.setOverwriteMode(False)
+            return
+        elif event.matches(QKeySequence.Redo):
+            self.redo()
+            event.accept()
+            self.setOverwriteMode(False)
+            return
+
         # ---- Handle hard coded and builtin actions
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
@@ -4389,7 +4420,9 @@ class CodeEditor(
                           pygments lexer.
         :param encoding: text encoding
         """
-        super().setPlainText(txt)
+        with self.suspend_undo_recording():
+            super().setPlainText(txt)
+        self.clear_undo_stack()
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
@@ -4651,14 +4684,22 @@ class CodeEditor(
         This method is called after typing '''. After typing ''', this function
         waits 300ms. If there was no input for 300ms, show the context menu.
         """
-        line_text = self.textCursor().block().text()
-        pos = self.textCursor().position()
+        # Note: we deliberately use a persistent timer connected to a bound
+        # method instead of a per-call QTimer connected to a closure. PyQt
+        # does not protect a closure connected to a signal from being
+        # garbage-collected (the closure <-> editor reference cycle can be
+        # collected while the C++ connection still points to it), which
+        # leads to a hard crash when the timer fires. Bound methods are
+        # tracked with weak references and disconnected automatically.
+        self._popup_docstring_text = self.textCursor().block().text()
+        self._popup_docstring_position = self.textCursor().position()
+        self._timer_popup_docstring.start()
 
-        timer = QTimer(self)
-        timer.setInterval(300)
-        timer.setSingleShot(True)
-        timer.timeout.connect(lambda: self.popup_docstring(line_text, pos))
-        timer.start()
+    def _popup_docstring_saved(self):
+        """Show the docstring popup at the saved trigger position."""
+        self.popup_docstring(
+            self._popup_docstring_text, self._popup_docstring_position
+        )
 
     def set_current_project_path(self, root_path=None):
         """

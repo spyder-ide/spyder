@@ -11,9 +11,9 @@ from textwrap import dedent
 from unittest.mock import MagicMock
 
 # Third party imports
-from qtpy import QT_VERSION, PYQT6
+from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent, QPointF
-from qtpy.QtGui import QTextCursor, QMouseEvent
+from qtpy.QtGui import QClipboard, QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QMainWindow, QTextEdit
 import pytest
 
@@ -31,7 +31,9 @@ ASSETS = osp.join(HERE, 'assets')
 
 class MainWindow(QMainWindow):
 
-    _cli_options = MagicMock()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._cli_options = MagicMock()
 
     def get_plugin(self, name, error=True):
         return MagicMock()
@@ -61,6 +63,27 @@ def test_editor_lower_to_upper(codeeditor):
     widget.transform_to_uppercase()
     new_text = widget.get_text('sof', 'eof')
     assert text != new_text
+
+
+def test_editor_undo_stack_exposed(codeeditor):
+    editor = codeeditor
+    stack = editor.undo_stack
+
+    editor.set_text('')
+    editor.insert_text('abc')
+    editor._commit_pending_edit()
+
+    assert stack.can_undo()
+    assert editor.get_text('sof', 'eof') == 'abc'
+
+    editor.undo()
+    assert editor.get_text('sof', 'eof') == ''
+
+    editor.redo()
+    assert editor.get_text('sof', 'eof') == 'abc'
+
+    editor.set_text('replacement text')
+    assert stack.count() == 0
 
 
 @pytest.mark.parametrize(
@@ -235,7 +258,7 @@ def test_undo_return(codeeditor, qtbot):
     editor.setTextCursor(cursor)
     qtbot.keyPress(editor, Qt.Key_Return)
     assert editor.toPlainText() == returned_text
-    qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
+    editor.undo()
     assert editor.toPlainText() == text
 
 
@@ -440,7 +463,7 @@ def test_editor_delete_selection(codeeditor, qtbot):
 
 @pytest.mark.skipif(QT_VERSION.startswith('5.15'),
                     reason='Fixed on Qt 5.15')
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(QT_VERSION.startswith('6'), reason="Fails with Qt 6")
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
     If that happens, then the workarounds for spyder-ide/spyder#12663
@@ -652,7 +675,7 @@ def test_paste_text(codeeditor, text, line_ending_char):
     editor = codeeditor
     text = text.replace(osp.os.linesep, line_ending_char)
     cb = QApplication.clipboard()
-    cb.setText(text, mode=cb.Clipboard)
+    cb.setText(text, mode=QClipboard.Clipboard)
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.Start)
     editor.setTextCursor(cursor)
@@ -789,7 +812,7 @@ def test_inline_completions_highlighting(codeeditor, os_name):
     regular_def_color = hl.formats["definition"].foreground().color()
     inline_def_color = hl.inline_formats["definition"].foreground().color()
 
-    inline_symbols_color = hl.inline_formats["symbols"].foreground().color()
+    inline_symbol_color = hl.inline_formats["symbol"].foreground().color()
 
     # Auxiliary function
     def get_fmt_for_position_in_block(
@@ -932,8 +955,8 @@ def test_inline_completions_highlighting(codeeditor, os_name):
         inline_def_color.alphaF(),
     ]
     assert get_fmt_for_position_in_block(9, inline=True) == [
-        inline_symbols_color.name(),
-        inline_symbols_color.alphaF(),
+        inline_symbol_color.name(),
+        inline_symbol_color.alphaF(),
     ]
 
     # Move position to next block and check formats

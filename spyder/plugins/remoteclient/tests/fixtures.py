@@ -31,13 +31,30 @@ __all__ = [
 USERNAME = "ubuntu"
 PASSWORD = USERNAME
 
+# Max seconds to wait when closing a remote client during fixture teardown.
+# Closing is normally sub-second; a broken connection can otherwise block the
+# close forever and hang the whole test run. On timeout the close raises,
+# failing the teardown, which the CI retry recovers from.
+_CLOSE_TIMEOUT = 30
+
 _COMPOSE_FILE = str(Path(__file__).resolve().parent / "docker-compose.yml")
 _COMPOSE_PROJECT_NAME = "spyder-remote-client-tests"
+
+# Upper bound (in seconds) for individual `docker compose` invocations. These
+# are network-dependent (image pull/build) and can otherwise hang
+# indefinitely. Because the remote test suite sets `timeout_func_only` in
+# pytest_remoteclient.ini, a hang in fixture setup (e.g. bringing up the
+# JupyterHub container) is not caught by the per-test timeout and is only
+# stopped by the 30-min CI job timeout -- which wastes the whole job *and* its
+# retries. Failing fast here instead lets the CI retry recover. The value is
+# generous (a healthy container setup takes well under this) so it doesn't
+# turn a slow-but-working build into a false failure.
+_DOCKER_TIMEOUT = 300
 
 
 def start_docker_service(service: str) -> None:
     """docker-compose up for one service only (no deps, build if needed)."""
-    subprocess.check_call(
+    subprocess.run(
         [
             "docker",
             "compose",
@@ -50,12 +67,14 @@ def start_docker_service(service: str) -> None:
             # "--build",
             service,
         ],
+        check=True,
+        timeout=_DOCKER_TIMEOUT,
     )
 
 
 def stop_docker_service(service: str) -> None:
     """docker-compose down for one service only (no deps)."""
-    subprocess.check_call(
+    subprocess.run(
         [
             "docker",
             "compose",
@@ -67,6 +86,8 @@ def stop_docker_service(service: str) -> None:
             "--remove-orphans",
             service
         ],
+        check=True,
+        timeout=_DOCKER_TIMEOUT,
     )
 
 
@@ -84,6 +105,7 @@ def get_addr_for_port(service_name: str, container_port: int):
         check=True,
         capture_output=True,
         text=True,
+        timeout=_DOCKER_TIMEOUT,
     )
     host, port = result.stdout.strip().split(":")
     if host == "0.0.0.0":
@@ -175,6 +197,7 @@ def ssh_client_id(
         AsyncDispatcher(
             loop="asyncssh",
             early_return=False,
+            timeout=_CLOSE_TIMEOUT,
         )(remote_client._remote_clients[config_id].close)()
 
 
@@ -204,6 +227,7 @@ def jupyterhub_client_id(
         AsyncDispatcher(
             loop="asyncssh",
             early_return=False,
+            timeout=_CLOSE_TIMEOUT,
         )(remote_client._remote_clients[config_id].close)()
 
 

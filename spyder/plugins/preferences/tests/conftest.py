@@ -29,10 +29,10 @@ from spyder.utils.icon_manager import ima
 
 
 class MainWindowMock(QMainWindow):
-    register_shortcut = Mock()
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.register_shortcut = Mock()
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []

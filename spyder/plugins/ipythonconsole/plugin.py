@@ -245,6 +245,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         Path to the new interpreter.
     """
 
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+
+        # Combined with RunExecutor via multiple inheritance; set up its
+        # state here since SpyderDockablePlugin.__init__ doesn't call
+        # RunExecutor.__init__ (which would also re-init the QObject part).
+        self.setup_run_executor()
+
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -948,14 +956,21 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         client: ClientWidget
             The created client.
         """
+        jupyter_api = None
+        files_api = None
+        if server_id is not None:
+            jupyter_api = self._remote_client.get_jupyter_api(server_id)
+            files_api = self._remote_client.get_file_api(server_id)()
+
         return self.get_widget().create_client_for_kernel(
-            connection_file,
-            hostname,
-            sshkey,
-            password,
-            server_id,
-            give_focus,
-            can_close,
+            connection_file=connection_file,
+            hostname=hostname,
+            sshkey=sshkey,
+            password=password,
+            jupyter_api=jupyter_api,
+            files_api=files_api,
+            give_focus=give_focus,
+            can_close=can_close,
         )
 
     def get_client_for_file(self, filename):

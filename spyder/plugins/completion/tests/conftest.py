@@ -8,6 +8,8 @@
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
+from lsprotocol import types as lsp
+from qtpy.QtCore import QObject, Signal, Slot
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
@@ -26,10 +28,10 @@ from pytestqt.qtbot import QtBot
 
 
 class MainWindowMock(QMainWindow):
-    register_shortcut = Mock()
 
     def __init__(self):
         super().__init__(None)
+        self.register_shortcut = Mock()
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
@@ -74,6 +76,15 @@ def create_completion_plugin():
         main_window = MainWindowMock()
         completions = CompletionPlugin(main_window, CONF)
 
+        def teardown():
+            for provider_info in completions.providers.values():
+                CONF.unobserve_configuration(provider_info['instance'])
+            CONF.unobserve_configuration(completions)
+            PLUGIN_REGISTRY.reset()
+            main_window.close()
+
+        request.addfinalizer(teardown)
+
         return completions
     return completion_plugin_wrap
 
@@ -81,19 +92,68 @@ def create_completion_plugin():
 completion_plugin_all = create_completion_plugin()
 
 
-@pytest.fixture(scope='function')
+class _WarmupReceiver(QObject):
+    """Stand-in for a CodeEditor that only needs to receive responses."""
+
+    sig_response = Signal(str, object)
+
+    @Slot(str, object)
+    def handle_response(self, method, params):
+        self.sig_response.emit(method, params)
+
+
+def _warmup_python_provider(completion_plugin, qtbot_module):
+    """Pay the providers' first-request cold-start cost here, not in tests."""
+    receiver = _WarmupReceiver()
+    text = 'import math\nmath.h'
+
+    open_params = {
+        'file': '__completion_warmup__.py',
+        'language': 'python',
+        'version': 1,
+        'text': text,
+        'response_instance': receiver,
+        'offset': 1,
+        'selection_start': 0,
+        'selection_end': 0,
+        'codeeditor': receiver,
+        'requires_response': False,
+    }
+    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000):
+        completion_plugin.send_request(
+            'python', lsp.TEXT_DOCUMENT_DID_OPEN, open_params
+        )
+
+    completion_params = {
+        'file': '__completion_warmup__.py',
+        'line': 1,
+        'column': len('math.h'),
+        'offset': len(text),
+        'selection_start': 0,
+        'selection_end': 0,
+        'current_word': 'h',
+        'codeeditor': receiver,
+        'response_instance': receiver,
+        'requires_response': True,
+    }
+    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000):
+        completion_plugin.send_request(
+            'python', lsp.TEXT_DOCUMENT_COMPLETION, completion_params
+        )
+
+
+@pytest.fixture(scope='module')
 def completion_plugin_all_started(request, qtbot_module,
                                   completion_plugin_all):
-
+    """Start all completion providers once per test module and reuse them."""
     completion_plugin = completion_plugin_all
     completion_plugin.wait_for_ms = 20000
     completion_plugin.start_all_providers()
 
-
     def wait_until_all_started():
         all_started = True
         for provider in completion_plugin.providers:
-            
+
             provider_info = completion_plugin.providers[provider]
             all_started &= provider_info['status'] == completion_plugin.RUNNING
         return all_started
@@ -107,8 +167,11 @@ def completion_plugin_all_started(request, qtbot_module,
 
     capabilities, _ = blocker.args
 
+    _warmup_python_provider(completion_plugin, qtbot_module)
+
     def teardown():
-        completion_plugin.stop_all_providers()
+        for provider_name in list(completion_plugin.providers):
+            completion_plugin.shutdown_provider_instance(provider_name)
 
     request.addfinalizer(teardown)
     return completion_plugin, capabilities

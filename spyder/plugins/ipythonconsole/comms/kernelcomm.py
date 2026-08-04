@@ -10,6 +10,7 @@ In addition to the remote_call mechanism implemented in CommBase:
 """
 from contextlib import contextmanager
 import logging
+import time
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
@@ -220,8 +221,15 @@ class KernelComm(CommBase, QObject):
 
         # Wait until the kernel returns the value
         wait_timeout.start(timeout * 1000)
+
+        # Note: we also need to check the timeout against the wall clock
+        # below. Otherwise, if the event loop can't run (e.g. because the
+        # application is shutting down, which makes exec_() return
+        # immediately), timer events are never delivered, so the timer stays
+        # active forever and this loop spins without end.
+        deadline = time.monotonic() + timeout
         while not condition():
-            if not wait_timeout.isActive():
+            if not wait_timeout.isActive() or time.monotonic() > deadline:
                 signal.disconnect(wait_loop.quit)
                 self.kernel_client.hb_channel.kernel_died.disconnect(
                     wait_loop.quit)

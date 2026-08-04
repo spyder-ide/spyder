@@ -34,6 +34,7 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import running_installer_test
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import file_uri, qapplication
+from spyder.utils.theme_manager import THEME_MANAGER
 
 # For spyder-ide/spyder#7447.
 try:
@@ -180,6 +181,9 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
     even if the actual message does not apply. This filter adds a
     blacklist for messages that are unnecessary. Anything else will
     get printed in the internal console.
+
+    Entries are matched as substrings, so messages that embed variable
+    content (e.g. geometry values) can be blacklisted by a stable prefix.
     """
     BLACKLIST = [
         'QMainWidget::resizeDocks: all sizes need to be larger than 0',
@@ -199,8 +203,14 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
         "QPainter::restore: Unbalanced save/restore",
         # This warning is shown at startup when using PyQt6
         "<use> element image0 in wrong context!",
+        # On Windows, showing the (large/maximized) main window can emit this.
+        # It's harmless, but because it's printed to stdout it can appear inline
+        # with pytest's result line on CI and split the test node id from its
+        # PASSED marker, breaking passed-test detection on restarts. It embeds
+        # variable geometry values, hence the substring matching below.
+        "QWindowsWindow::setGeometry: Unable to set geometry",
     ]
-    if msg_string not in BLACKLIST:
+    if not any(warning in msg_string for warning in BLACKLIST):
         print(msg_string)  # spyder: test-skip
 
 
@@ -288,6 +298,28 @@ def create_application():
     """Create application and patch sys.exit."""
     # Our QApplication
     app = qapplication()
+
+    # ---- Load the selected theme
+    # Must be done before APP_STYLESHEET is accessed so the theme stylesheet is
+    # available and resources are loaded; and after Qt is initialized to avoid
+    # segfaults.
+    selected = CONF.get(
+        'appearance', 'selected', default='spyder_themes.spyder/dark'
+    )
+    resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
+
+    if resolved != selected:
+        CONF.set('appearance', 'selected', resolved)
+
+    selected = resolved
+    if '/' in selected:
+        theme_name, ui_mode = selected.rsplit('/', 1)
+        if not running_under_pytest():
+            THEME_MANAGER.load_theme(theme_name, ui_mode)
+
+    # Load any pending theme resources that were deferred during initialization
+    if not running_under_pytest():
+        THEME_MANAGER.load_pending_resources()
 
     # ---- Set icon
     app_icon = QIcon(get_image_path("spyder"))

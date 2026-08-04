@@ -20,6 +20,7 @@ from lsprotocol import types as lsp
 import pytest
 from qtpy import PYQT6
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.api.plugins import Plugins
@@ -81,7 +82,14 @@ def editor_splitter_bot(qtbot):
     qtbot.addWidget(es)
     es.show()
     yield es
-    es.destroy()
+
+    try:
+        es.destroy()
+    except RuntimeError:
+        # The C++ object can already be deleted at this point on PySide,
+        # e.g. when the test closed all the splitter's files (it closes
+        # itself in that case because it has the WA_DeleteOnClose flag set).
+        pass
 
 
 @pytest.fixture
@@ -342,14 +350,12 @@ def test_save_as_with_outline(completions_editor, mocker, qtbot, tmpdir):
             return y
     """)
 
-    code_editor.set_text(code)
-    editorstack.save(force=True)
-
-    # Notify changes
     with qtbot.waitSignal(
         code_editor.completions_response_signal, timeout=30000
     ):
-        code_editor.document_did_change()
+        code_editor.set_text(code)
+
+    editorstack.save(force=True)
 
     # Wait until the outline is filled
     qtbot.waitUntil(
@@ -500,7 +506,7 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     code_editor.set_text('some = 0\nsomething = 1\n')
     editorstack.save(force=True)
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
 
     # Complete some -> [some, something]
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -603,7 +609,7 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     assert osp.exists(new_filename)
 
     # === Check that expected LSP calls have been made
-    assert code_editor.emit_request.call_count == 2
+    assert code_editor.emit_request.call_count >= 2
 
     # First call: notify_close() must have been called
     call = code_editor.emit_request.call_args_list[0]

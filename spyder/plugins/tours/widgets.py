@@ -19,8 +19,18 @@ import sys
 import qstylizer.style
 from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
                          Signal)
-from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
-                        QPixmap, QRegion)
+from qtpy.QtGui import (
+    QBrush,
+    QColor,
+    QIcon,
+    QMoveEvent,
+    QPainter,
+    QPainterPath,
+    QPen,
+    QPixmap,
+    QRegion,
+    QResizeEvent,
+)
 from qtpy.QtWidgets import (
     QAction,
     QApplication,
@@ -1067,7 +1077,7 @@ class AnimatedTour(QWidget):
         return f
 
 
-class OpenTourDialog(QDialog, SvgToScaledPixmap):
+class OpenTourDialog(SvgToScaledPixmap, QDialog):
     """Initial widget with tour."""
 
     def __init__(self, parent, tour_function):
@@ -1241,8 +1251,8 @@ class OpenTourDialog(QDialog, SvgToScaledPixmap):
 
 class TourTestWindow(QMainWindow):
     """ """
-    sig_resized = Signal("QResizeEvent")
-    sig_moved = Signal("QMoveEvent")
+    sig_resized = Signal(QResizeEvent)
+    sig_moved = Signal(QMoveEvent)
 
     def __init__(self):
         super().__init__()

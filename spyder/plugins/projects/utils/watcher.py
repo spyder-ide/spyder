@@ -99,6 +99,14 @@ def filter_scandir(path):
 # ---- Event handler
 # -----------------------------------------------------------------------------
 class WorkspaceEventHandler(QObject, PatternMatchingEventHandler):
+    # NOTE: QObject must stay first here, unlike our other multi-inheritance
+    # classes. watchdog's PatternMatchingEventHandler.__init__ calls
+    # super().__init__() internally; if QObject came after it in the MRO,
+    # that call would re-enter QObject.__init__ a second time and Shiboken
+    # aborts the process ("You can't initialize a QObject object twice").
+    # With QObject first, the MRO puts PatternMatchingEventHandler's own
+    # super() call past QObject already, so it safely reaches Handler's
+    # non-Qt ancestor instead.
     """
     Event handler for watchdog notifications.
 

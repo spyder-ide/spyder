@@ -17,6 +17,7 @@ import os.path as osp
 import shlex
 import sys
 import time
+import warnings
 
 # Third-party imports
 from jupyter_client.connect import find_connection_file
@@ -868,17 +869,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 value
             )
 
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def change_clients_color_scheme(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.set_color_scheme,
-                value)
-
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
         for idx, client in enumerate(self.clients):
@@ -1056,7 +1046,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 else:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
-                    interactive_backend = sw.get_mpl_interactive_backend()
+                    try:
+                        interactive_backend = sw.get_mpl_interactive_backend()
+                    except TimeoutError:
+                        # Show error message when it's not possible to get the
+                        # backend
+                        # Fixes spyder-ide/spyder#26173
+                        QMessageBox.critical(
+                            self,
+                            _('Error'),
+                            _(
+                                "It was not possible to detect the current "
+                                "Matplotlib backend in the kernel, so the one "
+                                "you selected can't be set."
+                            )
+                        )
 
                 if (
                     # There was an error getting the interactive backend in
@@ -1644,11 +1648,23 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         Refreshes corner widgets and actions as well as the info widget and
         sets the shellwidget and client signals
         """
+        # Don't refresh while the console is being torn down. This slot is
+        # connected to the tabwidget's currentChanged signal, which fires as
+        # tabs are removed during close_all_clients; at that point the current
+        # client's widgets may already be scheduled for deletion, so touching
+        # them (e.g. get_control().setFocus() below) crashes on PySide.
+        if self.mainwindow_close:
+            return
+
         client = None
         if self.tabwidget.count():
             for instance_client in self.clients:
                 try:
-                    instance_client.timer.timeout.disconnect()
+                    with warnings.catch_warnings():
+                        # RuntimeWarning: Failed to disconnect (None) from
+                        # signal "timeout()".
+                        warnings.simplefilter("ignore")
+                        instance_client.timer.timeout.disconnect()
                 except (RuntimeError, TypeError):
                     pass
 
@@ -1716,8 +1732,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and give_focus:
             self.sig_switch_to_plugin_requested.emit()
-        self.activateWindow()
-        client.get_control().setFocus()
+        # Only give focus when necessary to prevent the main window from
+        # stealing focus at startup.
+        # Fixes spyder-ide/spyder#24231.
+        if give_focus:
+            self.activateWindow()
+            client.get_control().setFocus()
+
         self.update_tabs_text()
 
         # Register client
@@ -1879,7 +1900,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Merge QtConsole and Spyder configs. Spyder prefs will have
         # prevalence over QtConsole ones
-        cfg._merge(spy_cfg)
+        cfg.merge(spy_cfg)
         return cfg
 
     def additional_options(self, special=None):
@@ -2056,7 +2077,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         client.hostname = hostname
 
         # Adding a new tab for the client
-        self.add_tab(client, name=client.get_name())
+        self.add_tab(client, name=client.get_name(), give_focus=give_focus)
 
         # Set elapsed time, if possible
         if master_client is not None:

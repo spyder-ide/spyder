@@ -45,6 +45,14 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
     CONF_SECTION = NAME
     CONF_FILE = False
 
+    def __init__(self, parent, configuration=None):
+        SpyderPluginV2.__init__(self, parent, configuration)
+
+        # Combined with RunExecutor via multiple inheritance; set up its
+        # state here since SpyderPluginV2.__init__ doesn't call
+        # RunExecutor.__init__ (which would also re-init the QObject part).
+        self.setup_run_executor()
+
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod

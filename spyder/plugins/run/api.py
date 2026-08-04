@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import functools
+import inspect
 from datetime import datetime
 import logging
 from typing import Any, Callable, Set, List, Union, Optional, Dict, TypedDict
@@ -435,11 +436,30 @@ class RunExecutor(QObject):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.setup_run_executor()
+
+    def setup_run_executor(self):
+        """
+        Gather methods decorated for run execution.
+
+        This is called by __init__, but it's public because plugins that are
+        also run executors need to call it themselves: they combine
+        RunExecutor with another QObject-derived base via multiple
+        inheritance, and therefore construct the QObject part on their own,
+        so they can't rely on RunExecutor.__init__ running.
+        """
         self._exec_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_ext_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_context_methods: Dict[str, RunExecuteFunc] = {}
 
         for method_name in dir(self):
+            # Use getattr_static first to avoid triggering descriptors
+            # (e.g. properties/cached_properties) that have side effects
+            # or should only be evaluated lazily, later on.
+            static_attr = inspect.getattr_static(self, method_name, None)
+            if not hasattr(static_attr, '_run_exec'):
+                continue
+
             method = getattr(self, method_name, None)
             if hasattr(method, '_run_exec'):
                 if not isinstance(method._run_exec, list):

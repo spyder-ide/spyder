@@ -37,7 +37,7 @@ from spyder.utils.stylesheet import (
 )
 
 
-class AboutDialog(QDialog, SvgToScaledPixmap):
+class AboutDialog(SvgToScaledPixmap, QDialog):
 
     PADDING = 5 if MAC else 15
 

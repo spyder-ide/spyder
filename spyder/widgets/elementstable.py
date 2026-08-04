@@ -68,7 +68,7 @@ class Element(TypedDict):
     """
 
 
-class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
+class ElementsModel(SpyderFontsMixin, QAbstractTableModel):
 
     def __init__(
         self,

@@ -322,7 +322,7 @@ def test_matplotlib_completions(config, workspace) -> None:
 
 
 def test_snippets_completion(config, workspace) -> None:
-    doc_snippets = "from collections import defaultdict \na=defaultdict"
+    doc_snippets = "from collections import defaultdict \ndef foo(a): pass\nfoo"
     com_position = {"line": 0, "character": 35}
     doc = Document(DOC_URI, workspace, doc_snippets)
     config.capabilities["textDocument"] = {
@@ -332,9 +332,9 @@ def test_snippets_completion(config, workspace) -> None:
     completions = pylsp_jedi_completions(config, doc, com_position)
     assert completions[0]["insertText"] == "defaultdict"
 
-    com_position = {"line": 1, "character": len(doc_snippets)}
+    com_position = {"line": 2, "character": 3}
     completions = pylsp_jedi_completions(config, doc, com_position)
-    assert completions[0]["insertText"] == "defaultdict($0)"
+    assert completions[0]["insertText"] == "foo($0)"
     assert completions[0]["insertTextFormat"] == lsp.InsertTextFormat.Snippet
 
 

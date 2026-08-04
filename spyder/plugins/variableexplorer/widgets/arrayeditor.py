@@ -16,6 +16,7 @@ NumPy Array Editor Dialog based on Qt
 # Standard library imports
 from __future__ import annotations
 import io
+import sys
 from typing import Callable, Optional, TYPE_CHECKING
 
 # Third party imports
@@ -153,7 +154,7 @@ def get_idx_rect(index_list):
 # ---- Main classes
 #==============================================================================
 
-class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
+class ArrayModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Array Editor Table Model
 
@@ -432,7 +433,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
         self.endResetModel()
 
 
-class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
+class ArrayDelegate(SpyderFontsMixin, QItemDelegate):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -480,13 +481,14 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
 
 
 #TODO: Implement "Paste" (from clipboard) feature
-class ArrayView(QTableView, SpyderWidgetMixin):
+class ArrayView(SpyderWidgetMixin, QTableView):
     """Array view class"""
 
     CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
 
         self.setModel(model)
         self.setItemDelegate(ArrayDelegate(dtype, self))
@@ -959,8 +961,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # Set minimum size
         self.setMinimumSize(500, 300)
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # This makes the dialog stay on top.
+            # Fixes spyder-ide/spyder#22901
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
     def set_data_and_check(self, data, readonly=False):
         """

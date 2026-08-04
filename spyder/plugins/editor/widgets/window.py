@@ -89,14 +89,16 @@ class OutlineExplorerInEditorWindow(OutlineExplorerWidget):
         self.sig_collapse_requested.emit()
 
 
-class EditorWidget(QSplitter, SpyderConfigurationObserver):
+class EditorWidget(SpyderConfigurationObserver, QSplitter):
     """Main widget to show in EditorMainWindow."""
 
     CONF_SECTION = 'editor'
     SPLITTER_WIDTH = "7px"
 
     def __init__(self, parent, main_widget, menu_actions, outline_plugin):
-        super().__init__(parent)
+        QSplitter.__init__(self, parent)
+        SpyderConfigurationObserver.__init__(self)
+
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes
@@ -393,7 +395,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         super().showEvent(event)
 
 
-class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
+class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
     CONF_SECTION = "editor"
 
     sig_window_state_changed = Signal(object)
@@ -401,7 +403,9 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
     def __init__(self, main_widget, menu_actions, outline_plugin, parent=None):
         # Parent needs to be `None` if the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        super().__init__(parent, class_parent=main_widget)
+        QMainWindow.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=main_widget)
+
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes
@@ -686,9 +690,15 @@ class EditorMainWidgetExample(QSplitter):
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
-        logger.debug(
-            "EditorMainWidget.unregister_editorstack: %r" % editorstack
-        )
+        try:
+            logger.debug(
+                "EditorMainWidget.unregister_editorstack: %r" % editorstack
+            )
+        except RuntimeError:
+            # This can be called while editorstack's C++ object is being
+            # destroyed, which makes repr() raise a RuntimeError on PySide.
+            logger.debug("EditorMainWidget.unregister_editorstack")
+
         self.editorstacks.pop(self.editorstacks.index(editorstack))
 
     def clone_editorstack(self, editorstack):

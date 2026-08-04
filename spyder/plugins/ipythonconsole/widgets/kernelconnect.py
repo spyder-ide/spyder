@@ -61,7 +61,7 @@ KERNEL_CONNECTION_SCHEMA = {
 }
 
 
-class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
+class KernelConnectionDialog(SpyderConfigurationAccessor, QDialog):
     """Dialog to connect to existing kernels (either local or remote)."""
 
     CONF_SECTION = 'existing-kernel'

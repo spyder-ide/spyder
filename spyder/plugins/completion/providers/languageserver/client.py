@@ -40,7 +40,9 @@ from spyder.plugins.completion.providers.languageserver.decorators import (
     class_register,
     handles,
 )
-from spyder.plugins.completion.providers.languageserver.pygls_client import SpyderPyglsClient
+from spyder.plugins.completion.providers.languageserver.pygls_client import (
+    SpyderPyglsClient,
+)
 from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn
 )
@@ -70,7 +72,7 @@ _LSP_LOOP = 'lsp'
 
 
 @class_register
-class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
+class LSPClient(LSPMethodProviderMixIn, SpyderConfigurationAccessor, QObject):
     """
     Wraps a pygls BaseLanguageClient running in a dedicated asyncio thread.
     """
@@ -124,6 +126,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         self.server_host = server_settings['host']
         self.configurations = server_settings.get('configurations', {})
+
+        # NOTE: Spyder LSP configurations are synced via
+        # `workspace/didChangeConfiguration` notification, and is always sent
+        # after `initialize` (see `_process_server_capabilities`). As Pylsp
+        # merges initializations options with configuration updates with union
+        # of list values, if any list values are sent in
+        # `initialization_options`, it becomes impossible to remove it later
+        # (e.g. `flake8/extendIgnore`) without restarting the server.
+        self.initialization_options = server_settings.get(
+            'initialization_options'
+        )
 
         if not server_settings['external']:
             self.server_port = select_port(
@@ -349,6 +362,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                     ).as_uri(),
                     capabilities=self.client_capabilites,
                     trace=TRACE,
+                    initialization_options=self.initialization_options,
                 ),
             )
         )
@@ -658,5 +672,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 rename=lsp.RenameClientCapabilities(
                     dynamic_registration=True,
                 ),
+            ),
+
+            general=lsp.GeneralClientCapabilities(
+                position_encodings=[
+                    lsp.PositionEncodingKind.Utf16,
+                ],
             ),
         )
