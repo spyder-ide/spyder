@@ -1,21 +1,18 @@
 # History of changes
 
-## Version 6.2.0a1 (2026-07-09)
+## Version 6.1.6 (2026-07-28)
 
 ### New features
 
-* Add a new set of interface themes for the entire application, including popular
-  ones from other IDEs such as Dracula, Miami Nights and Grubvox. They can be
-  set in `Preferences > Appearance`.
-* Support Polars series in the Variable Explorer.
-* Add button to close all open viewers to the Variable Explorer and its viewers.
-* Add shortcuts and menu entries to expand/collapse all foldable regions in the
-  Editor to the `Source` menu.
-* Add support to introduce inline (or ghost) completions to the Editor.
+* Add support for Jedi 0.20.0
+* Add support for python-lsp-server 1.15.0
 
 ### Important fixes
 
-* Automatically disable plugins when users disable the ones they depend on (e.g.
-  the Variable Explorer, Debugger and Plots will be auto-disabled if the
-  IPython Console is disabled because they can't do anything without it).
-* Drop support for Python 3.9 and 3.10.
+* Prevent Variable Explorer viewers for arrays and dataframes to go to the
+  background on macOS.
+* Prevent Spyder to steal focus from other applications at startup.
+* Prevent duplicate key sequences when changing shortcuts in Preferences.
+* Fix syntax highlighting of `match` and `case` builtins.
+* Fix running batch scripts with spaces in their path on Windows.
+* Fix docstring generation for nested functions.

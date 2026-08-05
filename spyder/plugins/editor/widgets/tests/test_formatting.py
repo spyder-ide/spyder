@@ -47,12 +47,9 @@ def test_closing_document_formatting(
     qtbot.wait(2000)
 
     # Set text in editor
-    code_editor.set_text(text)
-
-    # Notify changes
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        code_editor.set_text(text)
 
     # Perform formatting while closing the file
     with qtbot.waitSignal(
@@ -95,12 +92,9 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
     qtbot.wait(2000)
 
     # Set text in editor
-    code_editor.set_text(text)
-
-    # Notify changes
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        code_editor.set_text(text)
 
     # Set a random current line
     current_line = random.randint(0, code_editor.blockCount())
