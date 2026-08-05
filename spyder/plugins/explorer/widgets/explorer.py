@@ -870,6 +870,9 @@ class DirView(SpyderWidgetMixin, QTreeView):
         # Needed to handle not initialized menu.
         # See spyder-ide/spyder#6975
         try:
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self.setCurrentIndex(index)
             self.context_menu.popup(event.globalPos())
         except AttributeError:
             pass
