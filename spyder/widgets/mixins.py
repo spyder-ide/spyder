@@ -300,6 +300,14 @@ class BaseEditMixin(object):
             else:
                 text = '\n'.join(lines)
 
+        # This is necessary to preserve indentation spaces in the final text
+        # Fixes spyder-ide/spyder#22055
+        text = re.sub(
+            r'(?m)^( +)',
+            lambda m: '&nbsp;' * len(m.group(1)),
+            text
+        )
+
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
             # If there's enough content in the docstring or signature, then we
