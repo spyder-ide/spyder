@@ -822,11 +822,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 }
             })
 
-        if formatter == 'ruff':
-            # Plugin and therefore ruff linting needs to be enabled if ruff
-            # formatter has been selected
-            ruff["enabled"] = True
-
         # Setting max line length for formatters.
         # Notes:
         # 1. The autopep8 plugin shares the same maxLineLength value with the
