@@ -874,6 +874,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Needed to handle not initialized menu.
         # See spyder-ide/spyder#6975
         try:
+            # Set as selected index on top of which a right-click is done so
+            # that context menu actions work on it, which is what users expect.
+            # Fixes spyder-ide/spyder#22609.
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self.setCurrentIndex(index)
+
             self.context_menu.popup(event.globalPos())
         except AttributeError:
             pass
