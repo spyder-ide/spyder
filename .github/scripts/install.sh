@@ -60,9 +60,6 @@ if [ "$USE_CONDA" = "true" ]; then
         micromamba install bzip2=1.0.8=h2466b09_7
     fi
 
-    # Workaround for an error with packaging 26.3 when installing our subrepos
-    micromamba install packaging=26.2
-
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -90,9 +87,6 @@ else
     else
         pip install jedi==0.20.0
     fi
-
-    # Workaround for an error with packaging 26.3 when installing our subrepos
-    pip install packaging==26.2
 fi
 
 # Install subrepos from source
