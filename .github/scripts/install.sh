@@ -58,9 +58,6 @@ if [ "$USE_CONDA" = "true" ]; then
     # Pin IPykernel to 7.2.0 because version 7.3.0+ causes segfaults
     micromamba install ipykernel=7.2.0
 
-    # Workaround for an error with packaging 26.3 when installing our subrepos
-    micromamba install packaging=26.2
-
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -82,9 +79,6 @@ else
 
     # Force installation of Jedi 0.20
     pip install jedi==0.20.0
-
-    # Workaround for an error with packaging 26.3 when installing our subrepos
-    pip install packaging==26.2
 fi
 
 # Install subrepos from source
