@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-07-20 15:29-0500\n"
-"PO-Revision-Date: 2026-07-26 10:44\n"
+"PO-Revision-Date: 2026-08-05 08:37\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -5664,11 +5664,11 @@ msgstr "Kein Verzeichnis ausgewählt"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1070
 msgid "The directory doesn't exist"
-msgstr ""
+msgstr "Das Verzeichnis existiert nicht"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1073
 msgid "The directory is not writable"
-msgstr ""
+msgstr "Das Verzeichnis ist nicht beschreibbar"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1080 spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
@@ -6088,7 +6088,7 @@ msgstr "Möchten Sie die Verbindung namens <b>{}</b> entfernen?"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:172
 msgid "Invalid host for configuration file"
-msgstr ""
+msgstr "Ungültiger Host für Konfigurationsdatei"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:199
 msgid "This field is empty"
@@ -6160,7 +6160,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:514
 msgid "Configuration file"
-msgstr ""
+msgstr "Konfigurationsdatei"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:516
 msgid "OpenSSH client configuration file to use"
