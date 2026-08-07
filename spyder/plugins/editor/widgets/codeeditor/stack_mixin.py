@@ -906,6 +906,20 @@ class EditsStackMixin:
         finally:
             self.__undo_recording_depth -= 1
 
+    @contextmanager
+    def enable_qt_undo_redo(self):
+        """Temporarily enable Qt's undo/redo mechanism.
+
+        Operations inside this context manager **must** not involve any changes
+        to the file's contents.
+        """
+        self.document().setUndoRedoEnabled(True)
+
+        try:
+            yield
+        finally:
+            self.document().setUndoRedoEnabled(False)
+
     def _on_cursor_position_changed(self, *args):
         """Keep the stored cursor state in sync with cursor movements.
 
