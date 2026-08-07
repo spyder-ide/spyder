@@ -1906,7 +1906,8 @@ class CodeEditor(
         self.document().setDefaultTextOption(option)
 
         # Rehighlight to make the spaces less apparent.
-        self.rehighlight()
+        if self.blanks_enabled:
+            self.rehighlight()
 
     def set_scrollpastend_enabled(self, state):
         """
