@@ -563,11 +563,11 @@ DEFAULTS = [
               'internal_console/clear shell': "Ctrl+L",
               'internal_console/clear line': "Shift+Escape",
               # -- Pylint --
-              'pylint/run file in pylint': "F8",
+              '_/run file in pylint': "F8",
               # -- Profiler --
-              'profiler/run file in profiler': "F10",
-              'profiler/run cell in profiler': "Alt+F10",
-              'profiler/run selection in profiler': "",
+              '_/run file in profiler': "F10",
+              'editor/run cell in profiler': "Alt+F10",
+              'editor/run selection in profiler': "",
               'profiler/find_action': "Ctrl+F",
               # -- Switcher --
               '_/file switcher': 'Ctrl+P',
@@ -756,4 +756,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.1.0'
+CONF_VERSION = '89.0.0'

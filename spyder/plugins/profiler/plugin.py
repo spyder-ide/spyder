@@ -12,6 +12,7 @@ Profiler Plugin.
 from typing import List
 
 # Third party imports
+from qtpy.QtCore import Qt
 from packaging.version import parse
 
 # Local imports
@@ -39,7 +40,7 @@ from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 # --- Plugin
 # ----------------------------------------------------------------------------
-class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
+class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     """
     Profiler (after python's profile and pstats).
     """
@@ -47,8 +48,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     NAME = 'profiler'
     REQUIRES = [
         Plugins.Preferences,
-        Plugins.IPythonConsole,
         Plugins.Run,
+        Plugins.IPythonConsole,
         Plugins.Toolbar,
     ]
     OPTIONAL = [Plugins.Editor]
@@ -86,12 +87,32 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': ['py', 'ipy', 'pyw'],
-            "contexts": [
-                {"name": "File"},
-                {"name": "Cell"},
-                {"name": "Selection"},
-            ],
+            'extension': 'py',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
+        }
+
+        self.ipython_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'ipy',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
+        }
+
+        self.pyw_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyw',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
         }
 
         self.executor_configuration = [
@@ -120,7 +141,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
-                'input_extension': ['py', 'ipy', 'pyw'],
+                'input_extension': 'py',
                 'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -128,7 +149,39 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
-                'input_extension': ['py', 'ipy', 'pyw'],
+                'input_extension': 'ipy',
+                'context': {'name': 'Cell'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'pyw',
+                'context': {'name': 'Cell'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'py',
+                'context': {'name': 'Selection'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {'name': 'Selection'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'pyw',
                 'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -172,44 +225,54 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             text=_("Profile file"),
             tip=_("Profile file"),
             icon=self.create_icon('profiler'),
-            shortcut_context=self.NAME,
+            shortcut_context="_",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
-        run.create_run_in_executor_button(
+        cell_action = run.create_run_in_executor_button(
             RunContext.Cell,
             self.NAME,
             text=_("Profile cell"),
             tip=_("Profile cell"),
             icon=self.create_icon('profile_cell'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
 
-        run.create_run_in_executor_button(
+        selection_action = run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
             text=_("Profile current line or selection"),
             tip=_("Profile current line or selection"),
             icon=self.create_icon('profile_selection'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
+
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.add_shortcut("run cell in profiler", cell_action.trigger)
+            editor.add_shortcut(
+                "run selection in profiler", selection_action.trigger
+            )
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
@@ -217,15 +280,26 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         run.deregister_executor_configuration(
             self, self.executor_configuration
         )
+        run.destroy_run_in_executor_button(RunContext.File, self.NAME)
+        run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
+        run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
+
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.remove_shortcut("run cell in profiler")
+            editor.remove_shortcut("run selection in profiler")
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
 
-        editor.add_supported_run_configuration(
-            self.python_editor_run_configuration
-        )
+        for run_config in [
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration,
+            self.pyw_editor_run_configuration,
+        ]:
+            editor.add_supported_run_configuration(run_config)
 
         widget.sig_edit_goto_requested.connect(editor.load)
 
@@ -234,9 +308,12 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
 
-        editor.remove_supported_run_configuration(
-            self.python_editor_run_configuration
-        )
+        for run_config in [
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration,
+            self.pyw_editor_run_configuration,
+        ]:
+            editor.remove_supported_run_configuration(run_config)
 
         widget.sig_edit_goto_requested.disconnect(editor.load)
 

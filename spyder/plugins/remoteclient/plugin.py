@@ -168,7 +168,13 @@ class RemoteClient(SpyderPluginV2):
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
         while self._remote_clients:
-            client = self._remote_clients.popitem()[1]
+            config_id, client = self._remote_clients.popitem()
+
+            # Inform other plugins the client is stopped if the plugin is
+            # disabled while the session is active
+            if not self.is_app_closing:
+                self.sig_server_stopped.emit(config_id)
+
             AsyncDispatcher(
                 loop="asyncssh",
                 early_return=False,
