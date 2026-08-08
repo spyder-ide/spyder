@@ -14,6 +14,7 @@ import sys
 # Third-party imports
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
+from qtpy import QT6
 from qtpy.QtWidgets import QCommonStyle, QStyle, QTabBar
 
 # Local imports
@@ -452,6 +453,10 @@ class CloseButtonTabBarStyle(QCommonStyle, SpyderConfigurationAccessor):
                 if MAC
                 else QTabBar.ButtonPosition.RightSide
             )
+        if QT6:  # PySide6/PyQt6
+            self.close_btn_side = self.close_btn_side.value
+        else:  # PySide2/PyQt5
+            self.close_btn_side = int(self.close_btn_side)
 
     def styleHint(self, hint, options=None, widget=None, returnData=None):
         if hint == QStyle.SH_TabBar_CloseButtonPosition:
