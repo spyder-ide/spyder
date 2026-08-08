@@ -18,6 +18,7 @@ import functools
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import sys
 import unicodedata
 
@@ -46,6 +47,8 @@ from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
+from spyder.plugins.editor.utils.rich_text import (
+    selection_to_html, selection_to_rtf)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack.helpers import (
     ThreadManager, FileInfo, StackHistory)
@@ -1502,7 +1505,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.horsplit_action.setEnabled(state)
         self.versplit_action.setEnabled(state)
 
-    # ------ Accessors
+    # ---- Accessors
     def get_current_filename(self):
         if self.data:
             return self.data[self.get_stack_index()].filename
@@ -2225,7 +2228,55 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 all_saved &= self.save(index, save_new_files=save_new_files)
         return all_saved
 
-    # ------ Update UI
+    def export_with_formatting(self, suffix):
+        """Save file with syntax highlighting."""
+
+        if not self.data:
+            return
+        finfo = self.data[self.get_stack_index()]
+        original_filename = str(Path(finfo.filename).with_suffix(suffix))
+
+        self.redirect_stdio.emit(False)
+        filename, _selfilter = getsavefilename(
+            self, _("Export file"),
+            original_filename,
+            filters='',
+            selectedfilter='',
+            options=QFileDialog.HideNameFilterDetails
+        )
+        self.redirect_stdio.emit(True)
+        if filename:
+            file_path = Path(filename)
+            with file_path.open("wb") as f:
+                file_suffix = file_path.suffix.lower()
+                if file_suffix in (".html", ".rtf"):
+                    cursor: QTextCursor = finfo.editor.textCursor()
+                    cursor.movePosition(
+                        QTextCursor.MoveOperation.Start,
+                        QTextCursor.MoveMode.MoveAnchor
+                    )
+                    cursor.movePosition(
+                        QTextCursor.MoveOperation.End,
+                        QTextCursor.MoveMode.KeepAnchor
+                    )
+                    bg_color = ""
+                    if finfo.editor.highlighter is not None:
+                        bg_color = finfo.editor.highlighter.background_color
+                    if file_suffix == ".html":
+                        _html = selection_to_html(cursor, bg_color)
+                        f.write(_html.encode("utf-8"))
+                    elif file_suffix == ".rtf":
+                        f.write(selection_to_rtf(cursor, bg_color))
+
+    def export_html(self):
+        """Export the current file as HTML."""
+        self.export_with_formatting(".html")
+
+    def export_rtf(self):
+        """Export the current file as RTF."""
+        self.export_with_formatting(".rtf")
+
+    # ---- Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
         self.analysis_timer.stop()
