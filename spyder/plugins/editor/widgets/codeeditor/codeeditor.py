@@ -1355,10 +1355,12 @@ class CodeEditor(
         """Rehighlight the whole document."""
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
             self.unhighlight_current_cell()
+
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -1892,13 +1894,17 @@ class CodeEditor(
         """Toggle blanks visibility"""
         self.blanks_enabled = state
         option = self.document().defaultTextOption()
-        option.setFlags(option.flags() | \
-                        QTextOption.AddSpaceForLineAndParagraphSeparators)
+        option.setFlags(
+            option.flags() | QTextOption.AddSpaceForLineAndParagraphSeparators
+        )
+
         if self.blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
+
         self.document().setDefaultTextOption(option)
+
         # Rehighlight to make the spaces less apparent.
         self.rehighlight()
 

@@ -342,7 +342,14 @@ class BaseSH(QSyntaxHighlighter):
 
     def rehighlight(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QSyntaxHighlighter.rehighlight(self)
+
+        # We need to do this because when Qt's undo/redo is disabled,
+        # rehighlights make the file be flagged as modified (seems like a bug
+        # in Qt).
+        if self.editor is not None:
+            with self.editor.enable_qt_undo_redo():
+                QSyntaxHighlighter.rehighlight(self)
+
         QApplication.restoreOverrideCursor()
 
 
