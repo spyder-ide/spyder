@@ -120,6 +120,19 @@ class ApplicationConfigPage(PluginConfigPage):
         )
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs', restart=True)
+
+        tab_close_options = ["Automatic", "Left", "Right"]
+        tab_close_choices = list(zip(tab_close_options,
+                                     [c.lower() for c in tab_close_options]))
+        tab_close_combo = self.create_combobox(_("Tab close button position:"),
+                                               tab_close_choices,
+                                               "tab_close_position",
+                                               restart=True)
+        tab_close_layout = QHBoxLayout()
+        tab_close_layout.addWidget(tab_close_combo.label)
+        tab_close_layout.addWidget(tab_close_combo.combobox)
+        tab_close_layout.addStretch(1)
+        
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -156,6 +169,7 @@ class ApplicationConfigPage(PluginConfigPage):
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(empty_messages_box)
         interface_layout.addWidget(verttabs_box)
+        interface_layout.addLayout(tab_close_layout)
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
