@@ -1301,7 +1301,7 @@ class PygmentsSH(BaseSH):
             self._charlist = output
             if error is None and output:
                 self._allow_highlight = True
-                self.rehighlight()
+                BaseSH.rehighlight(self)
             self._allow_highlight = False
 
         text = str(self.document().toPlainText())
@@ -1363,6 +1363,9 @@ class PygmentsSH(BaseSH):
                 self.setFormat(i, 1, fmt)
             self.setCurrentBlockState(end)
             self.highlight_extras(text)
+
+    def rehighlight(self):
+        self.make_charlist()
 
 
 class PythonLoggingLexer(RegexLexer):
