@@ -450,7 +450,8 @@ class CodeEditor(
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
         self.timer_syntax_highlight.timeout.connect(
-            self.run_pygments_highlighter)
+            self.run_pygments_highlighter
+        )
 
         # Mark occurrences timer
         self.occurrence_highlighting = None
@@ -1906,7 +1907,8 @@ class CodeEditor(
         self.document().setDefaultTextOption(option)
 
         # Rehighlight to make the spaces less apparent.
-        self.rehighlight()
+        if self.blanks_enabled:
+            self.rehighlight()
 
     def set_scrollpastend_enabled(self, state):
         """
@@ -3986,7 +3988,7 @@ class CodeEditor(
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
-            self.highlighter.make_charlist()
+            self.highlighter.rehighlight()
 
     def get_pattern_at(self, coordinates):
         """
