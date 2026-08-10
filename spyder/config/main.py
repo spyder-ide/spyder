@@ -14,8 +14,6 @@ quickly load a user config file.
 
 import os
 import sys
-import importlib
-from pathlib import Path
 
 # Local import
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -24,37 +22,6 @@ from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.config.utils import IMPORT_EXT
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
-
-
-def _default_help_css_path(
-    theme_module='spyder_themes.spyder', ui_mode='dark'
-):
-    """
-    Default Help/IPython CSS directory for DEFAULTS.
-
-    Resolved without ThemeManager to avoid a circular import with
-    ``spyder.config.manager``. Falls back to the bundled Help CSS trees
-    if spyder-themes is unavailable or lacks ``default.css`` (Phase A).
-    """
-    try:
-        mod = importlib.import_module(theme_module)
-        css_dir = Path(mod.__path__[0]) / ui_mode
-        if (css_dir / 'default.css').is_file():
-            return str(css_dir)
-    except ImportError:
-        pass
-
-    # Path relative to this file: spyder/config/main.py -> spyder/
-    fallback = (
-        Path(__file__).resolve().parents[1]
-        / 'plugins'
-        / 'help'
-        / 'utils'
-        / 'static'
-    )
-    if ui_mode == 'dark':
-        return str(fallback / 'dark_css')
-    return str(fallback / 'css')
 
 
 # =============================================================================
@@ -658,9 +625,12 @@ DEFAULTS = [
               }),
             ('appearance',
              {
-              # Help / IPython rich-text CSS from the selected theme variant.
-              # MainWindow overwrites this from ThemeManager at startup.
-              "css_path": _default_help_css_path(),
+              # Help / IPython rich-text CSS directory. None until MainWindow
+              # sets it from ThemeManager.get_help_css_path() at startup
+              # (avoids importing ThemeManager here and a circular import
+              # with the config manager). Consumers must resolve None via
+              # ThemeManager.
+              "css_path": None,
               "icon_theme": "spyder 3",
               # This is our monospace font
               "font/family": MONOSPACE,
@@ -790,4 +760,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.1.0'
+CONF_VERSION = '88.2.0'

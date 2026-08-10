@@ -301,9 +301,9 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_doc = None
         self._last_console_cb = None
         self._last_editor_cb = None
-        self.css_path = self.get_conf(
-            'css_path', THEME_MANAGER.get_help_css_path(), 'appearance'
-        )
+        self.css_path = self.get_conf('css_path', section='appearance')
+        if self.css_path is None:
+            self.css_path = THEME_MANAGER.get_help_css_path()
         self.no_docs = _("No documentation available")
         self.docstring = True  # TODO: What is this used for?
 

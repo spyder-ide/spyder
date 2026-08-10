@@ -498,7 +498,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         # themes)
         return True
 
-    def get_help_css_path(self, theme_variant=None): # unificar como get_css_path (no help especificamente)
+    def get_help_css_path(self, theme_variant=None):
         """
         Return the directory containing help ``default.css`` for a theme variant.
 
