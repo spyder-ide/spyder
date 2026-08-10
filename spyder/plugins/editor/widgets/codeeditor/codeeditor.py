@@ -43,6 +43,7 @@ from qtpy.QtGui import (
     QDesktopServices,
     QFont,
     QKeyEvent,
+    QKeySequence,
     QMouseEvent,
     QPaintEvent,
     QPainter,
@@ -88,6 +89,9 @@ from spyder.plugins.editor.widgets.codeeditor.inline_completions_mixin import (
 from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
     MultiCursorMixin
+)
+from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
+    EditsStackMixin,
 )
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
@@ -141,7 +145,11 @@ class DocstringContext(TypedDict):
 
 
 class CodeEditor(
-    LSPMixin, MultiCursorMixin, InlineCompletionsMixin, TextEditBaseWidget
+    LSPMixin,
+    MultiCursorMixin,
+    InlineCompletionsMixin,
+    EditsStackMixin,
+    TextEditBaseWidget
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -287,6 +295,7 @@ class CodeEditor(
         ) = None,
     ):
         TextEditBaseWidget.__init__(self, parent, class_parent=parent)
+        EditsStackMixin.__init__(self)  # load after text edit (requires document)
         InlineCompletionsMixin.__init__(self)
         LSPMixin.__init__(self)
 
@@ -441,7 +450,8 @@ class CodeEditor(
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
         self.timer_syntax_highlight.timeout.connect(
-            self.run_pygments_highlighter)
+            self.run_pygments_highlighter
+        )
 
         # Mark occurrences timer
         self.occurrence_highlighting = None
@@ -466,9 +476,6 @@ class CodeEditor(
         self.verticalScrollBar().valueChanged.connect(
             lambda value: self.hide_calltip()
         )
-
-        # QTextEdit + LSPMixin
-        self.textChanged.connect(self._schedule_document_did_change)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -1349,10 +1356,12 @@ class CodeEditor(
         """Rehighlight the whole document."""
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
             self.unhighlight_current_cell()
+
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -1886,15 +1895,20 @@ class CodeEditor(
         """Toggle blanks visibility"""
         self.blanks_enabled = state
         option = self.document().defaultTextOption()
-        option.setFlags(option.flags() | \
-                        QTextOption.AddSpaceForLineAndParagraphSeparators)
+        option.setFlags(
+            option.flags() | QTextOption.AddSpaceForLineAndParagraphSeparators
+        )
+
         if self.blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
+
         self.document().setDefaultTextOption(option)
+
         # Rehighlight to make the spaces less apparent.
-        self.rehighlight()
+        if self.blanks_enabled:
+            self.rehighlight()
 
     def set_scrollpastend_enabled(self, state):
         """
@@ -2179,22 +2193,19 @@ class CodeEditor(
         """
         Reimplementation of undo with additional functionality.
 
-        For instance, this decreases the ``text_version`` number and emits some
-        required signals.
-
         Parameters
         ----------
         delete_inline_completion: bool, optional
             Whether this is called to delete an inline completion.
         """
-        if self.document().isUndoAvailable():
+        # Flush pending edits to undo immediately
+        self._commit_pending_edit()
+        if self.undo_stack.can_undo():
             if not delete_inline_completions:
                 self.reject_inline_completions()
-
-            self.text_version -= 1
             self.skip_rstrip = True
             self.is_undoing = True
-            TextEditBaseWidget.undo(self)
+            super().undo()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.is_undoing = False
@@ -2203,11 +2214,11 @@ class CodeEditor(
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
-        if self.document().isRedoAvailable():
-            self.text_version += 1
+        self._commit_pending_edit()
+        if self.undo_stack.can_redo():
             self.skip_rstrip = True
             self.is_redoing = True
-            TextEditBaseWidget.redo(self)
+            super().redo()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.is_redoing = False
@@ -3697,6 +3708,18 @@ class CodeEditor(
                     return
             return
 
+        # Explicitly handle undo/redo for custom undo stack
+        if event.matches(QKeySequence.Undo):
+            self.undo()
+            event.accept()
+            self.setOverwriteMode(False)
+            return
+        elif event.matches(QKeySequence.Redo):
+            self.redo()
+            event.accept()
+            self.setOverwriteMode(False)
+            return
+
         # ---- Handle hard coded and builtin actions
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
@@ -3965,7 +3988,7 @@ class CodeEditor(
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
-            self.highlighter.make_charlist()
+            self.highlighter.rehighlight()
 
     def get_pattern_at(self, coordinates):
         """
@@ -4405,7 +4428,9 @@ class CodeEditor(
                           pygments lexer.
         :param encoding: text encoding
         """
-        super().setPlainText(txt)
+        with self.suspend_undo_recording():
+            super().setPlainText(txt)
+        self.clear_undo_stack()
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
