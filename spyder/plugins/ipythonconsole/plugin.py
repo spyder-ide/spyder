@@ -9,7 +9,6 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-from functools import cached_property
 import re
 import sys
 from typing import List, Optional
@@ -1266,8 +1265,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     # ---- For the Remote client plugin
     # -------------------------------------------------------------------------
-    @cached_property
+    @property
     def _remote_client(self):
+        # Don't use cached_property for this to not hold a reference to a
+        # deleted object when Remote client is disabled on the fly.
         return self.get_plugin(Plugins.RemoteClient)
 
     @Slot(str)
