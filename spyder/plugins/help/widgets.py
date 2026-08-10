@@ -28,13 +28,14 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
-from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
+from spyder.plugins.help.utils.sphinxify import (generate_context,
                                                  loading, usage, warning)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import start_file
+from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
@@ -300,7 +301,9 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_doc = None
         self._last_console_cb = None
         self._last_editor_cb = None
-        self.css_path = self.get_conf('css_path', CSS_PATH, 'appearance')
+        self.css_path = self.get_conf(
+            'css_path', THEME_MANAGER.get_help_css_path(), 'appearance'
+        )
         self.no_docs = _("No documentation available")
         self.docstring = True  # TODO: What is this used for?
 
@@ -989,7 +992,7 @@ class HelpWidget(PluginMainWidget):
 
         return self.shell
 
-    def render_sphinx_doc(self, help_data, context=None, css_path=CSS_PATH):
+    def render_sphinx_doc(self, help_data, context=None, css_path=None):
         """
         Transform help_data dictionary to HTML and show it.
 
@@ -1000,7 +1003,8 @@ class HelpWidget(PluginMainWidget):
         context: dict
             Sphinx context.
         css_path: str
-            Path to CSS file for styling.
+            Path to CSS directory for styling. Unused; ``self.css_path`` is
+            always applied.
         """
         if isinstance(help_data, dict):
             path = help_data.pop('path', '')

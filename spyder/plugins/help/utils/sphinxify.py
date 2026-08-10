@@ -41,6 +41,7 @@ from sphinx.application import Sphinx
 from spyder.api.translations import _
 from spyder.config.base import get_module_data_path, get_module_source_path
 from spyder.utils import encoding
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 #-----------------------------------------------------------------------------
@@ -50,10 +51,13 @@ from spyder.utils import encoding
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
 CONFDIR_PATH = get_module_source_path('spyder.plugins.help.utils')
-CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
-DARK_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'dark_css')
-BASE_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'base_css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
+
+
+def _default_css_path():
+    """Help CSS directory for the currently selected theme variant."""
+    return THEME_MANAGER.get_help_css_path()
+
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
 # use their own packages for them. See spyder-ide/spyder#1230, comment #7.
@@ -77,16 +81,20 @@ def is_sphinx_markup(docstring):
     return ("`" in docstring or "::" in docstring)
 
 
-def warning(message, css_path=CSS_PATH):
+def warning(message, css_path=None):
     """Print a warning message on the rich text view"""
+    if css_path is None:
+        css_path = _default_css_path()
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
     return warning.render(css_path=css_path, text=message)
 
 
-def usage(title, message, tutorial_message, tutorial, css_path=CSS_PATH):
+def usage(title, message, tutorial_message, tutorial, css_path=None):
     """Print a usage message on the rich text view"""
+    if css_path is None:
+        css_path = _default_css_path()
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     usage = env.get_template("usage.html")
@@ -94,8 +102,10 @@ def usage(title, message, tutorial_message, tutorial, css_path=CSS_PATH):
                         tutorial_message=tutorial_message, tutorial=tutorial)
 
 
-def loading(message, loading_img, css_path=CSS_PATH):
+def loading(message, loading_img, css_path=None):
     """Print loading message on the rich text view."""
+    if css_path is None:
+        css_path = _default_css_path()
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     loading = env.get_template("loading.html")
@@ -104,7 +114,7 @@ def loading(message, loading_img, css_path=CSS_PATH):
 
 
 def generate_context(name='', argspec='', note='', math=False, collapse=False,
-                     img_path='', css_path=CSS_PATH):
+                     img_path='', css_path=None):
     """
     Generate the html_context dictionary for our Sphinx conf file.
 
@@ -134,6 +144,9 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
     A dict of strings to be used by Jinja to generate the webpage
     """
 
+    if css_path is None:
+        css_path = _default_css_path()
+
     if img_path and os.name == 'nt':
         img_path = img_path.replace('\\', '/')
 
@@ -147,7 +160,6 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'collapse': collapse,
       'img_path': img_path,
       # Static variables
-      'base_css_path': BASE_CSS_PATH,
       'css_path': css_path,
       'js_path': JS_PATH,
       'jquery_path': JQUERY_PATH,

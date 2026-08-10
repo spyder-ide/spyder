@@ -498,6 +498,58 @@ class ThemeManager(SpyderConfigurationAccessor):
         # themes)
         return True
 
+    def get_help_css_path(self, theme_variant=None): # unificar como get_css_path (no help especificamente)
+        """
+        Return the directory containing help ``default.css`` for a theme variant.
+
+        The returned path is the theme variant directory (containing
+        ``default.css`` and the ``rc/`` image assets). It is suitable as
+        ``appearance.css_path`` and as the WebView base URL so relative
+        ``url(rc/...)`` references resolve.
+
+        Parameters
+        ----------
+        theme_variant : str or None
+            Variant id such as ``spyder_themes.spyder/dark``. If None, uses
+            the currently selected appearance theme.
+
+        Returns
+        -------
+        str
+            Absolute filesystem path to the variant directory.
+
+        Raises
+        ------
+        FileNotFoundError
+            If ``default.css`` is missing for the resolved variant.
+        ValueError
+            If ``theme_variant`` (or the selected theme) has no ``/`` mode
+            segment.
+        """
+        if theme_variant is None:
+            selected = self.get_conf(
+                "selected", default="spyder_themes.spyder/dark"
+            )
+        else:
+            selected = theme_variant
+
+        selected = self.canonical_theme_variant_id(selected)
+        if not selected or "/" not in selected:
+            raise ValueError(
+                f"Invalid theme variant for help CSS path: {selected!r}"
+            )
+
+        theme_name, ui_mode = selected.rsplit("/", 1)
+        css_dir = self._theme_root_path(theme_name) / ui_mode
+        css_file = css_dir / "default.css"
+        if not css_file.is_file():
+            raise FileNotFoundError(
+                f"Help CSS not found for theme variant '{selected}': "
+                f"{css_file}"
+            )
+
+        return str(css_dir)
+
     def export_theme_to_config(self, theme_name, ui_mode, replace=False):
         """
         Export theme data to the user configuration file.

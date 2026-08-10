@@ -14,6 +14,8 @@ quickly load a user config file.
 
 import os
 import sys
+import importlib
+from pathlib import Path
 
 # Local import
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -21,8 +23,38 @@ from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES, running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.config.utils import IMPORT_EXT
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
+
+
+def _default_help_css_path(
+    theme_module='spyder_themes.spyder', ui_mode='dark'
+):
+    """
+    Default Help/IPython CSS directory for DEFAULTS.
+
+    Resolved without ThemeManager to avoid a circular import with
+    ``spyder.config.manager``. Falls back to the bundled Help CSS trees
+    if spyder-themes is unavailable or lacks ``default.css`` (Phase A).
+    """
+    try:
+        mod = importlib.import_module(theme_module)
+        css_dir = Path(mod.__path__[0]) / ui_mode
+        if (css_dir / 'default.css').is_file():
+            return str(css_dir)
+    except ImportError:
+        pass
+
+    # Path relative to this file: spyder/config/main.py -> spyder/
+    fallback = (
+        Path(__file__).resolve().parents[1]
+        / 'plugins'
+        / 'help'
+        / 'utils'
+        / 'static'
+    )
+    if ui_mode == 'dark':
+        return str(fallback / 'dark_css')
+    return str(fallback / 'css')
 
 
 # =============================================================================
@@ -626,7 +658,9 @@ DEFAULTS = [
               }),
             ('appearance',
              {
-              "css_path": CSS_PATH,
+              # Help / IPython rich-text CSS from the selected theme variant.
+              # MainWindow overwrites this from ThemeManager at startup.
+              "css_path": _default_help_css_path(),
               "icon_theme": "spyder 3",
               # This is our monospace font
               "font/family": MONOSPACE,
