@@ -65,8 +65,13 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.api import (
-    RunContext, RunConfigurationMetadata, RunConfiguration,
-    SupportedExtensionContexts, ExtendedContext)
+    Context,
+    ExtendedContext,
+    RunConfiguration,
+    RunConfigurationMetadata,
+    RunContext,
+    SupportedExtensionContexts,
+)
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -2867,27 +2872,29 @@ class EditorMainWidget(PluginMainWidget):
                 else:
                     self.pending_run_files -= {(filename, filename_ext)}
 
+    def _request_deregister_run_configuration(
+        self, extension: str, context: Context
+    ):
+        """
+        Request Run plugin to deregister a run configuration per ext/context
+        if there are no executors that can handle it.
+        """
+        is_super = RunContext[context['name']] == RunContext.File
+        ext_context = ExtendedContext(context=context, is_super=is_super)
+
+        unsupported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=[ext_context]
+        )
+        self.sig_deregister_run_configuration_provider_requested.emit(
+            [unsupported_extension]
+        )
+
     def remove_supported_run_configuration(
-        self,
-        config: EditorRunConfiguration
+        self, config: EditorRunConfiguration
     ):
         origin = config['origin']
         extension = config['extension']
         contexts = config['contexts']
-
-        ext_contexts = []
-        for context in contexts:
-            is_super = RunContext[context['name']] == RunContext.File
-            ext_contexts.append(
-                ExtendedContext(context=context, is_super=is_super)
-            )
-        unsupported_extension = SupportedExtensionContexts(
-            input_extension=extension, contexts=ext_contexts
-        )
-
-        self.sig_deregister_run_configuration_provider_requested.emit(
-            [unsupported_extension]
-        )
 
         to_remove = []
         ext_origins = self.run_configurations_per_origin[extension]
@@ -2899,6 +2906,10 @@ class EditorMainWidget(PluginMainWidget):
             if len(context_origins) == 0:
                 to_remove.append(context_id)
                 ext_origins.pop(context_id)
+
+                # No origins (i.e. executors) are left to handle this context,
+                # so we need to remove it
+                self._request_deregister_run_configuration(extension, context)
 
         if len(ext_origins) == 0:
             self.run_configurations_per_origin.pop(extension)
@@ -2918,7 +2929,8 @@ class EditorMainWidget(PluginMainWidget):
                     filename = self.file_per_id.pop(metadata_id)
                     self.id_per_file.pop(filename)
                     self.pending_run_files |= {
-                        (filename, metadata['input_extension'])}
+                        (filename, metadata['input_extension'])
+                    }
 
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
         editorstack = self.get_current_editorstack()
