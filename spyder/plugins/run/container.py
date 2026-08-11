@@ -762,7 +762,8 @@ class RunContainer(PluginMainContainer):
             file extension.
         """
         provider_extensions_contexts = self.supported_extension_contexts.get(
-            provider_name, set({}))
+            provider_name, set({})
+        )
 
         for unsupported_extension_contexts in unsupported_extensions_contexts:
             ext = unsupported_extension_contexts['input_extension']
@@ -773,10 +774,15 @@ class RunContainer(PluginMainContainer):
                 provider_extensions_contexts -= {(ext, context_id)}
 
         if provider_extensions_contexts:
-            self.supported_extension_contexts[
-                provider_name] = provider_extensions_contexts
+            self.supported_extension_contexts[provider_name] = (
+                provider_extensions_contexts
+            )
         else:
             self.supported_extension_contexts.pop(provider_name, set({}))
+
+        # This is necessary in case all plugin executors associated to an
+        # extension are disabled.
+        self.set_actions_status()
 
     def register_run_configuration_metadata(
         self,
