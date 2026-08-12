@@ -511,12 +511,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         # Register shortcuts for run actions
         for action_id in [
-            "run cell",
-            "run cell and advance",
-            "re-run cell",
-            "run selection and advance",
-            "run selection up to line",
-            "run selection from line",
             "run cell in debugger",
             "run selection in debugger",
         ]:
