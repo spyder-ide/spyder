@@ -751,6 +751,12 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self._current_editor_write_docstring,
         )
 
+        self.create_action(
+            CodeEditorActions.ExtractFunction,
+            text=_('Extract function'),
+            triggered=self._current_editor_extract_function,
+        )
+
         self._setup_codeeditor_context_menu()
 
         # ---- Dockwidget and file dependent actions lists
@@ -3365,6 +3371,7 @@ class EditorMainWidget(PluginMainWidget):
         for action_name in [
             EditorWidgetActions.ToggleComment,
             CodeEditorActions.Docstring,
+            CodeEditorActions.ExtractFunction,
             EditorWidgetActions.FormatCode,
         ]:
             action = self.get_action(action_name)
@@ -3410,6 +3417,11 @@ class EditorMainWidget(PluginMainWidget):
         editor = self.get_current_editor()
         if editor:
             editor.zoom_reset.emit()
+
+    def _current_editor_extract_function(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.extract_function()
 
     def _current_editor_write_docstring(self):
         editor = self.get_current_editor()
