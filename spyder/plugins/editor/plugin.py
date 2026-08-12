@@ -54,6 +54,7 @@ from spyder.plugins.run.api import RunContext
 if TYPE_CHECKING:
     from spyder.plugins.editor.widgets.codeeditor import CodeEditor
     from spyder.plugins.editor.widgets.editorstack import EditorStack
+    from spyder.utils.qthelpers import SpyderAction
 
 
 logger = logging.getLogger(__name__)
@@ -210,6 +211,9 @@ class Editor(SpyderDockablePlugin):
         ] = []
         """List of shortcuts added by third-party plugins."""
 
+        # List of actions created by the Run plugin
+        self._run_actions: list[SpyderAction] = []
+
         widget = self.get_widget()
 
         # ---- Help related signals
@@ -309,7 +313,7 @@ class Editor(SpyderDockablePlugin):
             run.register_run_configuration_provider(self.NAME, [extension])
 
         # Buttons creation
-        run.create_run_button(
+        run_cell = run.create_run_button(
             RunContext.Cell,
             _("Run cell"),
             icon=self.create_icon('run_cell'),
@@ -319,7 +323,7 @@ class Editor(SpyderDockablePlugin):
             add_to_toolbar=True,
             add_to_menu=True
         )
-        run.create_run_button(
+        run_cell_advance = run.create_run_button(
             RunContext.Cell,
             _("Run cell and advance"),
             icon=self.create_icon('run_cell_advance'),
@@ -330,16 +334,16 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             extra_action_name=ExtraAction.Advance
         )
-        run.create_run_button(
+        rerun_last_cell = run.create_run_button(
             RunContext.Cell,
             _("Re-run last cell"),
-            tip=_("Re run last cell "),
+            tip=_("Re run last cell"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_menu=True,
             re_run=True
         )
-        run.create_run_button(
+        run_selection = run.create_run_button(
             RunContext.Selection,
             _("Run &current line/selection"),
             icon=self.create_icon('run_selection'),
@@ -350,7 +354,7 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             extra_action_name=ExtraAction.Advance,
         )
-        run.create_run_button(
+        run_seletion_to = run.create_run_button(
             RunContext.Selection,
             _("Run &to line"),
             tip=_("Run selection up to the current line"),
@@ -360,7 +364,7 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             context_modificator=SelectionContextModificator.ToLine
         )
-        run.create_run_button(
+        run_selection_from = run.create_run_button(
             RunContext.Selection,
             _("Run &from line"),
             tip=_("Run selection from the current line"),
@@ -372,6 +376,19 @@ class Editor(SpyderDockablePlugin):
         )
 
         self.get_widget().add_run_actions_to_codeeditor_context_menu()
+
+        # Register shortcuts
+        self._run_actions = [
+            run_cell,
+            run_cell_advance,
+            rerun_last_cell,
+            run_selection,
+            run_seletion_to,
+            run_selection_from,
+        ]
+
+        for action in self._run_actions:
+            self.add_shortcut(action.name, triggered=action.trigger)
 
         # Re-register open files to the plugin if it's reenabled
         if not self.is_app_starting:
@@ -391,6 +408,7 @@ class Editor(SpyderDockablePlugin):
             self.NAME, widget.supported_run_extensions
         )
 
+        # Disconnect signals
         widget.sig_editor_focus_changed_uuid.disconnect(
             run.switch_focused_run_configuration
         )
@@ -401,6 +419,7 @@ class Editor(SpyderDockablePlugin):
             self._deregister_run_configuration_provider
         )
 
+        # Destroy buttons
         run.destroy_run_button(RunContext.Cell)
         run.destroy_run_button(
             RunContext.Cell,
@@ -419,6 +438,10 @@ class Editor(SpyderDockablePlugin):
             RunContext.Selection,
             context_modificator=SelectionContextModificator.FromLine
         )
+
+        # Remove shortcuts
+        for action in self._run_actions:
+            self.remove_shortcut(action.name)
 
         # Deregister all runnable files
         for filename in self.get_widget().id_per_file.copy():
@@ -1424,7 +1447,7 @@ class Editor(SpyderDockablePlugin):
             the editor (e.g. adding some text to it).
         plugin_name: str, optional
             Name of the plugin that attempts to register the shortcut. This
-            allows Spyder to get the shortcut from its configuration options.
+            is only necessary for external plugins.
 
         Raises
         ------
@@ -1467,7 +1490,7 @@ class Editor(SpyderDockablePlugin):
             The shortcut name (e.g. ``"add text"``).
         plugin_name: str, optional
             Name of the plugin that attempts to register the shortcut. This
-            allows Spyder to get the shortcut from its configuration options.
+            is only necessary for external plugins.
 
         Raises
         ------
