@@ -450,7 +450,8 @@ class CodeEditor(
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
         self.timer_syntax_highlight.timeout.connect(
-            self.run_pygments_highlighter)
+            self.run_pygments_highlighter
+        )
 
         # Mark occurrences timer
         self.occurrence_highlighting = None
@@ -1355,10 +1356,12 @@ class CodeEditor(
         """Rehighlight the whole document."""
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
             self.unhighlight_current_cell()
+
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -1892,15 +1895,20 @@ class CodeEditor(
         """Toggle blanks visibility"""
         self.blanks_enabled = state
         option = self.document().defaultTextOption()
-        option.setFlags(option.flags() | \
-                        QTextOption.AddSpaceForLineAndParagraphSeparators)
+        option.setFlags(
+            option.flags() | QTextOption.AddSpaceForLineAndParagraphSeparators
+        )
+
         if self.blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
+
         self.document().setDefaultTextOption(option)
+
         # Rehighlight to make the spaces less apparent.
-        self.rehighlight()
+        if self.blanks_enabled:
+            self.rehighlight()
 
     def set_scrollpastend_enabled(self, state):
         """
@@ -3980,7 +3988,7 @@ class CodeEditor(
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
-            self.highlighter.make_charlist()
+            self.highlighter.rehighlight()
 
     def get_pattern_at(self, coordinates):
         """

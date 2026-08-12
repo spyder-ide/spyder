@@ -751,7 +751,7 @@ def test_values_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: not is_defined('aa'))
     with qtbot.waitSignal(shell.executed):
         shell.execute('aa')
-    # Wait until the message is recieved
+    # Wait until the message is received
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
