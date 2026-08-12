@@ -81,12 +81,16 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         return cls.create_icon('debug')
 
     def on_initialize(self):
+        self._run_actions_with_editor_shortcuts = []
+
         widget = self.get_widget()
         widget.sig_pdb_state_changed.connect(
-            self._update_current_codeeditor_pdb_state)
+            self._update_current_codeeditor_pdb_state
+        )
         widget.sig_toggle_breakpoints.connect(self._set_or_clear_breakpoint)
         widget.sig_toggle_conditional_breakpoints.connect(
-            self._set_or_edit_conditional_breakpoint)
+            self._set_or_edit_conditional_breakpoint
+        )
         widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
         widget.sig_load_pdb_file.connect(self._load_pdb_file_in_editor)
         widget.sig_clear_breakpoint.connect(self.clear_breakpoint)
@@ -205,6 +209,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         run = self.get_plugin(Plugins.Run)
         run.register_executor_configuration(self, self.executor_configuration)
 
+        # Create buttons
         run.create_run_in_executor_button(
             RunContext.File,
             self.NAME,
@@ -225,13 +230,13 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
-        run.create_run_in_executor_button(
+        debug_cell = run.create_run_in_executor_button(
             RunContext.Cell,
             self.NAME,
             text=_("Debug cell"),
             tip=_("Debug cell"),
             icon=self.create_icon('debug_cell'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Debug,
@@ -244,13 +249,13 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             },
         )
 
-        run.create_run_in_executor_button(
+        debug_selection = run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
             text=_("Debug the current line or selection"),
             tip=_("Debug the current line or selection"),
             icon=self.create_icon('debug_selection'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Debug,
@@ -262,6 +267,16 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
                 "before": DebuggerWidgetActions.Next,
             },
         )
+
+        # Register shortcuts
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            self._run_actions_with_editor_shortcuts = [
+                debug_cell,
+                debug_selection,
+            ]
+            for action in self._run_actions_with_editor_shortcuts:
+                editor.add_shortcut(action.name, triggered=action.trigger)
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
@@ -269,9 +284,17 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         run.deregister_executor_configuration(
             self, self.executor_configuration
         )
+
+        # Destroy buttons
         run.destroy_run_in_executor_button(RunContext.File, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
+
+        # Remove shortcuts
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            for action in self._run_actions_with_editor_shortcuts:
+                editor.remove_shortcut(action.name)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -302,14 +325,17 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         editor.sig_codeeditor_deleted.connect(self._remove_codeeditor)
 
         # Apply shortcuts to editor and add actions to pythonfile list
-        editor_shortcuts = [
+        for name in [
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ShowBreakpointsTable,
-        ]
-        for name in editor_shortcuts:
+        ]:
             action = self.get_action(name)
-            # TODO: This should be handled differently?
+
+            if name != DebuggerBreakpointActions.ShowBreakpointsTable:
+                editor.add_shortcut(name, action.trigger)
+
+            # TODO: Fix this with a proper API
             editor.get_widget().pythonfile_dependent_actions += [action]
 
         editor.add_panel(DebuggerPanel)
@@ -339,13 +365,17 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         editor.sig_codeeditor_deleted.disconnect(self._remove_codeeditor)
 
         # Remove editor actions
-        editor_shortcuts = [
+        for name in [
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ShowBreakpointsTable,
-        ]
-        for name in editor_shortcuts:
+        ]:
             action = self.get_action(name)
+
+            if name != DebuggerBreakpointActions.ShowBreakpointsTable:
+                editor.remove_shortcut(name)
+
+            # TODO: Fix this with a proper API
             if action in editor.get_widget().pythonfile_dependent_actions:
                 editor.get_widget().pythonfile_dependent_actions.remove(action)
 
