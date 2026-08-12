@@ -597,9 +597,8 @@ DEFAULTS = [
               '_/debug stop': "Ctrl+Shift+F12",
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/toggle breakpoint': 'F12',
-              'debugger/toggle conditional breakpoint': 'Shift+F12',
-              'debugger/show breakpoint table': "",
+              'editor/toggle breakpoint': 'F12',
+              'editor/toggle conditional breakpoint': 'Shift+F12',
               # -- Plots --
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',

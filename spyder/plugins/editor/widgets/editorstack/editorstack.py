@@ -509,35 +509,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
 
-        # Register shortcuts for run actions
-        for action_id in [
-            "run cell in debugger",
-            "run selection in debugger",
-        ]:
-            self.register_shortcut_for_widget(
-                name=action_id,
-                triggered=functools.partial(
-                    self.sig_trigger_action.emit,
-                    action_id,
-                    Plugins.Run
-                ),
-            )
-
-        # Register shortcuts for debugger actions
-        for action_id in [
-            "toggle breakpoint",
-            "toggle conditional breakpoint",
-        ]:
-            self.register_shortcut_for_widget(
-                name=action_id,
-                triggered=functools.partial(
-                    self.sig_trigger_action.emit,
-                    action_id,
-                    Plugins.Debugger
-                ),
-                context=Plugins.Debugger,
-            )
-
         # Register shortcuts for file actions defined in the Application plugin
         for shortcut_name in [
             "New file",
