@@ -18,7 +18,6 @@ from typing import List, Optional
 # Third-party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -35,6 +34,7 @@ from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.container import RunContainer
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
+from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.registries import ACTION_REGISTRY
 
 
@@ -472,7 +472,7 @@ class Run(SpyderPluginV2):
         add_to_toolbar: bool | str | dict = False,
         add_to_menu: bool | dict = False,
         re_run: bool = False
-    ) -> QAction:
+    ) -> SpyderAction:
         """
         Create a run or a "run and do something" (optionally re-run) button
         for a specific run context.
@@ -725,7 +725,7 @@ class Run(SpyderPluginV2):
         add_to_toolbar: bool | str | dict = False,
         add_to_menu: bool | dict = False,
         shortcut_widget_context: Qt.ShortcutContext = Qt.WidgetShortcut,
-    ) -> QAction:
+    ) -> SpyderAction:
         """
         Create a "run <context> in <provider>" button for a given run context
         and executor.
