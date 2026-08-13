@@ -560,13 +560,11 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
     assert get_eol_chars(text) == os.linesep
 
 
-def test_export_with_formatting(editor_plugin, mocker, qtbot, tmpdir_factory):
+def test_export_with_formatting(editor_plugin, mocker, qtbot, tmp_path):
     """Check that exporting with formatting works as expected."""
-    tmpdir = tmpdir_factory.mktemp("rich_text_files")
     editorstack = editor_plugin.get_current_editorstack()
-    
-    fname = "rich_text_test.py"
-    fname_full_path = osp.join(tmpdir, fname)
+
+    fname_full_path = tmp_path / "rich_text_test.py"
     
     with open(fname_full_path, "w", encoding="utf-8") as f:
         f.write(
