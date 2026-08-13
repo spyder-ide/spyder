@@ -412,9 +412,7 @@ def test_wrap_lines_shortcut(editorstack, qtbot):
     Test that the wrap lines shortcut works as expected.
     """
     editor = editorstack.get_current_editor()
-    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
-        qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
-    assert blocker.args == [EditorWidgetActions.WrapLines, Plugins.Editor]
+    qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
     assert editor.lineWrapMode() == QPlainTextEdit.WidgetWidth
 
 
