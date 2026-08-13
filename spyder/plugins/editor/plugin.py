@@ -1461,9 +1461,17 @@ class Editor(SpyderDockablePlugin):
                 "The 'triggered' argument you provided is not a callable."
             )
 
+        # This is needed for the Application plugin because it's the only one
+        # that registers shortcuts with a different context
+        if plugin_name == Plugins.Application:
+            context = "main"
+            plugin_name = None
+        else:
+            context = "editor"
+
         try:
             self.get_widget().get_shortcut(
-                name=name, context="editor", plugin_name=plugin_name
+                name=name, context=context, plugin_name=plugin_name
             )
         except configparser.NoOptionError:
             raise SpyderAPIError(
@@ -1471,12 +1479,12 @@ class Editor(SpyderDockablePlugin):
                 f"part of the config options of the plugin {plugin_name}"
             )
 
-        self.shortcuts.append((name, triggered, plugin_name))
+        self.shortcuts.append((name, triggered, context, plugin_name))
 
         # This is necessary to readd the shortcut for reenabled plugins
         if not self.is_app_starting:
             for editorstack in self.get_editorstacks():
-                editorstack.add_shortcut(name, triggered, plugin_name)
+                editorstack.add_shortcut(name, triggered, context, plugin_name)
 
     def remove_shortcut(
         self, name: str, plugin_name: str | None = None
@@ -1498,9 +1506,17 @@ class Editor(SpyderDockablePlugin):
             If the shortcut context is not 'editor', or the shortcut is not
             part of the external plugin's configuration options.
         """
+        # This is needed for the Application plugin because it's the only one
+        # that registers shortcuts with a different context
+        if plugin_name == Plugins.Application:
+            context = "main"
+            plugin_name = None
+        else:
+            context = "editor"
+
         try:
             self.get_widget().get_shortcut(
-                name=name, context="editor", plugin_name=plugin_name
+                name=name, context=context, plugin_name=plugin_name
             )
         except configparser.NoOptionError:
             raise SpyderAPIError(
@@ -1509,12 +1525,12 @@ class Editor(SpyderDockablePlugin):
             )
 
         for sc in self.shortcuts:
-            if sc[0] == name and sc[2] == plugin_name:
+            if sc[0] == name and sc[2] == context and sc[3] == plugin_name:
                 triggered = sc[1]
-                self.shortcuts.remove((name, triggered, plugin_name))
+                self.shortcuts.remove((name, triggered, context, plugin_name))
 
         for editorstack in self.get_editorstacks():
-            editorstack.remove_shortcut(name, plugin_name)
+            editorstack.remove_shortcut(name, context, plugin_name)
 
     # ---- Private API
     # ------------------------------------------------------------------------
