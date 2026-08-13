@@ -573,13 +573,13 @@ def test_export_with_formatting(editor_plugin, mocker, qtbot, tmp_path):
             "x = {'value requiring html escape': '& / \\'}"
         )
 
-    rtf_fname = str(pathlib.Path(fname_full_path).with_suffix(".rtf"))
-    html_fname = str(pathlib.Path(fname_full_path).with_suffix(".html"))
+    rtf_fname = str(fname_full_path.with_suffix(".rtf"))
+    html_fname = str(fname_full_path.with_suffix(".html"))
     
     mocker.patch.object(editor_module, 'getsavefilename')
 
     # Load a test file
-    editor_plugin.load(fname_full_path)
+    editor_plugin.load(str(fname_full_path))
     qtbot.wait(500)
     
     #export to rtf
