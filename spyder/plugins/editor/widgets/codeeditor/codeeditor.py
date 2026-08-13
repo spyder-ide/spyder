@@ -719,7 +719,7 @@ class CodeEditor(
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
 
-        for name, callback, plugin_name in self.external_shortcuts:
+        for name, callback, context, plugin_name in self.external_shortcuts:
             # Qt objects don't have signatures, which generates a ValueError.
             # In that case we assume `callback` has no args.
             try:
@@ -729,7 +729,10 @@ class CodeEditor(
                 pass
 
             self.register_shortcut_for_widget(
-                name=name, triggered=callback, plugin_name=plugin_name
+                name=name,
+                triggered=callback,
+                context=context,
+                plugin_name=plugin_name,
             )
 
     def closeEvent(self, event):

@@ -160,6 +160,31 @@ class Application(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.connect(editor.load)
 
+        # Add shortcuts for file actions
+        for name in [
+            ApplicationActions.NewFile,
+            ApplicationActions.OpenFile,
+            ApplicationActions.OpenLastClosed,
+            ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll,
+            ApplicationActions.SaveAs,
+            ApplicationActions.CloseFile,
+            ApplicationActions.CloseAll,
+        ]:
+            action = self.get_action(name)
+
+            # The shortcut has the same name as the action, except for
+            # CloseFile which has two shortcuts associated to it
+            if name == ApplicationActions.CloseFile:
+                for close_name in ["close file 1", "close file 2"]:
+                    editor.add_shortcut(
+                        close_name, action.trigger, Plugins.Application
+                    )
+            else:
+                editor.add_shortcut(
+                    name, action.trigger, Plugins.Application
+                )
+
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         statusbar = self.get_plugin(Plugins.StatusBar)
@@ -203,6 +228,25 @@ class Application(SpyderPluginV2):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.disconnect(editor.load)
+
+        # Remove shortcuts for file actions
+        for name in [
+            ApplicationActions.NewFile,
+            ApplicationActions.OpenFile,
+            ApplicationActions.OpenLastClosed,
+            ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll,
+            ApplicationActions.SaveAs,
+            ApplicationActions.CloseFile,
+            ApplicationActions.CloseAll,
+        ]:
+            # The shortcut has the same name as the action, except for
+            # CloseFile which has two shortcuts associated to it
+            if name == ApplicationActions.CloseFile:
+                for close_name in ["close file 1", "close file 2"]:
+                    editor.remove_shortcut(close_name, Plugins.Application)
+            else:
+                editor.add_shortcut(name, Plugins.Application)
 
     @on_plugin_teardown(plugin=Plugins.Console)
     def on_console_teardown(self):

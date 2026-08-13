@@ -151,18 +151,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
 
-    sig_trigger_action = Signal(str, str)
-    """
-    This signal is emitted to request that an action be triggered.
-
-    Parameters
-    ----------
-    id: str
-        The id of the action.
-    plugin: str
-        The plugin in which the action is registered.
-    """
-
     sig_open_last_closed = Signal()
     """
     This signal requests that the last closed tab be re-opened.
@@ -508,35 +496,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
-
-        # Register shortcuts for file actions defined in the Application plugin
-        for shortcut_name in [
-            "New file",
-            "Open file",
-            "Open last closed",
-            "Save file",
-            "Save all",
-            "Save as",
-            "Close file 1",
-            "Close file 2",
-            "Close all"
-        ]:
-            # The shortcut has the same name as the action, except for
-            # "Close file" which has two shortcuts associated to it
-            if shortcut_name.startswith('Close file'):
-                action_id = 'Close file'
-            else:
-                action_id = shortcut_name
-
-            self.register_shortcut_for_widget(
-                name=shortcut_name,
-                triggered=functools.partial(
-                    self.sig_trigger_action.emit,
-                    action_id,
-                    Plugins.Application
-                ),
-                context='main',
-            )
 
     def update_switcher_actions(self, switcher_available):
         if self.use_switcher and switcher_available:
@@ -3183,6 +3142,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self,
         name: str,
         triggered: Callable[[], None] | Callable[[CodeEditor], None],
+        context: str,
         plugin_name: str,
     ):
         """Add a shortcut to all CodeEditors."""
@@ -3196,14 +3156,17 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 pass
 
             finfo.editor.register_shortcut_for_widget(
-                name=name, triggered=triggered, plugin_name=plugin_name
+                name=name,
+                triggered=triggered,
+                context=context,
+                plugin_name=plugin_name,
             )
 
-    def remove_shortcut(self, name: str, plugin_name: str):
+    def remove_shortcut(self, name: str, context: str, plugin_name: str):
         """Remove a shortcut from all CodeEditors."""
         for finfo in self.data:
             finfo.editor.unregister_shortcut_from_widget(
-                name=name, plugin_name=plugin_name
+                name=name, context=context, plugin_name=plugin_name
             )
 
     # ---- Drag and drop
