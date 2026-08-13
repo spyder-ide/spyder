@@ -569,14 +569,12 @@ def test_export_with_formatting(editor_plugin, mocker, qtbot, tmpdir_factory):
     fname_full_path = osp.join(tmpdir, fname)
     
     with open(fname_full_path, "w", encoding="utf-8") as f:
-        f.write("# -*- coding: utf-8 -*-\n"
-                "print('string with non ascii: μ Δ ⇇')\n"
         f.write(
             "# -*- coding: utf-8 -*-\n"
             "print('string with non ascii: μ Δ ⇇')\n"
             "x = {'value requiring html escape': '& / \\'}"
         )
-    
+
     rtf_fname = str(pathlib.Path(fname_full_path).with_suffix(".rtf"))
     html_fname = str(pathlib.Path(fname_full_path).with_suffix(".html"))
     
