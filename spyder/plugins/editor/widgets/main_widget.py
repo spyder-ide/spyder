@@ -374,7 +374,7 @@ class EditorMainWidget(PluginMainWidget):
 
         # Export menu
         self.export_action = self.create_action(
-            EditorWidgetActions.ExportMenu,
+            EditorWidgetMenus.ExportMenu,
             text=_("Export"),
             tip=_("Export the current file with syntax highlighting"),
             triggered=lambda: None
