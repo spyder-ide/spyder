@@ -571,14 +571,18 @@ def test_export_with_formatting(editor_plugin, mocker, qtbot, tmpdir_factory):
     with open(fname_full_path, "w", encoding="utf-8") as f:
         f.write("# -*- coding: utf-8 -*-\n"
                 "print('string with non ascii: μ Δ ⇇')\n"
-                "x = {'value requiring html escape': '& / \\'}")
+        f.write(
+            "# -*- coding: utf-8 -*-\n"
+            "print('string with non ascii: μ Δ ⇇')\n"
+            "x = {'value requiring html escape': '& / \\'}"
+        )
     
     rtf_fname = str(pathlib.Path(fname_full_path).with_suffix(".rtf"))
     html_fname = str(pathlib.Path(fname_full_path).with_suffix(".html"))
     
     mocker.patch.object(editor_module, 'getsavefilename')
 
-    # Load a test file\
+    # Load a test file
     editor_plugin.load(fname_full_path)
     qtbot.wait(500)
     

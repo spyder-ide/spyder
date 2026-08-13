@@ -16,8 +16,8 @@ from inspect import cleandoc
 from io import StringIO
 
 # Third party imports
-import rtfunicode  # noqa F401 this registers a new encoding for str.encode
 from qtpy.QtGui import QColor, QTextCharFormat, QTextCursor
+import rtfunicode  # noqa F401 this registers a new encoding for str.encode
 
 
 HTML_TEMPLATE = cleandoc("""
@@ -28,15 +28,17 @@ HTML_TEMPLATE = cleandoc("""
      <pre{}><code>{}</code></pre>
      </body>
      </html>
-""")
+"""
+)
 
 
-class NewL: pass  # NewLine flag
+class NewLine:
+    """NewLine flag"""
 
 
 def yield_spans(
     cursor: QTextCursor,
-) -> tuple[QTextCharFormat | None, str | NewL]:
+) -> tuple[QTextCharFormat | None, str | NewLine]:
     """
     Generator to break up text into spans of equal formatting.
 
@@ -46,29 +48,35 @@ def yield_spans(
 
     if not cursor.hasSelection():
         return
+
     selection_start = cursor.selectionStart()
     selection_end = cursor.selectionEnd()
     document = cursor.document()
-    first_block = True  # for emitting NewL between blocks
+    first_block = True  # for emitting NewLine between blocks
+
     block = document.findBlock(selection_start)
     while block.isValid():
         rel_start = selection_start - block.position()
         rel_end = selection_end - block.position()
         block_text = block.text()
         if not first_block:
-            yield None, NewL()
+            yield None, NewLine()
+
         first_block = False
         for f_range in block.layout().formats():
             range_end = f_range.start + f_range.length
             if rel_start > range_end:
                 continue  # skip ranges until start of selection
+
             s_start = max(f_range.start, rel_start)
             s_end = min(range_end, rel_end)
             s_text = block_text[s_start:s_end]
             if s_text:
                 yield f_range.format, s_text
+
             if s_end == rel_end: #last span
                 return
+
         block = block.next()
 
 
@@ -100,14 +108,16 @@ def selection_to_html(cursor: QTextCursor, bg_color: str = "") -> str:
         pre_style = f" style=\"background-color:{bg_color};\""
     else:
         pre_style = ""
+
     for s_format, span in yield_spans(cursor):
-        if isinstance(span, NewL):
+        if isinstance(span, NewLine):
             sio.write("\n")
         else:
             s_text = html.escape(span)
             style = format_to_style(s_format)
             sio.write(f"<span style=\"{style}\">{s_text}</span>")
     _html = HTML_TEMPLATE.format(pre_style, sio.getvalue())
+
     return _html
 
 
@@ -139,13 +149,15 @@ def selection_to_rtf(cursor: QTextCursor, bg_color: str = "") -> bytes:
     font_table = None
     font_size = None
     sio = StringIO()
+
     for s_format, span in yield_spans(cursor):
         if font_size is None and s_format is not None:
             font = s_format.font()
             font_size = font.pointSize()
             font_name = font.family()
             font_table = f"{{\\fonttbl\\f0\\fmodern\\fcharset0 {font_name};}}"
-        if isinstance(span, NewL):
+
+        if isinstance(span, NewLine):
             sio.write("\\\n")
         else:
             s_text = span.encode("rtfunicode").decode("ascii")
@@ -155,6 +167,7 @@ def selection_to_rtf(cursor: QTextCursor, bg_color: str = "") -> bytes:
                 color_table.append(color)
             color_index = color_table.index(color) + 1
             sio.write(f"{style}\\cf{color_index} {s_text}")
+
     # notes on rtf format
     # https://latex2rtf.sourceforge.net/rtfspec.html
     color = QColor(bg_color)
@@ -162,7 +175,10 @@ def selection_to_rtf(cursor: QTextCursor, bg_color: str = "") -> bytes:
     color_table.append(f"\\red{r}\\green{g}\\blue{b};")
     bg_color_index = len(color_table)
     color_table = f"{{\\colortbl;{''.join(color_table)}}}"
-    header = (f"{{\\rtf1{font_table}{color_table}\n"
-              f"\\f0\\fs{font_size*2}\\shading\\cbpat{bg_color_index} ")
+    header = (
+        f"{{\\rtf1{font_table}{color_table}\n"
+        f"\\f0\\fs{font_size*2}\\shading\\cbpat{bg_color_index} "
+    )
     sio.write("}") #footer
+
     return (header + sio.getvalue()).encode("ascii")

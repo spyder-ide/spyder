@@ -48,7 +48,9 @@ from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.rich_text import (
-    selection_to_html, selection_to_rtf)
+    selection_to_html,
+    selection_to_rtf,
+)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack.helpers import (
     ThreadManager, FileInfo, StackHistory)
@@ -2230,9 +2232,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     def export_with_formatting(self, suffix):
         """Save file with syntax highlighting."""
-
         if not self.data:
             return
+
         finfo = self.data[self.get_stack_index()]
         original_filename = str(Path(finfo.filename).with_suffix(suffix))
 
@@ -2245,6 +2247,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             options=QFileDialog.HideNameFilterDetails
         )
         self.redirect_stdio.emit(True)
+
         if filename:
             file_path = Path(filename)
             with file_path.open("wb") as f:
@@ -2259,9 +2262,11 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                         QTextCursor.MoveOperation.End,
                         QTextCursor.MoveMode.KeepAnchor
                     )
+
                     bg_color = ""
                     if finfo.editor.highlighter is not None:
                         bg_color = finfo.editor.highlighter.background_color
+
                     if file_suffix == ".html":
                         _html = selection_to_html(cursor, bg_color)
                         f.write(_html.encode("utf-8"))
@@ -2270,9 +2275,11 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     def export_html(self):
         """Export the current file as HTML."""
+        """Export the current file as HTML."""
         self.export_with_formatting(".html")
 
     def export_rtf(self):
+        """Export the current file as RTF."""
         """Export the current file as RTF."""
         self.export_with_formatting(".rtf")
 

@@ -28,8 +28,10 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.editor.utils.rich_text import (selection_to_html,
-                                                   selection_to_rtf)
+from spyder.plugins.editor.utils.rich_text import (
+    selection_to_html,
+    selection_to_rtf,
+)
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
 from spyder.utils.palette import SpyderPalette
@@ -484,6 +486,7 @@ class TextEditBaseWidget(
         if hasattr(self, "highlighter"):
             if self.highlighter is not None:
                 bg_color = self.highlighter.background_color
+
         if self.get_selected_text():
             html = selection_to_html(self.textCursor(), bg_color)
             if html:

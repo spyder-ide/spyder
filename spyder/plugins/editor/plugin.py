@@ -415,6 +415,7 @@ class Editor(SpyderDockablePlugin):
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Save
         )
+
         # Print
         print_actions = [
             widget.print_preview_action,
@@ -543,6 +544,7 @@ class Editor(SpyderDockablePlugin):
             widget.export_action,
             menu_id=ApplicationMenus.File
         )
+
         # Print
         print_actions = [
             widget.print_preview_action,
