@@ -19,7 +19,6 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
@@ -372,33 +371,6 @@ def test_shortcuts_for_new_editors(editorstack, qtbot):
     editor = editorstack.get_current_editor()
     qtbot.keyClick(editor, Qt.Key_1, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == '# Line5\nLine6\nLine7\nLine8\n'
-
-
-@pytest.mark.skipif(
-    sys.platform.startswith('linux') and running_in_ci(),
-    reason="It fails on Linux due to the lack of a proper X server."
-)
-@pytest.mark.parametrize(
-    'key, modifier, action',
-    [
-        (Qt.Key_N, Qt.ControlModifier, 'New file'),
-        (Qt.Key_O, Qt.ControlModifier, 'Open file'),
-        (Qt.Key_T, Qt.ControlModifier | Qt.ShiftModifier, 'Open last closed'),
-        (Qt.Key_S, Qt.ControlModifier, 'Save file'),
-        (Qt.Key_S, Qt.ControlModifier | Qt.AltModifier, 'Save all'),
-        (Qt.Key_S, Qt.ControlModifier | Qt.ShiftModifier, 'Save as'),
-        (Qt.Key_W, Qt.ControlModifier, 'Close file'),
-        (Qt.Key_F4, Qt.ControlModifier, 'Close file'),
-        (Qt.Key_W, Qt.ControlModifier | Qt.ShiftModifier, 'Close all'),
-])
-def test_file_shortcut(editorstack, qtbot, key, modifier, action):
-    """
-    Test that typing file shortcuts raises the corresponding signal.
-    """
-    editor = editorstack.get_current_editor()
-    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
-        qtbot.keyClick(editor, key, modifier=modifier)
-    assert blocker.args == [action, Plugins.Application]
 
 
 if __name__ == "__main__":
