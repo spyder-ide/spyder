@@ -2275,11 +2275,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     def export_html(self):
         """Export the current file as HTML."""
-        """Export the current file as HTML."""
         self.export_with_formatting(".html")
 
     def export_rtf(self):
-        """Export the current file as RTF."""
         """Export the current file as RTF."""
         self.export_with_formatting(".rtf")
 
