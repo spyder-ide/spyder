@@ -998,7 +998,14 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
     def resizeEvent(self, event):
         """Reimplement Qt method"""
-        if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+        # This is necessary to avoid an error when layouts is unavailable.
+        # Fixes spyder-ide/spyder#26226
+        logger.debug(f"resizeEvent while Layouts plugin is {self.layouts}")
+        if (
+            not self.isMaximized()
+            and self.layouts is not None
+            and not self.layouts.get_fullscreen_flag()
+        ):
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
 
