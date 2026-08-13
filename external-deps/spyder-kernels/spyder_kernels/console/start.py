@@ -114,7 +114,7 @@ def kernel_config():
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
-    cfg._merge(spy_cfg)
+    cfg.merge(spy_cfg)
     return cfg
 
 

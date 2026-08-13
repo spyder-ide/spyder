@@ -38,7 +38,6 @@ BCRYPT_REQVER = ">=4.3.0"
 CHARDET_REQVER = '>=5.2.0,<8.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
-DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=9.15.0,<10.0.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
@@ -129,10 +128,6 @@ DESCRIPTIONS = [
      'package_name': "cookiecutter",
      'features': _("Create projects from cookiecutter templates"),
      'required_version': COOKIECUTTER_REQVER},
-    {'modname': "diff_match_patch",
-     'package_name': "diff-match-patch",
-     'features': _("Compute text file diff changes during edition"),
-     'required_version': DIFF_MATCH_PATCH_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),

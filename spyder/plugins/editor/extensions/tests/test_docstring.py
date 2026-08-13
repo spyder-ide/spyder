@@ -872,7 +872,14 @@ def test_docstring_delayed_popup(
     for __ in range(3):
         qtbot.keyPress(editor, Qt.Key_QuoteDbl)
     initial_text = editor.toPlainText()
-    qtbot.wait(600)
+
+    # wait until the popup menu is created and
+    # visible before sending the key press
+    qtbot.waitUntil(
+        lambda: editor.menu_docstring is not None
+        and editor.menu_docstring.isVisible()
+    )
+    editor._commit_pending_edit()
     qtbot.keyPress(editor.menu_docstring, key)
 
     assert editor.toPlainText() == test_case.get_expected(doc_type).rstrip()
