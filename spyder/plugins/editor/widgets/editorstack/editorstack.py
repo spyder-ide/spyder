@@ -2237,13 +2237,16 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         finfo = self.data[self.get_stack_index()]
         original_filename = str(Path(finfo.filename).with_suffix(suffix))
+        
+        filters = {".html": "HTML (*.html)", ".rtf": "RTF (*.rtf)"}
+        selectedfilter = filters[suffix]
 
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(
             self, _("Export file"),
             original_filename,
-            filters='',
-            selectedfilter='',
+            filters=";;".join(filters.values()),
+            selectedfilter=selectedfilter,
             options=QFileDialog.HideNameFilterDetails
         )
         self.redirect_stdio.emit(True)
@@ -2252,26 +2255,25 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             file_path = Path(filename)
             with file_path.open("wb") as f:
                 file_suffix = file_path.suffix.lower()
-                if file_suffix in (".html", ".rtf"):
-                    cursor: QTextCursor = finfo.editor.textCursor()
-                    cursor.movePosition(
-                        QTextCursor.MoveOperation.Start,
-                        QTextCursor.MoveMode.MoveAnchor
-                    )
-                    cursor.movePosition(
-                        QTextCursor.MoveOperation.End,
-                        QTextCursor.MoveMode.KeepAnchor
-                    )
+                cursor: QTextCursor = finfo.editor.textCursor()
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.Start,
+                    QTextCursor.MoveMode.MoveAnchor
+                )
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.End,
+                    QTextCursor.MoveMode.KeepAnchor
+                )
 
-                    bg_color = ""
-                    if finfo.editor.highlighter is not None:
-                        bg_color = finfo.editor.highlighter.background_color
+                bg_color = ""
+                if finfo.editor.highlighter is not None:
+                    bg_color = finfo.editor.highlighter.background_color
 
-                    if file_suffix == ".html":
-                        _html = selection_to_html(cursor, bg_color)
-                        f.write(_html.encode("utf-8"))
-                    elif file_suffix == ".rtf":
-                        f.write(selection_to_rtf(cursor, bg_color))
+                if file_suffix == ".html":
+                    _html = selection_to_html(cursor, bg_color)
+                    f.write(_html.encode("utf-8"))
+                elif file_suffix == ".rtf":
+                    f.write(selection_to_rtf(cursor, bg_color))
 
     def export_html(self):
         """Export the current file as HTML."""
