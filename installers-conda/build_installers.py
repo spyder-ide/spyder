@@ -90,6 +90,17 @@ def _process_extra_specs(extra_specs, no_local=False):
     return new_extra_specs, specs.get("spyder")[1]
 
 
+def _cleanup_build(debug=False):
+    if debug or not BUILD.exists():
+        # Do not clean the build directory
+        return
+
+    exts = (".exe", ".json", ".lock", ".pkg", ".png", ".rtf", ".sh", ".yml")
+    for f in BUILD.glob("*"):
+        if f.suffix in exts:
+            f.unlink()
+
+
 def _generate_background_images(install_type, spy_ver):
     """This requires Pillow."""
     if install_type == "sh":
@@ -135,6 +146,7 @@ def _generate_background_images(install_type, spy_ver):
 
 def _uninstall_shortcut(spy_ver):
     """Modify the uninstall shortcut specification file."""
+    BUILD.mkdir(exist_ok=True)
     menu_file = RESOURCES / "uninstall-menu.json"
     menu_text = menu_file.read_text()
     menu_file = BUILD / "uninstall-menu.json"
@@ -145,6 +157,7 @@ def _uninstall_shortcut(spy_ver):
 
 def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     env_file = RESOURCES / f"{env_type}_env.yml"
+    BUILD.mkdir(exist_ok=True)
 
     if env_type == "runtime" and (extra_specs or not no_local):
         rt_specs = yaml.load(env_file.read_text())
@@ -158,7 +171,6 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
             rt_specs["dependencies"].extend(extra_specs)
 
         # Write to BUILD directory
-        BUILD.mkdir(exist_ok=True)
         env_file = BUILD / env_file.name
         yaml.dump(rt_specs, env_file)
 
@@ -187,10 +199,6 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     # Copy to dist directory
     DIST.mkdir(exist_ok=True)
     (DIST / lock_file.name).write_text(lock_file.read_text())
-
-
-def _output_file(install_type):
-    return DIST / f"Spyder-{OS}-{ARCH}.{install_type}"
 
 
 def _constructor(install_type, spy_ver, debug=False):
@@ -224,21 +232,11 @@ def _constructor(install_type, spy_ver, debug=False):
     logger.info(f"Created {_output_file(install_type)}")
 
 
-def _cleanup_build(debug=False):
-    if debug or not BUILD.exists():
-        # Do not clean the build directory
-        return
-
-    exts = (".exe", ".json", ".lock", ".pkg", ".png", ".rtf", ".sh", ".yml")
-    for f in BUILD.glob("*"):
-        if f.suffix in exts:
-            f.unlink()
+def _output_file(install_type):
+    return DIST / f"Spyder-{OS}-{ARCH}.{install_type}"
 
 
 def main(spy_ver, extra_specs, install_type, no_local, debug):
-    BUILD.mkdir(exist_ok=True)
-    DIST.mkdir(exist_ok=True)
-
     _cleanup_build()
 
     _generate_background_images(install_type, spy_ver)
@@ -282,21 +280,9 @@ if __name__ == "__main__":
                     This should be the same as the Spyder version.
                 REPO_PATH
                     Full path to the Spyder repository.
-                CERT_ID
-                    Apple developer certificate identifier.
-                WIN_SIGN_CERT
-                    Path to the PFX signing certificate for Windows.
             """
         ),
         formatter_class=DocFormatter
-    )
-    parser.add_argument(
-        "--clean", action="store_true",
-        help="Clean up the build directory."
-    )
-    parser.add_argument(
-        "--conda-lock", action="store_true",
-        help="Create conda-lock files."
     )
     parser.add_argument(
         "--debug", action="store_true",
@@ -307,20 +293,42 @@ if __name__ == "__main__":
         help="One or more extra conda specs to add to the installer.",
     )
     parser.add_argument(
-        "--build-images", action="store_true",
-        help="Generate background images.",
-    )
-    parser.add_argument(
         "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
         help=f"Installer type. Default is {INSTALL_CHOICES[0]}."
     )
     parser.add_argument(
-        "--installer-path", action="store_true",
-        help="Print artifact name.",
-    )
-    parser.add_argument(
         "--no-local", action="store_true",
         help="Do not use packages from the local conda channel."
+    )
+
+    parser.add_argument(
+        "--clean", action="store_true",
+        help="Clean up the build directory."
+    )
+    parser.add_argument(
+        "--build-images", action="store_true",
+        help="Generate background images.",
+    )
+    parser.add_argument(
+        "--uninstall-shortcut", action="store_true",
+        help="Process the uninstall shortcut menu.json file for macOS and Linux."
+    )
+    parser.add_argument(
+        "--conda-lock", action="store_true",
+        help="Create conda-lock files."
+    )
+    parser.add_argument(
+        "--build", action="store_true",
+        help=(
+            "Build the installer. "
+            "Assumes that images and lock files have been created. "
+            "Assumes uninstall menu.json file has been updated (unix)."
+        )
+    )
+
+    parser.add_argument(
+        "--installer-path", action="store_true",
+        help="Print artifact name.",
     )
     parser.add_argument(
         "--version", action="store_true",
@@ -333,15 +341,19 @@ if __name__ == "__main__":
         args.extra_specs, args.no_local
     )
 
-    if args.installer_path:
-        print(_output_file(args.install_type))
-    elif args.clean:
+    if args.clean:
         _cleanup_build()
+    elif args.build_images:
+        _generate_background_images(args.install_type, spy_ver)
+    elif args.uninstall_shortcut:
+        _uninstall_shortcut(spy_ver)
     elif args.conda_lock:
         _create_conda_lock('base', no_local=args.no_local)
         _create_conda_lock('runtime', extra_specs, args.no_local)
-    elif args.build_images:
-        _generate_background_images(args.install_type)
+    elif args.build:
+        _constructor(args.install_type, spy_ver, args.debug)
+    elif args.installer_path:
+        print(_output_file(args.install_type))
     elif args.version:
         print(spy_ver)
     else:
