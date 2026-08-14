@@ -127,9 +127,6 @@ ${Using:StrFunc} StrStr
 !define PRODUCT_NAME                  "${NAME} ${VERSION} (${ARCH})"
 !define UNINSTALL_NAME                "{{ UNINSTALL_NAME }}"
 !define UNINSTREG                     "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_NAME}"
-
-{% set spyder_shortcut = 'spyder-6 spyder\\Spyder 6.lnk' %}
-
 # Silent installations do not output to the console and outputs to stdout
 # are not written into install.log. STEP_LOG creates an intermittent file
 # that is output into these streams after the commands finish.
@@ -297,6 +294,8 @@ Function SkipPageIfUACInnerInstance
     ${EndIf}
 FunctionEnd
 
+{% set spyder_major_version = installer_version.split('.')[0] %}
+{% set spyder_shortcut = 'spyder-' ~ spyder_major_version ~ ' spyder\\Spyder ' ~ spyder_major_version ~ '.lnk' %}
 Function LaunchSpyder
     ${If} ${FileExists} "$SMPROGRAMS\{{ spyder_shortcut }}"
         ExecShell "open" "$SMPROGRAMS\{{ spyder_shortcut }}"
