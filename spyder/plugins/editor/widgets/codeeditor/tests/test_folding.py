@@ -70,9 +70,9 @@ def test_folding(completions_codeeditor, qtbot):
     code_editor.insert_text(text)
     folding_panel = code_editor.panels.get('FoldingPanel')
 
-    # Wait for the update thread to finish
-    qtbot.waitSignal(code_editor.update_folding_thread.finished)
-    qtbot.waitUntil(lambda: code_editor.folding_in_sync)
+    # Wait for folding to be fully applied
+    qtbot.waitSignal(code_editor.sig_update_code_folding)
+    qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
 
     folding_regions = folding_panel.folding_regions
     folding_levels = folding_panel.folding_levels
@@ -95,9 +95,9 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
     folding_panel = editor.panels.get('FoldingPanel')
     editor.insert_text(text)
 
-    # Wait for the update thread to finish
-    qtbot.waitSignal(editor.update_folding_thread.finished)
-    qtbot.waitUntil(lambda: editor.folding_in_sync)
+    # Wait for folding to be fully applied
+    qtbot.waitSignal(editor.sig_update_code_folding)
+    qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
 
     line_search = editor.document().findBlockByLineNumber(3)
 
@@ -122,9 +122,9 @@ def test_unfold_goto(completions_codeeditor, qtbot):
     editor.insert_text(text)
     folding_panel = editor.panels.get('FoldingPanel')
 
-    # Wait for the update thread to finish
-    qtbot.waitSignal(editor.update_folding_thread.finished)
-    qtbot.waitUntil(lambda: editor.folding_in_sync)
+    # Wait for folding to be fully applied
+    qtbot.waitSignal(editor.sig_update_code_folding)
+    qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
 
     line_goto = editor.document().findBlockByLineNumber(5)
 
@@ -152,9 +152,10 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
     folding_panel = editor.panels.get('FoldingPanel')
 
     def fold_and_delete_region(key):
-        # Wait for the update thread to finish
-        qtbot.waitSignal(editor.update_folding_thread.finished)
-        qtbot.waitUntil(lambda: editor.folding_in_sync)
+        # Wait for folding to be fully applied
+        qtbot.waitSignal(editor.sig_update_code_folding)
+        qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
+
 
         # fold region
         folded_line = editor.document().findBlockByLineNumber(5)
@@ -202,9 +203,9 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
     # Press Ctrl+Z again
     qtbot.keyClick(editor, Qt.Key_Z, Qt.ControlModifier)
 
-    # Wait for the update thread to finish
-    qtbot.waitSignal(editor.update_folding_thread.finished)
-    qtbot.waitUntil(lambda: editor.folding_in_sync)
+    # Wait for folding to be fully applied
+    qtbot.waitSignal(editor.sig_update_code_folding)
+    qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
 
     # Check the folded region was restored
     assert "myfunc2" in editor.toPlainText()
@@ -230,9 +231,10 @@ def test_delete_selections_with_folded_lines(completions_codeeditor, qtbot):
     folding_panel = editor.panels.get('FoldingPanel')
 
     def remove_selection_with_fold_line(start_line, nlines_to_select):
-        # Wait for the update thread to finish
-        qtbot.waitSignal(editor.update_folding_thread.finished)
-        qtbot.waitUntil(lambda: editor.folding_in_sync)
+        # Wait for folding to be fully applied
+        qtbot.waitSignal(editor.sig_update_code_folding)
+        qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
+
 
         # fold region
         folded_line = editor.document().findBlockByLineNumber(5)
@@ -264,9 +266,10 @@ def test_delete_selections_with_folded_lines(completions_codeeditor, qtbot):
         # Press Ctrl+Z
         qtbot.keyClick(editor, Qt.Key_Z, Qt.ControlModifier)
 
-        # Wait for the update thread to finish
-        qtbot.waitSignal(editor.update_folding_thread.finished)
-        qtbot.waitUntil(lambda: editor.folding_in_sync)
+        # Wait for folding to be fully applied
+        qtbot.waitSignal(editor.sig_update_code_folding)
+        qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
+
 
         # Check the folded region was restored
         assert "myfunc2" in editor.toPlainText()
@@ -326,9 +329,9 @@ def test_preserve_folded_regions_after_paste(completions_codeeditor, qtbot):
             editor.go_to_line(paste_line)
         editor.paste()
 
-    # Wait for the update thread to finish
-    qtbot.waitSignal(editor.update_folding_thread.finished)
-    qtbot.waitUntil(lambda: editor.folding_in_sync)
+    # Wait for folding to be fully applied
+    qtbot.waitSignal(editor.sig_update_code_folding)
+    qtbot.waitUntil(lambda: bool(folding_panel.folding_regions))
 
     # Fold last region
     folding_panel.toggle_fold_trigger(

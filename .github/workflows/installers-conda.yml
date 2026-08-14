@@ -7,6 +7,7 @@ on:
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
+      - '.github/workflows/build-subrepos.yml'
       - '.github/scripts/installer_test.sh'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
@@ -51,6 +52,10 @@ on:
 concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
 
 name: Weekly conda-based installers
 
@@ -264,30 +269,6 @@ jobs:
           conda index $CONDA_BLD_PATH
           conda search -c local --override-channels || true
 
-      - name: Create Keychain
-        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
-        run: |
-          _codesign=$(which codesign)
-          if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
-              # Find correct codesign
-              echo "Moving $_codesign..."
-              mv $_codesign ${_codesign}.bak
-          fi
-
-          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CERT_ID=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-
-      - name: Load signing certificate (Windows)
-        if: runner.os == 'Windows' && env.NOTARIZE == 'true'
-        run: |
-          echo "${MACOS_CERTIFICATE}" > "${{ runner.temp }}/certificate.b64.txt"
-          certutil.exe -decode "${{ runner.temp }}/certificate.b64.txt" "${{ runner.temp }}/certificate.pfx"
-
-          echo "CONSTRUCTOR_SIGNING_CERTIFICATE=${{ runner.temp }}/certificate.pfx" >> $GITHUB_ENV
-          echo "CONSTRUCTOR_PFX_CERTIFICATE_PASSWORD=${MACOS_CERTIFICATE_PWD}" >> $GITHUB_ENV
-          echo "CONSTRUCTOR_SIGNTOOL_PATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe" >> $GITHUB_ENV
-
       - name: Build Package Installer
         run: |
           python build_installers.py
@@ -355,10 +336,47 @@ jobs:
 
           EXIT /B %error_occured%
 
-      - name: Notarize
+      - name: Create macOS Keychain
+        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
+        run: |
+          _codesign=$(which codesign)
+          if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
+              # Find correct codesign
+              echo "Moving $_codesign..."
+              mv $_codesign ${_codesign}.bak
+          fi
+
+          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
+          CERT_ID=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+
+      - name: Notarize macOS Installer
         if: runner.os == 'macOS' && env.NOTARIZE == 'true'
         run: |
           ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
+
+      - name: Azure Login
+        if: runner.os == 'Windows' && env.NOTARIZE == 'true'
+        uses: azure/login@v3
+        with:
+          creds: >-
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+            }
+
+      - name: Sign Windows Installer
+        if: runner.os == 'Windows' && env.NOTARIZE == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: NumFOCUS
+          certificate-profile-name: TrustedCertificateProfileForALLNumFOCUS
+          files: ${{ env.PKG_PATH }}
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
