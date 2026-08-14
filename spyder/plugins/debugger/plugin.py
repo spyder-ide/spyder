@@ -247,6 +247,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
                 "toolbar": ApplicationToolbars.Debug,
                 "before": DebuggerWidgetActions.Next,
             },
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
 
         debug_selection = run.create_run_in_executor_button(
@@ -266,6 +267,7 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
                 "toolbar": ApplicationToolbars.Debug,
                 "before": DebuggerWidgetActions.Next,
             },
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
 
         # Register shortcuts
