@@ -53,8 +53,7 @@ class SphinxThread(QThread):
             self.context = context
             self.math_option = math_option
             self.img_path = img_path
-            if css_path is not None:
-                self.css_path = css_path
+            self.css_path = css_path
             # This causes run() to be executed in separate thread
             self.start()
 

@@ -28,14 +28,17 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
-from spyder.plugins.help.utils.sphinxify import (generate_context,
-                                                 loading, usage, warning)
+from spyder.plugins.help.utils.sphinxify import (
+    generate_context,
+    loading,
+    usage,
+    warning,
+)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import start_file
-from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
@@ -302,8 +305,6 @@ class HelpWidget(PluginMainWidget):
         self._last_console_cb = None
         self._last_editor_cb = None
         self.css_path = self.get_conf('css_path', section='appearance')
-        if self.css_path is None:
-            self.css_path = THEME_MANAGER.get_help_css_path()
         self.no_docs = _("No documentation available")
         self.docstring = True  # TODO: What is this used for?
 
@@ -992,7 +993,7 @@ class HelpWidget(PluginMainWidget):
 
         return self.shell
 
-    def render_sphinx_doc(self, help_data, context=None, css_path=None):
+    def render_sphinx_doc(self, help_data, context=None):
         """
         Transform help_data dictionary to HTML and show it.
 
@@ -1002,9 +1003,6 @@ class HelpWidget(PluginMainWidget):
             Dictionary with editor introspection information.
         context: dict
             Sphinx context.
-        css_path: str
-            Path to CSS directory for styling. Unused; ``self.css_path`` is
-            always applied.
         """
         if isinstance(help_data, dict):
             path = help_data.pop('path', '')
@@ -1080,7 +1078,7 @@ class HelpWidget(PluginMainWidget):
                     'docstring': documentation
                 }
 
-            self.render_sphinx_doc(doc, css_path=self.css_path)
+            self.render_sphinx_doc(doc)
             return doc is not None
         elif self.docstring:
             hlp_text = doc

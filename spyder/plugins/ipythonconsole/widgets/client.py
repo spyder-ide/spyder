@@ -46,7 +46,6 @@ from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
-from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState,
@@ -155,8 +154,6 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
         self.__on_close = lambda: None
 
         self.css_path = self.get_conf('css_path', section='appearance')
-        if self.css_path is None:
-            self.css_path = THEME_MANAGER.get_help_css_path()
 
         # --- Widgets
         self.shellwidget = self.SHELL_WIDGET_CLASS(
