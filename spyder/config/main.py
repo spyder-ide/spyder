@@ -625,12 +625,6 @@ DEFAULTS = [
               }),
             ('appearance',
              {
-              # Help / IPython rich-text CSS directory. None until MainWindow
-              # sets it from ThemeManager.get_help_css_path() at startup
-              # (avoids importing ThemeManager here and a circular import
-              # with the config manager). Consumers must resolve None via
-              # ThemeManager.
-              "css_path": None,
               "icon_theme": "spyder 3",
               # This is our monospace font
               "font/family": MONOSPACE,
@@ -760,4 +754,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.2.0'
+CONF_VERSION = '89.0.0'
