@@ -85,6 +85,9 @@ class ThemeManager(SpyderConfigurationAccessor):
         # Resource files to load after Qt is initialized
         self._pending_resource_files = []
 
+        # Set css path
+        self.set_conf('css_path', self.get_help_css_path())
+
     def get_available_themes(self):
         """Get list of available themes from registered theme packages."""
         themes = []

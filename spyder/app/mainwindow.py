@@ -666,17 +666,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         qapp = QApplication.instance()
         set_links_color(qapp)
 
-        # Set css_path as a configuration to be used by the plugins.
-        # TODO: Remove circular dependency between help and ipython console
-        # and remove this import. Help plugin should take care of it
-        from spyder.utils.theme_manager import THEME_MANAGER
-
-        self.set_conf(
-            'css_path',
-            THEME_MANAGER.get_help_css_path(),
-            section='appearance',
-        )
-
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
