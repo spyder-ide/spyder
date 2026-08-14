@@ -285,8 +285,10 @@ class LintingConfigTab(SpyderPreferencesTab):
         QMessageBox.warning(
             self,
             _("Warning"),
-            _("Since Ruff is selected as formatter "
-              "linting via Ruff needs to be enabled"),
+            _(
+                "Since Ruff is selected as formatter, linting can only be "
+                "provided by Ruff and it can't be disabled"
+            ),
         )
         self.ruff_linting_radio.radiobutton.setChecked(True)
 

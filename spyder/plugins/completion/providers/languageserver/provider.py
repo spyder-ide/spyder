@@ -813,7 +813,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         formatters = ['autopep8', 'yapf', 'black', 'ruff']
         formatter_options = {}
         for fmt in formatters:
-            # Need to handle a specific key for ruff (`formatEnabled`)
+            # Needed to handle a specific key for ruff (`formatEnabled`)
             # See spyder-ide/spyder#26138
             format_key = 'formatEnabled' if fmt == 'ruff' else 'enabled'
             formatter_options.update({

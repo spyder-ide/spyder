@@ -101,8 +101,10 @@ class FormattingConfigTab(SpyderPreferencesTab):
             QMessageBox.warning(
                 self,
                 _("Warning"),
-                _("Since Ruff is selected as formatter "
-                  "linting via Ruff will also be enabled"),
+                _(
+                    "Since you selected Ruff as formatter, linting via Ruff "
+                    "will be enabled too"
+                ),
             )
             self.set_option("ruff", True)
             self.set_option("pyflakes", False)
