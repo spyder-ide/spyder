@@ -25,7 +25,6 @@ uninstall_name: Spyder 6  # [win]
 welcome_image: {{ BUILD_PATH }}/welcome_img_win.png  # [win]
 header_image: {{ BUILD_PATH }}/header_img_win.png  # [win]
 icon_image: {{ environ["REPO_PATH"] }}/img_src/spyder.ico  # [win]
-check_path_length: false  # [win]
 nsis_template: {{ RESOURCE_PATH }}/spyder.nsi.tmpl  # [win]
 
 conclusion_text: ''  # [osx]
