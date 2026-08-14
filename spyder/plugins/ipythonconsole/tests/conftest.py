@@ -190,7 +190,7 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Conf css_path in the Appeareance plugin
     configuration.set(
-        'appearance', 'css_path', THEME_MANAGER.get_help_css_path()
+        'appearance', 'css_path', THEME_MANAGER.get_css_path()
     )
 
     # Create the console and a new client and set environment

@@ -86,7 +86,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         self._pending_resource_files = []
 
         # Set css path
-        self.set_conf('css_path', self.get_help_css_path())
+        self.set_conf('css_path', self.get_css_path())
 
     def get_available_themes(self):
         """Get list of available themes from registered theme packages."""
@@ -501,25 +501,23 @@ class ThemeManager(SpyderConfigurationAccessor):
         # themes)
         return True
 
-    def get_help_css_path(self, theme_variant=None):
+    def get_css_path(self, theme_variant=None):
         """
-        Return the directory containing help ``default.css`` for a theme variant.
+        Return the directory containing ``default.css`` for a theme variant.
 
         The returned path is the theme variant directory (containing
-        ``default.css`` and the ``rc/`` image assets). It is suitable as
-        ``appearance.css_path`` and as the WebView base URL so relative
-        ``url(rc/...)`` references resolve.
+        ``default.css`` and the ``rc/`` image assets).
 
         Parameters
         ----------
         theme_variant : str or None
-            Variant id such as ``spyder_themes.spyder/dark``. If None, uses
+            Variant id such as ``spyder_themes.spyder/dark``. If None, it uses
             the currently selected appearance theme.
 
         Returns
         -------
         str
-            Absolute filesystem path to the variant directory.
+            Absolute path to the ``default.css`` directory.
 
         Raises
         ------

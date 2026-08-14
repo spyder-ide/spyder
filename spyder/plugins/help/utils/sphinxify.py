@@ -51,7 +51,7 @@ from spyder.utils.theme_manager import THEME_MANAGER
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
 CONFDIR_PATH = get_module_source_path('spyder.plugins.help.utils')
-CSS_PATH = THEME_MANAGER.get_help_css_path()
+CSS_PATH = THEME_MANAGER.get_css_path()
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
