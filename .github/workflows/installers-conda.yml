@@ -307,15 +307,11 @@ jobs:
         shell: cmd
         run: |
           set base_prefix=%USERPROFILE%\AppData\Local\spyder-6
-          start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
+          %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
 
-          echo.
-          if exist %base_prefix%\install.log (
-              echo Log output:
-              type %base_prefix%\install.log
-          ) else (
-              echo No log found at %base_prefix%\install.log
-          )
+          rem Silent install sends to stdout, but "start /wait" does not pass it back to the curent process.
+          rem So we need something to halt the current process until the installer completes.
+          powershell -Command "while (Get-Process | Where-Object { $_.ProcessName -like 'Spyder-*Windows-x86_64' }) { Start-Sleep -Seconds 2 }"
 
           set error_occured=0
 
