@@ -1,0 +1,36 @@
+--- spyder.nsi.tmpl
++++ spyder.nsi.tmpl
+@@ -89,6 +89,7 @@ var /global StdOutHandleSet
+ !include "FileFunc.nsh"
+ !include "StrFunc.nsh"
+ ${Using:StrFunc} StrStr
++${Using:StrFunc} StrTok
+ !insertmacro GetParameters
+ !insertmacro GetOptions
+ 
+@@ -269,6 +270,9 @@ Page Custom mui_AnaCustomOptions_Show
+ # Custom conclusion file(s)
+ {{ CUSTOM_CONCLUSION_FILE }}
+ {%- else %}
++!define MUI_FINISHPAGE_RUN
++!define MUI_FINISHPAGE_RUN_TEXT "Launch Spyder"
++!define MUI_FINISHPAGE_RUN_FUNCTION LaunchSpyder
+ !insertmacro MUI_PAGE_FINISH
+ {%- endif %}
+ 
+@@ -291,6 +295,15 @@ Function SkipPageIfUACInnerInstance
+     ${EndIf}
+ FunctionEnd
+ 
++Function LaunchSpyder
++    ${StrTok} $R0 "${VERSION}" "." "0" "0"
++    StrCpy $R1 "$SMPROGRAMS\spyder-$R0 spyder\Spyder $R0.lnk"
++
++    ${If} ${FileExists} "$R1"
++        ExecShell "open" "$R1"
++    ${EndIf}
++FunctionEnd
++
+ Function InitializeVariables
+     StrCpy $NO_REGISTRY "0"
+ 

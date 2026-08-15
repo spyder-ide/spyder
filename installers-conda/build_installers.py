@@ -12,6 +12,7 @@ Create a Spyder installer using `constructor`.
 from argparse import ArgumentParser
 from datetime import timedelta
 from functools import partial
+from importlib.resources import files
 import json
 import os
 from packaging.version import parse
@@ -95,7 +96,12 @@ def _cleanup_build(debug=False):
         # Do not clean the build directory
         return
 
-    exts = (".exe", ".json", ".lock", ".pkg", ".png", ".rtf", ".sh", ".yml")
+    logger.info("Cleaning build directory...")
+
+    exts = (
+        ".exe", ".json", ".lock", ".pkg", ".png",
+        ".rtf", ".sh", ".tmpl", ".yml",
+    )
     for f in BUILD.glob("*"):
         if f.suffix in exts:
             f.unlink()
@@ -146,6 +152,11 @@ def _generate_background_images(install_type, spy_ver):
 
 def _uninstall_shortcut(spy_ver):
     """Modify the uninstall shortcut specification file."""
+    if WINDOWS:
+        return
+
+    logger.info("Updating uninstall menu file...")
+
     BUILD.mkdir(exist_ok=True)
     menu_file = RESOURCES / "uninstall-menu.json"
     menu_text = menu_file.read_text()
@@ -153,6 +164,32 @@ def _uninstall_shortcut(spy_ver):
     menu_file.write_text(
         menu_text.replace("__PKG_MAJOR_VER__", str(parse(spy_ver).major))
     )
+
+
+def _patch_nsi_template(spy_ver):
+    """Patch constructor's default nsis template"""
+    if not WINDOWS:
+        return
+
+    logger.info("Patching nsis template...")
+
+    BUILD.mkdir(exist_ok=True)
+    default_template = files("constructor") / "nsis" / "main.nsi.tmpl"
+    patch = RESOURCES / "nsi.patch"
+    spyder_template = BUILD / "spyder.nsi.tmpl"
+
+    # Copy default nsis template
+    spyder_template.write_bytes(default_template.read_bytes())
+
+    cmd = [
+        "patch",
+        "--batch",
+        "--forward",
+        str(spyder_template),
+        "-i",
+        str(patch),
+    ]
+    run(cmd, check=True)
 
 
 def _create_conda_lock(env_type, extra_specs=[], no_local=False):
@@ -203,6 +240,8 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
 
 def _constructor(install_type, spy_ver, debug=False):
     """Build installer from construct.yaml"""
+    logger.info("Building installer...")
+
     DIST.mkdir(exist_ok=True)
 
     cmd_args = [
@@ -242,6 +281,8 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
     _generate_background_images(install_type, spy_ver)
 
     _uninstall_shortcut(spy_ver)
+
+    _patch_nsi_template(spy_ver)
 
     t0 = time()
     try:
@@ -314,6 +355,10 @@ if __name__ == "__main__":
         help="Process the uninstall shortcut menu.json file for macOS and Linux."
     )
     parser.add_argument(
+        "--patch-nsi", action="store_true",
+        help="Create the patched nsis template for Windows."
+    )
+    parser.add_argument(
         "--conda-lock", action="store_true",
         help="Create conda-lock files."
     )
@@ -347,6 +392,8 @@ if __name__ == "__main__":
         _generate_background_images(args.install_type, spy_ver)
     elif args.uninstall_shortcut:
         _uninstall_shortcut(spy_ver)
+    elif args.patch_nsi:
+        _patch_nsi_template(spy_ver)
     elif args.conda_lock:
         _create_conda_lock('base', no_local=args.no_local)
         _create_conda_lock('runtime', extra_specs, args.no_local)
