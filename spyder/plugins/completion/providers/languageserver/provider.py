@@ -812,12 +812,16 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Enabling/disabling formatters
         formatters = ['autopep8', 'yapf', 'black', 'ruff']
-        formatter_options = {
-            fmt: {
-                'enabled': fmt == formatter
-            }
-            for fmt in formatters
-        }
+        formatter_options = {}
+        for fmt in formatters:
+            # Needed to handle a specific key for ruff (`formatEnabled`)
+            # See spyder-ide/spyder#26138
+            format_key = 'formatEnabled' if fmt == 'ruff' else 'enabled'
+            formatter_options.update({
+                fmt: {
+                    format_key: fmt == formatter
+                }
+            })
 
         # Setting max line length for formatters.
         # Notes:
