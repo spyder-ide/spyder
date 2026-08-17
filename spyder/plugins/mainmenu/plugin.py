@@ -207,12 +207,16 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
 
         return menu
 
-    def add_item_to_application_menu(self, item: ItemType,
-                                     menu_id: Optional[str] = None,
-                                     section: Optional[str] = None,
-                                     before: Optional[str] = None,
-                                     before_section: Optional[str] = None,
-                                     omit_id: bool = False):
+    def add_item_to_application_menu(
+        self,
+        item: ItemType,
+        menu_id: Optional[str] = None,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False,
+        render: bool = False,
+    ):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -233,6 +237,8 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
             If True, then the menu will check if the item to add declares an
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
+        render: bool
+            If True, then the menu will be rendered after the item is added.
 
         Notes
         -----
@@ -251,6 +257,9 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
             menu = self.get_application_menu(menu_id)
             menu.add_action(item, section=section, before=before,
                             before_section=before_section, omit_id=omit_id)
+
+        if render:
+            menu.render()
 
     def remove_application_menu(self, menu_id: str):
         """

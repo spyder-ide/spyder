@@ -127,7 +127,10 @@ class Run(SpyderPluginV2):
                 self.get_action(action),
                 ApplicationMenus.Run,
                 RunMenuSections.Run,
-                before_section=RunMenuSections.RunExtras
+                before_section=RunMenuSections.RunExtras,
+                # This is needed to make the 'Run file' shortcut work after the
+                # plugin is reenabled.
+                render=not self.is_app_starting,
             )
 
         self.main_menu_ready = True
