@@ -276,6 +276,16 @@ class Run(SpyderPluginV2):
                     action, shortcut_context, action_id
                 )
 
+    def on_reenabled(self):
+        # Set run config of the currently selected file in the Editor so that
+        # 'Run file' works without giving focus to it (otherwise it gives an
+        # error).
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            codeeditor = editor.get_current_editor()
+            id_ = editor.get_widget().id_per_file[codeeditor.filename]
+            self.switch_focused_run_configuration(id_)
+
     # ---- Public API
     # -------------------------------------------------------------------------
     def register_run_configuration_provider(
