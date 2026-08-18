@@ -95,11 +95,18 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
     This signal is emitted when the widget loses focus.
     """
 
-    def __init__(self, parent, handle_links=True, class_parent=None):
+    def __init__(
+        self,
+        parent,
+        handle_links=True,
+        class_parent=None,
+        disable_zoom_with_mouse=False,
+    ):
         class_parent = parent if class_parent is None else class_parent
         QWebEngineView.__init__(self, parent)
         SpyderWidgetMixin.__init__(self, class_parent=class_parent)
 
+        self._disable_zoom_with_mouse = disable_zoom_with_mouse
         self.zoom_factor = 1.
         self.context_menu = None
 
@@ -415,7 +422,10 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
         if (
             event.type() == QEvent.Wheel
             and event.modifiers() & Qt.ControlModifier
-            and self.get_conf("disable_zoom_mouse", section="main")
+            and (
+                self.get_conf("disable_zoom_mouse", section="main")
+                or self._disable_zoom_with_mouse
+            )
         ):
             return True
 
@@ -565,13 +575,20 @@ class FrameWebView(QFrame):
     """
     linkClicked = Signal(QUrl)
 
-    def __init__(self, parent, handle_links=True, show_border=True):
+    def __init__(
+        self,
+        parent,
+        handle_links=True,
+        show_border=True,
+        disable_zoom_with_mouse=False,
+    ):
         super().__init__(parent)
 
         self._webview = WebView(
             self,
             handle_links=handle_links,
-            class_parent=parent
+            class_parent=parent,
+            disable_zoom_with_mouse=disable_zoom_with_mouse,
         )
         self._devtools_view = None
 

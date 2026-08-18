@@ -83,7 +83,7 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
 
         # Create webview to render the appeal message and changelog
         self._webview = (
-            WebView(self, handle_links=True)
+            WebView(self, handle_links=True, disable_zoom_with_mouse=True)
             if not DEV
             # We want to have access to Chromium dev tools in development, so
             # we need to use this widget instead.
