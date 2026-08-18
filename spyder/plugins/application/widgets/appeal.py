@@ -13,11 +13,11 @@ from string import Template
 # Third-party imports
 from markdown_it import MarkdownIt
 from qtpy.QtCore import Qt, QUrl
-from qtpy.QtWidgets import QDialog, QVBoxLayout
+from qtpy.QtWidgets import QDialog, QHBoxLayout
 
 # Local imports
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
-from spyder.config.base import get_module_source_path
+from spyder.config.base import DEV, get_module_source_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
 from spyder.utils.stylesheet import MAC, WIN
@@ -39,15 +39,20 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
         super().__init__(parent)
 
         # Leave this import here to make Spyder work without WebEngine.
-        from spyder.widgets.browser import WebView
+        from spyder.widgets.browser import FrameWebView, WebView
 
         # Attributes
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
-        self.setFixedWidth(self.WIDTH)
-        self.setFixedHeight(self.HEIGHT)
         self.setWindowIcon(ima.icon("inapp_appeal"))
+
+        if DEV:
+            self.setMinimumWidth(self.WIDTH)
+            self.setMinimumHeight(self.HEIGHT)
+        else:
+            self.setFixedWidth(self.WIDTH)
+            self.setFixedHeight(self.HEIGHT)
 
         # Paths to content to be loaded
         appeal_page_dir = osp.join(
@@ -77,7 +82,17 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
             self._appeal_page = f.read()
 
         # Create webview to render the appeal message and changelog
-        self._webview = WebView(self, handle_links=True)
+        self._webview = (
+            WebView(self, handle_links=True)
+            if not DEV
+            # We want to have access to Chromium dev tools in development, so
+            # we need to use this widget instead.
+            else FrameWebView(self, handle_links=True, show_border=False)
+        )
+
+        # This is necessary to create the widget's context menu
+        if DEV:
+            self._webview.setup()
 
         # Set font used in the view
         app_font = self.get_font(SpyderFontType.Interface)
@@ -87,16 +102,20 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
         self._webview.page().linkClicked.connect(self._handle_link_clicks)
 
         # Layout
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._webview)
         self.setLayout(layout)
 
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _handle_link_clicks(self, url):
         url = str(url.toString())
         if url.startswith('http'):
             start_file(url)
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def set_message(self, appeal: bool):
         template = Template(self._appeal_page)
 

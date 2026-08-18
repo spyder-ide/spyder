@@ -565,7 +565,7 @@ class FrameWebView(QFrame):
     """
     linkClicked = Signal(QUrl)
 
-    def __init__(self, parent, handle_links=True):
+    def __init__(self, parent, handle_links=True, show_border=True):
         super().__init__(parent)
 
         self._webview = WebView(
@@ -574,13 +574,6 @@ class FrameWebView(QFrame):
             class_parent=parent
         )
         self._devtools_view = None
-
-        self._webview.sig_focus_in_event.connect(
-            lambda: self._apply_stylesheet(focus=True)
-        )
-        self._webview.sig_focus_out_event.connect(
-            lambda: self._apply_stylesheet(focus=False)
-        )
 
         layout = QHBoxLayout()
         layout.addWidget(self._webview)
@@ -593,6 +586,14 @@ class FrameWebView(QFrame):
                 self._webview.page().linkClicked.connect(self.linkClicked)
             else:
                 self._webview.linkClicked.connect(self.linkClicked)
+
+        if show_border:
+            self._webview.sig_focus_in_event.connect(
+                lambda: self._apply_stylesheet(focus=True)
+            )
+            self._webview.sig_focus_out_event.connect(
+                lambda: self._apply_stylesheet(focus=False)
+            )
 
     def __getattr__(self, name):
         if name in ["_webview", "setup"]:
