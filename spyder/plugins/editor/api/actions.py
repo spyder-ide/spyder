@@ -12,6 +12,8 @@ class EditorWidgetActions:
     # File operations
     PrintPreview = "print_preview_action"
     Print = "print_action"
+    ExportHtml = "Export HTML"
+    ExportRtf = "Export RTF"
 
     # Navigation
     GoToNextFile = "Go to next file"
