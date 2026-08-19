@@ -309,7 +309,7 @@ jobs:
           set base_prefix=%USERPROFILE%\AppData\Local\spyder-6
           %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
 
-          rem Silent install sends to stdout, but "start /wait" does not pass it back to the curent process.
+          rem Silent install sends to stdout, but "start /wait" does not pass it back to the current process.
           rem So we need something to halt the current process until the installer completes.
           powershell -Command "while (Get-Process | Where-Object { $_.ProcessName -like 'Spyder-*Windows-x86_64' }) { Start-Sleep -Seconds 2 }"
 
