@@ -27,7 +27,7 @@
 +    StrCpy $R1 "$SMPROGRAMS\spyder-$R0 spyder\Spyder $R0.lnk"
 +
 +    ${If} ${FileExists} "$R1"
-+        ExecShell "open" "$R1"
++        Exec '"$WINDIR\explorer.exe" "$R1"'
 +    ${EndIf}
 +FunctionEnd
 +
