@@ -853,12 +853,13 @@ class HelpWidget(PluginMainWidget):
     def show_tutorial(self):
         """Show the Spyder tutorial."""
         tutorial_path = get_module_source_path('spyder.plugins.help.utils')
+        img_path = os.path.join(tutorial_path, "static", "images")
         tutorial = os.path.join(tutorial_path, 'tutorial.rst')
 
         with open(tutorial, 'r') as fh:
             text = fh.read()
 
-        self.show_rich_text(text, collapse=True)
+        self.show_rich_text(text, collapse=True, img_path=img_path)
 
     def handle_link_clicks(self, url):
         """
