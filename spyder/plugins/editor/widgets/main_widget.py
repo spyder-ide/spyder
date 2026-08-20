@@ -1320,36 +1320,38 @@ class EditorMainWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def register_status_widgets(self, editorstack: EditorStack | None = None):
         if editorstack is None:
-            editorstack = self.get_current_editorstack()
+            if self._plugin.is_app_starting:
+                editorstacks = [self.get_current_editorstack()]
+            else:
+                editorstacks = self.editorstacks
+        else:
+            editorstacks = [editorstack]
 
-        if self.readwrite_status is not None:
-            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
-            editorstack.readonly_changed.connect(
-                self.readwrite_status.update_readonly
-            )
+        for es in editorstacks:
+            if self.readwrite_status is not None:
+                es.reset_statusbar.connect(self.readwrite_status.hide)
+                es.readonly_changed.connect(
+                    self.readwrite_status.update_readonly
+                )
 
-        if self.encoding_status is not None:
-            editorstack.reset_statusbar.connect(self.encoding_status.hide)
-            editorstack.encoding_changed.connect(
-                self.encoding_status.update_encoding
-            )
+            if self.encoding_status is not None:
+                es.reset_statusbar.connect(self.encoding_status.hide)
+                es.encoding_changed.connect(
+                    self.encoding_status.update_encoding
+                )
 
-        if self.cursorpos_status is not None:
-            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
-            editorstack.sig_editor_cursor_position_changed.connect(
-                self.cursorpos_status.update_cursor_position
-            )
+            if self.cursorpos_status is not None:
+                es.reset_statusbar.connect(self.cursorpos_status.hide)
+                es.sig_editor_cursor_position_changed.connect(
+                    self.cursorpos_status.update_cursor_position
+                )
 
-        if self.eol_status is not None:
-            editorstack.sig_refresh_eol_chars.connect(
-                self.eol_status.update_eol
-            )
+            if self.eol_status is not None:
+                es.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
 
-        if self.vcs_status is not None:
-            editorstack.current_file_changed.connect(
-                self.vcs_status.update_vcs
-            )
-            editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
+            if self.vcs_status is not None:
+                es.current_file_changed.connect(self.vcs_status.update_vcs)
+                es.file_saved.connect(self.vcs_status.update_vcs_state)
 
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
