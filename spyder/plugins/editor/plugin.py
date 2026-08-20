@@ -270,7 +270,9 @@ class Editor(SpyderDockablePlugin):
         widget.vcs_status = VCSStatus(widget)
         statusbar.add_status_widget(widget.vcs_status)
 
-        widget.register_status_widgets()
+        widget.register_status_widgets(
+            statusbar_reenabled=not self.is_app_starting
+        )
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
