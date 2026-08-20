@@ -106,10 +106,6 @@ class UpdateManager(SpyderPluginV2):
     def on_main_menu_teardown(self):
         self._depopulate_help_menu()
 
-    def on_close(self, _unused=True):
-        # The container is closed directly in the plugin registry
-        pass
-
     def on_mainwindow_visible(self):
         """Actions after the mainwindow in visible."""
         container = self.get_container()

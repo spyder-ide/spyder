@@ -458,7 +458,15 @@ class RunContainer(PluginMainContainer):
             return
 
         input_provider_ext_ctxs = self.supported_extension_contexts[
-            self.current_input_provider]
+            self.current_input_provider
+        ]
+
+        # Set status for run_action
+        key = (self.current_input_extension, RunContext.File)
+        status = (key in self.executor_model) and (
+            key in input_provider_ext_ctxs
+        )
+        self.run_action.setEnabled(status)
 
         for context, act, mod in self.context_actions:
             key = (self.current_input_extension, context)
@@ -477,21 +485,23 @@ class RunContainer(PluginMainContainer):
             # focused file (see spyder-ide/spyder#23076), so their status
             # must be computed from it.
             last_run_exists = (
-                (self._last_executed_configuration,
-                 context) in self.last_executed_per_context)
+                self._last_executed_configuration,
+                context,
+            ) in self.last_executed_per_context
 
             action, __ = self.re_run_actions[(context, act, mod)]
             action.setEnabled(status and last_run_exists)
 
         for context_name, executor_name in self.run_executor_actions:
             status = self.executor_model.executor_supports_configuration(
-                executor_name,
-                (self.current_input_extension, context_name))
+                executor_name, (self.current_input_extension, context_name)
+            )
             key = (self.current_input_extension, context_name)
             status = status and key in input_provider_ext_ctxs
 
             action, __ = self.run_executor_actions[
-                (context_name, executor_name)]
+                (context_name, executor_name)
+            ]
             action.setEnabled(status)
 
     def set_current_working_dir(self, path: str):
@@ -762,7 +772,8 @@ class RunContainer(PluginMainContainer):
             file extension.
         """
         provider_extensions_contexts = self.supported_extension_contexts.get(
-            provider_name, set({}))
+            provider_name, set({})
+        )
 
         for unsupported_extension_contexts in unsupported_extensions_contexts:
             ext = unsupported_extension_contexts['input_extension']
@@ -773,10 +784,15 @@ class RunContainer(PluginMainContainer):
                 provider_extensions_contexts -= {(ext, context_id)}
 
         if provider_extensions_contexts:
-            self.supported_extension_contexts[
-                provider_name] = provider_extensions_contexts
+            self.supported_extension_contexts[provider_name] = (
+                provider_extensions_contexts
+            )
         else:
             self.supported_extension_contexts.pop(provider_name, set({}))
+
+        # This is necessary in case all plugin executors associated to an
+        # extension are disabled.
+        self.set_actions_status()
 
     def register_run_configuration_metadata(
         self,

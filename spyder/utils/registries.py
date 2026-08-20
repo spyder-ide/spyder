@@ -8,9 +8,10 @@
 """Spyder global registries for actions, toolbuttons, toolbars and menus."""
 
 # Standard library imports
+from __future__ import annotations
 import inspect
 import logging
-from typing import Any, Optional, Dict
+from typing import Any
 import warnings
 import weakref
 
@@ -42,10 +43,14 @@ class SpyderRegistry:
         self.obj_type = obj_type
         self.creation_func = creation_func
 
-    def register_reference(self, obj: Any, id_: str,
-                           plugin: Optional[str] = None,
-                           context: Optional[str] = None,
-                           overwrite: Optional[bool] = False):
+    def register_reference(
+        self,
+        obj: Any,
+        id_: str,
+        plugin: str | None = None,
+        context: str | None = None,
+        overwrite: bool = False,
+    ):
         """
         Register a reference `obj` for a given plugin name on a given context.
 
@@ -55,17 +60,19 @@ class SpyderRegistry:
             Object to register as a reference.
         id_: str
             String identifier used to store the object reference.
-        plugin: Optional[str]
+        plugin: str, optional
             Plugin name used to store the reference. Should belong to
             :class:`spyder.api.plugins.Plugins`. If None, then the object will
             be stored under the global `main` key.
-        context: Optional[str]
+        context: str, optional
             Additional key used to store and identify the object reference.
             In any Spyder plugin implementation, this context may refer to an
             identifier of a widget. This context enables plugins to define
             multiple actions with the same key that live on different widgets.
             If None, this context will default to the special `__global`
             identifier.
+        overwrite: bool
+            Whether to overwrite the previous reference. Default is False.
         """
         plugin = plugin if plugin is not None else 'main'
         context = context if context is not None else '__global'
@@ -96,9 +103,12 @@ class SpyderRegistry:
         plugin_contexts[context] = context_references
         self.registry_map[plugin] = plugin_contexts
 
-    def get_reference(self, id_: str,
-                      plugin: Optional[str] = None,
-                      context: Optional[str] = None) -> Any:
+    def get_reference(
+        self,
+        id_: str,
+        plugin: str | None = None,
+        context: str | None = None,
+    ) -> Any:
         """
         Retrieve a stored object reference under a given id of a specific
         context of a given plugin name.
@@ -107,11 +117,11 @@ class SpyderRegistry:
         ----------
         id_: str
             String identifier used to retrieve the object.
-        plugin: Optional[str]
+        plugin: str, optional
             Plugin name used to store the reference. Should belong to
             :class:`spyder.api.plugins.Plugins`. If None, then the object will
             be retrieved from the global `main` key.
-        context: Optional[str]
+        context: str, optional
             Additional key that was used to store the object reference.
             In any Spyder plugin implementation, this context may refer to an
             identifier of a widget. This context enables plugins to define
@@ -137,19 +147,20 @@ class SpyderRegistry:
         context_references = plugin_contexts[context]
         return context_references[id_]
 
-    def get_references(self, plugin: Optional[str] = None,
-                       context: Optional[str] = None) -> Dict[str, Any]:
+    def get_references(
+        self, plugin: str | None = None, context: str | None = None
+    ) -> dict[str, Any]:
         """
         Retrieve all stored object references under the context of a
         given plugin name.
 
         Parameters
         ----------
-        plugin: Optional[str]
+        plugin: str, optional
             Plugin name used to store the reference. Should belong to
             :class:`spyder.api.plugins.Plugins`. If None, then the object will
             be retrieved from the global `main` key.
-        context: Optional[str]
+        context: str, optional
             Additional key that was used to store the object reference.
             In any Spyder plugin implementation, this context may refer to an
             identifier of a widget. This context enables plugins to define
@@ -159,7 +170,7 @@ class SpyderRegistry:
 
         Returns
         -------
-        objs: Dict[str, Any]
+        objs: dict[str, Any]
             A dict that contains the actions mapped by their corresponding
             identifiers.
         """
@@ -171,11 +182,79 @@ class SpyderRegistry:
             context, weakref.WeakValueDictionary())
         return context_references
 
+    def remove_reference(
+        self,
+        id_: str,
+        plugin: str | None = None,
+        context: str | None = None,
+    ) -> None:
+        """
+        Remove a stored object reference under a given id of a specific
+        context of a given plugin name.
+
+        Parameters
+        ----------
+        id_: str
+            String identifier used to remove the object.
+        plugin: str, optional
+            Plugin name used to store the reference. Should belong to
+            :class:`spyder.api.plugins.Plugins`. If None, then the object will
+            be retrieved from the global `main` key.
+        context: str, optional
+            Additional key that was used to store the object reference.
+            In any Spyder plugin implementation, this context may refer to an
+            identifier of a widget. This context enables plugins to define
+            multiple actions with the same key that live on different widgets.
+            If None, this context will default to the special `__global`
+            identifier.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyError
+            If neither of `id_`, `plugin` or `context` were found in the
+            registry.
+        """
+        plugin = plugin if plugin is not None else 'main'
+        context = context if context is not None else '__global'
+
+        plugin_contexts = self.registry_map[plugin]
+        context_references = plugin_contexts[context]
+        context_references.pop(id_)
+
+    def remove_references(self, plugin: str) -> None:
+        """
+        Remove all stored object references for a given plugin.
+
+        Parameters
+        ----------
+        plugin: str, optional
+            Plugin name used to store the reference. Should belong to
+            :class:`spyder.api.plugins.Plugins`.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyError
+            If `plugin` was not found in the registry.
+        """
+        self.registry_map.pop(plugin)
+
     def reset_registry(self):
         self.registry_map = {}
 
     def __str__(self) -> str:
         return f'SpyderRegistry[{self.obj_type}, {self.registry_map}]'
+
+    def __contains__(self, plugin_name: str) -> bool:
+        """Determine if a plugin with a given name is the registry."""
+        return plugin_name in self.registry_map
 
 
 ACTION_REGISTRY = SpyderRegistry('create_action', 'SpyderAction')

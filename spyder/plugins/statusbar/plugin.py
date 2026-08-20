@@ -15,7 +15,9 @@ from qtpy.QtCore import Slot
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import running_under_pytest
@@ -59,6 +61,7 @@ class StatusBar(SpyderPluginV2):
     }
 
     # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _('Status Bar')
@@ -79,9 +82,6 @@ class StatusBar(SpyderPluginV2):
             self.clock_status, StatusBarWidgetPosition.Right
         )
 
-    def on_close(self, _unused):
-        self._statusbar.setVisible(False)
-
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -98,7 +98,15 @@ class StatusBar(SpyderPluginV2):
             self.show_status_bar
         )
 
+    def on_close(self, _unused):
+        self._statusbar.setVisible(False)
+
+    def on_reenabled(self):
+        self._organize_status_widgets()
+        self._statusbar.setVisible(True)
+
     # ---- Public API
+    # -------------------------------------------------------------------------
     def add_status_widget(self, widget, position=StatusBarWidgetPosition.Left):
         """
         Add status widget to main application status bar.
@@ -159,6 +167,10 @@ class StatusBar(SpyderPluginV2):
             widget = self.get_status_widget(id_)
             self.STATUS_WIDGETS.pop(id_)
             self._statusbar.removeWidget(widget)
+
+            # Widgets are not deleted when removeWidget is called, so we need
+            # to do it manually
+            widget.deleteLater()
         except RuntimeError:
             # This can happen if the widget was already removed (tests fail
             # without this).
@@ -200,6 +212,7 @@ class StatusBar(SpyderPluginV2):
         self._statusbar.setVisible(value)
 
     # ---- Default status widgets
+    # -------------------------------------------------------------------------
     @property
     def mem_status(self):
         return self.get_container().mem_status
@@ -213,6 +226,7 @@ class StatusBar(SpyderPluginV2):
         return self.get_container().clock_status
 
     # ---- Private API
+    # -------------------------------------------------------------------------
     @property
     def _statusbar(self):
         """Reference to main window status bar."""

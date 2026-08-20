@@ -20,7 +20,7 @@ import os.path as osp
 from pathlib import Path
 import re
 import sys
-from typing import Dict, Optional
+from typing import TYPE_CHECKING
 import uuid
 
 # Third party imports
@@ -65,10 +65,19 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.api import (
-    RunContext, RunConfigurationMetadata, RunConfiguration,
-    SupportedExtensionContexts, ExtendedContext)
+    Context,
+    ExtendedContext,
+    RunConfiguration,
+    RunConfigurationMetadata,
+    RunContext,
+    SupportedExtensionContexts,
+)
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.editorstack.helpers import FileInfo
 
 
 logger = logging.getLogger(__name__)
@@ -262,7 +271,7 @@ class EditorMainWidget(PluginMainWidget):
 
         self.file_per_id = {}
         self.id_per_file = {}
-        self.metadata_per_id: Dict[str, RunConfigurationMetadata] = {}
+        self.metadata_per_id: dict[str, RunConfigurationMetadata] = {}
 
         # TODO: Is there any other way to do this. See `setup_other_windows`
         self.outline_plugin = None
@@ -276,9 +285,9 @@ class EditorMainWidget(PluginMainWidget):
         self.checkable_actions = {}
 
         self.__first_open_files_setup = True
-        self.editorstacks = []
+        self.editorstacks: list[EditorStack] = []
         self.last_focused_editorstack = {}
-        self.editorwindows = []
+        self.editorwindows: list[EditorMainWindow] = []
         self.editorwindows_to_be_created = []
 
         # Configuration dialog size
@@ -935,6 +944,29 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.get(filename, None)
         self.sig_editor_focus_changed_uuid.emit(file_id)
 
+    def handle_run_status(self, filename: str):
+        """Handle run status of a given filename."""
+        __, filename_ext = osp.splitext(filename)
+        filename_ext = filename_ext[1:]
+
+        able_to_run_file = False
+        if filename_ext in self.supported_run_configurations:
+            ext_contexts = self.supported_run_configurations[filename_ext]
+
+            if (
+                filename not in self.id_per_file
+                and RunContext.File in ext_contexts
+            ):
+                self.register_file_run_metadata(filename)
+
+            # This avoids registering as pending to run files in cloned
+            # editors, which is not necessary.
+            if filename in self.id_per_file:
+                able_to_run_file = True
+
+        if not able_to_run_file:
+            self.pending_run_files |= {(filename, filename_ext)}
+
     def register_file_run_metadata(self, filename):
         """Register opened files with the Run plugin."""
         all_uuids = self.get_conf('file_uuids', default={})
@@ -1008,22 +1040,8 @@ class EditorMainWidget(PluginMainWidget):
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
-        __, filename_ext = osp.splitext(filename)
-        filename_ext = filename_ext[1:]
 
-        able_to_run_file = False
-        if filename_ext in self.supported_run_configurations:
-            ext_contexts = self.supported_run_configurations[filename_ext]
-
-            if (
-                filename not in self.id_per_file
-                and RunContext.File in ext_contexts
-            ):
-                self.register_file_run_metadata(filename)
-                able_to_run_file = True
-
-        if not able_to_run_file:
-            self.pending_run_files |= {(filename, filename_ext)}
+        self.handle_run_status(filename)
 
         status, fallback_only = self._plugin._register_file_completions(
             language.lower(), filename, codeeditor
@@ -1248,11 +1266,20 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- For other plugins
     # -------------------------------------------------------------------------
-    def set_outlineexplorer(self, outlineexplorer_widget):
+    def set_outlineexplorer(self, outline_plugin):
         # TODO: Is there another way to do this?
-        self.outlineexplorer = outlineexplorer_widget
+        self.outline_plugin = outline_plugin
+        self.outlineexplorer = (
+            outline_plugin.get_widget() if outline_plugin is not None else None
+        )
+
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
+
+        # This is necessary when the Outline plugin is disabled/reenabled
+        if not self._plugin.is_app_starting:
+            for window in self.editorwindows:
+                window.set_outlineexplorer(self.outline_plugin)
 
     def set_switcher(self, switcher):
         # TODO: Is there another way to do this?
@@ -1295,38 +1322,101 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Handling editorstacks
     # -------------------------------------------------------------------------
-    def register_status_widgets(self, editorstack: EditorStack | None = None):
+    def register_status_widgets(
+        self,
+        editorstack: EditorStack | None = None,
+        statusbar_reenabled: bool = False,
+    ):
         if editorstack is None:
-            editorstack = self.get_current_editorstack()
+            if self._plugin.is_app_starting:
+                editorstacks = [self.get_current_editorstack()]
+            else:
+                editorstacks = self.editorstacks
+        else:
+            editorstacks = [editorstack]
 
-        if self.readwrite_status is not None:
-            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
-            editorstack.readonly_changed.connect(
-                self.readwrite_status.update_readonly
+        for es in editorstacks:
+            if self.readwrite_status is not None:
+                es.reset_statusbar.connect(self.readwrite_status.hide)
+                es.readonly_changed.connect(
+                    self.readwrite_status.update_readonly
+                )
+
+            if self.encoding_status is not None:
+                es.reset_statusbar.connect(self.encoding_status.hide)
+                es.encoding_changed.connect(
+                    self.encoding_status.update_encoding
+                )
+
+            if self.cursorpos_status is not None:
+                es.reset_statusbar.connect(self.cursorpos_status.hide)
+                es.sig_editor_cursor_position_changed.connect(
+                    self.cursorpos_status.update_cursor_position
+                )
+
+            if self.eol_status is not None:
+                es.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
+
+            if self.vcs_status is not None:
+                es.current_file_changed.connect(self.vcs_status.update_vcs)
+                es.file_saved.connect(self.vcs_status.update_vcs_state)
+
+        # This is necessary to populate the widgets without giving focus to the
+        # Editor when the Statusbar plugin is reenabled on the fly
+        if statusbar_reenabled:
+            current_editostack = self.get_current_editorstack()
+            current_editor = self.get_current_editor()
+            current_finfo = self.get_current_finfo()
+
+            current_editostack.readonly_changed.emit(
+                current_editor.isReadOnly()
+            )
+            current_editostack.encoding_changed.emit(current_finfo.encoding)
+            current_editor.sig_cursor_position_changed.emit(
+                *current_editor.get_cursor_line_column()
+            )
+            current_editostack.refresh_eol_chars(
+                current_editor.get_line_separator()
+            )
+            current_editostack.file_saved.emit(
+                str(id(current_editostack)),
+                current_editor.filename,
+                current_editor.filename,
             )
 
-        if self.encoding_status is not None:
-            editorstack.reset_statusbar.connect(self.encoding_status.hide)
-            editorstack.encoding_changed.connect(
-                self.encoding_status.update_encoding
-            )
+    def unregister_status_widgets(
+        self, editorstack: EditorStack | None = None
+    ):
+        if editorstack is None:
+            editorstacks = self.editorstacks
+        else:
+            editorstacks = [editorstack]
 
-        if self.cursorpos_status is not None:
-            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
-            editorstack.sig_editor_cursor_position_changed.connect(
-                self.cursorpos_status.update_cursor_position
-            )
+        for es in editorstacks:
+            if self.readwrite_status is not None:
+                es.reset_statusbar.disconnect(self.readwrite_status.hide)
+                es.readonly_changed.disconnect(
+                    self.readwrite_status.update_readonly
+                )
 
-        if self.eol_status is not None:
-            editorstack.sig_refresh_eol_chars.connect(
-                self.eol_status.update_eol
-            )
+            if self.encoding_status is not None:
+                es.reset_statusbar.disconnect(self.encoding_status.hide)
+                es.encoding_changed.disconnect(
+                    self.encoding_status.update_encoding
+                )
 
-        if self.vcs_status is not None:
-            editorstack.current_file_changed.connect(
-                self.vcs_status.update_vcs
-            )
-            editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
+            if self.cursorpos_status is not None:
+                es.reset_statusbar.disconnect(self.cursorpos_status.hide)
+                es.sig_editor_cursor_position_changed.disconnect(
+                    self.cursorpos_status.update_cursor_position
+                )
+
+            if self.eol_status is not None:
+                es.sig_refresh_eol_chars.disconnect(self.eol_status.update_eol)
+
+            if self.vcs_status is not None:
+                es.current_file_changed.disconnect(self.vcs_status.update_vcs)
+                es.file_saved.disconnect(self.vcs_status.update_vcs_state)
 
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
@@ -1489,7 +1579,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_codeeditor_created.connect(self.sig_codeeditor_created)
         editorstack.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
         editorstack.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
-        editorstack.sig_trigger_action.connect(self.trigger_action)
 
         # Register editorstack's autosave component with plugin's autosave
         # component
@@ -1499,6 +1588,12 @@ class EditorMainWidget(PluginMainWidget):
         """Removing editorstack only if it's not the last remaining"""
         logger.debug("Unregistering EditorStack")
         self.remove_last_focused_editorstack(editorstack)
+
+        # Note: We **don't** need to call unregister_status_widgets here
+        # because editorstack is deleted automatically by Qt. In addition, that
+        # introduces some odd errors, like the state of splitted panels not
+        # being saved correctly when Spyder is closed.
+
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
@@ -1586,13 +1681,13 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Accessors
     # -------------------------------------------------------------------------
-    def get_filenames(self):
+    def get_filenames(self) -> list[str]:
         return [finfo.filename for finfo in self.editorstacks[0].data]
 
-    def get_filename_index(self, filename):
+    def get_filename_index(self, filename) -> int:
         return self.editorstacks[0].has_filename(filename)
 
-    def get_current_editorstack(self, editorwindow=None):
+    def get_current_editorstack(self, editorwindow=None) -> EditorStack | None:
         if self.editorstacks is not None and len(self.editorstacks) > 0:
             if len(self.editorstacks) == 1:
                 editorstack = self.editorstacks[0]
@@ -1603,29 +1698,30 @@ class EditorMainWidget(PluginMainWidget):
                         editorwindow)
                     if editorstack is None:
                         editorstack = self.editorstacks[0]
+
             return editorstack
 
-    def get_current_editor(self):
+    def get_current_editor(self) -> CodeEditor | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_editor()
 
-    def get_current_finfo(self):
+    def get_current_finfo(self) -> FileInfo | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_finfo()
 
-    def get_current_filename(self):
+    def get_current_filename(self) -> str | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_filename()
 
-    def get_current_language(self):
+    def get_current_language(self) -> str | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_language()
 
-    def is_file_opened(self, filename=None):
+    def is_file_opened(self, filename=None) -> bool | None:
         return self.editorstacks[0].is_file_opened(filename)
 
     def set_current_filename(self, filename, editorwindow=None, focus=True):
@@ -2849,27 +2945,29 @@ class EditorMainWidget(PluginMainWidget):
                 else:
                     self.pending_run_files -= {(filename, filename_ext)}
 
+    def _request_deregister_run_configuration(
+        self, extension: str, context: Context
+    ):
+        """
+        Request Run plugin to deregister a run configuration per ext/context
+        if there are no executors that can handle it.
+        """
+        is_super = RunContext[context['name']] == RunContext.File
+        ext_context = ExtendedContext(context=context, is_super=is_super)
+
+        unsupported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=[ext_context]
+        )
+        self.sig_deregister_run_configuration_provider_requested.emit(
+            [unsupported_extension]
+        )
+
     def remove_supported_run_configuration(
-        self,
-        config: EditorRunConfiguration
+        self, config: EditorRunConfiguration
     ):
         origin = config['origin']
         extension = config['extension']
         contexts = config['contexts']
-
-        ext_contexts = []
-        for context in contexts:
-            is_super = RunContext[context['name']] == RunContext.File
-            ext_contexts.append(
-                ExtendedContext(context=context, is_super=is_super)
-            )
-        unsupported_extension = SupportedExtensionContexts(
-            input_extension=extension, contexts=ext_contexts
-        )
-
-        self.sig_deregister_run_configuration_provider_requested.emit(
-            [unsupported_extension]
-        )
 
         to_remove = []
         ext_origins = self.run_configurations_per_origin[extension]
@@ -2881,6 +2979,10 @@ class EditorMainWidget(PluginMainWidget):
             if len(context_origins) == 0:
                 to_remove.append(context_id)
                 ext_origins.pop(context_id)
+
+                # No origins (i.e. executors) are left to handle this context,
+                # so we need to remove it
+                self._request_deregister_run_configuration(extension, context)
 
         if len(ext_origins) == 0:
             self.run_configurations_per_origin.pop(extension)
@@ -2900,7 +3002,8 @@ class EditorMainWidget(PluginMainWidget):
                     filename = self.file_per_id.pop(metadata_id)
                     self.id_per_file.pop(filename)
                     self.pending_run_files |= {
-                        (filename, metadata['input_extension'])}
+                        (filename, metadata['input_extension'])
+                    }
 
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
         editorstack = self.get_current_editorstack()
@@ -2918,7 +3021,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def get_run_configuration_per_context(
         self, context, extra_action_name, context_modificator, re_run=False
-    ) -> Optional[RunConfiguration]:
+    ) -> RunConfiguration | None:
         editorstack = self.get_current_editorstack()
         run_input = {}
         context_name = None
@@ -2995,11 +3098,6 @@ class EditorMainWidget(PluginMainWidget):
         current_fname = self.get_current_filename()
         if current_fname != fname:
             editorstack.set_current_filename(fname)
-
-    def trigger_action(self, action_id, plugin):
-        """Trigger an action according to its id and plugin."""
-        action = self.get_action(action_id, plugin=plugin)
-        action.trigger()
 
     # ---- Code bookmarks
     # -------------------------------------------------------------------------

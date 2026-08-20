@@ -18,7 +18,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QColor, QFontMetrics, QPainter
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QFileDialog
 import pytest
 
 # Local imports
@@ -726,14 +726,14 @@ def test_add_panel(editor_plugin, position, qtbot):
     editor = editor_plugin.get_current_editor()
 
     # Verify the panel was added
-    new_panel = editor.panels.get(EmojiPanel)
+    new_panel = editor.panels.get(EmojiPanel, position=position)
     assert new_panel is not None
 
     # Verify that the panel is shown in other files
     editor_plugin.new(fname="foo.py", text="hola = 3\n")
     editor2 = editor_plugin.get_current_editor()
 
-    new_panel = editor2.panels.get(EmojiPanel)
+    new_panel = editor2.panels.get(EmojiPanel, position=position)
     assert new_panel is not None
 
     # Remove created file to prevent issues with other tests
@@ -809,6 +809,88 @@ def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
 
     # Check Outline is visible this time
     assert editor_window.editorwidget.outlineexplorer.width() > 0
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="It fails on Linux due to the lack of a proper X server.",
+)
+@pytest.mark.parametrize(
+    "key, modifier, action",
+    [
+        (Qt.Key_N, Qt.ControlModifier, "New file"),
+        (Qt.Key_O, Qt.ControlModifier, "Open file"),
+        (Qt.Key_T, Qt.ControlModifier | Qt.ShiftModifier, "Open last closed"),
+        (Qt.Key_S, Qt.ControlModifier, "Save file"),
+        (Qt.Key_S, Qt.ControlModifier | Qt.AltModifier, "Save all"),
+        (Qt.Key_S, Qt.ControlModifier | Qt.ShiftModifier, "Save as"),
+        (Qt.Key_W, Qt.ControlModifier, "Close file"),
+        (Qt.Key_F4, Qt.ControlModifier, "Close file"),
+        (Qt.Key_W, Qt.ControlModifier | Qt.ShiftModifier, "Close all"),
+    ],
+)
+def test_application_shortcuts(
+    editor_plugin, mocker, qtbot, tmp_path, key, modifier, action
+):
+    """
+    Test that typing shortcuts registered by the Application plugin works as
+    expected.
+    """
+    # Dummy file to open/save
+    fname = tmp_path / "test_app_shortcuts.py"
+
+    # We need to write the file to disk to be able to open it
+    if action in ["Open file", "Open last closed"]:
+        fname.write_text("import math")
+
+    # For "Open file"
+    mocker.patch.object(QFileDialog, 'exec_', return_value=1)
+    mocker.patch.object(
+        QFileDialog, 'selectedFiles', return_value=[str(fname)]
+    )
+
+    # For save actions
+    mocker.patch.object(editor_module, 'getsavefilename')
+    editor_module.getsavefilename.return_value = (str(fname), '')
+
+    # Create empty files
+    for __ in range(3 if action == "Close all" else 1):
+        editor_plugin.new()
+
+    editorstack = editor_plugin.get_current_editorstack()
+    editor = editor_plugin.get_current_editor()
+
+    # Add some text to flag the file as modified
+    if action == "Save all":
+        editor.set_text("import math")
+
+    # Open/close dummy file to reopen it
+    if action == "Open last closed":
+        editor_plugin.load([str(fname)])
+        editor_plugin.close_file()
+        assert len(editorstack.data) == 1
+
+    # For some reason we need to enter each shortcut twice on Linux and wait a
+    # bit for it to take effect
+    for __ in range(2 if sys.platform.startswith("linux") else 1):
+        qtbot.keyClick(editor, key, modifier=modifier)
+        qtbot.wait(100)
+
+    # Checks for each action
+    if action == "New file":
+        assert len(editorstack.data) == 2
+    elif action in ["Open file", "Open last closed"]:
+        assert len(editorstack.data) == 2
+        assert fname.parts[-1] in editor_plugin.get_current_editor().filename
+    elif action in ["Save file", "Save all", "Save as"]:
+        assert len(editorstack.data) == 1
+        assert fname.parts[-1] in editor_plugin.get_current_editor().filename
+    elif action == "Close file":
+        assert len(editorstack.data) == 1
+        assert "untitled1.py" in editor_plugin.get_current_editor().filename
+    elif action == "Close all":
+        assert len(editorstack.data) == 1
+        assert "untitled3.py" in editor_plugin.get_current_editor().filename
 
 
 if __name__ == "__main__":
