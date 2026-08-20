@@ -20,7 +20,7 @@ import os.path as osp
 from pathlib import Path
 import re
 import sys
-from typing import Dict, Optional
+from typing import TYPE_CHECKING
 import uuid
 
 # Third party imports
@@ -74,6 +74,10 @@ from spyder.plugins.run.api import (
 )
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.editorstack.helpers import FileInfo
 
 
 logger = logging.getLogger(__name__)
@@ -267,7 +271,7 @@ class EditorMainWidget(PluginMainWidget):
 
         self.file_per_id = {}
         self.id_per_file = {}
-        self.metadata_per_id: Dict[str, RunConfigurationMetadata] = {}
+        self.metadata_per_id: dict[str, RunConfigurationMetadata] = {}
 
         # TODO: Is there any other way to do this. See `setup_other_windows`
         self.outline_plugin = None
@@ -1650,13 +1654,13 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Accessors
     # -------------------------------------------------------------------------
-    def get_filenames(self):
+    def get_filenames(self) -> list[str]:
         return [finfo.filename for finfo in self.editorstacks[0].data]
 
-    def get_filename_index(self, filename):
+    def get_filename_index(self, filename) -> int:
         return self.editorstacks[0].has_filename(filename)
 
-    def get_current_editorstack(self, editorwindow=None):
+    def get_current_editorstack(self, editorwindow=None) -> EditorStack | None:
         if self.editorstacks is not None and len(self.editorstacks) > 0:
             if len(self.editorstacks) == 1:
                 editorstack = self.editorstacks[0]
@@ -1667,29 +1671,30 @@ class EditorMainWidget(PluginMainWidget):
                         editorwindow)
                     if editorstack is None:
                         editorstack = self.editorstacks[0]
+
             return editorstack
 
-    def get_current_editor(self):
+    def get_current_editor(self) -> CodeEditor | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_editor()
 
-    def get_current_finfo(self):
+    def get_current_finfo(self) -> FileInfo | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_finfo()
 
-    def get_current_filename(self):
+    def get_current_filename(self) -> str | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_filename()
 
-    def get_current_language(self):
+    def get_current_language(self) -> str | None:
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             return editorstack.get_current_language()
 
-    def is_file_opened(self, filename=None):
+    def is_file_opened(self, filename=None) -> bool | None:
         return self.editorstacks[0].is_file_opened(filename)
 
     def set_current_filename(self, filename, editorwindow=None, focus=True):
@@ -2989,7 +2994,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def get_run_configuration_per_context(
         self, context, extra_action_name, context_modificator, re_run=False
-    ) -> Optional[RunConfiguration]:
+    ) -> RunConfiguration | None:
         editorstack = self.get_current_editorstack()
         run_input = {}
         context_name = None
