@@ -1353,6 +1353,40 @@ class EditorMainWidget(PluginMainWidget):
                 es.current_file_changed.connect(self.vcs_status.update_vcs)
                 es.file_saved.connect(self.vcs_status.update_vcs_state)
 
+    def unregister_status_widgets(
+        self, editorstack: EditorStack | None = None
+    ):
+        if editorstack is None:
+            editorstacks = self.editorstacks
+        else:
+            editorstacks = [editorstack]
+
+        for es in editorstacks:
+            if self.readwrite_status is not None:
+                es.reset_statusbar.disconnect(self.readwrite_status.hide)
+                es.readonly_changed.disconnect(
+                    self.readwrite_status.update_readonly
+                )
+
+            if self.encoding_status is not None:
+                es.reset_statusbar.disconnect(self.encoding_status.hide)
+                es.encoding_changed.disconnect(
+                    self.encoding_status.update_encoding
+                )
+
+            if self.cursorpos_status is not None:
+                es.reset_statusbar.disconnect(self.cursorpos_status.hide)
+                es.sig_editor_cursor_position_changed.disconnect(
+                    self.cursorpos_status.update_cursor_position
+                )
+
+            if self.eol_status is not None:
+                es.sig_refresh_eol_chars.disconnect(self.eol_status.update_eol)
+
+            if self.vcs_status is not None:
+                es.current_file_changed.disconnect(self.vcs_status.update_vcs)
+                es.file_saved.disconnect(self.vcs_status.update_vcs_state)
+
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
@@ -1523,6 +1557,12 @@ class EditorMainWidget(PluginMainWidget):
         """Removing editorstack only if it's not the last remaining"""
         logger.debug("Unregistering EditorStack")
         self.remove_last_focused_editorstack(editorstack)
+
+        # Note: We **don't** need to call unregister_status_widgets here
+        # because editorstack is deleted automatically by Qt. In addition, that
+        # introduces some odd errors, like the state of splitted panels not
+        # being saved correctly when Spyder is closed.
+
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)

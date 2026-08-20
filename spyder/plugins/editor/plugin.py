@@ -278,6 +278,8 @@ class Editor(SpyderDockablePlugin):
         statusbar = self.get_plugin(Plugins.StatusBar)
         widget = self.get_widget()
 
+        widget.unregister_status_widgets()
+
         statusbar.remove_status_widget(ReadWriteStatus.ID)
         statusbar.remove_status_widget(EOLStatus.ID)
         statusbar.remove_status_widget(EncodingStatus.ID)
