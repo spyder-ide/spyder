@@ -53,10 +53,6 @@ concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  id-token: write
-  contents: read
-
 name: Weekly conda-based installers
 
 env:
