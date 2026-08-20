@@ -1977,8 +1977,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
         # The filename is passed instead of an index in case the tabs
         # have been rearranged. See spyder-ide/spyder#5703.
-        self.file_saved.emit(str(id(self)),
-                             finfo.filename, finfo.filename)
+        self.file_saved.emit(str(id(self)), finfo.filename, finfo.filename)
 
         finfo.editor.document().setModified(False)
         self.modification_changed(index=index)

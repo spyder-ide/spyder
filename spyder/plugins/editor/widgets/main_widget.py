@@ -1322,7 +1322,11 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Handling editorstacks
     # -------------------------------------------------------------------------
-    def register_status_widgets(self, editorstack: EditorStack | None = None):
+    def register_status_widgets(
+        self,
+        editorstack: EditorStack | None = None,
+        statusbar_reenabled: bool = False,
+    ):
         if editorstack is None:
             if self._plugin.is_app_starting:
                 editorstacks = [self.get_current_editorstack()]
@@ -1356,6 +1360,29 @@ class EditorMainWidget(PluginMainWidget):
             if self.vcs_status is not None:
                 es.current_file_changed.connect(self.vcs_status.update_vcs)
                 es.file_saved.connect(self.vcs_status.update_vcs_state)
+
+        # This is necessary to populate the widgets without giving focus to the
+        # Editor when the Statusbar plugin is reenabled on the fly
+        if statusbar_reenabled:
+            current_editostack = self.get_current_editorstack()
+            current_editor = self.get_current_editor()
+            current_finfo = self.get_current_finfo()
+
+            current_editostack.readonly_changed.emit(
+                current_editor.isReadOnly()
+            )
+            current_editostack.encoding_changed.emit(current_finfo.encoding)
+            current_editor.sig_cursor_position_changed.emit(
+                *current_editor.get_cursor_line_column()
+            )
+            current_editostack.refresh_eol_chars(
+                current_editor.get_line_separator()
+            )
+            current_editostack.file_saved.emit(
+                str(id(current_editostack)),
+                current_editor.filename,
+                current_editor.filename,
+            )
 
     def unregister_status_widgets(
         self, editorstack: EditorStack | None = None
