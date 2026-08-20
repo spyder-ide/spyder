@@ -270,8 +270,6 @@ class Editor(SpyderDockablePlugin):
         widget.vcs_status = VCSStatus(widget)
         statusbar.add_status_widget(widget.vcs_status)
 
-        # This is necessary for the first editorstack that is created because
-        # when that's done these widgets can't exist yet.
         widget.register_status_widgets()
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
