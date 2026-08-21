@@ -102,7 +102,16 @@ class StatusBar(SpyderPluginV2):
         self._statusbar.setVisible(False)
 
     def on_reenabled(self):
+        # Organize widgets according to the default layout
         self._organize_status_widgets()
+
+        # Set basic widgets visibility
+        if not self.is_app_starting:
+            self.mem_status.setVisible(self.get_conf("memory_usage/enable"))
+            self.cpu_status.setVisible(self.get_conf("cpu_usage/enable"))
+            self.clock_status.setVisible(self.get_conf("clock/enable"))
+
+        # Make status bar visible
         self._statusbar.setVisible(True)
 
     # ---- Public API
