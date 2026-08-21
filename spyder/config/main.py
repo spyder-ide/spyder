@@ -21,7 +21,6 @@ from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES, running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.config.utils import IMPORT_EXT
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
@@ -627,7 +626,6 @@ DEFAULTS = [
               }),
             ('appearance',
              {
-              "css_path": CSS_PATH,
               "icon_theme": "spyder 3",
               # This is our monospace font
               "font/family": MONOSPACE,
@@ -757,4 +755,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.1.0'
+CONF_VERSION = '89.0.0'

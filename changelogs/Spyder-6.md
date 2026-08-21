@@ -7,7 +7,13 @@
 * Add a new set of interface themes for the entire application, including popular
   ones from other IDEs such as Dracula, Miami Nights and Grubvox. They can be
   set in `Preferences > Appearance`.
+* Add a button to export Pandas dataframes to Excel, CSV or Json to the dataframe
+  viewer.
 * Support Polars series in the Variable Explorer.
+* Add submenu `File > Export` to export the current file in the Editor to HTML or
+  RTF.
+* Make copy/paste text in the Editor to Microsoft Word or similar programs grab
+  the syntax highlighting theme too.
 * Add button to close all open viewers to the Variable Explorer and its viewers.
 * Add shortcuts and menu entries to expand/collapse all foldable regions in the
   Editor to the `Source` menu.
@@ -15,6 +21,9 @@
 
 ### Important fixes
 
+* Base the standalone installers in Python 3.13.
+* Sign the Windows standalone installer so it's not flagged as untrusted.
+* Add support for PySide6 6.9+.
 * Automatically disable plugins when users disable the ones they depend on (e.g.
   the Variable Explorer, Debugger and Plots will be auto-disabled if the
   IPython Console is disabled because they can't do anything without it).
@@ -26,6 +35,44 @@
 
 * Add `add_extension`, `add_panel` and `add_shortcut` methods to register
   extensions, panels and shortcuts.
+
+----
+
+## Version 6.2.0a2 (2026-08-19)
+
+### Issues Closed
+
+* [Issue 26259](https://github.com/spyder-ide/spyder/issues/26259) - Windows installer errors due to new constructor version and post install script handling ([PR 26264](https://github.com/spyder-ide/spyder/pull/26264) by [@mrclary](https://github.com/mrclary))
+* [Issue 26201](https://github.com/spyder-ide/spyder/issues/26201) - Build installers with Python 3.13 ([PR 26202](https://github.com/spyder-ide/spyder/pull/26202) by [@mrclary](https://github.com/mrclary))
+* [Issue 25767](https://github.com/spyder-ide/spyder/issues/25767) - macOS Standalone Installer (6.1.3) fails on Apple Silicon: postinstall: chown: ~/.conda/environments.txt: Operation not permitted ([PR 26205](https://github.com/spyder-ide/spyder/pull/26205) by [@mrclary](https://github.com/mrclary))
+* [Issue 25534](https://github.com/spyder-ide/spyder/issues/25534) - Add “Export to RTF” option for code editor with syntax highlighting ([PR 25552](https://github.com/spyder-ide/spyder/pull/25552) by [@athompson673](https://github.com/athompson673))
+* [Issue 24825](https://github.com/spyder-ide/spyder/issues/24825) - Spyder segfaults when using PySide6 6.9 with message "Signal source has been deleted" ([PR 25422](https://github.com/spyder-ide/spyder/pull/25422) by [@larsoner](https://github.com/larsoner))
+* [Issue 22617](https://github.com/spyder-ide/spyder/issues/22617) - Feature request: Being able to export dataframes to excel/csv from Variable Explorer ([PR 26125](https://github.com/spyder-ide/spyder/pull/26125) by [@reachout-sreeram](https://github.com/reachout-sreeram))
+* [Issue 21389](https://github.com/spyder-ide/spyder/issues/21389) - Sign our Windows installer ([PR 26244](https://github.com/spyder-ide/spyder/pull/26244) by [@mrclary](https://github.com/mrclary))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26274](https://github.com/spyder-ide/spyder/pull/26274) - PR: Update user facing changelog with changes added in 6.2.0a2, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26271](https://github.com/spyder-ide/spyder/pull/26271) - PR: Enable Chromium developer tools for web widgets, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26266](https://github.com/spyder-ide/spyder/pull/26266) - PR: Setup keychain before creating installer to fix signing (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 26264](https://github.com/spyder-ide/spyder/pull/26264) - PR: Use NSIS template to launch Spyder after installer completes, by [@mrclary](https://github.com/mrclary) ([26259](https://github.com/spyder-ide/spyder/issues/26259))
+* [PR 26262](https://github.com/spyder-ide/spyder/pull/26262) - PR: Use default new theme in case users have set one of the old ones (Utils), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26253](https://github.com/spyder-ide/spyder/pull/26253) - PR: Make css from Help match the application theme, by [@conradolandia](https://github.com/conradolandia)
+* [PR 26244](https://github.com/spyder-ide/spyder/pull/26244) - PR: Sign Windows installer, by [@mrclary](https://github.com/mrclary) ([21389](https://github.com/spyder-ide/spyder/issues/21389))
+* [PR 26243](https://github.com/spyder-ide/spyder/pull/26243) - PR: Fix files being marked as modified when they are not (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26205](https://github.com/spyder-ide/spyder/pull/26205) - PR: Update constructor to version 3.16 (Installers), by [@mrclary](https://github.com/mrclary) ([25767](https://github.com/spyder-ide/spyder/issues/25767))
+* [PR 26203](https://github.com/spyder-ide/spyder/pull/26203) - PR: Fix `test_completions` for Python 3.13 and Jedi 0.20, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26202](https://github.com/spyder-ide/spyder/pull/26202) - PR: Build installers and subrepos with Python 3.13, by [@mrclary](https://github.com/mrclary) ([26201](https://github.com/spyder-ide/spyder/issues/26201))
+* [PR 26171](https://github.com/spyder-ide/spyder/pull/26171) - PR: Move most jobs from Python 3.12 to 3.13 (CI), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26159](https://github.com/spyder-ide/spyder/pull/26159) - PR: Remove dependency on `importlib-metadata`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26125](https://github.com/spyder-ide/spyder/pull/26125) - PR: Add export option to `DataFrameEditor` to save dataframes to CSV, Excel or Json (Variable Explorer), by [@reachout-sreeram](https://github.com/reachout-sreeram) ([22617](https://github.com/spyder-ide/spyder/issues/22617))
+* [PR 26042](https://github.com/spyder-ide/spyder/pull/26042) - PR: Add partial edits support in `CodeEditor` with LSP integration, by [@hlouzada](https://github.com/hlouzada)
+* [PR 25552](https://github.com/spyder-ide/spyder/pull/25552) - PR: Add the ability to copy text and export files with syntax highlighting (Editor), by [@athompson673](https://github.com/athompson673) ([25534](https://github.com/spyder-ide/spyder/issues/25534))
+* [PR 25422](https://github.com/spyder-ide/spyder/pull/25422) - PR: Add support and testing for PySide6 6.9+, by [@larsoner](https://github.com/larsoner) ([24825](https://github.com/spyder-ide/spyder/issues/24825))
+
+In this release 17 pull requests were closed.
 
 ----
 
