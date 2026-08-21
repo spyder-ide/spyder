@@ -13,6 +13,7 @@ Holds references for base actions in the Application of Spyder.
 # Standard library imports
 from __future__ import annotations
 import logging
+from typing import TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import Slot
@@ -20,9 +21,13 @@ from qtpy.QtCore import Slot
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 from spyder.utils.qthelpers import DialogManager
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
+
 
 # Logger setup
 logger = logging.getLogger(__name__)
@@ -68,24 +73,6 @@ class UpdateManagerContainer(PluginMainContainer):
         )
         self.update_manager.sig_quit_requested.connect(self.sig_quit_requested)
 
-        if self.update_manager_status is not None:
-            self.update_manager.sig_set_status.connect(self.set_status)
-            self.update_manager.sig_block_status_signals.connect(
-                self.update_manager_status.blockSignals
-            )
-            self.update_manager.sig_download_progress.connect(
-                self.update_manager_status.set_download_progress
-            )
-            self.update_manager_status.sig_check_update.connect(
-                self.start_check_update
-            )
-            self.update_manager_status.sig_start_update.connect(
-                self.start_update
-            )
-            self.update_manager_status.sig_show_progress_dialog.connect(
-                self.update_manager.show_progress_dialog
-            )
-
     def update_actions(self):
         pass
 
@@ -118,6 +105,42 @@ class UpdateManagerContainer(PluginMainContainer):
     def set_install_on_close(self, install_on_close):
         """Set whether start install on close."""
         self.install_on_close = install_on_close
+
+    def connect_status_signals(self):
+        self.update_manager.sig_set_status.connect(self.set_status)
+        self.update_manager.sig_block_status_signals.connect(
+            self.update_manager_status.blockSignals
+        )
+        self.update_manager.sig_download_progress.connect(
+            self.update_manager_status.set_download_progress
+        )
+        self.update_manager_status.sig_check_update.connect(
+            self.start_check_update
+        )
+        self.update_manager_status.sig_start_update.connect(
+            self.start_update
+        )
+        self.update_manager_status.sig_show_progress_dialog.connect(
+            self.update_manager.show_progress_dialog
+        )
+
+    def disconnect_status_signals(self):
+        self.update_manager.sig_set_status.disconnect(self.set_status)
+        self.update_manager.sig_block_status_signals.disconnect(
+            self.update_manager_status.blockSignals
+        )
+        self.update_manager.sig_download_progress.disconnect(
+            self.update_manager_status.set_download_progress
+        )
+        self.update_manager_status.sig_check_update.disconnect(
+            self.start_check_update
+        )
+        self.update_manager_status.sig_start_update.disconnect(
+            self.start_update
+        )
+        self.update_manager_status.sig_show_progress_dialog.disconnect(
+            self.update_manager.show_progress_dialog
+        )
 
     # ---- Private API
     # -------------------------------------------------------------------------
