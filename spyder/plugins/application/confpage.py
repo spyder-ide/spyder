@@ -122,12 +122,15 @@ class ApplicationConfigPage(PluginConfigPage):
                              'vertical_tabs', restart=True)
 
         tab_close_options = ["Automatic", "Left", "Right"]
-        tab_close_choices = list(zip(tab_close_options,
-                                     [c.lower() for c in tab_close_options]))
-        tab_close_combo = self.create_combobox(_("Tab close button position:"),
-                                               tab_close_choices,
-                                               "tab_close_position",
-                                               restart=True)
+        tab_close_choices = list(
+            zip(tab_close_options, [c.lower() for c in tab_close_options])
+        )
+        tab_close_combo = self.create_combobox(
+            _("Tab close button position:"),
+            tab_close_choices,
+            "tab_close_position",
+            restart=True
+        )
         tab_close_layout = QHBoxLayout()
         tab_close_layout.addWidget(tab_close_combo.label)
         tab_close_layout.addWidget(tab_close_combo.combobox)
