@@ -480,7 +480,9 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
         )
 
 
-class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
+class PanesTabBarStyleSheet(
+    PanesToolbarStyleSheet, BaseTabBarStyleSheet, SpyderConfigurationAccessor
+):
     """Stylesheet for pane tabbars"""
 
     TOP_MARGIN = '12px'
@@ -499,6 +501,11 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         css.QToolBar.setValues(
             marginLeft='-3px' if WIN else '-1px',
         )
+        
+        # Get if the close tabs button is to the left from Preferences
+        close_btn_left = (
+            self.get_conf("tab_close_position", section="main") == "left"
+        )
 
         # QTabBar forces the corner widgets to be smaller than they should.
         # be. The added top margin allows the toolbuttons to expand to their
@@ -508,8 +515,8 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
             marginTop=self.TOP_MARGIN,
             paddingTop='4px',
             paddingBottom='4px',
-            paddingLeft='4px' if MAC else '10px',
-            paddingRight='10px' if MAC else '4px'
+            paddingLeft='4px' if close_btn_left else '10px',
+            paddingRight='10px' if close_btn_left else '4px'
         )
 
         if MAC:
@@ -534,16 +541,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         css['QTabBar::tab:hover'].setValues(
             paddingTop='3px',
             paddingBottom='3px',
-            paddingLeft='3px' if MAC else '9px',
-            paddingRight='9px' if MAC else '3px'
+            paddingLeft='3px' if close_btn_left else '9px',
+            paddingRight='9px' if close_btn_left else '3px'
         )
 
         for state in ['selected', 'selected:hover']:
             css[f'QTabBar::tab:{state}'].setValues(
                 paddingTop='4px',
                 paddingBottom='3px',
-                paddingLeft='4px' if MAC else '10px',
-                paddingRight='10px' if MAC else '4px'
+                paddingLeft='4px' if close_btn_left else '10px',
+                paddingRight='10px' if close_btn_left else '4px'
             )
 
         # Remove border between selected tab and pane below
