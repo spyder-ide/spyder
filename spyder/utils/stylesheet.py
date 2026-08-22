@@ -14,8 +14,6 @@ import sys
 # Third-party imports
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
-from qtpy import QT6
-from qtpy.QtWidgets import QCommonStyle, QStyle, QTabBar
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -432,40 +430,6 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 # =============================================================================
 # ---- Tabbar stylesheets
 # =============================================================================
-class CloseButtonTabBarStyle(QCommonStyle, SpyderConfigurationAccessor):
-    """
-    Style for QTabBar instances which should pull
-    QStyle.SH_TabBar_CloseButtonPosition from a CONF entry.
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        position = self.get_conf(
-            "tab_close_position",
-            section="main"
-        )
-        if position == "left":
-            self.close_btn_side = QTabBar.ButtonPosition.LeftSide
-        elif position == "right":
-            self.close_btn_side = QTabBar.ButtonPosition.RightSide
-        else:
-            if MAC:
-                self.close_btn_side = QTabBar.ButtonPosition.LeftSide
-            else:
-                self.close_btn_side = QTabBar.ButtonPosition.RightSide
-
-    def styleHint(self, hint, options=None, widget=None, returnData=None):
-        if hint == QStyle.SH_TabBar_CloseButtonPosition:
-            if QT6:  # PySide6/PyQt6
-                return self.close_btn_side.value
-            else:  # PySide2/PyQt5
-                return int(self.close_btn_side)
-        else:
-            return super().styleHint(hint, options, widget, returnData)
-
-
-CLOSE_BUTTON_TABBAR_STYLE = CloseButtonTabBarStyle()
-
-
 class BaseTabBarStyleSheet(SpyderStyleSheet):
     """Base style for tabbars."""
 
@@ -516,7 +480,9 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
         )
 
 
-class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
+class PanesTabBarStyleSheet(
+    PanesToolbarStyleSheet, BaseTabBarStyleSheet, SpyderConfigurationAccessor
+):
     """Stylesheet for pane tabbars"""
 
     TOP_MARGIN = '12px'
@@ -535,16 +501,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         css.QToolBar.setValues(
             marginLeft='-3px' if WIN else '-1px',
         )
+        
+        # Get if the close tabs button is to the left from Preferences
+        close_btn_left = (
+            self.get_conf("tab_close_position", section="main") == "left"
+        )
 
         # QTabBar forces the corner widgets to be smaller than they should.
         # be. The added top margin allows the toolbuttons to expand to their
         # normal size.
         # See: spyder-ide/spyder#13600
-        
-        close_btn_left = (
-            CLOSE_BUTTON_TABBAR_STYLE.close_btn_side == QTabBar.LeftSide
-        )
-            
         css['QTabBar::tab'].setValues(
             marginTop=self.TOP_MARGIN,
             paddingTop='4px',

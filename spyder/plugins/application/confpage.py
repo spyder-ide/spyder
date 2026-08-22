@@ -121,12 +121,13 @@ class ApplicationConfigPage(PluginConfigPage):
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs', restart=True)
 
-        tab_close_options = ["Automatic", "Left", "Right"]
-        tab_close_choices = list(
-            zip(tab_close_options, [c.lower() for c in tab_close_options])
-        )
+        tab_close_choices = [
+            (_("Automatic"), "automatic"), 
+            (_("Left"), "left"),
+            (_("Right"), "right")
+        ]
         tab_close_combo = self.create_combobox(
-            _("Tab close button position:"),
+            _("Tabs close button position:"),
             tab_close_choices,
             "tab_close_position",
             restart=True
