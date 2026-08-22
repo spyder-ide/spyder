@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-08-21 16:04-0500\n"
-"PO-Revision-Date: 2026-08-21 21:17\n"
+"PO-Revision-Date: 2026-08-22 05:32\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1195,7 +1195,7 @@ msgstr "如果启用，当保存文件时将自动进行格式化"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:104
 msgid "Since you selected Ruff as formatter, linting via Ruff will be enabled too"
-msgstr ""
+msgstr "由于你选择 Ruff 作为格式化器，通过 Ruff 进行语法检查也将被启用"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:26
 msgid "Introspection"
@@ -1335,7 +1335,7 @@ msgstr "列出要包括的文件模式应当是有效的正则表达式"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:288
 msgid "Since Ruff is selected as formatter, linting can only be provided by Ruff and it can't be disabled"
-msgstr ""
+msgstr "由于 Ruff 被选择作为格式化器，语法检查将只能由 Ruff 提供因而它不能被禁用"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:31
 msgid "Other languages"
