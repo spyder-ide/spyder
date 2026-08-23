@@ -503,8 +503,10 @@ class PanesTabBarStyleSheet(
         )
         
         # Get if the close tabs button is to the left from Preferences
+        close_btn_option = self.get_conf("tab_close_position", section="main")
         close_btn_left = (
-            self.get_conf("tab_close_position", section="main") == "left"
+            close_btn_option == "left"
+            or (MAC and close_btn_option == "automatic")
         )
 
         # QTabBar forces the corner widgets to be smaller than they should.

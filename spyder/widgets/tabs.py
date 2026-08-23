@@ -221,13 +221,19 @@ class CloseTabButton(QToolButton):
         # To keep track of the tab's current color
         self._tab_color = self._selected_tab_color
 
+        # Get if the close tabs button is to the left from Preferences
+        close_btn_left = (
+            CLOSE_BUTTON_TABBAR_STYLE.close_btn_side
+            == QTabBar.ButtonPosition.LeftSide
+        )
+
         # Stylesheet
         self.css = qstylizer.style.StyleSheet()
         self.css.QToolButton.setValues(
             marginTop='9px',
             marginBottom='-7px',
-            marginLeft='3px' if MAC else '2px',
-            marginRight='-7px' if MAC else '-6px',
+            marginLeft='3px' if close_btn_left else '2px',
+            marginRight='-7px' if close_btn_left else '-6px',
             padding='0px',
             paddingTop='-5px' if (MAC or WIN) else '-8px',
             borderRadius='3px'
