@@ -17,9 +17,17 @@ import sys
 
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QMessageBox, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QButtonGroup,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget
+)
 
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
@@ -122,7 +130,7 @@ class ApplicationConfigPage(PluginConfigPage):
                              'vertical_tabs', restart=True)
 
         tab_close_choices = [
-            (_("Automatic"), "automatic"), 
+            (_("Automatic"), "automatic"),
             (_("Left"), "left"),
             (_("Right"), "right")
         ]
@@ -132,11 +140,7 @@ class ApplicationConfigPage(PluginConfigPage):
             "tab_close_position",
             restart=True
         )
-        tab_close_layout = QHBoxLayout()
-        tab_close_layout.addWidget(tab_close_combo.label)
-        tab_close_layout.addWidget(tab_close_combo.combobox)
-        tab_close_layout.addStretch(1)
-        
+
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -160,21 +164,22 @@ class ApplicationConfigPage(PluginConfigPage):
         cursor_spin.slabel.setEnabled(
             self.get_option('use_custom_cursor_blinking'))
 
-        margins_cursor_layout = QGridLayout()
-        margins_cursor_layout.addWidget(margin_box, 0, 0)
-        margins_cursor_layout.addWidget(margin_spin.spinbox, 0, 1)
-        margins_cursor_layout.addWidget(margin_spin.slabel, 0, 2)
-        margins_cursor_layout.addWidget(cursor_box, 1, 0)
-        margins_cursor_layout.addWidget(cursor_spin.spinbox, 1, 1)
-        margins_cursor_layout.addWidget(cursor_spin.slabel, 1, 2)
-        margins_cursor_layout.setColumnStretch(2, 100)
+        glayout = QGridLayout()
+        glayout.addWidget(tab_close_combo.label, 0, 0)
+        glayout.addWidget(tab_close_combo.combobox, 0, 1)
+        glayout.addWidget(margin_box, 1, 0)
+        glayout.addWidget(margin_spin.spinbox, 1, 1)
+        glayout.addWidget(margin_spin.slabel, 1, 2)
+        glayout.addWidget(cursor_box, 2, 0)
+        glayout.addWidget(cursor_spin.spinbox, 2, 1)
+        glayout.addWidget(cursor_spin.slabel, 2, 2)
+        glayout.setColumnStretch(2, 100)
 
         # Layout interface
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(empty_messages_box)
         interface_layout.addWidget(verttabs_box)
-        interface_layout.addLayout(tab_close_layout)
-        interface_layout.addLayout(margins_cursor_layout)
+        interface_layout.addLayout(glayout)
         interface_group.setLayout(interface_layout)
 
         if sys.platform == "darwin" and not is_conda_based_app():
