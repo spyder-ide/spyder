@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 # Update manager process statuses
 NO_STATUS = __version__
-UPDATING_UPDATER = _("Updating Spyder-updater")
+UPDATING_UPDATER = _("Installing Spyder's updater")
 DOWNLOADING_INSTALLER = _("Downloading update")
 DOWNLOAD_FINISHED = _("Download finished")
 PENDING = _("Update available")
@@ -374,8 +374,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.set_status(UPDATING_UPDATER)
 
         self.progress_dialog = ProgressDialog(
-            self, _("Updating Spyder's updater..."),
-            cancel_btn=False
+            self, _("Installing Spyder's updater..."), cancel_btn=False
         )
         # Show progress bar as busy
         self.progress_dialog.update_progress(0, 0)
@@ -416,7 +415,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self.progress_dialog = None
 
         if isinstance(error, subprocess.CalledProcessError):
-            error_msg = _("Error updating Spyder-updater.")
+            error_msg = _("Error installing Spyder's updater.")
             details = [
                 "*** COMMAND ***",
                 error.cmd.strip(),
