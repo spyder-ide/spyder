@@ -36,7 +36,10 @@ import spyder_kernels
 from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.comms.decorators import (
-    register_comm_handlers, comm_handler)
+    comm_handler,
+    kernel_config,
+    register_comm_handlers,
+)
 from spyder_kernels.utils.pythonenv import (
     get_env_dir,
     is_conda_env,
@@ -100,6 +103,9 @@ class SpyderKernel(IPythonKernel):
         # user paths and should be clean.
         self._sys_path = sys.path.copy()
 
+        # load configuration functions
+        self._load_config_methods()
+
     @property
     def kernel_info(self):
         # Used for checking correct version by spyder
@@ -112,7 +118,8 @@ class SpyderKernel(IPythonKernel):
         })
         return infos
 
-    # -- Public API -----------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def frontend_call(self, blocking=False, broadcast=True,
                       timeout=None, callback=None, display_error=False):
         """Call the frontend."""
@@ -149,11 +156,15 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             pass
 
-    def enable_faulthandler(self):
+    @kernel_config("faulthandler")
+    def enable_faulthandler(self, enable=True):
         """
         Open a file to save the faulthandling and identifiers for
         internal threads.
         """
+        if not enable:
+            return
+
         fault_dir = None
         if sys.platform.startswith('linux'):
             # Do not use /tmp for temporary files
@@ -581,7 +592,7 @@ class SpyderKernel(IPythonKernel):
             # magic but not through our Preferences.
             return -1
 
-    @comm_handler
+    @kernel_config("matplotlib")
     def set_matplotlib_conf(self, conf):
         """Set matplotlib configuration"""
         pylab_autoload_n = 'pylab/autoload'
@@ -630,14 +641,17 @@ class SpyderKernel(IPythonKernel):
             self._set_mpl_backend(pylab_backend_o, pylab_autoload_o)
 
     # -- For completions
+    @kernel_config("jedi_completer")
     def set_jedi_completer(self, use_jedi):
         """Enable/Disable jedi as the completer for the kernel."""
         self._set_config_option('IPCompleter.use_jedi', use_jedi)
 
+    @kernel_config("greedy_completer")
     def set_greedy_completer(self, use_greedy):
         """Enable/Disable greedy completer for the kernel."""
         self._set_config_option('IPCompleter.greedy', use_greedy)
 
+    @kernel_config("autocall")
     def set_autocall(self, autocall):
         """Enable/Disable autocall funtionality."""
         self._set_config_option('ZMQInteractiveShell.autocall', autocall)
@@ -648,44 +662,29 @@ class SpyderKernel(IPythonKernel):
         """Set kernel configuration"""
         ret = {}
         for key, value in conf.items():
-            if key == "cwd" and os.path.isdir(value):
-                self._cwd_initialised = True
-                os.chdir(value)
-                self.publish_state()
-            elif key == "namespace_view_settings":
-                self.namespace_view_settings = value
-                self.publish_state()
-            elif key == "pdb":
-                self.shell.set_pdb_configuration(value)
-            elif key == "faulthandler":
-                if value:
-                    ret[key] = self.enable_faulthandler()
-            elif key == "special_kernel":
+            if key == "special_kernel":
                 try:
-                    self.set_special_kernel(value)
+                    ret[key] = self._config_methods[key](value)
                 except Exception:
                     ret["special_kernel_error"] = value
-            elif key == "color scheme":
-                self.set_color_scheme(value)
-            elif key == "traceback_highlight_style":
-                self.set_traceback_syntax_highlighting(value)
-            elif key == "jedi_completer":
-                self.set_jedi_completer(value)
-            elif key == "greedy_completer":
-                self.set_greedy_completer(value)
-            elif key == "autocall":
-                self.set_autocall(value)
-            elif key == "matplotlib":
-                self.set_matplotlib_conf(value)
-            elif key == "update_gui":
-                self.shell.update_gui_frontend = value
-            elif key == "wurlitzer":
-                if value:
-                    self._load_wurlitzer()
-            elif key == "autoreload_magic":
-                self._autoreload_magic(value)
+            else:
+                ret[key] = self._config_methods[key](value)
+
         return ret
 
+    @kernel_config("cwd")
+    def set_cwd(self, cwd):
+        if os.path.isdir(cwd):
+            self._cwd_initialised = True
+            os.chdir(cwd)
+            self.publish_state()
+
+    @kernel_config("namespace_view_settings")
+    def set_namespace_view_settings(self, namespace_view_settings):
+        self.namespace_view_settings = namespace_view_settings
+        self.publish_state()
+
+    @kernel_config("color scheme")
     def set_color_scheme(self, color_scheme):
         self.shell.set_spyder_theme(color_scheme)
         self.set_sympy_forecolor(background_color=color_scheme)
@@ -701,6 +700,7 @@ class SpyderKernel(IPythonKernel):
         elif getattr(VerboseTB, '_tb_highlight', None) is not None:
             VerboseTB._tb_highlight = color
 
+    @kernel_config("traceback_highlight_style")
     def set_traceback_syntax_highlighting(self, syntax_style):
         """Set the traceback syntax highlighting style."""
         # Create spyder theme definition and set it
@@ -721,6 +721,10 @@ class SpyderKernel(IPythonKernel):
         theme = Theme("spyder_theme", base, extra_style)
         IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
         self.shell.run_line_magic("colors", "spyder_theme")
+
+    @kernel_config("update_gui")
+    def set_update_gui(self, update):
+        self.shell.update_gui_frontend = update
 
     def get_cwd(self):
         """Get current working directory."""
@@ -748,6 +752,7 @@ class SpyderKernel(IPythonKernel):
         except:
             pass
 
+    @kernel_config("special_kernel")
     def set_special_kernel(self, special):
         """
         Check if optional dependencies are available for special consoles.
@@ -870,8 +875,19 @@ class SpyderKernel(IPythonKernel):
 
         return self.pythonenv_info
 
-    # -- Private API ---------------------------------------------------
-    # --- For the Variable Explorer
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    # ---- General
+    def _load_config_methods(self):
+        """Load kernel config methods"""
+        self._config_methods = {}
+        for instance in [self, self.shell]:
+            for method_name in instance.__class__.__dict__:
+                method = getattr(instance, method_name)
+                if hasattr(method, '_is_kernel_config'):
+                    self._config_methods[method._is_kernel_config] = method
+
+    # ---- For the Variable Explorer
     def _get_len(self, var):
         """Return sequence length"""
         try:
@@ -955,7 +971,7 @@ class SpyderKernel(IPythonKernel):
         except:
             return None
 
-    # --- For the Help plugin
+    # ---- For the Help plugin
     def _eval(self, text):
         """
         Evaluate text and return (obj, valid)
@@ -970,7 +986,7 @@ class SpyderKernel(IPythonKernel):
         except:
             return None, False
 
-    # --- For Matplotlib
+    # ---- For Matplotlib
     def _set_mpl_backend(self, backend, pylab=False):
         """
         Set a backend for Matplotlib.
@@ -1129,7 +1145,8 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             pass
 
-    # --- Others
+    # ---- Others
+    @kernel_config("autoreload_magic")
     def _autoreload_magic(self, enable):
         """Load %autoreload magic."""
         try:
@@ -1142,8 +1159,12 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             pass
 
-    def _load_wurlitzer(self):
+    @kernel_config("wurlitzer")
+    def _load_wurlitzer(self, enable=True):
         """Load wurlitzer extension."""
+        if not enable:
+            return
+
         # Wurlitzer has no effect on Windows
         if not os.name == 'nt':
             # Enclose this in a try/except because if it fails the
