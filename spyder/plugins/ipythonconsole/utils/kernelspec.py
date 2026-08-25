@@ -348,10 +348,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'default', section='main_interpreter'
         )
 
-        # List of modules to exclude from our UMR
-        umr_namelist = self.get_conf(
-            'umr/namelist', section='main_interpreter')
-
         # Get TMPDIR value, if available
         tmpdir_var = env_vars.get("TMPDIR", "")
 
@@ -361,11 +357,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
                                          or self.path_to_custom_interpreter),
-            'SPY_UMR_ENABLED': self.get_conf(
-                'umr/enabled', section='main_interpreter'),
-            'SPY_UMR_VERBOSE': self.get_conf(
-                'umr/verbose', section='main_interpreter'),
-            'SPY_UMR_NAMELIST': ','.join(umr_namelist),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
             # This env var avoids polluting the OS default temp directory with
