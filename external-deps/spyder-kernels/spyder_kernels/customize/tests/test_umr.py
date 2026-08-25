@@ -63,7 +63,7 @@ def test_umr_previous_modules(user_module):
     umr = UserModuleReloader()
 
     import foo2
-    assert 'IPython' in umr.previous_modules
+    assert 'sys' in umr.previous_modules
     assert 'foo2' not in umr.previous_modules
 
 
