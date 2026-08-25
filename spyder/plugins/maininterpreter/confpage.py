@@ -164,7 +164,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
         umr_enabled_box = newcb(
             _("Enable UMR"),
             'umr/enabled',
-            msg_info=_("This change will only be applied to new consoles"),
             tip=_(
                 "This option will enable the User Module Reloader (UMR) "
                 "in IPython consoles. UMR forces Python to perform a "
@@ -181,12 +180,11 @@ class MainInterpreterConfigPage(PluginConfigPage):
             ),
         )
         umr_verbose_box = newcb(
-            _("Print list of reloaded modules"),
-            'umr/verbose',
-            msg_info=_("This change will only be applied to new consoles"),
+            _("Print list of reloaded modules"), "umr/verbose"
         )
         umr_namelist_btn = QPushButton(
-            _("Select modules to exclude from being reloaded"))
+            _("Select modules to exclude from being reloaded")
+        )
         umr_namelist_btn.clicked.connect(self.set_umr_namelist)
 
         umr_layout = QVBoxLayout()
@@ -235,12 +233,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
                         ).format(invalid),
                         QMessageBox.Ok,
                     )
-                QMessageBox.information(
-                    self,
-                    _('UMR'),
-                    _("Changes will only be applied to new IPython consoles"),
-                    QMessageBox.Ok,
-                )
             else:
                 fixed_namelist = []
 
