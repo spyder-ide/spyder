@@ -6,14 +6,16 @@
 
 """Tests for collectionsdelegate.py."""
 
+# Third-party imports
 import numpy as np
 import pandas as pd
+from spyder_kernels.utils.nsview import get_size
+
 # Local imports
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate,
 )
 from spyder.plugins.variableexplorer.widgets import collectionsdelegate
-from spyder_kernels.utils.nsview import get_size
 
 
 class MockEditor:
@@ -41,7 +43,8 @@ def test_close_all_editors():
     assert editor_2.rejected
     assert not delegate._editors
 
-class Cell:
+
+class FakeCell:
     def __init__(self, value):
         self.value = value
 
@@ -49,7 +52,7 @@ class Cell:
         return self.value
 
 
-class FakeIndex:
+class FakeQModelIndex:
     def __init__(self, obj):
         self.obj = obj
 
@@ -58,9 +61,9 @@ class FakeIndex:
 
     def sibling(self, row, column):
         if column == 1:
-            return Cell("DataFrame")
+            return FakeCell("DataFrame")
         elif column == 2:
-            return Cell(str(get_size(self.obj)))
+            return FakeCell(str(get_size(self.obj)))
 
 
 def test_show_warning_dataframe(monkeypatch):
@@ -68,7 +71,5 @@ def test_show_warning_dataframe(monkeypatch):
     monkeypatch.setattr(collectionsdelegate, "LARGE_ARRAY", 10)
 
     df = pd.DataFrame(np.random.rand(2, 6))
-
     delegate = CollectionsDelegate()
-
-    assert delegate.show_warning(FakeIndex(df))
+    assert delegate.show_warning(FakeQModelIndex(df))
