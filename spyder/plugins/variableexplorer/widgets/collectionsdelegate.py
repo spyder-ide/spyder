@@ -8,6 +8,7 @@
 # -----------------------------------------------------------------------------
 
 # Standard library imports
+import ast
 import copy
 import datetime
 import functools
@@ -59,7 +60,7 @@ from spyder.utils.icon_manager import ima
 
 
 LARGE_COLLECTION = 1e5
-LARGE_ARRAY = 5e6
+LARGE_ARRAY = 5e7
 SELECT_ROW_BUTTON_SIZE = 22
 
 # The maximum length of the text in a QLineEdit is 32_767, so do not allow
@@ -169,7 +170,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             # the ones we're looking for above
             try:
                 # From https://blender.stackexchange.com/a/131849
-                shape = [int(s) for s in val_size.strip("()").split(",") if s]
+                shape = ast.literal_eval(val_size)
                 size = functools.reduce(operator.mul, shape)
                 if size > LARGE_ARRAY:
                     return True
