@@ -60,11 +60,7 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
             "appeal_page",
         )
         changelog_path = osp.join(appeal_page_dir, "changelog.md")
-        self._appeal_page_path = osp.join(
-            appeal_page_dir,
-            "dark" if THEME_MANAGER.is_dark_interface() else "light",
-            "index.html",
-        )
+        self._appeal_page_path = osp.join(appeal_page_dir, "index.html")
 
         # Render changelog to html
         with open(changelog_path, "r") as f:
@@ -118,19 +114,16 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
     # -------------------------------------------------------------------------
     def set_message(self, appeal: bool):
         template = Template(self._appeal_page)
-
+        css_file = "appeal.css"
+        
         rendered_page = template.substitute(
-            changelog_html=self._changelog,
-            show_changelog="false" if appeal else "true",
-            icon_report=(
-                "icon_report_sm_mac.svg"
-                if MAC
-                else (
-                    "icon_report_sm_win.svg"
-                    if WIN
-                    else "icon_report_sm_linux.svg"
-                )
+            theme_mode="dark" if THEME_MANAGER.is_dark_interface() else "light",
+            css_appeal=osp.join(
+                THEME_MANAGER.get_css_path(css_file=css_file), 
+                css_file
             ),
+            changelog_html=self._changelog,
+            show_changelog="false" if appeal else "true"
         )
 
         # Load page

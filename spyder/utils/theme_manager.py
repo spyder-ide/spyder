@@ -501,28 +501,29 @@ class ThemeManager(SpyderConfigurationAccessor):
         # themes)
         return True
 
-    def get_css_path(self, theme_variant=None):
+    def get_css_path(self, theme_variant=None, css_file="default.css"):
         """
-        Return the directory containing ``default.css`` for a theme variant.
+        Return the directory containing ``css_file`` for a theme variant.
 
         The returned path is the theme variant directory (containing
-        ``default.css`` and the ``rc/`` image assets).
+        ``css_file`` and the ``rc/`` image assets).
 
         Parameters
         ----------
         theme_variant : str or None
             Variant id such as ``spyder_themes.spyder/dark``. If None, it uses
             the currently selected appearance theme.
-
+        css_file : str
+            Name of the CSS file to return the path for.
         Returns
         -------
         str
-            Absolute path to the ``default.css`` directory.
+            Absolute path to the ``css_file`` directory.
 
         Raises
         ------
         FileNotFoundError
-            If ``default.css`` is missing for the resolved variant.
+            If ``css_file`` is missing for the resolved variant.
         ValueError
             If ``theme_variant`` (or the selected theme) has no ``/`` mode
             segment.
@@ -537,16 +538,16 @@ class ThemeManager(SpyderConfigurationAccessor):
         selected = self.canonical_theme_variant_id(selected)
         if not selected or "/" not in selected:
             raise ValueError(
-                f"Invalid theme variant for help CSS path: {selected!r}"
+                f"Invalid theme variant for CSS path: {selected!r}"
             )
 
         theme_name, ui_mode = selected.rsplit("/", 1)
         css_dir = self._theme_root_path(theme_name) / ui_mode
-        css_file = css_dir / "default.css"
-        if not css_file.is_file():
+        file = css_dir / css_file
+        if not file.is_file():
             raise FileNotFoundError(
-                f"Help CSS not found for theme variant '{selected}': "
-                f"{css_file}"
+                f"CSS file not found for theme variant '{selected}': "
+                f"{file!r}"
             )
 
         return str(css_dir)
