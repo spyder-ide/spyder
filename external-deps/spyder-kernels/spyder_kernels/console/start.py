@@ -11,7 +11,6 @@ File used to start kernels for the IPython Console
 """
 
 # Standard library imports
-import os
 import os.path as osp
 import sys
 import site
@@ -62,12 +61,6 @@ def kernel_config():
 
     # ---- Spyder config ----
     spy_cfg = Config()
-
-    # Enable/disable certain features for testing
-    testing = os.environ.get('SPY_TESTING') == 'True'
-    if testing:
-        # Don't load nor save history in our IPython consoles.
-        spy_cfg.HistoryAccessor.enabled = False
 
     # Clear terminal arguments input.
     # This needs to be done before adding the exec_lines that come from

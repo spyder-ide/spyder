@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ccordoba12/spyder-kernels.git
 	branch = remove-env-vars
-	commit = 6fecc4f3fc001d253833f4a8a840ea5226f37d72
-	parent = c60e292f6a793c1c20a35b8dfb0b02ec08e1fdfe
+	commit = 2348ff63918d2e24534d769f4debaa23808bb281
+	parent = 8e4aa3025d94b29c23695a9bd0d9065cdfde3730
 	method = merge
 	cmdver = 0.4.9

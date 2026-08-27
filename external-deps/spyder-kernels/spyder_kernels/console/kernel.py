@@ -726,6 +726,13 @@ class SpyderKernel(IPythonKernel):
     def set_update_gui(self, update):
         self.shell.update_gui_frontend = update
 
+    @kernel_config("testing_enabled")
+    def set_testing(self, enabled):
+        """Enable/disable certain features for testing."""
+        if enabled:
+            # Don't load nor save commands history
+            self._set_config_option('HistoryAccessor.enabled', False)
+
     def get_cwd(self):
         """Get current working directory."""
         try:
