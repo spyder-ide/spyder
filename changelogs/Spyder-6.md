@@ -117,7 +117,7 @@ In this release 20 pull requests were closed.
 
 ----
 
-## Version 6.1.7 (Unreleased)
+## Version 6.1.7 (2026-08-27)
 
 ### New features
 
@@ -132,6 +132,40 @@ In this release 20 pull requests were closed.
 * Fix syntax highlighting of non-Python files in the Editor.
 * Fix crash at startup when the in-app appeal page can't be read from disk.
 * Make right-clicking on Files and Projects select the file where it's done.
+
+### Issues Closed
+
+* [Issue 26284](https://github.com/spyder-ide/spyder/issues/26284) - UnicodeDecodeError when reading appeal page from disk ([PR 26297](https://github.com/spyder-ide/spyder/pull/26297) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26235](https://github.com/spyder-ide/spyder/issues/26235) - `install_dev_repos` script is failing with `packaging` 26.3 ([PR 26239](https://github.com/spyder-ide/spyder/pull/26239) by [@mrclary](https://github.com/mrclary))
+* [Issue 26226](https://github.com/spyder-ide/spyder/issues/26226) - AttributeError on resizing window ([PR 26240](https://github.com/spyder-ide/spyder/pull/26240) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 26220](https://github.com/spyder-ide/spyder/issues/26220) - Spyder 6.1.6 fails to start when installed with uv tool install spyder (traitlets _merge error) ([PR 26221](https://github.com/spyder-ide/spyder/pull/26221) by [@tlunet](https://github.com/tlunet))
+* [Issue 26209](https://github.com/spyder-ide/spyder/issues/26209) - Files pane not selecting item when right-clicking ([PR 26229](https://github.com/spyder-ide/spyder/pull/26229) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 26138](https://github.com/spyder-ide/spyder/issues/26138) - Ruff linting does not seem to work at all ([PR 26227](https://github.com/spyder-ide/spyder/pull/26227) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22315](https://github.com/spyder-ide/spyder/issues/22315) - "Opening this variable can be slow" is overly cautious ([PR 26199](https://github.com/spyder-ide/spyder/pull/26199) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 22055](https://github.com/spyder-ide/spyder/issues/22055) - Missing indent for parameter descriptions in tooltips ([PR 26198](https://github.com/spyder-ide/spyder/pull/26198) by [@jsbautista](https://github.com/jsbautista))
+
+In this release 8 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26299](https://github.com/spyder-ide/spyder/pull/26299) - PR: Update user facing changelog for 6.1.7, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26297](https://github.com/spyder-ide/spyder/pull/26297) - PR: Fix error when reading in-app appeal page from disk (Application), by [@ccordoba12](https://github.com/ccordoba12) ([26284](https://github.com/spyder-ide/spyder/issues/26284))
+* [PR 26296](https://github.com/spyder-ide/spyder/pull/26296) - PR: Update spyder-kernels to 3.1.6 (for Spyder 6.1.7), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26287](https://github.com/spyder-ide/spyder/pull/26287) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 26286](https://github.com/spyder-ide/spyder/pull/26286) - PR: Update translations for 6.1.7 (extra strings), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26282](https://github.com/spyder-ide/spyder/pull/26282) - PR: Improve messages about installing Spyder's updater (Update manager), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26280](https://github.com/spyder-ide/spyder/pull/26280) - PR: Update translations for 6.1.7, by [@dalthviz](https://github.com/dalthviz)
+* [PR 26249](https://github.com/spyder-ide/spyder/pull/26249) - PR: Fix rehighlight for the Pygments highlighter (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26240](https://github.com/spyder-ide/spyder/pull/26240) - PR: Add validation for layouts plugin when handling resize event (Mainwindow), by [@dalthviz](https://github.com/dalthviz) ([26226](https://github.com/spyder-ide/spyder/issues/26226))
+* [PR 26239](https://github.com/spyder-ide/spyder/pull/26239) - PR: Revise parsing conda requirements to get `python-lsp-server version` (CI), by [@mrclary](https://github.com/mrclary) ([26235](https://github.com/spyder-ide/spyder/issues/26235))
+* [PR 26233](https://github.com/spyder-ide/spyder/pull/26233) - PR: Fix tests due to error with latest `packaging` version (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26229](https://github.com/spyder-ide/spyder/pull/26229) - PR: Select items on right-click (Files/Projects), by [@jsbautista](https://github.com/jsbautista) ([26209](https://github.com/spyder-ide/spyder/issues/26209))
+* [PR 26227](https://github.com/spyder-ide/spyder/pull/26227) - PR: Use proper option key to enable/disable only ruff formatter (Completions/Linting), by [@dalthviz](https://github.com/dalthviz) ([26138](https://github.com/spyder-ide/spyder/issues/26138))
+* [PR 26221](https://github.com/spyder-ide/spyder/pull/26221) - PR: Remove usage of old private attribute when merging Jupyter configs (IPython console), by [@tlunet](https://github.com/tlunet) ([26220](https://github.com/spyder-ide/spyder/issues/26220))
+* [PR 26199](https://github.com/spyder-ide/spyder/pull/26199) - PR: Increase threshold to warn about large arrays/dataframes and fix error when showing its message (Variable Explorer), by [@jsbautista](https://github.com/jsbautista) ([22315](https://github.com/spyder-ide/spyder/issues/22315))
+* [PR 26198](https://github.com/spyder-ide/spyder/pull/26198) - PR: Fix rendering text with indentation in tooltips (Editor/IPython console), by [@jsbautista](https://github.com/jsbautista) ([22055](https://github.com/spyder-ide/spyder/issues/22055))
+
+In this release 16 pull requests were closed.
 
 ----
 
