@@ -29,7 +29,11 @@ from traitlets import observe
 from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import is_conda_based_app, running_under_pytest
+from spyder.config.base import (
+    is_conda_based_app,
+    get_safe_mode,
+    running_under_pytest,
+)
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
@@ -474,6 +478,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Set current cwd
         self.set_cwd()
 
+        # Enable/disable features for testing
+        self.set_testing()
+
         # Set autocall
         self.set_autocall(self.get_conf('autocall'))
 
@@ -889,6 +896,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def set_umr_namelist(self, umr_namelist: list[str]):
         """Set list of modules excluded from the UMR."""
         self.set_kernel_configuration("umr_namelist", umr_namelist)
+
+    def set_testing(self):
+        self.set_kernel_configuration(
+            "testing_enabled", running_under_pytest() or get_safe_mode()
+        )
 
     # --- To handle the banner
     def long_banner(self):

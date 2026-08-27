@@ -384,6 +384,7 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(not os.name == "nt", reason="Only works on Windows")
 def test_conf_env_vars(ipyconsole, qtbot):
     """Test that kernels have env vars set by our kernel spec."""
     # Wait until the window is fully up
@@ -391,7 +392,7 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
     # Get a CONF env var
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; a = os.environ.get('SPY_TESTING')")
+        shell.execute("import os; a = os.environ.get('SPY_HIDE_CMD')")
 
     # Assert we get the assigned value correctly
     assert shell.get_value('a') == 'True'
