@@ -1028,9 +1028,11 @@ class ApplicationContainer(PluginMainContainer):
 
         try:
             self._appeal_dialog = InAppAppealDialog(self)
-        except QtModuleNotInstalledError:
-            # QtWebEngineWidgets is optional.
-            # See spyder-ide/spyder#24905 for the details.
+        except (QtModuleNotInstalledError, UnicodeDecodeError):
+            # * QtWebEngineWidgets is optional. See spyder-ide/spyder#24905 for
+            #   the details.
+            # * We can fail to read the appeal page from disk, which makes
+            #   Spyder crash at startup. Fixes spyder-ide/spyder#26284
             self._appeal_dialog = FakeInAppAppealDialog
 
     def _show_dialog(self, show_appeal: bool):
