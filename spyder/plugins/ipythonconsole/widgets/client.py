@@ -72,7 +72,6 @@ logger = logging.getLogger(__name__)
 # later it'll be a good idea to create a new one.
 PLUGINS_PATH = get_module_source_path('spyder', 'plugins')
 
-CSS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils', 'static', 'css')
 TEMPLATES_PATH = osp.join(
     PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 
@@ -154,11 +153,7 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
         self.kernel_id = None
         self.__on_close = lambda: None
 
-        css_path = self.get_conf('css_path', section='appearance')
-        if css_path is None:
-            self.css_path = CSS_PATH
-        else:
-            self.css_path = css_path
+        self.css_path = self.get_conf('css_path', section='appearance')
 
         # --- Widgets
         self.shellwidget = self.SHELL_WIDGET_CLASS(

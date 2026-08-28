@@ -76,6 +76,7 @@ logger = logging.getLogger(__name__)
 
 class EditorWidgetMenus:
 
+    ExportMenu = "Export Menu"
     TodoList = "todo_list_menu"
     WarningErrorList = "warning_error_list_menu"
     EOL = "eol_menu"
@@ -370,6 +371,33 @@ class EditorMainWidget(PluginMainWidget):
                 triggered=self.go_to_previous_file,
                 register_shortcut=True
             )
+
+        # Export menu
+        self.export_action = self.create_action(
+            EditorWidgetMenus.ExportMenu,
+            text=_("Export"),
+            tip=_("Export the current file with syntax highlighting"),
+            triggered=lambda: None
+        )
+        self.export_menu = self.create_menu(EditorWidgetMenus.ExportMenu)
+        self.export_action.setMenu(self.export_menu)
+
+        self.export_html_action = self.create_action(
+            EditorWidgetActions.ExportHtml,
+            text=_("Export as HTML"),
+            icon=self.create_icon("CodeFileIcon"),
+            triggered=lambda: self.get_current_editorstack().export_html(),
+            register_shortcut=True
+        )
+        self.export_rtf_action = self.create_action(
+            EditorWidgetActions.ExportRtf,
+            text=_("Export as RTF"),
+            icon=self.create_icon("WordFileIcon"),
+            triggered=lambda: self.get_current_editorstack().export_rtf(),
+            register_shortcut=True
+        )
+        self.export_menu.addAction(self.export_html_action)
+        self.export_menu.addAction(self.export_rtf_action)
 
         # ---- Find/Search operations
         self.gotoline_action = self.create_action(

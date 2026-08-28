@@ -53,10 +53,6 @@ concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  id-token: write
-  contents: read
-
 name: Weekly conda-based installers
 
 env:
@@ -269,6 +265,20 @@ jobs:
           conda index $CONDA_BLD_PATH
           conda search -c local --override-channels || true
 
+      - name: Create macOS Keychain
+        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
+        run: |
+          _codesign=$(which codesign)
+          if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
+              # Find correct codesign
+              echo "Moving $_codesign..."
+              mv $_codesign ${_codesign}.bak
+          fi
+
+          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
+          CERT_ID=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+
       - name: Build Package Installer
         run: |
           python build_installers.py
@@ -293,15 +303,11 @@ jobs:
         shell: cmd
         run: |
           set base_prefix=%USERPROFILE%\AppData\Local\spyder-6
-          start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
+          %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
 
-          echo.
-          if exist %base_prefix%\install.log (
-              echo Log output:
-              type %base_prefix%\install.log
-          ) else (
-              echo No log found at %base_prefix%\install.log
-          )
+          rem Silent install sends to stdout, but "start /wait" does not pass it back to the current process.
+          rem So we need something to halt the current process until the installer completes.
+          powershell -Command "while (Get-Process | Where-Object { $_.ProcessName -like 'Spyder-*Windows-x86_64' }) { Start-Sleep -Seconds 2 }"
 
           set error_occured=0
 
@@ -335,20 +341,6 @@ jobs:
           )
 
           EXIT /B %error_occured%
-
-      - name: Create macOS Keychain
-        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
-        run: |
-          _codesign=$(which codesign)
-          if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
-              # Find correct codesign
-              echo "Moving $_codesign..."
-              mv $_codesign ${_codesign}.bak
-          fi
-
-          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CERT_ID=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
 
       - name: Notarize macOS Installer
         if: runner.os == 'macOS' && env.NOTARIZE == 'true'
