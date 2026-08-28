@@ -82,30 +82,39 @@
       </div>
     </div>
   </div>
+  <template id="changelog-source">${changelog_html}</template>
   <script>
     const info = document.getElementById("info");
     const changelog = document.getElementById("changelog");
     const content = document.getElementById("changelog-content");
+    const themeMode = "${theme_mode}";
     let changelogLoaded = false;
     let showChangelog = ${show_changelog};
-    let themeMode = "${theme_mode}";
     
-    // Set initial theme mode
+    // get the changelog html from the template
+    function getChangelogHtml() {
+      const source = document.getElementById("changelog-source");
+      return source ? source.innerHTML : "";
+    }
+
+    // set the initial theme mode
     document.body.dataset.mode = themeMode;
 
-    // Set initial view before first paint to avoid appeal→changelog flicker
+    // show the changelog if it's loaded
     if (showChangelog) {
       info.classList.add("invisible");
-      content.innerHTML = "${changelog_html}";
+      content.innerHTML = getChangelogHtml();
       changelog.classList.add("visible");
       changelogLoaded = true;
     }
+
+    // remove the hide-until-ready class
     document.body.classList.remove("hide-until-ready");
 
-    // load the changelog and animate the panel if desired
+    // load the changelog if it's not loaded
     async function loadChangelog(animate = true) {
       if (changelogLoaded) return;
-      content.innerHTML = "${changelog_html}";
+      content.innerHTML = getChangelogHtml();
       changelog.classList.add("visible");
 
       if (animate) {
@@ -126,6 +135,7 @@
       changelogLoaded = false;
     }
 
+    // add event listeners to the buttons
     document
       .getElementById("view-changelog")
       .addEventListener("click", loadChangelog);

@@ -114,40 +114,40 @@ p {
   justify-content: center;
   gap: 1.25rem;
   width: 100%;
-  max-width: 640px;
+  max-width: 40rem;
   overflow: hidden;
 }
 
 .logo-hero {
   width: 100%;
-  min-width: 500px;
-  max-width: 600px;
+  min-width: 32rem;
+  max-width: 40rem;
   height: auto;
   display: block;
 }
 
 .logo-donate {
   width: 100%;
-  max-width: 250px;
-  min-width: 150px;
+  max-width: 16rem;
+  min-width: 12rem;
   height: auto;
   display: block;
 }
 
 .logo-nav {
   width: 100%;
-  max-width: 200px;
-  min-width: 100px;
+  max-width: 12rem;
+  min-width: 6rem;
   height: auto;
   display: block;
 }
 
 .button {
-  max-width: 300px;
-  min-width: 150px;
-  min-height: 100px;
-  border-radius: 8px;
-  padding: 20px 28px;
+  min-width: 12rem;
+  max-width: 20rem;
+  min-height: 4rem;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.75rem;
   background-color: var(--highlight);
   color: #ffffff;
   cursor: pointer;
@@ -159,16 +159,17 @@ p {
 }
 
 .button.medium {
-  max-width: 240px;
-  min-width: 120px;
-  min-height: 60px;
-  height: 4rem;
+  min-width: 12rem;
+  max-width: 16rem;
+  max-height: 4rem;
 }
 
 .button.small {
   min-width: auto;
+  max-width: auto;
+  max-height: auto;
   min-height: auto;
-  padding: 10px 20px;
+  padding: 0.625rem 1.25rem;
 }
 
 .button:hover {
@@ -194,8 +195,15 @@ p {
   gap: 2.5rem;
 }
 
+@media (max-width: 30rem) {
+  .actions {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
 .actions.footer {
-  margin: 2.5rem;
+  margin: 1.5rem 2.5rem;
 }
 
 .heart-container {
@@ -251,7 +259,7 @@ p {
 }
 
 .content {
-  padding-top: 20px;
+  padding-top: 1.25rem;
 }
 
 .content p {
@@ -298,7 +306,7 @@ p {
   overflow-y: auto;
   padding: 5rem;
   padding-top: 4rem;
-  max-width: 960px;
+  max-width: 60rem;
   width: 100%;
   color: var(--foreground);
 }
