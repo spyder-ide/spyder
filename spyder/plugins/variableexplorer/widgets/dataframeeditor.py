@@ -2599,7 +2599,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if self.resizeToHeader:
             self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
-        for index in range(0, column_count):
+        for index in range(column_count):
             if index < column_count:
                 column_width = self.dataTable.columnWidth(index)
                 header_width = self.table_header.columnWidth(index)
@@ -2617,7 +2617,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
 
         column_count = self.table_level.model().columnCount()
-        for index in range(0, column_count):
+        for index in range(column_count):
             if index < column_count:
                 column_width = self.table_index.columnWidth(index)
                 header_width = self.table_level.columnWidth(index)
