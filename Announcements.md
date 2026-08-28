@@ -1,28 +1,27 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.6 is released!
+**Subject**: [ANN] Spyder 6.1.7 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.6** has been released and is available for
+I'm pleased to announce that Spyder **6.1.7** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes four weeks after version 6.1.5 and with the following interesting new features and fixes:
+This release comes four weeks after version 6.1.6 and with the following interesting new features and fixes:
 
 - New features
-    * Add support for Jedi 0.20.0
-    * Add support for python-lsp-server 1.15.0
+    * Increase threshold to warn users when an array or dataframe is too big to be
+      viewed in the Variable Explorer. The new limit is 50 million elements.
 
 - Important fixes
-    * Prevent Variable Explorer viewers for arrays and dataframes to go to the
-      background on macOS.
-    * Prevent Spyder to steal focus from other applications at startup.
-    * Prevent duplicate key sequences when changing shortcuts in Preferences.
-    * Fix syntax highlighting of `match` and `case` builtins.
-    * Fix running batch scripts with spaces in their path on Windows.
-    * Fix docstring generation for nested functions.
+    * Fix formatting and linting with Ruff.
+    * Fix warning to tell users that an array or dataframe is too big to be handled
+      by the Variable Explorer.
+    * Fix syntax highlighting of non-Python files in the Editor.
+    * Fix crash at startup when the in-app appeal page can't be read from disk.
+    * Make right-clicking on Files and Projects select the file where it's done.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
