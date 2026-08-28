@@ -9,6 +9,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import re
 
 # Third party imports
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
@@ -204,7 +205,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
     def set_umr_namelist(self):
         """Set UMR excluded module names list."""
-        example_excludes = "<code>numpy, scipy</code>"
+        example_excludes = "numpy, scipy"
         arguments, valid = QInputDialog.getText(
             self,
             _('UMR'),
@@ -215,28 +216,27 @@ class MainInterpreterConfigPage(PluginConfigPage):
         if valid:
             arguments = str(arguments)
             if arguments:
-                namelist = arguments.replace(' ', '').split(',')
-                fixed_namelist = []
-                non_ascii_namelist = []
-                for module_name in namelist:
-                    if programs.is_module_installed(module_name):
-                        fixed_namelist.append(module_name)
-
-                invalid = ", ".join(set(namelist) - set(fixed_namelist) -
-                                    set(non_ascii_namelist))
-                if invalid:
-                    QMessageBox.warning(
+                # Check that text entered by users is in the format we require
+                if not bool(
+                    re.match(r"^\w+(\s*,\s*\w+)*$", arguments, re.UNICODE)
+                ):
+                    QMessageBox.critical(
                         self,
-                        _('UMR'),
+                        _('UMR error'),
                         _(
-                            "The following modules are not installed:\n{}"
-                        ).format(invalid),
+                            "The text you entered doesn't correspond to a "
+                            "list of modules separated by commas"
+                        ),
                         QMessageBox.Ok,
                     )
-            else:
-                fixed_namelist = []
 
-            self.set_option('umr/namelist', fixed_namelist)
+                    return
+
+                namelist = arguments.replace(' ', '').split(',')
+            else:
+                namelist = []
+
+            self.set_option('umr/namelist', namelist)
 
     def perform_adjustments(self):
         """Perform some adjustments to the page after applying preferences."""
