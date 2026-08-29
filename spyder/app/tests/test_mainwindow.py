@@ -108,7 +108,12 @@ from spyder.widgets.dock import DockTitleBar
 @pytest.mark.single_instance
 @pytest.mark.known_leak
 @pytest.mark.skipif(
-    not running_in_ci(), reason="It's not meant to be run outside of CIs")
+    not running_in_ci(), reason="It's not meant to be run outside of CIs"
+)
+@pytest.mark.skipif(
+    parse(ipy_release.version) == parse('9.17.0'),
+    reason="Fails with IPython 9.17.0"
+)
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
