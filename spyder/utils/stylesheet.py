@@ -535,7 +535,7 @@ class PanesTabBarStyleSheet(
         else:
             # Remove spurious pixel to the left
             css.QTabBar.setValues(
-                marginLeft='-3px' if WIN else '-1px'
+                marginLeft='-3px' if WIN else ("0px" if MAC else '-4px')
             )
 
         # Fix minor visual glitch when hovering tabs

@@ -135,10 +135,14 @@ class ApplicationConfigPage(PluginConfigPage):
             (_("Right"), "right")
         ]
         tab_close_combo = self.create_combobox(
-            _("Tabs close button position:"),
+            _("Close button position for tabs:"),
             tab_close_choices,
             "tab_close_position",
-            restart=True
+            tip=(
+                "Decide where you want to locate the button to close tabs "
+                "(e.g. files in the Editor)"
+            ),
+            restart=True,
         )
 
         margin_box = newcb(_("Custom margin for panes:"),
@@ -167,19 +171,23 @@ class ApplicationConfigPage(PluginConfigPage):
         glayout = QGridLayout()
         glayout.addWidget(tab_close_combo.label, 0, 0)
         glayout.addWidget(tab_close_combo.combobox, 0, 1)
+        glayout.addWidget(tab_close_combo.help_label, 0, 2)
         glayout.addWidget(margin_box, 1, 0)
         glayout.addWidget(margin_spin.spinbox, 1, 1)
         glayout.addWidget(margin_spin.slabel, 1, 2)
         glayout.addWidget(cursor_box, 2, 0)
         glayout.addWidget(cursor_spin.spinbox, 2, 1)
         glayout.addWidget(cursor_spin.slabel, 2, 2)
-        glayout.setColumnStretch(2, 100)
+
+        hg_layout = QHBoxLayout()
+        hg_layout.addLayout(glayout)
+        hg_layout.addStretch()
 
         # Layout interface
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(empty_messages_box)
         interface_layout.addWidget(verttabs_box)
-        interface_layout.addLayout(glayout)
+        interface_layout.addLayout(hg_layout)
         interface_group.setLayout(interface_layout)
 
         if sys.platform == "darwin" and not is_conda_based_app():
