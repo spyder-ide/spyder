@@ -1765,20 +1765,20 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def on_close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
-        for __ in range(0, self.get_stack_count() - 1):
+        for __ in range(self.get_stack_count() - 1):
             self.close_file(0)
 
     def sort_file_tabs_alphabetically(self):
         """Sort open tabs alphabetically."""
         while self.sorted() is False:
-            for i in range(0, self.tabs.tabBar().count()):
+            for i in range(self.tabs.tabBar().count()):
                 if (self.tabs.tabBar().tabText(i) >
                         self.tabs.tabBar().tabText(i + 1)):
                     self.tabs.tabBar().moveTab(i, i + 1)
 
     def sorted(self):
         """Utility function for sort_file_tabs_alphabetically()."""
-        for i in range(0, self.tabs.tabBar().count() - 1):
+        for i in range(self.tabs.tabBar().count() - 1):
             if (self.tabs.tabBar().tabText(i) >
                     self.tabs.tabBar().tabText(i + 1)):
                 return False
