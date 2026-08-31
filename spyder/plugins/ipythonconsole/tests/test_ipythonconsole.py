@@ -2839,5 +2839,113 @@ def test_pixi_global_envs(ipyconsole, qtbot):
     assert "Error" not in control.toPlainText()
 
 
+def test_umr(ipyconsole, qtbot, tmp_path):
+    """Test that the UMR works as expected."""
+    # Create a dummy module to check the UMR
+    moddir = tmp_path / "umr_mod"
+    moddir.mkdir()
+    modfile = moddir / "bar.py"
+    mod_code = dedent(
+        """
+        def square(x):
+            return x**2
+        """
+    )
+    modfile.write_text(mod_code)
+
+    init_file = moddir / "__init__.py"
+    init_file.write_text("#")
+
+    # Import the module in another file to run it
+    file_to_run = tmp_path / "umr_run.py"
+    run_code = dedent(
+        """
+        from umr_mod.bar import square
+
+        print(square(3))
+        """
+    )
+    file_to_run.write_text(run_code)
+    fname = str(file_to_run).replace('\\', '/')
+
+    # Wait until the console is up
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Add tmp_path to the kernel's sys.path
+    with qtbot.waitSignal(shell.executed):
+        tmp_path_name = str(tmp_path).replace('\\', '/')
+        shell.execute(f"import sys; sys.path.append('{tmp_path_name}')")
+
+    # Run file twice so the module is reloaded
+    for __ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(f"%runfile {fname}")
+
+    # Check module was reloaded
+    assert "Reloaded modules" in control.toPlainText()
+    assert "umr_mod" in control.toPlainText()
+    assert "umr_mod.bar" in control.toPlainText()
+
+    # Add/remove module to UMR blacklist
+    shell.reset(clear=True)
+    ipyconsole.set_conf(
+        "umr/namelist", ["umr_mod"], section="main_interpreter"
+    )
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" not in control.toPlainText()
+
+    ipyconsole.set_conf("umr/namelist", [], section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" in control.toPlainText()
+
+    # Disable/reenable UMR verbosity
+    shell.reset(clear=True)
+    ipyconsole.set_conf("umr/verbose", False, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" not in control.toPlainText()
+
+    ipyconsole.set_conf("umr/verbose", True, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" in control.toPlainText()
+
+    # Disable/reenable UMR
+    shell.reset(clear=True)
+    ipyconsole.set_conf("umr/enabled", False, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" not in control.toPlainText()
+
+    ipyconsole.set_conf("umr/enabled", True, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()
