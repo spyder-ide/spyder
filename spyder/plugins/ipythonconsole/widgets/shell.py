@@ -29,7 +29,11 @@ from traitlets import observe
 from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import is_conda_based_app, running_under_pytest
+from spyder.config.base import (
+    is_conda_based_app,
+    get_safe_mode,
+    running_under_pytest,
+)
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
@@ -474,6 +478,33 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Set current cwd
         self.set_cwd()
 
+        # Enable/disable features for testing
+        self.set_testing()
+
+        # Set autocall
+        self.set_autocall(self.get_conf('autocall'))
+
+        # Set greedy completer
+        self.set_greedy_completer(self.get_conf('greedy_completer'))
+
+        # Set Jedi Completer
+        self.set_jedi_completer(self.get_conf('jedi_completer'))
+
+        # Set UMR enabled
+        self.set_umr_enabled(
+            self.get_conf("umr/enabled", section="main_interpreter")
+        )
+
+        # Set UMR verbose
+        self.set_umr_verbose(
+            self.get_conf("umr/verbose", section="main_interpreter")
+        )
+
+        # Set UMR list of excluded modules
+        self.set_umr_namelist(
+            self.get_conf("umr/namelist", section="main_interpreter")
+        )
+
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
@@ -852,6 +883,23 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set if autocall functionality is enabled or not."""
         self.set_kernel_configuration(
             "autocall", autocall
+        )
+
+    def set_umr_enabled(self, umr_enabled: bool):
+        """Set whether the UMR is enabled."""
+        self.set_kernel_configuration("umr_enabled", umr_enabled)
+
+    def set_umr_verbose(self, umr_verbose: bool):
+        """Set whether the UMR verbosity is enabled."""
+        self.set_kernel_configuration("umr_verbose", umr_verbose)
+
+    def set_umr_namelist(self, umr_namelist: list[str]):
+        """Set list of modules excluded from the UMR."""
+        self.set_kernel_configuration("umr_namelist", umr_namelist)
+
+    def set_testing(self):
+        self.set_kernel_configuration(
+            "testing_enabled", running_under_pytest() or get_safe_mode()
         )
 
     # --- To handle the banner

@@ -17,3 +17,6 @@ django
 h5py
 pydicom
 anyio
+# This pin is needed to prevent an error due to a minor incompatibility between
+# Bokeh and Dask.
+bokeh =3.9
