@@ -32,7 +32,7 @@ class FakeInAppAppealDialog:
 class InAppAppealDialog(SpyderFontsMixin, QDialog):
     """In-app appeal dialog to show the changelog and an appeal message."""
     CONF_SECTION = "main"
-    WIDTH = 520
+    WIDTH = 560
     HEIGHT = 620 if WIN else 640  # TODO: Check on Win/Mac
 
     def __init__(self, parent=None):
@@ -117,7 +117,8 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
             theme_mode="dark" if THEME_MANAGER.is_dark_interface() else "light",
             css_appeal=osp.join(css_path, css_file),
             changelog_html=self._changelog,
-            show_changelog="false" if appeal else "true"
+            show_changelog="false" if appeal else "true",
+            report_url="https://www.spyder-ide.org/blog/oc-progress-report-2025"
         )
 
         # Load page
