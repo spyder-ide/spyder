@@ -543,11 +543,11 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         theme_name, ui_mode = selected.rsplit("/", 1)
         css_dir = self._theme_root_path(theme_name) / ui_mode
-        file = css_dir / css_file
-        if not file.is_file():
+        css_file_path = css_dir / css_file
+        if not css_file_path.is_file():
             raise FileNotFoundError(
                 f"CSS file not found for theme variant '{selected}': "
-                f"{file!r}"
+                f"{css_file_path!r}"
             )
 
         return str(css_dir)
