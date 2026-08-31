@@ -748,7 +748,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
     qtbot.wait(5000)
 
     # Snippets are disabled when there are no more left
-    for _ in range(0, 3):
+    for _ in range(3):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert not snippets.is_snippet_active
 
@@ -797,7 +797,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
     if len(sig.args[0]) > 1:
         qtbot.keyPress(completion, Qt.Key_Tab)
 
-    for _ in range(0, 2):
+    for _ in range(2):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert snippets.active_snippet == 3
 
@@ -843,7 +843,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
         code_editor.undo()
     assert len(snippets.snippets_map) == 4
 
-    for _ in range(0, 2):
+    for _ in range(2):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     cursor = code_editor.textCursor()
@@ -855,7 +855,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
         code_editor.redo()
     assert len(snippets.snippets_map) == 3
 
-    for _ in range(0, 3):
+    for _ in range(3):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Right)
 
@@ -875,7 +875,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
-    for _ in range(0, 3):
+    for _ in range(3):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     cursor = code_editor.textCursor()
