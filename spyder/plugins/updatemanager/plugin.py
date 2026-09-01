@@ -153,7 +153,7 @@ class UpdateManager(SpyderPluginV2):
         help_spyder_action = ApplicationActions.HelpSpyderAction
 
         mainmenu.add_item_to_application_menu(
-            self.check_update_action,
+            self.get_container().check_update_action,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.About,
             before=help_spyder_action,
@@ -172,7 +172,3 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    @property
-    def check_update_action(self):
-        """Check if a new version of Spyder is available."""
-        return self.get_container().check_update_action
