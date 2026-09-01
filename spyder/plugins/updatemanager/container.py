@@ -66,6 +66,7 @@ class UpdateManagerContainer(PluginMainContainer):
         )
 
         # Signals
+        self.update_manager.sig_set_status.connect(self._set_status)
         self.update_manager.sig_disable_actions.connect(
             self._set_actions_state
         )
@@ -98,7 +99,6 @@ class UpdateManagerContainer(PluginMainContainer):
         self.update_manager.start_check_update(startup=startup)
 
     def connect_status_signals(self):
-        self.update_manager.sig_set_status.connect(self._set_status)
         self.update_manager.sig_block_status_signals.connect(
             self.update_manager_status.blockSignals
         )
@@ -116,7 +116,6 @@ class UpdateManagerContainer(PluginMainContainer):
         )
 
     def disconnect_status_signals(self):
-        self.update_manager.sig_set_status.disconnect(self._set_status)
         self.update_manager.sig_block_status_signals.disconnect(
             self.update_manager_status.blockSignals
         )
@@ -138,7 +137,9 @@ class UpdateManagerContainer(PluginMainContainer):
     def _set_status(self, status: UpdateStatus, latest_version=None):
         """Set Update Manager status"""
         self.update_status = status
-        self.update_manager_status.set_status(status)
+
+        if self.update_manager_status is not None:
+            self.update_manager_status.set_status(status)
 
     @Slot()
     def _start_update(self):
