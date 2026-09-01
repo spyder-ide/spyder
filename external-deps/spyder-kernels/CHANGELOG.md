@@ -19,6 +19,17 @@ In this release 4 pull requests were closed.
 
 ----
 
+## Version 3.1.6 (2026/08/26)
+
+### Pull Requests Merged
+
+* [PR 604](https://github.com/spyder-ide/spyder-kernels/pull/604) - PR: Prevent error when running `test_dask_multiprocessing`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 601](https://github.com/spyder-ide/spyder-kernels/pull/601) - PR: Replace `_merge` method by `merge` one when merging Jupyter configs, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.1.5 (2026/06/23)
 
 ### Pull Requests Merged
