@@ -24,7 +24,10 @@ from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
     UpdateManagerContainer
 )
-from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
+from spyder.plugins.updatemanager.widgets.status import (
+    UpdateManagerStatus,
+    UpdateStatus,
+)
 
 
 class UpdateManager(SpyderPluginV2):
@@ -59,7 +62,7 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Plugin initialization
     def on_initialize(self):
-        self.update_manager_status = None
+        self.update_manager_status = UpdateManagerStatus | None
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -113,7 +116,7 @@ class UpdateManager(SpyderPluginV2):
         container = self.get_container()
 
         # Initialize status.
-        # Note that NO_STATUS also hides the statusbar widget.
+        # Note that NoStatus also hides the statusbar widget.
         if self.update_manager_status is not None:
             self.update_manager_status.set_no_status()
 
@@ -172,3 +175,7 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Public API
     # ------------------------------------------------------------------------
+    @property
+    def update_status(self) -> UpdateStatus:
+        """Current update status."""
+        return self.get_container().update_status
