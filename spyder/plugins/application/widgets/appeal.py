@@ -20,7 +20,7 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.config.base import DEV, get_module_source_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
-from spyder.utils.stylesheet import MAC, WIN
+from spyder.utils.stylesheet import WIN
 from spyder.utils.theme_manager import THEME_MANAGER
 
 
@@ -31,6 +31,7 @@ class FakeInAppAppealDialog:
 
 class InAppAppealDialog(SpyderFontsMixin, QDialog):
     """In-app appeal dialog to show the changelog and an appeal message."""
+
     CONF_SECTION = "main"
     WIDTH = 560
     HEIGHT = 620 if WIN else 640  # TODO: Check on Win/Mac
@@ -62,11 +63,10 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
         changelog_path = osp.join(appeal_page_dir, "changelog.md")
         self._appeal_page_path = osp.join(appeal_page_dir, "index.html")
 
-        # Read changelog markdown
+        # Render changelog to html
         with open(changelog_path, "r") as f:
             changelog_md = f.read()
-        
-        # Render changelog to html
+
         self._changelog = MarkdownIt().render(changelog_md).strip()
 
         # Read html for appeal page
