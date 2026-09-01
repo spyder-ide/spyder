@@ -32,8 +32,14 @@ from qtpy.QtWidgets import (
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
-from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
-                                is_conda_based_app, save_lang_conf)
+from spyder.config.base import (
+    DISABLED_LANGUAGES,
+    LANGUAGE_CODES,
+    is_conda_based_app,
+    save_lang_conf,
+)
+from spyder.plugins.updatemanager.api import UpdateStatus
+
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
@@ -321,8 +327,7 @@ class ApplicationConfigPage(PluginConfigPage):
             um
             and ('update_manager', 'check_stable_only') in self.changed_options
         ):
-            um.update_manager_status.set_no_status()
-
+            um.set_status(UpdateStatus.NoStatus)
 
     def _save_lang(self):
         """

@@ -61,7 +61,7 @@ class Application(SpyderPluginV2):
         Plugins.StatusBar,
         Plugins.Shortcuts,  # Needed to display the app context menu
         Plugins.Toolbar,
-        Plugins.UpdateManager,  # Required in the confpage
+        Plugins.UpdateManager,
     ]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
