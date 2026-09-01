@@ -21,7 +21,10 @@ from qtpy.QtCore import Slot
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
+from spyder.plugins.updatemanager.widgets.update import (
+    UpdateManagerWidget,
+    UpdateStatus,
+)
 from spyder.utils.qthelpers import DialogManager
 
 
@@ -48,6 +51,7 @@ class UpdateManagerContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
+        self.update_status: UpdateStatus | None = None
         self.dialog_manager = DialogManager()
         self.update_manager = UpdateManagerWidget(parent=self)
 
@@ -131,9 +135,10 @@ class UpdateManagerContainer(PluginMainContainer):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _set_status(self, status, latest_version=None):
+    def _set_status(self, status: UpdateStatus, latest_version=None):
         """Set Update Manager status"""
-        self.update_manager_status.set_value(status)
+        self.update_status = status
+        self.update_manager_status.set_status(status)
 
     @Slot()
     def _start_update(self):
