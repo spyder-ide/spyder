@@ -69,7 +69,7 @@ class UpdateManagerContainer(PluginMainContainer):
             self.sig_exception_occurred
         )
         self.update_manager.sig_install_on_close.connect(
-            self.set_install_on_close
+            self._set_install_on_close
         )
         self.update_manager.sig_quit_requested.connect(self.sig_quit_requested)
 
@@ -88,26 +88,13 @@ class UpdateManagerContainer(PluginMainContainer):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def set_status(self, status, latest_version=None):
-        """Set Update Manager status"""
-        self.update_manager_status.set_value(status)
-
     @Slot()
     def start_check_update(self, startup=False):
         """Check for spyder updates."""
         self.update_manager.start_check_update(startup=startup)
 
-    @Slot()
-    def start_update(self):
-        """Start the update process"""
-        self.update_manager.start_update()
-
-    def set_install_on_close(self, install_on_close):
-        """Set whether start install on close."""
-        self.install_on_close = install_on_close
-
     def connect_status_signals(self):
-        self.update_manager.sig_set_status.connect(self.set_status)
+        self.update_manager.sig_set_status.connect(self._set_status)
         self.update_manager.sig_block_status_signals.connect(
             self.update_manager_status.blockSignals
         )
@@ -118,14 +105,14 @@ class UpdateManagerContainer(PluginMainContainer):
             self.start_check_update
         )
         self.update_manager_status.sig_start_update.connect(
-            self.start_update
+            self._start_update
         )
         self.update_manager_status.sig_show_progress_dialog.connect(
             self.update_manager.show_progress_dialog
         )
 
     def disconnect_status_signals(self):
-        self.update_manager.sig_set_status.disconnect(self.set_status)
+        self.update_manager.sig_set_status.disconnect(self._set_status)
         self.update_manager.sig_block_status_signals.disconnect(
             self.update_manager_status.blockSignals
         )
@@ -136,7 +123,7 @@ class UpdateManagerContainer(PluginMainContainer):
             self.start_check_update
         )
         self.update_manager_status.sig_start_update.disconnect(
-            self.start_update
+            self._start_update
         )
         self.update_manager_status.sig_show_progress_dialog.disconnect(
             self.update_manager.show_progress_dialog
@@ -144,6 +131,19 @@ class UpdateManagerContainer(PluginMainContainer):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    def _set_status(self, status, latest_version=None):
+        """Set Update Manager status"""
+        self.update_manager_status.set_value(status)
+
+    @Slot()
+    def _start_update(self):
+        """Start the update process"""
+        self.update_manager.start_update()
+
+    def _set_install_on_close(self, install_on_close):
+        """Set whether start install on close."""
+        self.install_on_close = install_on_close
+
     @Slot(bool)
     def _set_actions_state(self, is_disabled):
         self.check_update_action.setDisabled(is_disabled)
