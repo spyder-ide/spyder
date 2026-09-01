@@ -41,17 +41,17 @@ body {
 }
 
 .fill-link {
-  fill: var(--link);
+  fill: var(--link-color);
 }
 
 a:not(.button) {
   font-weight: 500;
-  color: var(--link);
+  color: var(--link-color);
   text-decoration: underline;
 }
 
 a:not(.button):hover {
-  color: var(--highlight);
+  color: var(--hover-color);
 }
 
 body {
