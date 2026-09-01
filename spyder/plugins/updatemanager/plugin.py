@@ -179,3 +179,12 @@ class UpdateManager(SpyderPluginV2):
     def update_status(self) -> UpdateStatus:
         """Current update status."""
         return self.get_container().update_status
+
+    def set_status(self, status: UpdateStatus):
+        """
+        Set the update status.
+
+        Use this only when it's absolutely necessary to not mess with the
+        update process.
+        """
+        self.get_container().update_manager.set_status(status)
