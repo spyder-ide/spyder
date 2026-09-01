@@ -20,7 +20,7 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.config.base import DEV, get_module_source_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
-from spyder.utils.stylesheet import MAC, WIN
+from spyder.utils.stylesheet import WIN
 from spyder.utils.theme_manager import THEME_MANAGER
 
 
@@ -30,9 +30,10 @@ class FakeInAppAppealDialog:
 
 
 class InAppAppealDialog(SpyderFontsMixin, QDialog):
+    """In-app appeal dialog to show the changelog and an appeal message."""
 
     CONF_SECTION = "main"
-    WIDTH = 530
+    WIDTH = 560
     HEIGHT = 620 if WIN else 640  # TODO: Check on Win/Mac
 
     def __init__(self, parent=None):
@@ -60,22 +61,13 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
             "appeal_page",
         )
         changelog_path = osp.join(appeal_page_dir, "changelog.md")
-        self._appeal_page_path = osp.join(
-            appeal_page_dir,
-            "dark" if THEME_MANAGER.is_dark_interface() else "light",
-            "index.html",
-        )
+        self._appeal_page_path = osp.join(appeal_page_dir, "index.html")
 
         # Render changelog to html
         with open(changelog_path, "r") as f:
             changelog_md = f.read()
 
-        self._changelog = (
-            MarkdownIt(options_update={"breaks": True})
-            .render(changelog_md)
-            .strip()
-            .replace("\n", "")
-        )
+        self._changelog = MarkdownIt().render(changelog_md).strip()
 
         # Read html for appeal page
         with open(self._appeal_page_path, "r") as f:
@@ -118,19 +110,15 @@ class InAppAppealDialog(SpyderFontsMixin, QDialog):
     # -------------------------------------------------------------------------
     def set_message(self, appeal: bool):
         template = Template(self._appeal_page)
-
+        css_file = "appeal.css"
+        css_path = THEME_MANAGER.get_css_path(css_file=css_file)
+        
         rendered_page = template.substitute(
+            theme_mode="dark" if THEME_MANAGER.is_dark_interface() else "light",
+            css_appeal=osp.join(css_path, css_file),
             changelog_html=self._changelog,
             show_changelog="false" if appeal else "true",
-            icon_report=(
-                "icon_report_sm_mac.svg"
-                if MAC
-                else (
-                    "icon_report_sm_win.svg"
-                    if WIN
-                    else "icon_report_sm_linux.svg"
-                )
-            ),
+            report_url="https://www.spyder-ide.org/blog/oc-progress-report-2025"
         )
 
         # Load page
