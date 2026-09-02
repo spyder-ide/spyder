@@ -44,6 +44,14 @@ body {
   fill: var(--link-color);
 }
 
+.font-weight-black {
+  font-weight: 900;
+}
+
+.font-size-lg {
+  font-size: 1.6rem;
+}
+
 a:not(.button) {
   font-weight: 500;
   color: var(--link-color);
@@ -194,6 +202,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 2.5rem;
+  padding-top: 1rem;
 }
 
 @media (max-width: 30rem) {
