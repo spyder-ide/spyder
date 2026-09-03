@@ -13,6 +13,7 @@ from collections.abc import Callable
 import logging
 import os
 import os.path as osp
+import re
 import time
 from textwrap import dedent
 import typing
@@ -57,6 +58,10 @@ logger = logging.getLogger(__name__)
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer"
 )
+
+# Text that a block must start with to be considered an input prompt by the
+# "Go to previous/next prompt" shortcuts (e.g. "In [1]: " or "IPdb [1]: ").
+PROMPT_BLOCK_RE = re.compile(r"^(In|IPdb) \[\d+\]: ")
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -187,8 +192,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.additional_options = additional_options
         self.special_kernel = special_kernel
 
-        # Blocks corresponding to previously shown "In" prompts, used to jump
-        # between them with the "Go to previous/next prompt" shortcuts.
+        # Blocks (and their prompt length) corresponding to previously shown
+        # "In" prompts, used to jump between them with the "Go to
+        # previous/next prompt" shortcuts.
         self._prompt_blocks = []
 
         # Keyboard shortcuts
@@ -1185,7 +1191,29 @@ overrided by the Sympy module (e.g. plot)
         # `number` is None when this call only requests a prompt number from
         # the kernel, i.e. no prompt has actually been shown yet.
         if number is not None and self._previous_prompt_obj is not None:
-            self._prompt_blocks.append(self._previous_prompt_obj.block)
+            self._prompt_blocks.append(
+                (
+                    self._previous_prompt_obj.block,
+                    self._previous_prompt_obj.length,
+                )
+            )
+
+    def _valid_prompt_blocks(self):
+        """
+        Return the tracked prompt blocks that are still shown in the console.
+
+        Entries in `_prompt_blocks` can become stale (e.g. after the console
+        is cleared through the "Clear console" action or a user-typed
+        "%clear"/"%cls"), and Qt doesn't always mark the corresponding blocks
+        as invalid (this was seen on Windows), so we also check that a
+        block's text still starts with a prompt before keeping it.
+        """
+        self._prompt_blocks = [
+            (block, length)
+            for block, length in self._prompt_blocks
+            if block.isValid() and PROMPT_BLOCK_RE.match(block.text())
+        ]
+        return self._prompt_blocks
 
     def jump_to_previous_prompt(self):
         """Jump to the previous prompt, if there is one."""
@@ -1200,29 +1228,28 @@ overrided by the Sympy module (e.g. plot)
         Move the cursor to the closest prompt before (step < 0) or after
         (step > 0) the current cursor position.
         """
-        # Prompt blocks can become invalid, e.g. after clearing the console,
-        # so we need to discard them here.
-        self._prompt_blocks = [
-            block for block in self._prompt_blocks if block.isValid()
-        ]
-
         current_number = self._control.textCursor().blockNumber()
-        block_numbers = [block.blockNumber() for block in self._prompt_blocks]
+        blocks_by_number = {
+            block.blockNumber(): (block, length)
+            for block, length in self._valid_prompt_blocks()
+        }
 
         if step < 0:
-            candidates = [n for n in block_numbers if n < current_number]
+            candidates = [n for n in blocks_by_number if n < current_number]
             target = max(candidates) if candidates else None
         else:
-            candidates = [n for n in block_numbers if n > current_number]
+            candidates = [n for n in blocks_by_number if n > current_number]
             target = min(candidates) if candidates else None
 
         if target is None:
             return
 
+        block, length = blocks_by_number[target]
+
         cursor = self._control.textCursor()
-        cursor.setPosition(
-            self._control.document().findBlockByNumber(target).position()
-        )
+        # Position the cursor right after the prompt (e.g. "In [1]: "),
+        # not before it.
+        cursor.setPosition(block.position() + length)
         self._control.setTextCursor(cursor)
         self._control.ensureCursorVisible()
 
