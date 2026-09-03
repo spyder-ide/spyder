@@ -103,8 +103,13 @@ class UpdateManager(SpyderPluginV2):
     def on_statusbar_teardown(self):
         # Remove status widget if created
         statusbar = self.get_plugin(Plugins.StatusBar)
-        self.get_container().disconnect_status_signals()
+        container = self.get_container()
+
+        container.disconnect_status_signals()
         statusbar.remove_status_widget(self.update_manager_status.ID)
+
+        self.update_manager_status = None
+        container.update_manager_status = None
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
