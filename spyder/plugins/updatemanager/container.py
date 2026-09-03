@@ -51,7 +51,7 @@ class UpdateManagerContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
-        self.update_status: UpdateStatus | None = None
+        self.update_status: UpdateStatus = UpdateStatus.NoStatus
         self.dialog_manager = DialogManager()
         self.update_manager = UpdateManagerWidget(parent=self)
 

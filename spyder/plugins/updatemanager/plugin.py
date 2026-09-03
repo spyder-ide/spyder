@@ -94,6 +94,10 @@ class UpdateManager(SpyderPluginV2):
         container.connect_status_signals()
         statusbar.add_status_widget(self.update_manager_status)
 
+        # Set the current status after statusbar is reenabled
+        if not self.is_app_starting:
+            self.update_manager_status.set_status(self.update_status)
+
     # ---- Plugin teardown
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
