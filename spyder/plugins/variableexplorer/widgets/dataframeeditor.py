@@ -1792,8 +1792,6 @@ class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
             return label
         elif role == Qt.BackgroundRole:
             return self._background
-        elif role == Qt.BackgroundRole:
-            return self._palette.window()
         return None
 
 
