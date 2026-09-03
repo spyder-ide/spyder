@@ -40,10 +40,10 @@ class StatusBar(SpyderPluginV2):
     CONF_FILE = False
     CONF_WIDGET_CLASS = StatusBarConfigPage
 
-    STATUS_WIDGETS = {}
-    EXTERNAL_RIGHT_WIDGETS = {}
-    EXTERNAL_LEFT_WIDGETS = {}
-    INTERNAL_WIDGETS = {}
+    STATUS_WIDGETS: dict[str, StatusBarWidget] = {}
+    EXTERNAL_RIGHT_WIDGETS: dict[str, StatusBarWidget] = {}
+    EXTERNAL_LEFT_WIDGETS: dict[str, StatusBarWidget] = {}
+    INTERNAL_WIDGETS: dict[str, StatusBarWidget] = {}
     INTERNAL_WIDGETS_IDS = {
         "clock_status",
         "cpu_status",
@@ -263,11 +263,25 @@ class StatusBar(SpyderPluginV2):
         ]
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
+        # To save the widgets' current visibility before being removed. That
+        # way we'll be able to restore it after they are inserted again
+        internal_widgets_visibility: dict[str, bool] = {}
+        external_left_widgets_visibility: dict[str, bool] = {}
+
         # Remove all widgets from the statusbar, except the external right
         for id_ in self.INTERNAL_WIDGETS:
+            # We need to use isHidden because it correctly reports if the
+            # widget is not visible (isVisible fails to do that).
+            internal_widgets_visibility[id_] = not self.INTERNAL_WIDGETS[
+                id_
+            ].isHidden()
             self._statusbar.removeWidget(self.INTERNAL_WIDGETS[id_])
 
         for id_ in self.EXTERNAL_LEFT_WIDGETS:
+            # See note about isHidden above.
+            external_left_widgets_visibility[id_] = not self.INTERNAL_WIDGETS[
+                id_
+            ].isHidden()
             self._statusbar.removeWidget(self.EXTERNAL_LEFT_WIDGETS[id_])
 
         # Add the internal widgets in the desired layout
@@ -285,6 +299,15 @@ class StatusBar(SpyderPluginV2):
                 StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_]
             )
             self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(True)
+
+        # Restore visibility for removed widgets. This is only needed if the
+        # plugin is reenabled.
+        if not self.is_app_starting:
+            for id_, visibility in internal_widgets_visibility.items():
+                self.INTERNAL_WIDGETS[id_].setVisible(visibility)
+
+            for id_, visibility in external_left_widgets_visibility.items():
+                self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(visibility)
 
     def before_mainwindow_visible(self):
         """Perform actions before the mainwindow is visible"""
