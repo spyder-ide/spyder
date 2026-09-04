@@ -11,7 +11,7 @@ IPython Console plugin based on QtConsole.
 # Standard library imports
 import re
 import sys
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -51,6 +51,10 @@ from spyder.plugins.run.api import (
     run_execute,
 )
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
+
+
+if TYPE_CHECKING:
+    from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
 
 
 class IPythonConsole(SpyderDockablePlugin, RunExecutor):
@@ -457,6 +461,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         matplotlib_status = MatplotlibStatus(widget)
         statusbar.add_status_widget(matplotlib_status)
         matplotlib_status.register_ipythonconsole(self)
+
+        # This is needed when the statusbar is reenabled
+        if not self.is_app_starting:
+            self.reconnect_statusbar_widget(pythonenv_status)
+            self.reconnect_statusbar_widget(matplotlib_status)
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -1294,3 +1303,39 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_search_action(action_name, enabled, self.NAME)
+
+    # ---- For the Status bar plugin
+    # ------------------------------------------------------------------------
+    def reconnect_statusbar_widget(
+        self, widget: "ShellConnectStatusBarWidget"
+    ):
+        """
+        Reconnect status bar widget after the Status bar plugin is reenabled.
+
+        Parameters
+        ----------
+        widget: StatusBarWidget
+            Widget to reconnect.
+        """
+        # Leave this import here because calling this method should be an
+        # infrequent situation
+        from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+            KernelConnectionState,
+        )
+
+        # Re-add current shellwidgets to the statusbar one
+        for client in self.get_clients():
+            sw = client.shellwidget
+            widget.add_shellwidget(sw)
+
+            # Get again the status info from the kernel
+            if sw.kernel_handler and sw.kernel_handler.connection_state in [
+                KernelConnectionState.IpykernelReady,
+                KernelConnectionState.SpyderKernelReady
+            ]:
+                status = widget.request_status(sw)
+                widget.shellwidget_to_status[sw] = status
+
+        # Populate widget with the info for the current shellwidget
+        csw = self.get_current_shellwidget()
+        widget.set_shellwidget(csw)
