@@ -1,4 +1,4 @@
-# Version 6.1.7 (2026-08-27)
+# Changes in version 6.1.7 (2026-08-27)
 
 ## New features
 
@@ -14,4 +14,6 @@
 * Fix crash at startup when the in-app appeal page can't be read from disk.
 * Make right-clicking on Files and Projects select the file where it's done.
 
-[View the complete changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md#version-617-2026-08-27)
+## Full changelog
+
+* View the complete changelog [on Github](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md#version-617-2026-08-27).
