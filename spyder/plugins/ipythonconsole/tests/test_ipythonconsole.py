@@ -31,7 +31,7 @@ from packaging.version import parse
 import pytest
 from qtpy import PYQT6, PYSIDE6
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QKeySequence, QShortcut, QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -51,6 +51,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
 )
 from spyder.utils.programs import run_shell_command
 from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
+from spyder.plugins.ipythonconsole.widgets.shell import PROMPT_BLOCK_RE
 from spyder.utils.conda import get_list_conda_envs, find_pixi
 from spyder.utils.theme_manager import THEME_MANAGER
 
@@ -2804,6 +2805,169 @@ def test_add_tab_give_focus(ipyconsole, qtbot, mocker):
 
     # Clean up
     widget.clients.remove(mock_client)
+
+
+@flaky(max_runs=3)
+def test_jump_to_prompt(ipyconsole, qtbot):
+    """
+    Test that jump_to_previous_prompt/jump_to_next_prompt move the cursor
+    between the blocks where "In" prompts are shown.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2", "c = 3"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    # There should be at least one prompt block per statement executed above,
+    # plus the initial one.
+    assert len(shell._prompt_blocks) >= 4
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    last_block = control.textCursor().blockNumber()
+
+    # Jump backwards twice
+    shell.jump_to_previous_prompt()
+    after_first_jump = control.textCursor().blockNumber()
+    assert after_first_jump < last_block
+
+    # The cursor should land right after the prompt (e.g. "In [3]: ")
+    cursor = control.textCursor()
+    block_text = cursor.block().text()
+    assert cursor.positionInBlock() > 0
+    assert block_text[:cursor.positionInBlock()].endswith(": ")
+
+    shell.jump_to_previous_prompt()
+    after_second_jump = control.textCursor().blockNumber()
+    assert after_second_jump < after_first_jump
+
+    # Jump forward and check we're back to where the first jump left us
+    shell.jump_to_next_prompt()
+    assert control.textCursor().blockNumber() == after_first_jump
+
+    # Jumping past the first/last prompt should be a no-op
+    for __ in range(10):
+        shell.jump_to_previous_prompt()
+    first_jump_block = control.textCursor().blockNumber()
+
+    shell.jump_to_previous_prompt()
+    assert control.textCursor().blockNumber() == first_jump_block
+
+
+def test_valid_prompt_blocks_discards_stale_entries(ipyconsole, qtbot):
+    """
+    Test that ShellWidget._valid_prompt_blocks() drops tracked blocks that
+    are no longer shown as prompts (e.g. after the console is cleared),
+    keeping only those whose text still starts with a prompt.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    tracked = shell._valid_prompt_blocks()
+    assert len(tracked) >= 3
+    assert all(
+        PROMPT_BLOCK_RE.match(block.text()) for block, __ in tracked
+    )
+
+    # Add a block whose text isn't a prompt: it must be discarded.
+    non_prompt_block = control.document().firstBlock()
+    shell._prompt_blocks.append((non_prompt_block, 0))
+    assert (non_prompt_block, 0) not in shell._valid_prompt_blocks()
+
+
+@flaky(max_runs=3)
+def test_jump_to_prompt_after_clear(ipyconsole, qtbot):
+    """
+    Test that clearing the console discards the stale tracked prompt blocks,
+    so jump_to_previous_prompt/jump_to_next_prompt don't land on positions
+    left over from before the console was cleared.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    # Clear the console and wait until only the post-clear prompt remains.
+    shell.clear_console()
+    qtbot.waitUntil(lambda: control.toPlainText().count("In [") == 1)
+
+    for code in ["c = 3", "d = 4"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    prev = control.textCursor().blockNumber()
+
+    # Every backwards jump must land on a real prompt line in the post-clear
+    # content, never on a stale position at the top of the document.
+    stops = 0
+    for __ in range(10):
+        shell.jump_to_previous_prompt()
+        current = control.textCursor().blockNumber()
+        if current == prev:
+            break
+        assert current > 0
+        block_text = control.document().findBlockByNumber(current).text()
+        assert PROMPT_BLOCK_RE.match(block_text)
+        prev = current
+        stops += 1
+
+    assert stops >= 2
+
+
+def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):
+    """
+    Test that the "go to previous/next prompt" shortcuts are registered and
+    correctly wired to ShellWidget.jump_to_previous_prompt/jump_to_next_prompt.
+
+    Note: this triggers the registered QShortcut objects directly (i.e. the
+    same connection a real key press would activate) instead of simulating
+    key presses, since delivering those depends on the window actually
+    being focused/active, which isn't reliable in headless CI environments.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+
+    before = control.textCursor().blockNumber()
+
+    shortcuts = shell.findChildren(QShortcut)
+
+    def shortcut_for(keystr):
+        matches = [
+            s for s in shortcuts
+            if s.key().toString() == QKeySequence(keystr).toString()
+        ]
+        assert len(matches) == 1
+        return matches[0]
+
+    prev_keystr = shell.get_shortcut('go to previous prompt')
+    next_keystr = shell.get_shortcut('go to next prompt')
+
+    shortcut_for(prev_keystr).activated.emit()
+    after_previous = control.textCursor().blockNumber()
+    assert after_previous < before
+
+    shortcut_for(next_keystr).activated.emit()
+    assert control.textCursor().blockNumber() > after_previous
 
 
 @pytest.mark.order(1)
