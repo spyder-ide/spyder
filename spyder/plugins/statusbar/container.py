@@ -15,7 +15,9 @@ from qtpy.QtCore import Signal
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.statusbar.widgets.status import (
-    ClockStatus, CPUStatus, MemoryStatus
+    ClockStatus,
+    CPUStatus,
+    MemoryStatus,
 )
 
 
@@ -27,12 +29,29 @@ class StatusBarContainer(PluginMainContainer):
     status bar.
     """
 
+    BASIC_STATUS_WIDGETS = [
+        ClockStatus.ID,
+        CPUStatus.ID,
+        MemoryStatus.ID,
+    ]
+
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
         # Basic status widgets
         self.mem_status = MemoryStatus(parent=self)
         self.cpu_status = CPUStatus(parent=self)
         self.clock_status = ClockStatus(parent=self)
 
+    def update_actions(self):
+        pass
+
+    def on_close(self):
+        for id_ in self.BASIC_STATUS_WIDGETS:
+            self._plugin.remove_status_widget(id_)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     @on_conf_change(option='memory_usage/enable')
     def enable_mem_status(self, value):
         self.mem_status.setVisible(value)
@@ -60,6 +79,3 @@ class StatusBarContainer(PluginMainContainer):
     @on_conf_change(option='show_status_bar')
     def show_status_bar(self, value):
         self.sig_show_status_bar_requested.emit(value)
-
-    def update_actions(self):
-        pass

@@ -527,8 +527,13 @@ def test_run_plugin(qtbot, run_mock):
     act = exec_provider_2.actions['SubordinateContext2']
     assert not act.isEnabled()
 
-    # Spawn the configuration dialog
     run_act = run.get_action(RunActions.Run)
+
+    # Needed because there's no File context in ExampleConfigurationProvider
+    # and the Run action depends on it
+    run_act.setEnabled(True)
+
+    # Spawn the configuration dialog
     run_act.trigger()
 
     expected_configurations = []
@@ -664,8 +669,13 @@ def test_run_plugin(qtbot, run_mock):
     assert stored_run_params['executor'] == test_executor_name
     assert stored_run_params['selected'] == current_exec_uuid
 
-    # Spawn the configuration dialog
     run_act = run.get_action(RunActions.Run)
+
+    # Needed because there's no File context in ExampleConfigurationProvider
+    # and the Run action depends on it
+    run_act.setEnabled(True)
+
+    # Spawn the configuration dialog
     run_act.trigger()
 
     dialog = container.dialog
@@ -796,8 +806,13 @@ def test_run_plugin(qtbot, run_mock):
     exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
     dialog.exec_()
 
-    # Spawn the configuration dialog
     run_act = run.get_action(RunActions.Run)
+
+    # Needed because there's no File context in ExampleConfigurationProvider
+    # and the Run action depends on it
+    run_act.setEnabled(True)
+
+    # Spawn the configuration dialog
     run_act.trigger()
 
     dialog = container.dialog

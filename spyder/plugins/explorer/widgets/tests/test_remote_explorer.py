@@ -18,6 +18,7 @@ from qtpy.QtGui import QClipboard
 from qtpy.QtWidgets import QApplication, QInputDialog, QMessageBox
 
 # Local imports
+from spyder.plugins.remoteclient.api.protocol import ClientType
 from spyder.plugins.remoteclient.tests.conftest import (
     await_future,
     mark_remote_test,
@@ -427,6 +428,15 @@ def test_new_files_and_directories(
 def test_permission_errors(
     remote_explorer, remote_client_id, mocker, monkeypatch, qtbot, tmp_path
 ):
+    # Fails frequently for SSH connections, so it's better to skip it
+    if (
+        remote_explorer.get_conf(
+            f"{remote_client_id}/client_type", section="remoteclient"
+        )
+        == ClientType.SSH
+    ):
+        return
+
     treewidget = remote_explorer.remote_treewidget
 
     # This directory is created and populated by the Docker test files

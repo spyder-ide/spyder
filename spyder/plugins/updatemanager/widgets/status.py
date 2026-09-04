@@ -19,15 +19,7 @@ from qtpy.QtWidgets import QLabel
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.plugins.updatemanager.widgets.update import (
-    CHECKING,
-    DOWNLOAD_FINISHED,
-    DOWNLOADING_INSTALLER,
-    UPDATING_UPDATER,
-    INSTALL_ON_CLOSE,
-    NO_STATUS,
-    PENDING
-)
+from spyder.plugins.updatemanager.widgets.update import UpdateStatus
 from spyder.utils.icon_manager import ima
 
 
@@ -56,6 +48,9 @@ class UpdateManagerStatus(StatusBarWidget):
         self.tooltip = ""
         super().__init__(parent)
 
+        # Attribute to save the current status
+        self._status: UpdateStatus | None = None
+
         # Check for updates action menu
         self.menu = SpyderMenu(self)
 
@@ -66,25 +61,27 @@ class UpdateManagerStatus(StatusBarWidget):
         # Signals
         self.sig_clicked.connect(self.show_dialog_or_menu)
 
-    def set_value(self, value):
+    def set_status(self, status: UpdateStatus):
         """Set update manager status."""
-        if value == DOWNLOADING_INSTALLER:
+        self._status = status
+
+        if status == UpdateStatus.DownloadingInstaller:
             self.tooltip = _(
                 "Downloading the update will continue in the background.\n"
                 "Click here to show the download dialog again."
             )
             self.custom_widget.show()
             self.show()
-        elif value == CHECKING:
-            self.tooltip = value
+        elif status == UpdateStatus.Checking:
+            self.tooltip = UpdateStatus.Checking.value
             self.custom_widget.hide()
             self.hide()
-        elif value == PENDING:
-            self.tooltip = value
+        elif status == UpdateStatus.Pending:
+            self.tooltip = UpdateStatus.Pending.value
             self.custom_widget.hide()
             self.show()
-        elif value == UPDATING_UPDATER:
-            self.tooltip = value
+        elif status == UpdateStatus.InstallingUpdater:
+            self.tooltip = UpdateStatus.InstallingUpdater.value
             self.custom_widget.hide()
             self.show()
         else:
@@ -94,12 +91,12 @@ class UpdateManagerStatus(StatusBarWidget):
             self.hide()
 
         self.update_tooltip()
-        logger.debug(f"Update manager status: {value}")
-        super().set_value(value)
+        logger.debug(f"Update manager status: {status}")
+        self.set_value(status.value)
 
     def set_no_status(self):
-        """Convenience method to set status to NO_STATUS"""
-        self.set_value(NO_STATUS)
+        """Convenience method to set status to NoStatus."""
+        self.set_status(UpdateStatus.NoStatus)
 
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
@@ -115,7 +112,13 @@ class UpdateManagerStatus(StatusBarWidget):
     @Slot()
     def show_dialog_or_menu(self):
         """Show download dialog or status bar menu."""
-        if self.value in (DOWNLOADING_INSTALLER, UPDATING_UPDATER):
+        if self._status in (
+            UpdateStatus.DownloadingInstaller, UpdateStatus.InstallingUpdater
+        ):
             self.sig_show_progress_dialog.emit()
-        elif self.value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
+        elif self._status in (
+            UpdateStatus.Pending,
+            UpdateStatus.DownloadFinished,
+            UpdateStatus.InstallOnClose
+        ):
             self.sig_start_update.emit()
