@@ -81,6 +81,28 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
         """
         raise NotImplementedError
 
+    def request_status(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> Any:
+        """Request the status information from the kernel.
+
+        This must be called in ``on_kernel_start`` and will be called
+        automatically when the widget is recreated if the Status bar plugin is
+        disabled and then reenabled.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget whose kernel was started.
+
+        Returns
+        -------
+        information: Any
+            The information sent by the kernel.
+        """
+        raise NotImplementedError
+
     def on_kernel_start(
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
