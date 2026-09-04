@@ -13,6 +13,7 @@ from __future__ import annotations
 
 # Standard library imports
 import functools
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 # Local imports
@@ -58,6 +59,13 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
             spyder.plugins.ipythonconsole.widgets.ShellWidget | None
         ) = None
         """Currently active associated shell widget."""
+
+        # Dict to save the slots connected to different shellwidget signals so
+        # we can disconnect them when the widget is removed
+        self._shellwidget_to_slots: dict[
+            spyder.plugins.ipythonconsole.widgets.ShellWidget,
+            dict[str, Callable],
+        ] = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -107,6 +115,17 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
         """
         pass
 
+    def disconnect_shellwidget_signals(self):
+        """
+        Disconnect slots connected to each shellwidget signals.
+
+        This must only be called when the widget is removed from the status
+        bar.
+        """
+        for shellwidget, slots in self._shellwidget_to_slots.items():
+            for sig_name, slot in slots.items():
+                getattr(shellwidget, sig_name).disconnect(slot)
+
     # ---- ShellConnectMixin API
     # -------------------------------------------------------------------------
     def set_shellwidget(
@@ -153,12 +172,19 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
         -------
         None
         """
-        shellwidget.sig_config_spyder_kernel.connect(
-            functools.partial(self.config_spyder_kernel, shellwidget)
+        config_slot = functools.partial(self.config_spyder_kernel, shellwidget)
+        shellwidget.sig_config_spyder_kernel.connect(config_slot)
+
+        kernel_ready_slot = functools.partial(
+            self.on_kernel_start, shellwidget
         )
-        shellwidget.sig_kernel_is_ready.connect(
-            functools.partial(self.on_kernel_start, shellwidget)
-        )
+        shellwidget.sig_kernel_is_ready.connect(kernel_ready_slot)
+
+        self._shellwidget_to_slots[shellwidget] = {
+            # Shellwidget signal name to slot
+            "sig_config_spyder_kernel": config_slot,
+            "sig_kernel_is_ready": kernel_ready_slot,
+        }
 
         self.shellwidget_to_status[shellwidget] = None
         self.set_shellwidget(shellwidget)
@@ -180,6 +206,7 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
         """
         if shellwidget in self.shellwidget_to_status:
             self.shellwidget_to_status.pop(shellwidget)
+            self._shellwidget_to_slots.pop(shellwidget)
 
     def add_errored_shellwidget(
         self,

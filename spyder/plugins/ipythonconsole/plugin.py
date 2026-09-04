@@ -474,10 +474,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             widget.sig_open_preferences_requested
         )
         pythonenv_status.unregister_ipythonconsole(self)
+        pythonenv_status.disconnect_shellwidget_signals()
         statusbar.remove_status_widget(PythonEnvironmentStatus.ID)
 
         matplotlib_status = statusbar.get_status_widget(MatplotlibStatus.ID)
         matplotlib_status.unregister_ipythonconsole(self)
+        matplotlib_status.disconnect_shellwidget_signals()
         statusbar.remove_status_widget(MatplotlibStatus.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
