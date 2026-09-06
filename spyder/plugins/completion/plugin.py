@@ -37,6 +37,9 @@ from spyder.plugins.completion.api import (
 )
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
+from spyder.plugins.completion.providers.languageserver.widgets import (
+    LSPStatusWidget,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -334,6 +337,20 @@ class CompletionPlugin(SpyderPluginV2):
     def on_statusbar_available(self):
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         self.register_statusbar_widgets()
+
+        # Update LSP status bar widget without giving focus to the Editor after
+        # the Status bar plugin is reenabled
+        if not self.is_app_starting:
+            editor = self.get_plugin(Plugins.Editor, error=False)
+            if editor:
+                ced = editor.get_current_editor()
+                if ced:
+                    self.get_container().statusbar_rpc(
+                        LSPStatusWidget.ID,
+                        "set_current_language",
+                        (ced.language.lower(),),
+                        {},
+                    )
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
