@@ -16,4 +16,4 @@
 
 ## Full changelog
 
-* View the complete changelog [on Github](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md#version-617-2026-08-27).
+* View the complete changelog [on GitHub](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md#version-617-2026-08-27).
