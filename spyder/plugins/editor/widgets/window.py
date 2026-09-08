@@ -120,33 +120,7 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
         self.find_widget.hide()
 
         # ---- Status bar
-        statusbar = parent.statusBar()
-
-        # Check if the StatusBar plugin is enabled to create status widgets
-        if self.get_conf("enable", section="statusbar", default=True):
-            # *DON'T* change the order in which these widgets are added. It's
-            # the same one used in the main window.
-            self.readwrite_status = ReadWriteStatus(self)
-            statusbar.insertPermanentWidget(0, self.readwrite_status)
-
-            self.eol_status = EOLStatus(self)
-            statusbar.insertPermanentWidget(0, self.eol_status)
-
-            self.encoding_status = EncodingStatus(self)
-            statusbar.insertPermanentWidget(0, self.encoding_status)
-
-            self.cursorpos_status = CursorPositionStatus(self)
-            statusbar.insertPermanentWidget(0, self.cursorpos_status)
-
-            self.vcs_status = VCSStatus(self)
-            statusbar.insertPermanentWidget(0, self.vcs_status)
-        else:
-            statusbar.hide()
-            self.vcs_status = None
-            self.cursorpos_status = None
-            self.encoding_status = None
-            self.eol_status = None
-            self.readwrite_status = None
+        self.create_status_widgets()
 
         # ---- Outline.
         self.outlineexplorer = None
@@ -188,31 +162,36 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
         # ---- Style
         self.splitter.setStyleSheet(self._splitter_css.toString())
 
-    def register_editorstack(self, editorstack):
-        logger.debug("Registering editorstack")
-        self.__print_editorstacks()
+    def create_status_widgets(self):
+        statusbar = self.parent().statusBar()
 
-        self.editorstacks.append(editorstack)
-        self.main_widget.last_focused_editorstack[self.parent()] = editorstack
+        # Check if the StatusBar plugin is enabled to create status widgets
+        if self.get_conf("enable", section="statusbar", default=True):
+            # *DON'T* change the order in which these widgets are added. It's
+            # the same one used in the main window.
+            self.readwrite_status = ReadWriteStatus(self)
+            statusbar.insertPermanentWidget(0, self.readwrite_status)
 
-        # Setting attributes
-        editorstack.set_closable(len(self.editorstacks) > 1)
-        editorstack.set_outlineexplorer(self.outlineexplorer)
-        editorstack.set_find_widget(self.find_widget)
-        editorstack.new_window = True
+            self.eol_status = EOLStatus(self)
+            statusbar.insertPermanentWidget(0, self.eol_status)
 
-        # Adjust style.
-        # This is necessary to give some space between the tabwidget pane and
-        # the splitter separator and borders around it.
-        css = PANES_TABBAR_STYLESHEET.get_copy().get_stylesheet()
-        css['QTabWidget::pane'].setValues(
-            marginLeft=f"{AppStyle.MarginSize}px",
-            marginRight=f"{AppStyle.MarginSize}px",
-            marginBottom=f"{AppStyle.MarginSize}px",
-        )
-        editorstack.tabs.setStyleSheet(css.toString())
+            self.encoding_status = EncodingStatus(self)
+            statusbar.insertPermanentWidget(0, self.encoding_status)
 
-        # Signals
+            self.cursorpos_status = CursorPositionStatus(self)
+            statusbar.insertPermanentWidget(0, self.cursorpos_status)
+
+            self.vcs_status = VCSStatus(self)
+            statusbar.insertPermanentWidget(0, self.vcs_status)
+        else:
+            statusbar.hide()
+            self.vcs_status = None
+            self.cursorpos_status = None
+            self.encoding_status = None
+            self.eol_status = None
+            self.readwrite_status = None
+
+    def register_status_widgets(self, editorstack):
         if self.readwrite_status is not None:
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.readonly_changed.connect(
@@ -241,6 +220,33 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
                 self.vcs_status.update_vcs
             )
             editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
+
+    def register_editorstack(self, editorstack):
+        logger.debug("Registering editorstack")
+        self.__print_editorstacks()
+
+        self.editorstacks.append(editorstack)
+        self.main_widget.last_focused_editorstack[self.parent()] = editorstack
+
+        # Setting attributes
+        editorstack.set_closable(len(self.editorstacks) > 1)
+        editorstack.set_outlineexplorer(self.outlineexplorer)
+        editorstack.set_find_widget(self.find_widget)
+        editorstack.new_window = True
+
+        # Adjust style.
+        # This is necessary to give some space between the tabwidget pane and
+        # the splitter separator and borders around it.
+        css = PANES_TABBAR_STYLESHEET.get_copy().get_stylesheet()
+        css['QTabWidget::pane'].setValues(
+            marginLeft=f"{AppStyle.MarginSize}px",
+            marginRight=f"{AppStyle.MarginSize}px",
+            marginBottom=f"{AppStyle.MarginSize}px",
+        )
+        editorstack.tabs.setStyleSheet(css.toString())
+
+        # For the status widgets
+        self.register_status_widgets(editorstack)
 
         # Register stack
         self.main_widget.register_editorstack(editorstack)
