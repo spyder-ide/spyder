@@ -16,7 +16,6 @@ from qtpy.QtGui import QColor, QIcon, QImage, QPainter
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
@@ -458,23 +457,21 @@ class IconManager():
             return icon
 
     def icon(self, name, scale_factor=None, resample=False):
-        theme = CONF.get('appearance', 'icon_theme')
-        if theme == 'spyder 3':
-            try:
-                # Try to load the icons from QtAwesome
-                if not self._resource['loaded']:
-                    qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
-                                directory=self._resource['directory'])
-                    self._resource['loaded'] = True
-                args, kwargs = self._qtaargs[name]
-                if scale_factor is not None:
-                    kwargs['scale_factor'] = scale_factor
-                kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
-                return qta.icon(*args, **kwargs)
-            except KeyError:
-                # Load custom icons
-                icon = QIcon(self.get_icon(name))
-                return icon if icon is not None else QIcon()
+        try:
+            # Try to load the icons from QtAwesome
+            if not self._resource['loaded']:
+                qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
+                            directory=self._resource['directory'])
+                self._resource['loaded'] = True
+            args, kwargs = self._qtaargs[name]
+            if scale_factor is not None:
+                kwargs['scale_factor'] = scale_factor
+            kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
+            return qta.icon(*args, **kwargs)
+        except KeyError:
+            # Load custom icons
+            icon = QIcon(self.get_icon(name))
+            return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
         """Return the icon depending on the file extension"""
