@@ -23,8 +23,8 @@ from tokenize import generate_tokens, TokenError
 
 # Third party imports
 from packaging.version import parse
-from qtpy import QT_VERSION, PYQT6
-from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
+from qtpy import PYQT6, QT_VERSION, sip
+from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl, QVariant
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
 from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
@@ -1583,9 +1583,6 @@ class BaseEditMixin(object):
             # See spyder-ide/spyder#26309
             # Based on https://github.com/saga-soft/novelWriter/issues/2622#issuecomment-3692890124
             if PYQT6:
-                from qtpy import sip
-                from qtpy.QtCore import QVariant
-
                 autoconversion = sip.enableautoconversion(QVariant, False)
                 response = QPlainTextEdit.inputMethodQuery(self, query)
                 sip.enableautoconversion(QVariant, autoconversion)
@@ -1596,9 +1593,6 @@ class BaseEditMixin(object):
             # See spyder-ide/spyder#26309
             # Based on https://github.com/saga-soft/novelWriter/issues/2622#issuecomment-3692890124
             if PYQT6:
-                from qtpy import sip
-                from qtpy.QtCore import QVariant
-
                 autoconversion = sip.enableautoconversion(QVariant, False)
                 response = QTextEdit.inputMethodQuery(self, query)
                 sip.enableautoconversion(QVariant, autoconversion)
