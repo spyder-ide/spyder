@@ -161,7 +161,6 @@ class IconManager():
             'todo':                    [('mdi.check-bold',), {'color': SpyderPalette.GROUP_9}],
             'ipython_console':         [('mdi.console',), {'color': self.MAIN_FG_COLOR}],
             'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
-            'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
             'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
