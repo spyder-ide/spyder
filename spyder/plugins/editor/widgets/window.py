@@ -221,6 +221,64 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
             )
             editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
 
+    def unregister_status_widgets(self, editorstack):
+        if self.readwrite_status is not None:
+            editorstack.reset_statusbar.disconnect(self.readwrite_status.hide)
+            editorstack.readonly_changed.disconnect(
+                self.readwrite_status.update_readonly
+            )
+
+        if self.encoding_status is not None:
+            editorstack.reset_statusbar.disconnect(self.encoding_status.hide)
+            editorstack.encoding_changed.disconnect(
+                self.encoding_status.update_encoding
+            )
+
+        if self.cursorpos_status is not None:
+            editorstack.reset_statusbar.disconnect(self.cursorpos_status.hide)
+            editorstack.sig_editor_cursor_position_changed.disconnect(
+                self.cursorpos_status.update_cursor_position
+            )
+
+        if self.eol_status is not None:
+            editorstack.sig_refresh_eol_chars.disconnect(
+                self.eol_status.update_eol
+            )
+
+        if self.vcs_status is not None:
+            editorstack.current_file_changed.disconnect(
+                self.vcs_status.update_vcs
+            )
+            editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
+
+    def delete_status_widgets(self):
+        statusbar = self.parent().statusBar()
+
+        if self.readwrite_status is not None:
+            statusbar.removeWidget(self.readwrite_status)
+            self.readwrite_status.deleteLater()
+            self.readwrite_status = None
+
+        if self.encoding_status is not None:
+            statusbar.removeWidget(self.encoding_status)
+            self.encoding_status.deleteLater()
+            self.encoding_status = None
+
+        if self.cursorpos_status is not None:
+            statusbar.removeWidget(self.cursorpos_status)
+            self.cursorpos_status.deleteLater()
+            self.cursorpos_status = None
+
+        if self.eol_status is not None:
+            statusbar.removeWidget(self.eol_status)
+            self.eol_status.deleteLater()
+            self.eol_status = None
+
+        if self.vcs_status is not None:
+            statusbar.removeWidget(self.vcs_status)
+            self.vcs_status.deleteLater()
+            self.vcs_status = None
+
     def register_editorstack(self, editorstack):
         logger.debug("Registering editorstack")
         self.__print_editorstacks()
@@ -632,6 +690,25 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         menu = self.get_menu(menu_id, plugin=Plugins.MainMenu)
         self.menuBar().removeAction(menu.menuAction())
         self._menus.pop(menu_id)
+
+    def show_statusbar(self):
+        self.editorwidget.create_status_widgets()
+
+        for es in self.editorwidget.editorstacks:
+            self.editorwidget.register_status_widgets(es)
+
+        self.main_widget.populate_status_widgets(
+            self.editorwidget.get_current_editorstack()
+        )
+
+        self.statusBar().show()
+
+    def hide_statusbar(self):
+        for es in self.editorwidget.editorstacks:
+            self.editorwidget.unregister_status_widgets(es)
+
+        self.editorwidget.delete_status_widgets()
+        self.statusBar().hide()
 
     # ---- Private API
     # -------------------------------------------------------------------------
