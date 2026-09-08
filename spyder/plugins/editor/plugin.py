@@ -274,6 +274,12 @@ class Editor(SpyderDockablePlugin):
             statusbar_reenabled=not self.is_app_starting
         )
 
+        # Show statusbar for editor windows if the Status bar plugin is
+        # reenabled
+        if not self.is_app_starting:
+            for window in widget.editorwindows:
+                window.show_statusbar()
+
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         # Remove status widgets
@@ -293,6 +299,11 @@ class Editor(SpyderDockablePlugin):
         widget.encoding_status = None
         widget.cursorpos_status = None
         widget.vcs_status = None
+
+        # Hide statusbar in editor windows. This is necessary in case the
+        # Status bar plugin is disabled on the fly.
+        for window in widget.editorwindows:
+            window.hide_statusbar()
 
     @on_plugin_available(plugin=Plugins.Run)
     def on_run_available(self):
