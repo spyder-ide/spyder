@@ -47,6 +47,7 @@
   <url type="donation">https://www.spyder-ide.org/donate</url>
   <content_rating type="oars-1.1"/>
   <releases>
+      <release version="v6.1.7" date="2026-08-27"/>
       <release version="v6.1.6" date="2026-07-28"/>
       <release version="v6.1.5" date="2026-06-26"/>
       <release version="v6.1.4" date="2026-04-06"/>

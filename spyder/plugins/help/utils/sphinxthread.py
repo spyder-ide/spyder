@@ -11,8 +11,7 @@ from qtpy.QtCore import QThread, Signal
 
 # Local Imports
 from spyder.api.translations import _
-from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
-                                                 sphinxify)
+from spyder.plugins.help.utils.sphinxify import generate_context, sphinxify
 
 
 class SphinxThread(QThread):
@@ -36,7 +35,7 @@ class SphinxThread(QThread):
     error_msg = Signal(str)
     html_ready = Signal(str)
 
-    def __init__(self, parent, html_text_no_doc='', css_path=CSS_PATH):
+    def __init__(self, parent, html_text_no_doc='', css_path=None):
         super().__init__(parent)
         self.doc = None
         self.context = None
@@ -45,7 +44,7 @@ class SphinxThread(QThread):
         self.css_path = css_path
 
     def render(self, doc, context=None, math_option=False, img_path='',
-               css_path=CSS_PATH):
+               css_path=None):
         """Start thread to render a given documentation"""
         # If the thread is already running wait for it to finish before
         # starting it again.

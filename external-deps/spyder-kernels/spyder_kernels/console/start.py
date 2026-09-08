@@ -11,7 +11,6 @@ File used to start kernels for the IPython Console
 """
 
 # Standard library imports
-import os
 import os.path as osp
 import sys
 import site
@@ -63,16 +62,6 @@ def kernel_config():
     # ---- Spyder config ----
     spy_cfg = Config()
 
-    # Enable/disable certain features for testing
-    testing = os.environ.get('SPY_TESTING') == 'True'
-    if testing:
-        # Don't load nor save history in our IPython consoles.
-        spy_cfg.HistoryAccessor.enabled = False
-
-    # Jedi completer.
-    jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
-    spy_cfg.IPCompleter.use_jedi = jedi_o
-
     # Clear terminal arguments input.
     # This needs to be done before adding the exec_lines that come from
     # Spyder, to avoid deleting the sys module if users want to import
@@ -93,20 +82,11 @@ def kernel_config():
     if is_module_installed('matplotlib'):
         spy_cfg.IPKernelApp.matplotlib = "inline"
 
-    # Autocall
-    autocall_o = os.environ.get('SPY_AUTOCALL_O')
-    if autocall_o is not None:
-        spy_cfg.ZMQInteractiveShell.autocall = int(autocall_o)
-
     # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # To disable tips (for the moment) that are only available in IPython 9.0+
     spy_cfg.ZMQInteractiveShell.enable_tip = False
-
-    # Greedy completer
-    greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
-    spy_cfg.IPCompleter.greedy = greedy_o
 
     # Disable the new mechanism to capture and forward low-level output
     # in IPykernel 6. For that we have Wurlitzer.

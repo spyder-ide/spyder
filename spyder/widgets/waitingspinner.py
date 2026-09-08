@@ -88,7 +88,7 @@ class QWaitingSpinner(QWidget):
             self._currentCounter = 0
 
         painter.setPen(Qt.NoPen)
-        for i in range(0, self._numberOfLines):
+        for i in range(self._numberOfLines):
             painter.save()
             painter.translate(self._innerRadius + self._lineLength, self._innerRadius + self._lineLength)
             rotateAngle = float(360 * i) / float(self._numberOfLines)

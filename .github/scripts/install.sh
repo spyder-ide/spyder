@@ -85,7 +85,7 @@ fi
 python -bb -X dev install_dev_repos.py --not-editable --no-install spyder spyder-remote-services
 
 # Install Spyder to test it as if it was properly installed.
-python -bb -X dev -m build
+python -bb -X dev setup.py bdist_wheel
 python -bb -X dev -m pip install --no-deps dist/spyder*.whl
 
 if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then

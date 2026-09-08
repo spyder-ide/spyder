@@ -9,7 +9,7 @@ Language Server Protocol configuration tabs.
 """
 
 # Third party imports
-from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
+from qtpy.QtWidgets import QGroupBox, QMessageBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -66,7 +66,7 @@ class FormattingConfigTab(SpyderPreferencesTab):
         code_fmt_label.setWordWrap(True)
 
         # Code formatting providers
-        code_fmt_provider = self.create_combobox(
+        self.code_fmt_provider = self.create_combobox(
             _("Choose the code formatting provider: "),
             (("autopep8", "autopep8"), ("black", "black"), ("ruff", "ruff")),
             "formatting",
@@ -83,7 +83,7 @@ class FormattingConfigTab(SpyderPreferencesTab):
         code_fmt_group = QGroupBox(_("Code formatting"))
         code_fmt_layout = QVBoxLayout()
         code_fmt_layout.addWidget(code_fmt_label)
-        code_fmt_layout.addWidget(code_fmt_provider)
+        code_fmt_layout.addWidget(self.code_fmt_provider)
         code_fmt_layout.addWidget(format_on_save_box)
         code_fmt_group.setLayout(code_fmt_layout)
 
@@ -91,3 +91,27 @@ class FormattingConfigTab(SpyderPreferencesTab):
         code_style_fmt_layout.addWidget(code_fmt_group)
         code_style_fmt_layout.addWidget(line_length_group)
         self.setLayout(code_style_fmt_layout)
+
+    def is_valid(self):
+        # Check ruff being selected as linter when ruff is selected as formatter
+        if (
+            self.code_fmt_provider.combobox.currentText() == "ruff"
+            and not self.get_option("ruff")
+        ):
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "Since you selected Ruff as formatter, linting via Ruff "
+                    "will be enabled too"
+                ),
+            )
+            self.set_option("ruff", True)
+            self.set_option("pyflakes", False)
+            self.set_option("pycodestyle", False)
+            self.set_option("flake8", False)
+            self.set_option("no_linting", False)
+            self.set_option("formatting", "ruff")
+            self.load_from_conf()
+
+        return True

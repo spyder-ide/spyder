@@ -66,7 +66,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 DONATIONS_URL = "https://www.spyder-ide.org/donate"
 CHANGELOG_URL = (
     "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
-    "Spyder-6.md#version-616-2026-07-28"
+    "Spyder-6.md#version-617-2026-08-27"
 )
 
 
@@ -1028,9 +1028,11 @@ class ApplicationContainer(PluginMainContainer):
 
         try:
             self._appeal_dialog = InAppAppealDialog(self)
-        except QtModuleNotInstalledError:
-            # QtWebEngineWidgets is optional.
-            # See spyder-ide/spyder#24905 for the details.
+        except (QtModuleNotInstalledError, UnicodeDecodeError):
+            # * QtWebEngineWidgets is optional. See spyder-ide/spyder#24905 for
+            #   the details.
+            # * We can fail to read the appeal page from disk, which makes
+            #   Spyder crash at startup. Fixes spyder-ide/spyder#26284
             self._appeal_dialog = FakeInAppAppealDialog
 
     def _show_dialog(self, show_appeal: bool):

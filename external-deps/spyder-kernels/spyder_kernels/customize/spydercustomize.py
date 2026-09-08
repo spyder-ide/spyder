@@ -29,7 +29,6 @@ if not hasattr(sys, 'argv'):
 # =============================================================================
 # Main constants
 # =============================================================================
-IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 HIDE_CMD_WINDOWS = os.environ.get('SPY_HIDE_CMD') == "True"
 
 # =============================================================================

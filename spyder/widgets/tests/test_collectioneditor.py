@@ -395,7 +395,7 @@ def test_sort_numpy_numeric_collectionsmodel():
     # Sort by index
     cm.sort(0)
     assert data_table(cm, 10, 4) == [
-        list(range(0, 10)),
+        list(range(10)),
         ["float64"] * 10,
         [1] * 10,
         [
@@ -442,7 +442,7 @@ def test_sort_float_collectionsmodel():
     assert cm.rowCount() == 10
     assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
-    assert data_table(cm, 10, 4) == [list(range(0, 10)),
+    assert data_table(cm, 10, 4) == [list(range(10)),
                                      [u'float']*10,
                                      [1]*10,
                                      ['1e+16', '10.0', '1.0', '0.1',

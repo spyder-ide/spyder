@@ -27,7 +27,7 @@ from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_formatting(formatter, newline, completions_codeeditor,
                              qtbot):
-    """Validate text autoformatting via autopep8, yapf or black."""
+    """Validate text autoformatting via autopep8, yapf, black or ruff."""
     code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter, newline)
 
@@ -36,6 +36,12 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
         'completions',
         ('provider_configuration', 'lsp', 'values', 'formatting'),
         formatter
+    )
+    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
+    CONF.set(
+        'completions',
+        ('provider_configuration', 'lsp', 'values', 'ruff'),
+        formatter == 'ruff'
     )
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
@@ -148,6 +154,12 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
         ('provider_configuration', 'lsp', 'values',
          'flake8/max_line_length'),
         max_line_length
+    )
+    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
+    CONF.set(
+        'completions',
+        ('provider_configuration', 'lsp', 'values', 'ruff'),
+        formatter == 'ruff'
     )
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
