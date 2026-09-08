@@ -297,7 +297,7 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
             es.close()
 
     def get_current_editorstack(self):
-        return self.editorsplitter.editorstack
+        return self.main_widget.last_focused_editorstack[self.parent()]
 
     def get_current_editor(self):
         return self.get_current_editorstack().get_current_editor()
