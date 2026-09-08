@@ -1368,25 +1368,38 @@ class EditorMainWidget(PluginMainWidget):
         # This is necessary to populate the widgets without giving focus to the
         # Editor when the Statusbar plugin is reenabled on the fly
         if statusbar_reenabled:
-            current_editostack = self.get_current_editorstack()
-            current_editor = self.get_current_editor()
-            current_finfo = self.get_current_finfo()
+            self.populate_status_widgets(self.last_focused_editorstack[self])
 
-            current_editostack.readonly_changed.emit(
-                current_editor.isReadOnly()
-            )
-            current_editostack.encoding_changed.emit(current_finfo.encoding)
-            current_editor.sig_cursor_position_changed.emit(
-                *current_editor.get_cursor_line_column()
-            )
-            current_editostack.refresh_eol_chars(
-                current_editor.get_line_separator()
-            )
-            current_editostack.file_saved.emit(
-                str(id(current_editostack)),
-                current_editor.filename,
-                current_editor.filename,
-            )
+    def populate_status_widgets(self, editorstack: EditorStack) -> None:
+        """
+        Populate status bar widgets by emitting signals from an editorstack.
+
+        This allows to do that without giving focus to the editor.
+
+        Parameters
+        ----------
+        editorstack: EditorStack
+            The editorstack that will be used to emit signals from. It can be
+            available on the main window or any editor window.
+        """
+        current_editor = editorstack.get_current_editor()
+        current_finfo = editorstack.get_current_finfo()
+
+        editorstack.readonly_changed.emit(
+            current_editor.isReadOnly()
+        )
+        editorstack.encoding_changed.emit(current_finfo.encoding)
+        current_editor.sig_cursor_position_changed.emit(
+            *current_editor.get_cursor_line_column()
+        )
+        editorstack.refresh_eol_chars(
+            current_editor.get_line_separator()
+        )
+        editorstack.file_saved.emit(
+            str(id(editorstack)),
+            current_editor.filename,
+            current_editor.filename,
+        )
 
     def unregister_status_widgets(
         self, editorstack: EditorStack | None = None
