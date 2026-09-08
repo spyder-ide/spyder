@@ -1316,7 +1316,7 @@ class EditorMainWidget(PluginMainWidget):
     def save_focused_editorstack(self):
         editorstack = self.__get_focused_editorstack()
         if editorstack is not None:
-            for win in [self]+self.editorwindows:
+            for win in [self] + self.editorwindows:
                 if win.isAncestorOf(editorstack):
                     self.set_last_focused_editorstack(win, editorstack)
 
@@ -1331,7 +1331,11 @@ class EditorMainWidget(PluginMainWidget):
             if self._plugin.is_app_starting:
                 editorstacks = [self.get_current_editorstack()]
             else:
-                editorstacks = self.editorstacks
+                # We only need to register status widgets for editorstacks in
+                # the main window because other windows have their own widgets.
+                editorstacks = [
+                    es for es in self.editorstacks if not es.new_window
+                ]
         else:
             editorstacks = [editorstack]
 
@@ -1393,6 +1397,9 @@ class EditorMainWidget(PluginMainWidget):
             editorstacks = [editorstack]
 
         for es in editorstacks:
+            if es.new_window:
+                continue
+
             if self.readwrite_status is not None:
                 es.reset_statusbar.disconnect(self.readwrite_status.hide)
                 es.readonly_changed.disconnect(
@@ -1418,7 +1425,7 @@ class EditorMainWidget(PluginMainWidget):
                 es.current_file_changed.disconnect(self.vcs_status.update_vcs)
                 es.file_saved.disconnect(self.vcs_status.update_vcs_state)
 
-    def register_editorstack(self, editorstack):
+    def register_editorstack(self, editorstack: EditorStack):
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
 
@@ -1435,7 +1442,10 @@ class EditorMainWidget(PluginMainWidget):
                 self.current_editor_cursor_changed
             )
 
-            self.register_status_widgets(editorstack)
+            # Each editor window has its own status bar widgets, so we don't
+            # need to register the ones from the main window with it.
+            if not editorstack.new_window:
+                self.register_status_widgets(editorstack)
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
@@ -1695,7 +1705,8 @@ class EditorMainWidget(PluginMainWidget):
                 editorstack = self.__get_focused_editorstack()
                 if editorstack is None or editorwindow is not None:
                     editorstack = self.get_last_focused_editorstack(
-                        editorwindow)
+                        editorwindow
+                    )
                     if editorstack is None:
                         editorstack = self.editorstacks[0]
 
