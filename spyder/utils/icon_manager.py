@@ -100,12 +100,6 @@ class IconManager():
             '.xml': 'CodeFileIcon'
         }
 
-        self._resource = {
-            'directory': osp.join(
-                osp.dirname(osp.realpath(__file__)), '../fonts'),
-            'loaded': False,
-        }
-
         self._qtaargs = {
             'environment':             [('mdi.cube-outline',), {'color': self.MAIN_FG_COLOR}],
             'drag_dock_widget':        [('mdi.drag-variant',), {'color': self.MAIN_FG_COLOR}],
@@ -160,7 +154,6 @@ class IconManager():
             'hint':                    [('mdi.lightbulb',), {'color': SpyderPalette.GROUP_9}],
             'todo':                    [('mdi.check-bold',), {'color': SpyderPalette.GROUP_9}],
             'ipython_console':         [('mdi.console',), {'color': self.MAIN_FG_COLOR}],
-            'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
             'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
@@ -179,7 +172,6 @@ class IconManager():
             'previous':                [('mdi.arrow-left-bold',), {'color': self.MAIN_FG_COLOR}],
             'next':                    [('mdi.arrow-right-bold',), {'color': self.MAIN_FG_COLOR}],
             'up':                      [('mdi.arrow-up-bold',), {'color': self.MAIN_FG_COLOR}],
-            'spyder':                  [('spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'),  {'options': [{'color': SpyderPalette.SPYDER_LOGO_BACKGROUND}, {'color': SpyderPalette.SPYDER_LOGO_WEB}, {'color': SpyderPalette.SPYDER_LOGO_SNAKE}]}],
             'find':                    [('mdi.magnify',), {'color': self.MAIN_FG_COLOR}],
             'replace':                 [('mdi.find-replace',), {'color': self.MAIN_FG_COLOR}],
             'number_matches':          [('mdi.pound-box-outline',), {'color': self.MAIN_FG_COLOR}],
@@ -457,11 +449,6 @@ class IconManager():
 
     def icon(self, name, scale_factor=None, resample=False):
         try:
-            # Try to load the icons from QtAwesome
-            if not self._resource['loaded']:
-                qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
-                            directory=self._resource['directory'])
-                self._resource['loaded'] = True
             args, kwargs = self._qtaargs[name]
             if scale_factor is not None:
                 kwargs['scale_factor'] = scale_factor
