@@ -24,10 +24,6 @@ from tokenize import generate_tokens, TokenError
 # Third party imports
 from packaging.version import parse
 from qtpy import PYQT6, QT_VERSION
-if PYQT6:
-    from qtpy import sip
-    from qtpy.QtCore import QVariant
-
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
@@ -42,6 +38,10 @@ from spyder.utils.misc import get_error_match
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
+
+if PYQT6:
+    from qtpy import sip
+    from qtpy.QtCore import QVariant
 
 # ---- Constants
 # -----------------------------------------------------------------------------
