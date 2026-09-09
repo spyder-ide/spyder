@@ -277,6 +277,8 @@ class CodeEditor(
     # Used to signal that a text deletion was triggered
     sig_delete_requested = Signal()
 
+    sig_move_to_editorstack = Signal(str)
+
     def __init__(
         self,
         parent: QWidget | None = None,
@@ -705,7 +707,12 @@ class CodeEditor(
                 self.collapse_expand_current_region,
             ),
             ('fold all regions', self.collapse_all),
-            ('unfold all regions', self.expand_all)
+            ('unfold all regions', self.expand_all),
+            ('move to editor stack left', lambda: self.sig_move_to_editorstack.emit('left')),
+            ('move to editor stack right', lambda: self.sig_move_to_editorstack.emit('right')),
+            ('move to editor stack up', lambda: self.sig_move_to_editorstack.emit('up')),
+            ('move to editor stack down', lambda: self.sig_move_to_editorstack.emit('down'))
+
         )
 
         for name, callback in shortcuts:
