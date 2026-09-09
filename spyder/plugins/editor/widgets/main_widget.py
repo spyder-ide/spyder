@@ -515,9 +515,38 @@ class EditorMainWidget(PluginMainWidget):
             text=_("Next cursor position"),
             icon=self.create_icon('next_cursor'),
             tip=_("Go to next cursor position"),
-            triggered=self.go_to_next_cursor_position,
+            triggered=lambda: print("============================ACTION FIRED======================================"),
             context=Qt.WidgetShortcut,
             register_shortcut=True
+        )
+
+        self.move_to_editorstack_left_action = self.create_action(
+            EditorWidgetActions.MoveToEditorStackLeft,
+            text=_("Move to editor stack left"),
+            triggered=lambda: logger.debug("============================ACTION FIRED======================================"),
+            register_shortcut=True,
+        )
+
+        self.move_to_editorstack_right_action = self.create_action(
+            EditorWidgetActions.MoveToEditorStackRight,
+            text=_("Move to editor stack right"),
+            triggered=lambda: self.move_to_editorstack("right"),
+            register_shortcut=True,
+        )
+
+        self.move_to_editorstack_up_action = self.create_action(
+            EditorWidgetActions.MoveToEditorStackUp,
+            text=_("Move to editor stack up"),
+            triggered=lambda: self.move_to_editorstack("up"),
+            register_shortcut=True,
+        )
+
+        self.move_to_editorstack_down_action = self.create_action(
+            EditorWidgetActions.MoveToEditorStackDown,
+            text=_("Move to editor stack down"),
+            triggered=lambda: self.move_to_editorstack("down"),
+            context=Qt.WidgetShortcut,
+            register_shortcut=True,
         )
 
         # EOL menu
@@ -1558,6 +1587,29 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Accessors
     # -------------------------------------------------------------------------
+    def move_to_editorstack(self, direction):
+        """Move focus to the EditorStack in the given direction."""
+        current_editorstack = self.get_current_editorstack()
+
+        logger.debug(">>>>>>>>>CURRENT EDITORSTACK", current_editorstack)
+
+        for i, stack in enumerate(self.editorstacks):
+            print(i, stack, stack is current_editorstack)
+
+        if current_editorstack is None:
+            return
+
+        splitter = self.editorsplitter
+        target = splitter.get_editorstack_in_direction(
+            current_editorstack,
+            direction
+        )
+        logger.debug(">>>>>>>>>TARGET", target)
+        logger.debug(">>>>>>>>>DIRECTION", direction)
+
+        if target is not None:
+            target.setFocus()
+
     def get_filenames(self):
         return [finfo.filename for finfo in self.editorstacks[0].data]
 

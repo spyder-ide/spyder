@@ -558,6 +558,10 @@ DEFAULTS = [
               'editor/fold or unfold current region': 'Ctrl+H',
               'editor/fold all regions': 'Ctrl+J',
               'editor/unfold all regions': 'Ctrl+K',
+              'editor/move to editor stack left': 'Ctrl+Alt+Left',
+              'editor/move to editor stack right': 'Ctrl+Alt+Right',
+              'editor/move to editor stack up': 'Ctrl+Alt+Up',
+              'editor/move to editor stack down': 'Ctrl+Alt+Down',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",
