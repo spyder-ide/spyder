@@ -13,6 +13,7 @@ from collections.abc import Callable
 import logging
 import os
 import os.path as osp
+import re
 import time
 from textwrap import dedent
 import typing
@@ -61,6 +62,12 @@ logger = logging.getLogger(__name__)
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer"
 )
+
+# Text that a block must start with to be considered an input prompt by the
+# "Go to previous/next prompt" shortcuts. This matches regular prompts
+# ("In [1]: "), debugging prompts ("IPdb [1]: ") and the ones shown while
+# using a recursive debugger ("(IPdb [1]): ").
+PROMPT_BLOCK_RE = re.compile(r"^[ \t]*\(*(In|IPdb) \[\d+\]\)*: ")
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -190,6 +197,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient: ClientWidget = ipyclient
         self.additional_options = additional_options
         self.special_kernel = special_kernel
+
+        # Blocks corresponding to previously shown prompts, used to jump
+        # between them with the "Go to previous/next prompt" shortcuts.
+        self._prompt_blocks = []
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -1046,6 +1057,8 @@ overrided by the Sympy module (e.g. plot)
             ('enter array inline', self._control.enter_array_inline),
             ('enter array table', self._control.enter_array_table),
             ('clear line', self.ipyclient.clear_line),
+            ('go to previous prompt', self.jump_to_previous_prompt),
+            ('go to next prompt', self.jump_to_next_prompt),
         )
 
         for name, callback in shortcuts:
@@ -1219,6 +1232,87 @@ overrided by the Sympy module (e.g. plot)
         """
         super().cut()
         self._save_clipboard_indentation()
+
+    def _show_interpreter_prompt(self, number=None):
+        """Reimplemented to keep track of the blocks where prompts appear."""
+        super()._show_interpreter_prompt(number)
+
+        # `number` is None when this call only requests a prompt number from
+        # the kernel, i.e. no prompt has actually been shown yet.
+        if number is not None and self._previous_prompt_obj is not None:
+            self._prompt_blocks.append(self._previous_prompt_obj.block)
+
+    def _show_prompt(self, prompt=None, html=False, newline=True,
+                     separator=True):
+        """Reimplemented to also track the blocks where debugging prompts appear.
+
+        Debugging prompts (`IPdb [ ]: `) are shown through this method instead
+        of `_show_interpreter_prompt`, so they need to be tracked here for the
+        "Go to previous/next prompt" shortcuts to navigate them.
+        """
+        super()._show_prompt(prompt, html, newline, separator)
+
+        if (
+            getattr(self, "_pdb_prompt", None) is not None
+            and prompt == self._pdb_prompt
+        ):
+            self._prompt_blocks.append(self._control.document().lastBlock())
+
+    def _valid_prompt_blocks(self):
+        """
+        Return the tracked prompt blocks that are still shown in the console.
+
+        Entries in `_prompt_blocks` can become stale (e.g. after the console
+        is cleared through the "Clear console" action or a user-typed
+        "%clear"/"%cls"), and Qt doesn't always mark the corresponding blocks
+        as invalid (this was seen on Windows), so we also check that a
+        block's text still starts with a prompt before keeping it.
+        """
+        self._prompt_blocks = [
+            block for block in self._prompt_blocks
+            if block.isValid() and PROMPT_BLOCK_RE.match(block.text())
+        ]
+        return self._prompt_blocks
+
+    def jump_to_previous_prompt(self):
+        """Jump to the previous prompt, if there is one."""
+        self._jump_to_prompt(step=-1)
+
+    def jump_to_next_prompt(self):
+        """Jump to the next prompt, if there is one."""
+        self._jump_to_prompt(step=1)
+
+    def _jump_to_prompt(self, step):
+        """
+        Move the cursor to the closest prompt before (step < 0) or after
+        (step > 0) the current cursor position.
+        """
+        current_number = self._control.textCursor().blockNumber()
+        blocks_by_number = {
+            block.blockNumber(): block
+            for block in self._valid_prompt_blocks()
+        }
+
+        if step < 0:
+            candidates = [n for n in blocks_by_number if n < current_number]
+            target = max(candidates) if candidates else None
+        else:
+            candidates = [n for n in blocks_by_number if n > current_number]
+            target = min(candidates) if candidates else None
+
+        if target is None:
+            return
+
+        block = blocks_by_number[target]
+
+        cursor = self._control.textCursor()
+        # Position the cursor right after the prompt (e.g. "In [1]: "), not
+        # before it. The offset is computed from the block's current text so
+        # it stays correct if the prompt number is updated later on.
+        offset = PROMPT_BLOCK_RE.match(block.text()).end()
+        cursor.setPosition(block.position() + offset)
+        self._control.setTextCursor(cursor)
+        self._control.ensureCursorVisible()
 
     # ---- Private API
     def _adjust_indentation(self, line, indent_adjustment):

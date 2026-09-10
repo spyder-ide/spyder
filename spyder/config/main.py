@@ -583,6 +583,8 @@ DEFAULTS = [
               'ipython_console/enter array table': "Ctrl+M",
               'ipython_console/switch to next console': "Shift+Alt+Right",
               'ipython_console/switch to previous console': "Shift+Alt+Left",
+              'ipython_console/go to previous prompt': "Ctrl+Alt+Up",
+              'ipython_console/go to next prompt': "Ctrl+Alt+Down",
               # -- Variable explorer --
               'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',
