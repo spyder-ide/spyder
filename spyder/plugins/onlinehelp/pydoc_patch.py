@@ -11,7 +11,7 @@
 import builtins
 import io
 import inspect
-import os
+from pathlib import Path
 import pkgutil
 import platform
 from pydoc import (
@@ -21,6 +21,7 @@ from pydoc import (
 import re
 import sys
 import tokenize
+from urllib.parse import unquote, urlsplit
 import warnings
 
 # Local imports
@@ -28,6 +29,67 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.config.base import DEV
 from spyder.utils.theme_manager import THEME_MANAGER
+
+
+# HTTP path prefix mapped to the active theme directory (pydoc.css + rc/).
+# CSS uses relative url(rc/...), so those requests must share this prefix.
+_THEME_STATIC_PREFIX = "theme"
+_THEME_CONTENT_TYPES = {
+    ".css": "text/css; charset=UTF-8",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".gif": "image/gif",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+}
+
+
+def _theme_url_parts(url):
+    """Return path segments after stripping query string and decoding."""
+    parsed_path = unquote(urlsplit(url).path)
+    return [part for part in parsed_path.lstrip("/").split("/") if part]
+
+
+def _is_theme_asset_request(url):
+    """Return True if url is under the theme static prefix."""
+    parts = _theme_url_parts(url)
+    return bool(parts) and parts[0] == _THEME_STATIC_PREFIX
+
+
+def _resolve_theme_asset(url):
+    """Map ``/theme/<rel>`` to a file under the current theme CSS directory.
+
+    Returns a Path if the file exists and is an allowed type, else None.
+    Rejects path traversal and files outside the theme directory.
+    """
+    parts = _theme_url_parts(url)
+    if not parts or parts[0] != _THEME_STATIC_PREFIX:
+        return None
+
+    rel_parts = parts[1:]
+    if not rel_parts or any(part in (".", "..") for part in rel_parts):
+        return None
+
+    suffix = Path(rel_parts[-1]).suffix.lower()
+    if suffix not in _THEME_CONTENT_TYPES:
+        return None
+
+    try:
+        theme_dir = Path(
+            THEME_MANAGER.get_css_path(css_file="pydoc.css")
+        ).resolve()
+    except (FileNotFoundError, ValueError):
+        return None
+
+    asset = theme_dir.joinpath(*rel_parts).resolve()
+    try:
+        asset.relative_to(theme_dir)
+    except ValueError:
+        return None
+
+    if not asset.is_file():
+        return None
+    return asset
 
 
 class CustomHTMLDoc(Doc, SpyderFontsMixin):
@@ -652,11 +714,11 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
 def _url_handler(url, content_type="text/html"):
     """Pydoc url handler for use with the pydoc server.
 
-    If the content_type is 'text/css', the _pydoc.css style
-    sheet is read and returned if it exits.
-
     If the content_type is 'text/html', then the result of
     get_html_page(url) is returned.
+
+    Theme CSS and ``rc/`` images are served by the HTTP handler from
+    ``/theme/``, not by this function.
 
     See https://github.com/python/cpython/blob/master/Lib/pydoc.py
     """
@@ -664,14 +726,9 @@ def _url_handler(url, content_type="text/html"):
 
         def page(self, title, contents):
             """Format an HTML page."""
-
-            if THEME_MANAGER.is_dark_interface():
-                css_path = "static/css/dark_pydoc.css"
-            else:
-                css_path = "static/css/light_pydoc.css"
-
             css_link = (
-                f'<link rel="stylesheet" type="text/css" href="/{css_path}">'
+                '<link rel="stylesheet" type="text/css" '
+                f'href="/{_THEME_STATIC_PREFIX}/pydoc.css">'
             )
 
             code_style = (
@@ -893,12 +950,7 @@ def _url_handler(url, content_type="text/html"):
 
     if url.startswith('/'):
         url = url[1:]
-    if content_type == 'text/css':
-        path_here = os.path.dirname(os.path.realpath(__file__))
-        css_path = os.path.join(path_here, url)
-        with open(css_path) as fp:
-            return ''.join(fp.readlines())
-    elif content_type == 'text/html':
+    if content_type == 'text/html':
         return get_html_page(url)
     # Errors outside the url handler are caught by the server.
     raise TypeError(
@@ -928,19 +980,34 @@ def _start_server(urlhandler, hostname, port):
             """Process a request from an HTML browser.
 
             The URL received is in self.path.
-            Get an HTML page from self.urlhandler and send it.
+            Theme static files are served from disk; HTML comes from
+            self.urlhandler.
             """
-            if self.path.endswith('.css'):
-                content_type = 'text/css'
-            else:
-                content_type = 'text/html'
-            self.send_response(200)
-            self.send_header(
-                'Content-Type', '%s; charset=UTF-8' % content_type)
-            self.end_headers()
             try:
-                self.wfile.write(self.urlhandler(
-                    self.path, content_type).encode('utf-8'))
+                if _is_theme_asset_request(self.path):
+                    asset = _resolve_theme_asset(self.path)
+                    if asset is None:
+                        self.send_error(404)
+                        return
+                    body = asset.read_bytes()
+                    content_type = _THEME_CONTENT_TYPES[
+                        asset.suffix.lower()
+                    ]
+                    self.send_response(200)
+                    self.send_header('Content-Type', content_type)
+                    self.send_header('Content-Length', str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+
+                payload = self.urlhandler(
+                    self.path, 'text/html').encode('utf-8')
+                self.send_response(200)
+                self.send_header(
+                    'Content-Type', 'text/html; charset=UTF-8')
+                self.send_header('Content-Length', str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
             except ConnectionAbortedError:
                 # Needed to handle error when client closes the connection,
                 # for example when the client stops the load of the previously
