@@ -62,3 +62,8 @@ class EditorWidgetActions:
     Unindent = "unindent_action"
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
+
+    MoveToEditorStackLeft = "Move to editor stack left"
+    MoveToEditorStackRight = "Move to editor stack right"
+    MoveToEditorStackUp = "Move to editor stack up"
+    MoveToEditorStackDown = "Move to editor stack down"
