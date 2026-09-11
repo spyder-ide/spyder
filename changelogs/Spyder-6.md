@@ -18,6 +18,8 @@
 * Add shortcuts and menu entries to expand/collapse all foldable regions in the
   Editor to the `Source` menu.
 * Add support to introduce inline (or ghost) completions to the Editor.
+* Add an `Extract function` refactoring action to the Editor's context menu,
+  which extracts the selected block of code into a new function.
 
 ### Important fixes
 

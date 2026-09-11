@@ -20,6 +20,7 @@ Editor widget based on QtGui.QPlainTextEdit
 from __future__ import annotations
 from collections.abc import Callable
 import functools
+import keyword
 import logging
 import os
 import os.path as osp
@@ -55,6 +56,7 @@ from qtpy.QtGui import (
 )
 from qtpy.QtWidgets import (
     QApplication,
+    QInputDialog,
     QMessageBox,
     QSplitter,
     QScrollBar,
@@ -118,6 +120,7 @@ class CodeEditorActions:
     ZoomOut = 'zoom out'
     ZoomReset = 'zoom reset'
     Docstring = 'docstring'
+    ExtractFunction = 'extract_function_action'
 
 
 class CodeEditorMenus:
@@ -3026,6 +3029,91 @@ class CodeEditor(
                                  str(e))
             return
         self.sig_new_file.emit(script)
+
+    def extract_function(self):
+        """Extract the selected code block into a new function using rope."""
+        self.clear_extra_cursors()
+        if not self.is_python_like():
+            QMessageBox.information(
+                self,
+                _('Extract function'),
+                _("This refactoring is only available for Python files.")
+            )
+            return
+
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            QMessageBox.information(
+                self,
+                _('Extract function'),
+                _("Please select the block of code you want to extract.")
+            )
+            return
+
+        name, ok = QInputDialog.getText(
+            self,
+            _('Extract function'),
+            _('New function name:'),
+            text='extracted_function'
+        )
+        if not ok:
+            return
+        name = name.strip()
+        if not name.isidentifier() or keyword.iskeyword(name):
+            QMessageBox.warning(
+                self,
+                _('Extract function'),
+                _("'%s' is not a valid Python identifier.") % name
+            )
+            return
+
+        import shutil
+        import tempfile
+
+        from rope.base.project import Project
+        from rope.refactor.extract import ExtractMethod
+
+        text = self.toPlainText()
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+
+        tmpdir = tempfile.mkdtemp(prefix='spyder-extract-')
+        try:
+            project = Project(tmpdir, ropefolder=None)
+            try:
+                resource = project.root.create_file('_extract_buffer.py')
+                resource.write(text)
+                changes = ExtractMethod(
+                    project, resource, start, end).get_changes(name)
+                project.do(changes)
+                new_text = resource.read()
+            finally:
+                project.close()
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                _('Extract function'),
+                _("It was not possible to extract the selected block. "
+                  "Make sure it spans complete statements of valid "
+                  "Python code.\n\nThe error is:\n\n") + str(e)
+            )
+            return
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+        if new_text == text:
+            return
+
+        # We replace the whole buffer instead of using self.set_text to
+        # benefit from QTextEdit's undo/redo feature.
+        self.selectAll()
+        self.skip_rstrip = True
+        self.insertPlainText(new_text)
+        self.skip_rstrip = False
+
+        cursor = self.textCursor()
+        cursor.setPosition(min(start, len(new_text)))
+        self.setTextCursor(cursor)
 
     def indent(self, force=False):
         """
