@@ -20,6 +20,7 @@ Editor widget based on QtGui.QPlainTextEdit
 from __future__ import annotations
 from collections.abc import Callable
 import functools
+import inspect
 import logging
 import os
 import os.path as osp
@@ -718,10 +719,19 @@ class CodeEditor(
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
 
-        for name, callback, plugin_name in self.external_shortcuts:
+        for name, callback, context, plugin_name in self.external_shortcuts:
+            # Qt objects don't have signatures, which generates a ValueError.
+            # In that case we assume `callback` has no args.
+            try:
+                if len(inspect.signature(callback).parameters) == 1:
+                    callback = functools.partial(callback, self)
+            except ValueError:
+                pass
+
             self.register_shortcut_for_widget(
                 name=name,
-                triggered=functools.partial(callback, self),
+                triggered=callback,
+                context=context,
                 plugin_name=plugin_name,
             )
 

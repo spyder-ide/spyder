@@ -485,7 +485,7 @@ class SpyderPluginV2(
 
     def __init__(
         self,
-        parent: spyder.app.mainwindow.MainWindow,
+        parent: spyder.app.mainwindow.MainWindow | None,
         configuration: (
             spyder.config.manager.ConfigurationManager | None
         ) = None,
@@ -545,6 +545,25 @@ class SpyderPluginV2(
         ``True`` if it has been registered, ``False`` if it has been
         unregistered, and ``None`` if the plugin hasn't been set up yet.
         """
+
+        self.is_app_starting: bool = True
+        """Whether the Spyder application is starting.
+
+        ``True`` if plugins are being loaded and registered while the
+        application is starting; ``False`` otherwise, i.e. when the application
+        is ready to work with.
+        """
+
+        self.is_app_closing: bool = False
+        """Whether the Spyder application is being closed.
+
+        ``True`` if plugins are being closed and deleted; ``False`` otherwise,
+        i.e. when the application is running normally.
+        """
+
+        # We need this so the right value is used when the plugin is reenabled
+        if self._main and hasattr(self._main, "is_setting_up"):
+            self.is_app_starting = self._main.is_setting_up
 
         if self.CONTAINER_CLASS is not None:
             self._container = container = self.CONTAINER_CLASS(
@@ -612,6 +631,12 @@ class SpyderPluginV2(
         self._container = None
         self.is_compatible = None
         self.is_registered = False
+
+    def _set_app_started(self):
+        self.is_app_starting = False
+
+    def _set_app_closing(self):
+        self.is_app_closing = True
 
     # ---- Convinience attributes as properties
     # -------------------------------------------------------------------------
@@ -1368,6 +1393,20 @@ class SpyderPluginV2(
             ``True`` if the plugin can be closed, ``False`` otherwise.
         """
         return True
+
+    def on_reenabled(self) -> None:
+        """
+        Actions to be performed after the plugin is reenabled.
+
+        Since Spyder 6.2.0, plugins can be disabled/reenabled in the same
+        session. This method will be run after the plugin is re-registered and
+        all connections to other plugins reestablished.
+
+        Returns
+        -------
+        None
+        """
+        pass
 
     def update_font(self) -> None:
         """

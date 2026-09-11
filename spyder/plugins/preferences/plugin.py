@@ -363,7 +363,6 @@ class Preferences(SpyderPluginV2):
         container = self.get_container()
         if container.is_preferences_open():
             container.close_preferences()
-        return True
 
     # ---- Private API
     # -------------------------------------------------------------------------

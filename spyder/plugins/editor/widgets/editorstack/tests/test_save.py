@@ -23,11 +23,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
-from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri,
-)
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -494,8 +490,7 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
 def test_save_when_completions_are_visible(completions_editor, qtbot):
     """
     Test that save works when the completion widget is visible and the user
-    press the save shortcut (Ctrl+S). This only checks that the correct signal
-    is emitted; the Application plugin is needed to actually save the file.
+    press the save shortcut (Ctrl+S).
 
     Regression test for issue spyder-ide/spyder#14806.
     """
@@ -505,8 +500,13 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
 
     code_editor.set_text('some = 0\nsomething = 1\n')
     editorstack.save(force=True)
-    cursor = code_editor.textCursor()
     code_editor.moveCursor(QTextCursor.End)
+
+    # Manually register save shortcut because it's done by the Application
+    # plugin
+    code_editor.register_shortcut_for_widget(
+        "save file", editorstack.save, context="main"
+    )
 
     # Complete some -> [some, something]
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -515,17 +515,15 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     assert "some" in [x.label for x in sig.args[0]]
     assert "something" in [x.label for x in sig.args[0]]
 
-    # Check that pressing Ctrl+S emits the signal for saving the file
-    with qtbot.waitSignal(
-        editorstack.sig_trigger_action, timeout=5_000
-    ) as blocker:
-        # Press keyboard shortcut corresponding to save
-        qtbot.keyPress(
-            completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300
-        )
+    # Press keyboard shortcut corresponding to save
+    qtbot.keyPress(
+        completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300
+    )
 
-    # Assert the signal had the correct arguments
-    assert blocker.args == ['Save file', Plugins.Application]
+    # Assert file was saved
+    with open(file_path, 'r') as f:
+        saved_text = f.read()
+    assert saved_text == 'some = 0\nsomething = 1\nsome'
 
     code_editor.toggle_code_snippets(True)
 

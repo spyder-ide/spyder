@@ -45,7 +45,7 @@ class Explorer(SpyderDockablePlugin):
         Plugins.IPythonConsole,
         Plugins.RemoteClient,
     ]
-    TABIFY = Plugins.VariableExplorer
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = ExplorerWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = ExplorerConfigPage
@@ -234,6 +234,17 @@ class Explorer(SpyderDockablePlugin):
                 clear_variables=True,
             )
         )
+
+        # If the plugin is re-enabled and the current console is remote, we
+        # need to call chdir to populate and display remote_treewidget.
+        if (
+            not self.is_app_starting
+            and ipyconsole.get_current_client().is_remote()
+        ):
+            working_directory = self.get_plugin(Plugins.WorkingDirectory)
+            cwd = working_directory.get_workdir()
+            server_id = working_directory.get_container().server_id
+            self.chdir(cwd, emit=False, server_id=server_id)
 
     @on_plugin_available(plugin=Plugins.WorkingDirectory)
     def on_working_directory_available(self):
