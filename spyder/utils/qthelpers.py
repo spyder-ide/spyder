@@ -612,8 +612,6 @@ class SpyderAction(QAction):
         """Spyder QAction class wrapper to handle cross platform patches."""
         super().__init__(*args, **kwargs)
         self.action_id = action_id
-        if sys.platform == "darwin":
-            self.setIconVisibleInMenu(False)
 
     def __str__(self):
         return "SpyderAction('{0}')".format(self.text())
