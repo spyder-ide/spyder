@@ -30,7 +30,6 @@ from spyder.plugins.projects.widgets.main_widget import (
     ProjectsActions, ProjectExplorerWidget)
 from spyder.utils.misc import getcwd_or_home
 
-
 # Logging
 logger = logging.getLogger(__name__)
 
@@ -47,6 +46,7 @@ class Projects(SpyderDockablePlugin):
         Plugins.Editor,
         Plugins.IPythonConsole,
         Plugins.Switcher,
+        Plugins.MainInterpreter,
     ]
     WIDGET_CLASS = ProjectExplorerWidget
 
@@ -129,6 +129,19 @@ class Projects(SpyderDockablePlugin):
 
         self.register_project_type(self, EmptyProject)
 
+    @on_plugin_available(plugin=Plugins.MainInterpreter)
+    def on_maininterpreter_available(self):
+        widget = self.get_widget()
+        widget.sig_project_loaded.connect(lambda v: self._update_active_interpreter())
+
+    def _update_active_interpreter(self):
+        widget = self.get_widget()
+        if widget.current_active_project is not None:
+            maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+            maininterpreter.get_container().add_to_custom_interpreters(widget.current_active_project.config.get('workspace', 'interpreter'))
+            maininterpreter.get_container().validate_custom_interpreters_list()
+            maininterpreter.set_custom_interpreter(widget.current_active_project.config.get('workspace', 'interpreter'))
+
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -183,6 +196,12 @@ class Projects(SpyderDockablePlugin):
         open_project_action = self.get_action(ProjectsActions.OpenProject)
         close_project_action = self.get_action(ProjectsActions.CloseProject)
         delete_project_action = self.get_action(ProjectsActions.DeleteProject)
+        project_settings_action = self.get_action(ProjectsActions.ProjectSettings)
+
+        main_menu.add_item_to_application_menu(
+            project_settings_action,
+            menu_id=ApplicationMenus.Projects,
+            section=ProjectsMenuSections.Extras)
 
         projects_menu = main_menu.get_application_menu(
             ApplicationMenus.Projects)
