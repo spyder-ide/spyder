@@ -6,12 +6,23 @@
 
 """Outline explorer main widget."""
 
+from lsprotocol import types as lsp
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import _
+from spyder.plugins.completion.api import SYMBOL_KIND_ICON
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerTreeWidget
+from spyder.utils.icon_manager import ima
+
+
+def _symbol_range(symbol):
+    """Return the lsp.Range of a DocumentSymbol or SymbolInformation."""
+    if isinstance(symbol, lsp.SymbolInformation):
+        return symbol.location.range
+
+    return symbol.range
 
 
 # ---- Enums
@@ -254,6 +265,81 @@ class OutlineExplorerWidget(PluginMainWidget):
     def change_tree_visibility(self, is_visible):
         "Change treewidget's visibility."
         self.treewidget.change_visibility(is_visible)
+
+    def create_symbol_switcher(self):
+        """Populate switcher with symbol info."""
+        switcher = self._plugin._switcher
+        current_editor = self.treewidget.current_editor
+        language = current_editor.get_language()
+
+        codeeditor = current_editor.get_codeeditor()
+        codeeditor.update_whitespace_count(0, 0)
+
+        current_line = codeeditor.get_cursor_line_number()
+        switcher.clear()
+        switcher.set_placeholder_text(_('Select symbol'))
+
+        oe_symbols = self.treewidget.current_editor.info or []
+        display_variables = self.get_conf('display_variables')
+
+        idx = 0
+        init_row = 0
+        total_symbols = len(oe_symbols)
+        oe_symbols = sorted(
+            oe_symbols, key=lambda x: _symbol_range(x).start.line
+        )
+
+        for symbol in oe_symbols:
+            symbol_name = symbol.name
+            symbol_kind = symbol.kind
+            if language.lower() == 'python':
+                if symbol_kind == lsp.SymbolKind.Module:
+                    total_symbols -= 1
+                    continue
+
+                if (
+                    symbol_kind == lsp.SymbolKind.Variable and
+                    not display_variables
+                ):
+                    total_symbols -= 1
+                    continue
+
+                if (
+                    symbol_kind == lsp.SymbolKind.Field
+                    and not display_variables
+                ):
+                    total_symbols -= 1
+                    continue
+
+            symbol_start = _symbol_range(symbol).start.line
+            fold_level = codeeditor.leading_whitespaces[symbol_start]
+            space = ' ' * fold_level
+            formated_title = f'{space}{symbol_name}'
+
+            icon = ima.icon(SYMBOL_KIND_ICON.get(symbol_kind, 'no_match'))
+            data = {
+                'title': symbol_name,
+                'line_number': symbol_start + 1
+            }
+            last_item = idx + 1 == total_symbols
+
+            switcher.add_item(
+                title=formated_title,
+                icon=icon,
+                section=_("Outline"),
+                data=data,
+                last_item=last_item
+            )
+
+            init_row = idx if symbol_start <= current_line else init_row
+            idx += 1
+
+        # Needed to update fold spaces for item titles
+        switcher.setup()
+
+        # Set the current row and center view.
+        # Fixes spyder-ide/spyder#23138
+        switcher.init_current_row(init_row)
 
     # ---- Private API
     # -------------------------------------------------------------------------

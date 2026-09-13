@@ -22,10 +22,13 @@ class OutlineExplorer(SpyderDockablePlugin):
     NAME = 'outline_explorer'
     CONF_SECTION = 'outline_explorer'
     REQUIRES = [Plugins.Completions, Plugins.Editor]
+    OPTIONAL = [Plugins.Switcher]
     TABIFY = [Plugins.Projects]
 
     CONF_FILE = False
     WIDGET_CLASS = OutlineExplorerWidget
+
+    _SWITCHER_MODE = "@"
 
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
@@ -47,11 +50,17 @@ class OutlineExplorer(SpyderDockablePlugin):
         return cls.create_icon('outline_explorer')
 
     def on_initialize(self):
+        self._editor = None
+        self._switcher = None
+
         if self.main:
             self.main.restore_scrollbar_position.connect(
-                self._restore_scrollbar_position)
+                self._restore_scrollbar_position
+            )
+
         self.sig_mainwindow_state_changed.connect(
-            self._on_mainwindow_state_changed)
+            self._on_mainwindow_state_changed
+        )
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -65,7 +74,7 @@ class OutlineExplorer(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         widget = self.get_widget()
-        editor = self.get_plugin(Plugins.Editor)
+        self._editor = editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_open_files_finished.connect(
             self.update_all_editors)
@@ -111,6 +120,21 @@ class OutlineExplorer(SpyderDockablePlugin):
             # Update symbols for all open CodeEditors
             self.update_all_editors()
 
+    @on_plugin_available(plugin=Plugins.Switcher)
+    def on_switcher_available(self):
+        self._switcher = self.get_plugin(Plugins.Switcher)
+        self._switcher.add_mode(
+            self._SWITCHER_MODE, _('Go to symbol in current file')
+        )
+
+        self._switcher.sig_mode_selected.connect(self._handle_switcher_modes)
+        self._switcher.sig_item_selected.connect(
+             self._handle_switcher_selection
+        )
+        self._switcher.sig_item_changed.connect(
+            self._handle_switcher_item_change
+        )
+
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
         completions = self.get_plugin(Plugins.Completions)
@@ -129,6 +153,24 @@ class OutlineExplorer(SpyderDockablePlugin):
             self.update_all_editors)
         widget.edit_goto.disconnect(editor.load_edit_goto)
         widget.edit.disconnect(editor.load_edit)
+
+        self._editor = None
+
+    @on_plugin_teardown(plugin=Plugins.Switcher)
+    def on_switcher_teardown(self):
+        self._switcher.remove_mode(self._SWITCHER_MODE)
+
+        self._switcher.sig_mode_selected.disconnect(
+            self._handle_switcher_modes
+        )
+        self._switcher.sig_item_selected.disconnect(
+             self._handle_switcher_selection
+        )
+        self._switcher.sig_item_changed.disconnect(
+            self._handle_switcher_item_change
+        )
+
+        self._switcher = None
 
     def on_close(self, cancelable: bool = False):
         if self.main:
@@ -173,6 +215,30 @@ class OutlineExplorer(SpyderDockablePlugin):
         else:
             self.get_widget().toggle_view_action.setChecked(False)
         self.get_widget().blockSignals(False)
+
+    def _handle_switcher_modes(self, mode):
+        if mode == self._SWITCHER_MODE:
+            self.get_widget().create_symbol_switcher()
+
+    def _handle_switcher_selection(self, item, mode, search_text):
+        if mode == self._SWITCHER_MODE:
+            data = item.get_data()
+            line_number = data['line_number']
+            self._editor.get_current_editorstack().go_to_line(int(line_number))
+
+            self._switcher.hide()
+            self._switcher.set_search_text('')
+
+    def _handle_switcher_item_change(self, current):
+        """Handle item selection change."""
+        mode = self._switcher.get_mode()
+
+        if mode == self._SWITCHER_MODE and current is not None:
+            data = current.get_data()
+            if isinstance(data, dict):
+                self._editor.get_current_editorstack().go_to_line(
+                    int(data['line_number'])
+                )
 
     # ----- Public API
     # -------------------------------------------------------------------------
