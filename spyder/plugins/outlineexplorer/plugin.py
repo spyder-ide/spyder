@@ -135,9 +135,16 @@ class OutlineExplorer(SpyderDockablePlugin):
             self.main.restore_scrollbar_position.disconnect(
                 self._restore_scrollbar_position
             )
+
         self.sig_mainwindow_state_changed.disconnect(
             self._on_mainwindow_state_changed
         )
+
+        # This is needed to stop showing symbols in the switcher when the
+        # plugin is disabled on the fly
+        if not self.is_app_closing:
+            for language in self.get_supported_languages():
+                self.stop_symbol_services(language)
 
     # ----- Private API
     # -------------------------------------------------------------------------
