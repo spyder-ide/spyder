@@ -86,7 +86,6 @@ from spyder.plugins.ipythonconsole.api import (
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.profiler.widgets.main_widget import ProfilerWidgetActions
-from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
     RunActions,
@@ -96,6 +95,8 @@ from spyder.plugins.run.api import (
     WorkingDirSource,
 )
 from spyder.plugins.shortcuts.widgets.table import SEQUENCE
+from spyder.plugins.switcher.api import SwitcherActions
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -2730,11 +2731,15 @@ def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_action
-    editorstack.switcher_action.trigger()
+    switcher_action = editorstack.get_action(
+        SwitcherActions.FileSwitcherAction, plugin=Plugins.Switcher
+    )
+    switcher_action.trigger()
+
     assert main_window.switcher.is_visible()
-    assert (main_window.switcher.count() ==
-            len(main_window.editor.get_filenames()))
+    assert main_window.switcher.count() == len(
+        main_window.editor.get_filenames()
+    )
 
 
 @flaky(max_runs=3)
@@ -2779,9 +2784,12 @@ def example_def_2():
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.symbolfinder_action
-    editorstack.symbolfinder_action.trigger()
+    symbolfinder_action = editorstack.get_action(
+        SwitcherActions.SymbolFinderAction, plugin=Plugins.Switcher
+    )
+    symbolfinder_action.trigger()
     qtbot.wait(500)
+
     assert main_window.switcher.is_visible()
     assert main_window.switcher.count() == 2
 

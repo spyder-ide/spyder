@@ -1294,8 +1294,6 @@ class EditorMainWidget(PluginMainWidget):
             )
         else:
             self.switcher_manager = None
-        for editorstack in self.editorstacks:
-            editorstack.update_switcher_actions(switcher_available)
 
     # ---- Focus tabwidget (public)
     # -------------------------------------------------------------------------
@@ -1460,7 +1458,6 @@ class EditorMainWidget(PluginMainWidget):
             if not editorstack.new_window:
                 self.register_status_widgets(editorstack)
 
-        editorstack.update_switcher_actions(self.switcher_manager is not None)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************

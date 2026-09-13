@@ -837,9 +837,12 @@ class EditorMainWidgetExample(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(None, self, self)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
-        self.editor_splitter = EditorSplitter(self, self, menu_actions,
-                                              first=True,
-                                              use_switcher=False)
+        self.editor_splitter = EditorSplitter(
+            self,
+            self,
+            menu_actions,
+            first=True,
+        )
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()

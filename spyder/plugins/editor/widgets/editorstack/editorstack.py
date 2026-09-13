@@ -212,7 +212,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
-    def __init__(self, parent, actions, use_switcher=True):
+    def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
         SpyderWidgetMixin.__init__(self, class_parent=parent)
 
@@ -244,10 +244,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.data: list[FileInfo] = []
 
         # Actions
-        self.switcher_action = None
-        self.symbolfinder_action = None
-        self.use_switcher = use_switcher
-
         self.copy_absolute_path_action = self.create_action(
             EditorStackActions.CopyAbsolutePath,
             text=_("Copy absolute path"),
@@ -496,20 +492,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
-
-    def update_switcher_actions(self, switcher_available):
-        if self.use_switcher and switcher_available:
-            self.switcher_action = self.get_action(
-                SwitcherActions.FileSwitcherAction,
-                plugin="switcher"
-            )
-            self.symbolfinder_action = self.get_action(
-                SwitcherActions.SymbolFinderAction,
-                plugin="switcher"
-            )
-        else:
-            self.switcher_action = None
-            self.symbolfinder_action = None
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
@@ -1281,18 +1263,34 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 self.menu.add_action(
                     given_action, section=EditorStackMenuSections.GivenSection
                 )
+
             # switcher and path section
-            switcher_path_actions = [
-                self.switcher_action,
-                self.symbolfinder_action,
+            switcher_path_actions = []
+
+            try:
+                switcher_action = self.get_action(
+                    SwitcherActions.FileSwitcherAction,
+                    plugin=Plugins.Switcher,
+                )
+                symbolfinder_action = self.get_action(
+                    SwitcherActions.SymbolFinderAction,
+                    plugin=Plugins.Switcher,
+                )
+
+                switcher_path_actions += [switcher_action, symbolfinder_action]
+            except KeyError:
+                pass
+
+            switcher_path_actions += [
                 self.copy_absolute_path_action,
-                self.copy_relative_path_action
+                self.copy_relative_path_action,
             ]
             for switcher_path_action in switcher_path_actions:
                 self.menu.add_action(
                     switcher_path_action,
                     section=EditorStackMenuSections.SwitcherSection
                 )
+
             # close and order section
             close_order_actions = [
                 self.close_right,
