@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass, field, replace
 from typing import Any
 
 AUTO_LANGUAGES = "auto"
-"""``languages`` value meaning "detect from the server's registrations"."""
+"""``languages`` value for auto-detection, see :class:`LanguageServerClientProvider`."""
 
 RESTART_FIELDS = ("cmd", "args", "host", "port", "external", "stdio")
 """Fields whose change requires restarting the server."""
