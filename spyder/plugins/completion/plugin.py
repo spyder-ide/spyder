@@ -303,11 +303,6 @@ class CompletionPlugin(SpyderPluginV2):
             )
         self.start_all_providers()
 
-    @on_plugin_available(plugin=Plugins.Preferences)
-    def on_preferences_available(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
-
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_available(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
@@ -363,11 +358,6 @@ class CompletionPlugin(SpyderPluginV2):
             self._legacy_provider.NAME
         )
         self._legacy_provider = None
-
-    @on_plugin_teardown(plugin=Plugins.Preferences)
-    def on_preferences_teardown(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.deregister_plugin_preferences(self)
 
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_teardown(self):
