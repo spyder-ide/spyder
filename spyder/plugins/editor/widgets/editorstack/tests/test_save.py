@@ -25,9 +25,7 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
-from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri,
-)
+from spyder.plugins.languageservices.api.uri import path_as_uri
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -614,12 +612,12 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # First call: notify_close() must have been called
     call = code_editor.emit_request.call_args_list[0]
     assert call.args[0] == 'textDocument/didClose'
-    assert call.args[1]['file'].endswith('test.py')
+    assert call.args[1].text_document.uri.endswith('test.py')
 
     # Second call: document_did_open() must have been called
     call = code_editor.emit_request.call_args_list[1]
     assert call.args[0] == 'textDocument/didOpen'
-    assert call.args[1]['file'].endswith('new_filename.py')
+    assert call.args[1].text_document.uri.endswith('new_filename.py')
 
     # === Append new text
     code_editor.append(dedent("""
