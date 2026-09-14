@@ -283,13 +283,20 @@ class LanguageServerConnection:
         return bool(folders and folders.change_notifications)
 
     def languages(self) -> frozenset[Language]:
-        """The languages served, either the configured ones or those of the
-        registered document selectors when the configuration says ``auto``."""
-        ids = (
-            self.registered_languages
-            if self.config.auto_languages
-            else set(self.config.languages)
-        )
+        """Languages served by language server.
+         
+        if ``auto`` is set, all languages are supported by default,
+        unless the servers registers document selectors. Otherwise,
+        the configured languages are used.
+
+        The result is a frozenset of :class:`Language` objects.
+        """
+        if self.config.auto_languages:
+            if not self.registered_languages:
+                return frozenset(Language)
+            ids = self.registered_languages
+        else:
+            ids = set(self.config.languages)
         languages: set[Language] = set()
         for language_id in ids:
             try:
