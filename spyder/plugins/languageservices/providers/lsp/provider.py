@@ -323,7 +323,9 @@ class LanguageServerClientProvider(LanguageServicesProvider):
 
     async def _stop_server(self, name: str) -> None:
         state = self._servers[name]
-        if state.task is not None:
+        # Prevent cancelling the caller, _restart_after_failure runs
+        # as state.task and calls this method
+        if state.task is not None and state.task is not asyncio.current_task():
             state.task.cancel()
             state.task = None
         languages = self._server_languages(state)
@@ -431,14 +433,6 @@ class LanguageServerClientProvider(LanguageServicesProvider):
                 continue
             connections.append(state.connection)
         return connections
-
-    def _language_of(self, uri: str) -> Language | None:
-        for state in self._servers.values():
-            language_id = state.documents.get(uri)
-            if language_id is not None:
-                candidates = Language.from_language_id(language_id)
-                return next(iter(candidates))
-        return None
 
     def _states_with_document(self, uri: str) -> list[_ServerState]:
         return [
