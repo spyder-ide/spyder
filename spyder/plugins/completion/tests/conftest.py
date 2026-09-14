@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+import os.path as osp
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
@@ -102,76 +103,85 @@ class _WarmupReceiver(QObject):
         self.sig_response.emit(method, params)
 
 
-def _warmup_python_provider(completion_plugin, qtbot_module):
-    """Pay the providers' first-request cold-start cost here, not in tests."""
-    receiver = _WarmupReceiver()
-    text = 'import math\nmath.h'
-
-    open_params = {
-        'file': '__completion_warmup__.py',
-        'language': 'python',
-        'version': 1,
-        'text': text,
-        'response_instance': receiver,
-        'offset': 1,
-        'selection_start': 0,
-        'selection_end': 0,
-        'codeeditor': receiver,
-        'requires_response': False,
-    }
-    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000):
-        completion_plugin.send_request(
-            'python', lsp.TEXT_DOCUMENT_DID_OPEN, open_params
-        )
-
-    completion_params = {
-        'file': '__completion_warmup__.py',
-        'line': 1,
-        'column': len('math.h'),
-        'offset': len(text),
-        'selection_start': 0,
-        'selection_end': 0,
-        'current_word': 'h',
-        'codeeditor': receiver,
-        'response_instance': receiver,
-        'requires_response': True,
-    }
-    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000):
-        completion_plugin.send_request(
-            'python', lsp.TEXT_DOCUMENT_COMPLETION, completion_params
-        )
-
-
 @pytest.fixture(scope='module')
 def completion_plugin_all_started(request, qtbot_module,
                                   completion_plugin_all):
-    """Start all completion providers once per test module and reuse them."""
+    """Start all legacy completion providers once per test module."""
     completion_plugin = completion_plugin_all
     completion_plugin.wait_for_ms = 20000
     completion_plugin.start_all_providers()
 
     def wait_until_all_started():
-        all_started = True
-        for provider in completion_plugin.providers:
-
-            provider_info = completion_plugin.providers[provider]
-            all_started &= provider_info['status'] == completion_plugin.RUNNING
-        return all_started
+        return all(
+            info['status'] == completion_plugin.RUNNING
+            for info in completion_plugin.providers.values()
+        )
 
     qtbot_module.waitUntil(wait_until_all_started, timeout=30000)
-
-    with qtbot_module.waitSignal(
-            completion_plugin.sig_language_completions_available,
-            timeout=30000) as blocker:
-        completion_plugin.start_completion_services_for_language('python')
-
-    capabilities, _ = blocker.args
-
-    _warmup_python_provider(completion_plugin, qtbot_module)
+    completion_plugin.start_completion_services_for_language('python')
 
     def teardown():
         for provider_name in list(completion_plugin.providers):
             completion_plugin.shutdown_provider_instance(provider_name)
 
     request.addfinalizer(teardown)
-    return completion_plugin, capabilities
+    return completion_plugin, None
+
+
+@pytest.fixture(scope='module')
+def language_services_all_started(
+    request, qtbot_module, completion_plugin_all_started
+):
+    """LanguageServices plugin serving Python through the legacy adapter.
+
+    Returns ``(language_services, completion_plugin, capabilities)``.
+    """
+    from spyder.plugins.completion.adapter import LegacyCompletionsProvider
+    from spyder.plugins.languageservices.api.languages import Language
+    from spyder.plugins.languageservices.plugin import (
+        LanguageServices,
+        wait_for,
+    )
+
+    completion_plugin, _ = completion_plugin_all_started
+    language_services = LanguageServices(completion_plugin.main, CONF)
+    # The built-in providers come from the spyder.language_services entry
+    # points loaded by the plugin. The legacy adapter wraps third-party ones.
+    legacy = LegacyCompletionsProvider(language_services, completion_plugin)
+    language_services.services_api.register_provider(legacy)
+    providers = [
+        language_services.get_provider(name)
+        for name in language_services.provider_names()
+    ]
+    for provider in providers:
+        wait_for(language_services.start_provider(provider.NAME), 30)
+    wait_for(language_services.start_language(Language.PYTHON), 60)
+    qtbot_module.waitUntil(
+        lambda: "pylsp" in language_services.providers_for(Language.PYTHON),
+        timeout=30000,
+    )
+    capabilities = language_services.capabilities(Language.PYTHON)
+    assert capabilities.completion_provider is not None
+
+    def teardown():
+        for provider in providers:
+            wait_for(language_services.stop_provider(provider.NAME), 30)
+            CONF.unobserve_configuration(provider)
+        CONF.unobserve_configuration(language_services)
+
+    request.addfinalizer(teardown)
+    return language_services, completion_plugin, capabilities
+
+
+def route_diagnostics(language_services, editor):
+    """Connect the plugin diagnostics to ``editor`` (returns the slot)."""
+    from spyder.plugins.languageservices.api.uri import uri_as_path
+
+    def on_diagnostics(params):
+        if uri_as_path(params.uri) == osp.abspath(editor.filename):
+            editor.handle_response(
+                lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, params.diagnostics
+            )
+
+    language_services.sig_diagnostics.connect(on_diagnostics)
+    return on_diagnostics
