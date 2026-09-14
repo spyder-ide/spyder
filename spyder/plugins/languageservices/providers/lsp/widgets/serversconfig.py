@@ -104,13 +104,16 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         self.config = config
 
         description = _(
-            "A server is started with a command and arguments, or reached "
-            "at a host and port when it is external. List the languages it "
-            "serves (names or LSP ids, comma separated) or leave the field "
-            "empty to detect them from the server registrations."
+            "To create a new server configuration, you need to select a "
+            "language or leave as 'auto', set the command to start its associated "
+            "server and enter any arguments that should be passed to it on "
+            "startup. Additionally, you can set the server's hostname and "
+            "port if connecting to an external server, "
+            "or to a local one using TCP instead of stdio pipes."
             "<br><br>"
-            "<i>Note</i>: <tt>{host}</tt> and <tt>{port}</tt> in the "
-            "arguments are replaced by the address the server must bind."
+            "<i>Note</i>: You can use the placeholders <tt>{host}</tt> and "
+            "<tt>{port}</tt> in the server arguments field to automatically "
+            "fill in the respective values.<br>"
         )
 
         self.description = QLabel(description)
