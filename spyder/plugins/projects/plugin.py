@@ -28,7 +28,10 @@ from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.projects.widgets.main_widget import (
-    ProjectsActions, ProjectExplorerWidget)
+    ProjectsActions,
+    ProjectsOptionsMenuActions,
+    ProjectExplorerWidget,
+)
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -109,6 +112,7 @@ class Projects(SpyderDockablePlugin):
         treewidget = widget.treewidget
         self._completions = None
         self._switcher = None
+        self._search_in_switcher_action = None
 
         # Emit public signals so that other plugins can connect to them
         widget.sig_project_created.connect(self.sig_project_created)
@@ -222,6 +226,19 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_search_text_available.connect(
             self._handle_switcher_search)
 
+        # We need to give users a way to disable searching files in the
+        # switcher because in some situations it introduces delays in the
+        # switcher or Spyder itself.
+        # Fixes spyder-ide/spyder#22641
+        self._search_in_switcher_action = self.create_action(
+            ProjectsOptionsMenuActions.SearchInSwitcher,
+            text=_("Search project files in the switcher"),
+            toggled=True,
+            option='search_files_in_switcher',
+        )
+
+        self.get_widget().update_options_menu()
+
     @on_plugin_available(plugin=Plugins.Application)
     def on_application_available(self):
         application = self.get_plugin(Plugins.Application)
@@ -288,7 +305,13 @@ class Projects(SpyderDockablePlugin):
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.disconnect(
             self._handle_switcher_search)
+
+        self.delete_action(ProjectsOptionsMenuActions.SearchInSwitcher)
+
         self._switcher = None
+        self._search_in_switcher_action = None
+
+        self.get_widget().update_options_menu()
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
