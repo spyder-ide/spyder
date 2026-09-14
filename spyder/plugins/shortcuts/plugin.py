@@ -162,15 +162,16 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         name = name.lower()
         context = context.lower()
 
-        self._shortcut_data.append(
-            ShortcutData(
-                qobject=qaction_or_qshortcut,
-                name=name,
-                context=context,
-                plugin_name=plugin_name,
-                add_shortcut_to_tip=add_shortcut_to_tip,
-            )
+        data = ShortcutData(
+            qobject=qaction_or_qshortcut,
+            name=name,
+            context=context,
+            plugin_name=plugin_name,
+            add_shortcut_to_tip=add_shortcut_to_tip,
         )
+
+        if data not in self._shortcut_data:
+            self._shortcut_data.append(data)
 
     def unregister_shortcut(self, qaction_or_qshortcut, context, name,
                             add_shortcut_to_tip=True, plugin_name=None):
