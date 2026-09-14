@@ -26,8 +26,8 @@ from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.debugger.widgets.main_widget import (
     DebuggerBreakpointActions, DebuggerWidget, DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
 from spyder.plugins.run.api import (
     RunConfiguration, ExtendedRunExecutionParameters, RunExecutor, run_execute,
@@ -452,7 +452,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             return False
         txt = codeeditor.get_text_with_eol()
         language = get_file_language(codeeditor.filename, txt)
-        return language.lower() in ALL_LANGUAGES["Python"]
+        return (
+            Language.find(name=language)
+            or Language.find(extension=language)
+        ) is Language.PYTHON
 
     def _connect_codeeditor(self, codeeditor):
         """Connect a code editor."""
