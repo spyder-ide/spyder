@@ -371,6 +371,7 @@ class LanguageServerConnection:
                         snippet_support=True,
                         documentation_format=[lsp.MarkupKind.PlainText],
                     ),
+                    context_support=True,
                 ),
                 hover=lsp.HoverClientCapabilities(
                     dynamic_registration=True,
@@ -379,7 +380,12 @@ class LanguageServerConnection:
                 signature_help=lsp.SignatureHelpClientCapabilities(
                     dynamic_registration=True,
                     signature_information=lsp.ClientSignatureInformationOptions(
-                        documentation_format=[lsp.MarkupKind.PlainText]
+                        documentation_format=[lsp.MarkupKind.PlainText],
+                        parameter_information=(
+                            lsp.ClientSignatureParameterInformationOptions(
+                                label_offset_support=True
+                            )
+                        ),
                     ),
                 ),
                 references=lsp.ReferenceClientCapabilities(
@@ -389,7 +395,10 @@ class LanguageServerConnection:
                     dynamic_registration=True
                 ),
                 document_symbol=lsp.DocumentSymbolClientCapabilities(
-                    dynamic_registration=True
+                    dynamic_registration=True,
+                    symbol_kind=lsp.ClientSymbolKindOptions(
+                        value_set=list(lsp.SymbolKind)
+                    ),
                 ),
                 formatting=lsp.DocumentFormattingClientCapabilities(
                     dynamic_registration=True
@@ -401,7 +410,7 @@ class LanguageServerConnection:
                     dynamic_registration=True
                 ),
                 definition=lsp.DefinitionClientCapabilities(
-                    dynamic_registration=True
+                    dynamic_registration=True, link_support=True
                 ),
                 code_action=lsp.CodeActionClientCapabilities(
                     dynamic_registration=True
@@ -413,8 +422,11 @@ class LanguageServerConnection:
                     dynamic_registration=True
                 ),
                 rename=lsp.RenameClientCapabilities(dynamic_registration=True),
+                publish_diagnostics=lsp.PublishDiagnosticsClientCapabilities(),
                 folding_range=lsp.FoldingRangeClientCapabilities(
-                    dynamic_registration=True
+                    dynamic_registration=True,
+                    # The folding panel works on whole lines.
+                    line_folding_only=True,
                 ),
             ),
             general=lsp.GeneralClientCapabilities(
