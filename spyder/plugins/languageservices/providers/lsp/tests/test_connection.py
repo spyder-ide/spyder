@@ -40,6 +40,27 @@ def test_auto_languages_serve_everything_until_registration():
     assert connection.languages() == Language.from_language_id("rust")
 
 
+def test_initialize_sends_workspace_folders(monkeypatch):
+    connection = make_connection()
+    folder = lsp.WorkspaceFolder(uri="file:///proj", name="proj")
+    connection.workspace_folders = {folder.uri: folder}
+    sent = {}
+
+    async def reply(method, params):
+        sent["params"] = params
+        return lsp.InitializeResult(capabilities=lsp.ServerCapabilities())
+
+    monkeypatch.setattr(
+        connection._client.protocol, "send_request_async", reply
+    )
+    monkeypatch.setattr(
+        connection._client.protocol, "notify", lambda *args: None
+    )
+
+    asyncio.run(connection._initialize())
+    assert sent["params"].workspace_folders == [folder]
+
+
 def test_initialize_rejects_non_utf16_encoding(monkeypatch):
     connection = make_connection()
 
