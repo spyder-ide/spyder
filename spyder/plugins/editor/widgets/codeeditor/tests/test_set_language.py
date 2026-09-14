@@ -78,13 +78,35 @@ def test_cython_is_highlighted_without_cells(codeeditor):
     assert not editor.supported_cell_language
 
 
-def test_language_without_spyder_highlighter_is_text(codeeditor):
+def test_language_without_spyder_highlighter_keeps_registry_name(codeeditor):
     # JSON is in the registry but Spyder ships no highlighter for it.
     editor = codeeditor
     editor.set_language("json")
     assert not editor.supported_language
-    assert editor.language == "Text"
+    assert editor.language == "JSON"
     assert editor.highlighter_class is sh.TextSH
+
+
+@pytest.mark.parametrize(
+    "filename, language",
+    [
+        ("page.tsx", "TypeScript"),
+        ("main.ts", "TypeScript"),
+        ("widget.jsx", "JavaScript"),
+        ("index.js", "JavaScript"),
+    ],
+)
+def test_registry_name_wins_over_pygments_lexer_name(
+    codeeditor, filename, language
+):
+    # Pygments names the tsx/jsx lexers "TSX"/"JSX"; language services
+    # look languages up by the registry name, so that one must win.
+    editor = codeeditor
+    ext = filename.rsplit(".", 1)[1]
+    editor.set_language(ext, filename)
+    assert not editor.supported_language
+    assert editor.language == language
+    assert editor.highlighter_class is not sh.TextSH
 
 
 def test_unknown_language_is_text(codeeditor):
