@@ -318,16 +318,6 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             self.sig_capabilities_changed.emit(
                 language, self.capabilities(language)
             )
-        if self._workspace_folders and connection.supports_workspace_folder_changes:
-            connection.notify(
-                lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
-                lsp.DidChangeWorkspaceFoldersParams(
-                    event=lsp.WorkspaceFoldersChangeEvent(
-                        added=list(self._workspace_folders.values()),
-                        removed=[],
-                    )
-                ),
-            )
 
     async def _stop_server(self, name: str) -> None:
         state = self._servers[name]
@@ -595,12 +585,17 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             if not state.ready:
                 continue
             connection = state.connection
+            # The folders are re-broadcast after every capabilities change;
+            # acting on them again would restart such servers in a loop.
+            if connection.workspace_folders == self._workspace_folders:
+                continue
             connection.workspace_folders = dict(self._workspace_folders)
             if connection.supports_workspace_folder_changes:
                 connection.notify(lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS, params)
             else:
                 logger.debug(
-                    "Server %r does not support workspace folders. Restarting",
+                    "Server %r does not support workspace folder changes. "
+                    "Restarting it to pass the folders at initialization",
                     connection.name,
                 )
                 await self.restart_server(state.config.name)
