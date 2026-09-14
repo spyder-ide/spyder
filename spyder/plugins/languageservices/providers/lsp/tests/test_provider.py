@@ -269,11 +269,14 @@ def test_language_detection_from_registrations(tmp_path):
     uri = path_as_uri(str(tmp_path / "main.rs"))
 
     async def scenario():
-        # Auto-detected servers start with the provider
+        # Auto servers start with the provider and serve every language
+        # until a registered document selector narrows the set.
         await api.start_provider(provider.NAME)
         assert provider.server_status("fake") is ProviderStatus.READY
-        await wait_until(lambda: api.is_language_supported(Language.RUST))
-        assert not api.is_language_supported(Language.PYTHON)
+        await wait_until(
+            lambda: api.is_language_supported(Language.RUST)
+            and not api.is_language_supported(Language.PYTHON)
+        )
         assert Language.RUST in {c[0] for c in capabilities.calls}
 
         await api.open_document(
@@ -297,6 +300,7 @@ def test_language_detection_from_registrations(tmp_path):
 
 class _FakeConnection:
     def __init__(self):
+        self.name = "fake"
         self.initialized = True
         self.capabilities = lsp.ServerCapabilities()
         self.notified = []
@@ -307,6 +311,9 @@ class _FakeConnection:
     def notify(self, method, params):
         self.notified.append(method)
 
+    async def stop(self):
+        self.initialized = False
+
 
 def _ready_state(name, connection):
     return _ServerState(
@@ -314,6 +321,39 @@ def _ready_state(name, connection):
         connection=connection,
         status=ProviderStatus.READY,
     )
+
+
+def _auto_state(name, connection=None, status=ProviderStatus.STOPPED):
+    return _ServerState(
+        config=ServerConfig(name=name, cmd="server", stdio=True),
+        connection=connection,
+        status=status,
+    )
+
+
+def test_stop_language_keeps_auto_server_running():
+    # An auto server serves every language, so stopping one language must
+    # not stop it.
+    _, provider = make_api([])
+    connection = _FakeConnection()
+    state = _auto_state("a", connection, ProviderStatus.READY)
+    provider._servers["a"] = state
+
+    asyncio.run(provider.stop_language(Language.PYTHON))
+    assert state.status is ProviderStatus.READY
+
+
+def test_start_language_starts_stopped_auto_server(monkeypatch):
+    _, provider = make_api([])
+    provider._servers["a"] = _auto_state("a")
+    started = []
+
+    async def record_start(name):
+        started.append(name)
+
+    monkeypatch.setattr(provider, "_start_server", record_start)
+    asyncio.run(provider.start_language(Language.PYTHON))
+    assert started == ["a"]
 
 
 def test_did_open_dedups_per_server_and_reaches_late_server():
