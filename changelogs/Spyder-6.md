@@ -23,6 +23,12 @@
 * The position for the close button in tabs (left, right or automatic) can be
   configured in `Preferences > Application > Panes`
 * Add support to introduce inline (or ghost) completions to the Editor.
+* Add a `LanguageServices` plugin that merges completions, hover, linting,
+  formatting and the other language features from several providers per
+  language, with per-feature request policies configurable in
+  `Preferences > Completion and linting`. Its LSP client provider runs any
+  number of language servers described only by configuration and detects the
+  languages a server registers.
 
 ### Important fixes
 
@@ -41,6 +47,20 @@
 
 * Add `add_extension`, `add_panel` and `add_shortcut` methods to register
   extensions, panels and shortcuts.
+
+#### Language services
+
+* Add the `LanguageServices` plugin (`Plugins.LanguageServices`) with a typed,
+  asynchronous API based on `lsprotocol` (`completion`, `hover`,
+  `document_symbol`, `formatting`, ...). Providers subclass
+  `spyder.plugins.languageservices.api.LanguageServicesProvider` and register
+  through the `spyder.language_services` entry point. New languages are
+  registered with `Language.register`.
+* The Editor, Outline Explorer and Projects plugins use `LanguageServices`
+  instead of `Completions`.
+* Deprecate the `Completions` plugin, `SpyderCompletionProvider` and the
+  `spyder.completions` entry point. Third-party providers registered there
+  keep working through an adapter, but they cannot report diagnostics.
 
 ----
 
