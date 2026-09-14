@@ -420,12 +420,18 @@ class LSPMixin:
 
         @AsyncDispatcher.QtSlot
         def on_response(future: DispatcherFuture):
+            # Only handle_response releases the in-flight count, so the paths
+            # that skip it (cancellation, errors) must release it themselves or
+            # _is_outdated_response stays true forever and symbols/folding stop
+            # updating.
             if future.cancelled():
+                self._release_in_flight(method)
                 return
             if self._futures.get(method) is future:
                 del self._futures[method]
             exc = future.exception()
             if exc is not None:
+                self._release_in_flight(method)
                 self._report_request_error(method, exc)
                 return
             try:
@@ -435,6 +441,13 @@ class LSPMixin:
                 return
 
         future.connect(on_response)
+
+    def _release_in_flight(self, method):
+        """Drop one tracked in-flight request that did not reach
+        handle_response (only WHOLE_DOCUMENT_REQUESTS are tracked)."""
+        in_flight = self._requests_in_flight.get(method, 0)
+        if in_flight:
+            self._requests_in_flight[method] = in_flight - 1
 
     def _report_request_error(self, method, exc):
         if isinstance(exc, DocumentNotOpenError):
