@@ -11,6 +11,7 @@ import asyncio
 from lsprotocol import types as lsp
 import pytest
 
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
 from spyder.plugins.languageservices.providers.lsp.connection import (
     LanguageServerConnection,
@@ -28,6 +29,15 @@ def test_client_advertises_only_utf16():
     assert capabilities.general.position_encodings == [
         lsp.PositionEncodingKind.Utf16
     ]
+
+
+def test_auto_languages_serve_everything_until_registration():
+    connection = make_connection()
+    assert connection.config.auto_languages
+    assert connection.languages() == frozenset(Language)
+
+    connection.registered_languages.add("rust")
+    assert connection.languages() == Language.from_language_id("rust")
 
 
 def test_initialize_rejects_non_utf16_encoding(monkeypatch):
