@@ -15,6 +15,7 @@ from qtpy.QtGui import QTextCursor
 
 from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     codeeditor_factory,
+    record_requests,
 )
 
 
@@ -54,13 +55,11 @@ def flush_document_change(editor, qtbot):
     editor._commit_pending_edit()
     editor._server_requests_timer.stop()
 
-    with qtbot.waitSignal(
-        editor.sig_perform_completion_request, timeout=1000
-    ) as blocker:
+    with record_requests(editor) as requests:
         editor._process_server_requests()
 
-    assert blocker.args[1] == lsp.TEXT_DOCUMENT_DID_CHANGE
-    payload = blocker.args[2]
+    method, payload = requests[0]
+    assert method == lsp.TEXT_DOCUMENT_DID_CHANGE
     assert editor._pending_server_requests == []
     return payload
 
@@ -126,9 +125,9 @@ def assert_document_change(editor, qtbot, expected_text, expected_changes):
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == expected_text
-    assert len(payload["content_changes"]) == len(expected_changes)
+    assert len(payload.content_changes) == len(expected_changes)
     assert [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ] == expected_changes
     return payload
 
@@ -418,9 +417,9 @@ def test_document_did_change_merges_multicursor_inserts_and_shifts_positions(
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == "axb\ncxd\n"
-    assert len(payload["content_changes"]) == 2
+    assert len(payload.content_changes) == 2
     assert [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ] == [
         (0, 1, 0, 1, "x"),
         (1, 1, 1, 1, "x"),
@@ -445,9 +444,9 @@ def test_document_did_change_handles_three_cursor_column_inserts(qtbot):
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == "axb\ncxd\nexf\n"
-    assert len(payload["content_changes"]) == 1
+    assert len(payload.content_changes) == 1
     assert [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ] == [
         (0, 1, 2, 1, "xb\ncxd\nex"),
     ]
@@ -469,9 +468,9 @@ def test_document_did_change_handles_multicursor_backspace(qtbot):
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == "a\nc\n"
-    assert len(payload["content_changes"]) == 1
+    assert len(payload.content_changes) == 1
     assert [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ] == [
         (0, 1, 1, 2, "\nc"),
     ]
@@ -511,9 +510,9 @@ def test_document_did_change_multicursor_multiline_span_matrix(
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == expected_text
-    assert len(payload["content_changes"]) == len(expected_changes)
+    assert len(payload.content_changes) == len(expected_changes)
     assert [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ] == expected_changes
 
 
@@ -545,7 +544,7 @@ def test_document_did_change_retype_word_char_by_char_after_delete(qtbot):
 
     payload = flush_document_change(editor, qtbot)
     changes = [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ]
 
     assert editor.toPlainText() == "another\n"
@@ -569,7 +568,7 @@ def test_document_did_change_retype_word_then_newline_char_by_char(qtbot):
 
     payload = flush_document_change(editor, qtbot)
     changes = [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ]
 
     assert editor.toPlainText() == "another\na\n"
@@ -591,7 +590,7 @@ def test_document_did_change_typing_across_newline_in_crlf_document(qtbot):
 
     payload = flush_document_change(editor, qtbot)
     changes = [
-        change_signature(change) for change in payload["content_changes"]
+        change_signature(change) for change in payload.content_changes
     ]
 
     assert editor.toPlainText() == "import math\nmath.h"
