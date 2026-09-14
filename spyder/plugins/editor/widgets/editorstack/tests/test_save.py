@@ -485,6 +485,30 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     assert editorstack.sig_open_file.emit.called == 1
 
 
+@pytest.mark.show_save_dialog
+def test_save_as_emits_resolved_language(editor_bot, mocker, tmpdir):
+    """
+    Save-as across file types must announce the resolved language name,
+    not the raw extension as report_open_file looks languages up by name.
+    """
+    editorstack, qtbot = editor_bot
+
+    editorstack.tabs.setCurrentIndex(1)
+    editor = editorstack.get_current_editor()
+    mocker.patch.object(editor, 'notify_close')
+    editorstack.sig_open_file = Mock()
+
+    new_filename = osp.join(tmpdir.strpath, 'foo.tsx')
+    mocker.patch.object(editorstack, 'select_savename',
+                        return_value=new_filename)
+    assert editorstack.save_as() is True
+
+    assert editor.language == 'TypeScript'
+    options = editorstack.sig_open_file.emit.call_args[0][0]
+    assert options['language'] == 'TypeScript'
+    assert options['filename'] == new_filename
+
+
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
