@@ -98,7 +98,9 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         self.existing_names = {
             name for name in parent.server_names() if config is None or name != config.name
         }
-        config = config or ServerConfig(name="")
+        new_server = config is None
+        if new_server:
+            config = ServerConfig(name="untitled")
         self.config = config
 
         description = _(
@@ -113,7 +115,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
 
         self.description = QLabel(description)
         self.description.setWordWrap(True)
-        self.name_input = QLineEdit(config.name, self)
+        self.name_input = QLineEdit("" if new_server else config.name, self)
         self.languages_input = QLineEdit(
             "" if config.auto_languages else language_names(config), self
         )
