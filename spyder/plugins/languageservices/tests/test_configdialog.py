@@ -19,6 +19,10 @@ from spyder.plugins.languageservices.api.provider import (
     LanguageServicesProvider,
 )
 from spyder.plugins.languageservices.plugin import LanguageServices
+from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
+from spyder.plugins.languageservices.providers.lsp.provider import (
+    LanguageServerClientProvider,
+)
 from spyder.plugins.languageservices.widgets.policies import (
     ProviderOrderList,
     RequestPolicyTable,
@@ -111,6 +115,42 @@ def test_config_dialog(tabbed_entry_point, config_dialog):
             "timeout_ms": None,
         }
     }
+
+
+@pytest.fixture
+def lsp_entry_point(mocker):
+    entry_point = Mock()
+    entry_point.load.return_value = LanguageServerClientProvider
+    mocker.patch(
+        "spyder.plugins.languageservices.plugin.entry_points",
+        return_value=[entry_point],
+    )
+
+
+@pytest.mark.parametrize(
+    "config_dialog",
+    [[MainWindowMock, [], [LanguageServices]]],
+    indirect=True,
+)
+def test_lsp_servers_tab(lsp_entry_point, config_dialog):
+    configpage = config_dialog.get_page()
+    titles = [
+        configpage.tabs.tabText(i) for i in range(configpage.tabs.count())
+    ]
+    assert titles == ["General", "Language servers"]
+
+    tab = next(iter(configpage.provider_tabs))
+    config = ServerConfig(
+        name="rust", cmd="rust-analyzer", languages=("rust",)
+    )
+    tab.table.source_model.servers = [config]
+    tab.set_modified(True)
+    configpage.save_to_conf()
+    configpage.apply_callback()
+
+    assert CONF.get(
+        "language_services", ("providers", "lsp", "values", "servers")
+    ) == {"rust": config.to_conf()}
 
 
 def test_provider_order_list_reports_selection(qtbot):

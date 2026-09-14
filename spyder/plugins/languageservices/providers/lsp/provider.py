@@ -44,6 +44,7 @@ from spyder.plugins.languageservices.api.provider import (
     supports_method,
 )
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
+from spyder.plugins.languageservices.providers.lsp.conftabs import TABS
 from spyder.plugins.languageservices.providers.lsp.connection import (
     LanguageServerConnection,
     ServerDownError,
@@ -95,6 +96,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     PRIORITY = 10
     CONF_DEFAULTS = [("servers", {}), ("show_lsp_down_warning", True)]
     CONF_VERSION = "0.1.0"
+    CONF_TABS = TABS
     STATUS_BAR_CLASSES = [LSPStatusWidget]
 
     MAX_RESTART_ATTEMPTS = 5
