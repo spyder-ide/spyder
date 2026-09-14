@@ -341,13 +341,13 @@ def main_window(request, tmpdir, qtbot):
     use_introspection = request.node.get_closest_marker('use_introspection')
 
     if use_introspection:
-        CONF.set('completions', ('enabled_providers', 'lsp'), True)
-        CONF.set('completions', ('enabled_providers', 'fallback'), True)
-        CONF.set('completions', ('enabled_providers', 'snippets'), True)
+        CONF.set('language_services', ('providers', 'pylsp', 'enable'), True)
+        CONF.set('language_services', ('providers', 'fallback', 'enable'), True)
+        CONF.set('language_services', ('providers', 'snippets', 'enable'), True)
     else:
-        CONF.set('completions', ('enabled_providers', 'lsp'), False)
-        CONF.set('completions', ('enabled_providers', 'fallback'), False)
-        CONF.set('completions', ('enabled_providers', 'snippets'), False)
+        CONF.set('language_services', ('providers', 'pylsp', 'enable'), False)
+        CONF.set('language_services', ('providers', 'fallback', 'enable'), False)
+        CONF.set('language_services', ('providers', 'snippets', 'enable'), False)
 
     # Only use single_instance mode for tests that require it
     single_instance = request.node.get_closest_marker('single_instance')
