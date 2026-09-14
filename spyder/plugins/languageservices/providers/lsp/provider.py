@@ -79,11 +79,13 @@ class _ServerState:
 class LanguageServerClientProvider(LanguageServicesProvider):
     """Language services from any number of LSP servers.
 
-    Each server serves the languages given in its configuration, or those
-    it registers through ``client/registerCapability`` document selectors
-    when configured with ``languages="auto"``. Requests fan out to every
-    ready server of the document's language and the answers are merged
-    with the same strategies the plugin uses across providers.
+    Each server serves the languages given in its configuration. A server
+    configured with ``languages="auto"`` serves every language, until it
+    registers document selectors naming languages (through
+    ``client/registerCapability``), which narrow its set to those.
+    Documents are sent to every ready server of their language. Requests
+    fan out to every server holding the document and the answers are
+    merged with the same strategies the plugin uses across providers.
 
     A server that goes down is restarted up to :attr:`MAX_RESTART_ATTEMPTS`
     times, :attr:`RESTART_DELAY` seconds apart.
@@ -176,7 +178,8 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         for config in self.get_server_configs():
             self._servers[config.name] = _ServerState(config)
         # Servers with explicit languages start when a document of one of
-        # them is opened. Auto-detected ones must run to report theirs.
+        # them is opened. Auto ones serve any document, so they run from
+        # the start.
         for name, state in self._servers.items():
             if state.config.auto_languages:
                 await self._start_server(name)
@@ -193,12 +196,15 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     async def start_language(self, language: Language) -> None:
         for name, state in self._servers.items():
             if state.status is ProviderStatus.STOPPED and (
-                language in self._configured_languages(state.config)
+                state.config.auto_languages
+                or language in self._configured_languages(state.config)
             ):
                 await self._start_server(name)
 
     async def stop_language(self, language: Language) -> None:
         for name, state in self._servers.items():
+            if state.config.auto_languages:
+                continue
             if state.status is not ProviderStatus.STOPPED and (
                 language in self._server_languages(state)
             ):
@@ -641,7 +647,10 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             self.sig_apply_edit.emit(params)
         elif method == lsp.CLIENT_REGISTER_CAPABILITY:
             if state.config.auto_languages and state.ready:
-                for language in self._server_languages(state):
+                # A registered document selector can narrow the served set,
+                # so languages the server no longer serves need the update
+                # too.
+                for language in Language:
                     self.sig_capabilities_changed.emit(
                         language, self.capabilities(language)
                     )
