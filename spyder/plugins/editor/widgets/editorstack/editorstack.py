@@ -1299,7 +1299,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             # need to emit sig_open_file to see if we can start a
             # language server for it.
             options = {
-                'language': language,
+                'language': finfo.editor.language,
                 'filename': new_filename,
                 'codeeditor': finfo.editor
             }

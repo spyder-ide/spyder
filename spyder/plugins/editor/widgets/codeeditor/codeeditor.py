@@ -1187,43 +1187,45 @@ class CodeEditor(
         self.supported_language = False
         self.tab_indents = False
         sh_class = sh.TextSH
+        spyder_language = None
         if language is not None:
             spyder_language = (
                 Language.find(name=language)
                 or Language.find(extension=language)
             )
-            if (
-                spyder_language is not None
-                and spyder_language.name in self.LANGUAGES
-            ):
-                self.supported_language = True
-                sh_class, self.comment_string = self.LANGUAGES[
-                    spyder_language.name
-                ]
+            if spyder_language is not None:
                 self.language = (
                     'Python'
                     if spyder_language is Language.IPYTHON
                     else spyder_language.name
                 )
-                if spyder_language in self.CELL_LANGUAGES:
-                    self.supported_cell_language = True
-                    self.has_cell_separators = True
+                if spyder_language.name in self.LANGUAGES:
+                    self.supported_language = True
+                    sh_class, self.comment_string = self.LANGUAGES[
+                        spyder_language.name
+                    ]
+                    if spyder_language in self.CELL_LANGUAGES:
+                        self.supported_cell_language = True
+                        self.has_cell_separators = True
             self.tab_indents = spyder_language in self.TAB_ALWAYS_INDENTS
 
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
-            if self.support_language:
-                # Pygments report S for the lexer name of R files
-                if sh_class._lexer.name == 'S':
-                    self.language = 'R'
+            # Language services look languages up by the registry name, so
+            # it must win over Pygments lexer names ("TSX", "JSX", ...).
+            if spyder_language is None:
+                if self.support_language:
+                    # Pygments report S for the lexer name of R files
+                    if sh_class._lexer.name == 'S':
+                        self.language = 'R'
+                    else:
+                        self.language = sh_class._lexer.name
                 else:
-                    self.language = sh_class._lexer.name
-            else:
-                _, ext = osp.splitext(filename)
-                ext = ext.lower()
-                if ext in extra_supported_languages:
-                    self.language = extra_supported_languages[ext]
+                    _, ext = osp.splitext(filename)
+                    ext = ext.lower()
+                    if ext in extra_supported_languages:
+                        self.language = extra_supported_languages[ext]
 
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)
