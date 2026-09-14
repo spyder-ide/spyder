@@ -304,6 +304,7 @@ class _FakeConnection:
         self.initialized = True
         self.capabilities = lsp.ServerCapabilities()
         self.notified = []
+        self.workspace_folders = {}
 
     def languages(self):
         return frozenset({Language.PYTHON})
@@ -354,6 +355,41 @@ def test_start_language_starts_stopped_auto_server(monkeypatch):
     monkeypatch.setattr(provider, "_start_server", record_start)
     asyncio.run(provider.start_language(Language.PYTHON))
     assert started == ["a"]
+
+
+def test_folder_broadcast_restarts_once_per_actual_change():
+    # The folders are re-broadcast every time capabilities change (the editor
+    # calls the projects plugin back on each one). A server without dynamic
+    # folder support restarts on a real change to pick the folders up at
+    # initialize, but a broadcast of folders it already has must be a no-op
+    # otherwise every restart triggers the next one.
+    _, provider = make_api([])
+    connection = _FakeConnection()
+    connection.supports_workspace_folder_changes = False
+    provider._servers["a"] = _ready_state("a", connection)
+    restarts = []
+
+    async def record_restart(name):
+        restarts.append(name)
+        connection.workspace_folders = dict(provider._workspace_folders)
+
+    provider.restart_server = record_restart
+
+    folder = lsp.WorkspaceFolder(uri="file:///proj", name="proj")
+    params = lsp.DidChangeWorkspaceFoldersParams(
+        event=lsp.WorkspaceFoldersChangeEvent(added=[folder], removed=[])
+    )
+    asyncio.run(provider.did_change_workspace_folders(params))
+    assert restarts == ["a"]
+
+    asyncio.run(provider.did_change_workspace_folders(params))
+    assert restarts == ["a"]
+
+    removal = lsp.DidChangeWorkspaceFoldersParams(
+        event=lsp.WorkspaceFoldersChangeEvent(added=[], removed=[folder])
+    )
+    asyncio.run(provider.did_change_workspace_folders(removal))
+    assert restarts == ["a", "a"]
 
 
 def test_did_open_dedups_per_server_and_reaches_late_server():

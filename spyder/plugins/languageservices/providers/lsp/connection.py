@@ -194,6 +194,9 @@ class LanguageServerConnection:
                 capabilities=self.client_capabilities(),
                 trace=TRACE,
                 initialization_options=self.config.initialization_options,
+                workspace_folders=(
+                    list(self.workspace_folders.values()) or None
+                ),
             ),
         )
         self.capabilities = result.capabilities
