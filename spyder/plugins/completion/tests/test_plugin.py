@@ -8,21 +8,10 @@
 """CompletionPlugin tests."""
 
 # Third party imports
-from lsprotocol import types as lsp
 import pytest
-from qtpy.QtCore import QObject, Signal, Slot
 
 # Local imports
 from spyder.plugins.completion.api import SpyderCompletionProvider
-
-
-class DummyCompletionReceiver(QObject):
-    """Dummy class that can handle LSP responses."""
-    sig_response = Signal(str, object)
-
-    @Slot(str, object)
-    def handle_response(self, method, params):
-        self.sig_response.emit(method, params)
 
 
 class FakeProvider(SpyderCompletionProvider):
@@ -34,13 +23,6 @@ class FakeProvider(SpyderCompletionProvider):
         ('key4', 4)
     ]
     CONF_VERSION = "0.1.0"
-
-
-@pytest.fixture
-def completion_receiver(completion_plugin_all_started):
-    completion_plugin, _ = completion_plugin_all_started
-    receiver = DummyCompletionReceiver(None)
-    return completion_plugin, receiver
 
 
 def test_configuration_merge(completion_plugin_all):
@@ -156,100 +138,6 @@ def test_configuration_merge(completion_plugin_all):
     assert conf_defaults == fourth_config
 
 
-def test_provider_detection(completion_plugin_all):
-    print(completion_plugin_all.providers)
-    assert len(completion_plugin_all.providers) == 3
-
-
-@pytest.mark.order(1)
-def test_plugin_completion_gather(qtbot_module, completion_receiver):
-    completion, receiver = completion_receiver
-
-    # Parameters to perform a textDocument/didOpen request
-    params = {
-        'file': 'test.py',
-        'language': 'python',
-        'version': 1,
-        'text': "# This is some text with some classe\nimport os\n\ncla",
-        'response_instance': receiver,
-        'offset': 1,
-        'selection_start': 0,
-        'selection_end': 0,
-        'codeeditor': receiver,
-        'requires_response': False
-    }
-
-    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
-        completion.send_request(
-            'python', lsp.TEXT_DOCUMENT_DID_OPEN, params
-        )
-
-    # Parameters to perform a textDocument/completion request
-    params = {
-        'file': 'test.py',
-        'line': 2,
-        'column': 3,
-        'offset': 50,
-        'selection_start': 0,
-        'selection_end': 0,
-        'current_word': 'cla',
-        'codeeditor': receiver,
-        'response_instance': receiver,
-        'requires_response': True
-    }
-
-    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
-        completion.send_request(
-            'python', lsp.TEXT_DOCUMENT_COMPLETION, params
-        )
-
-    _, response = blocker.args
-
-    provider_set = {(x.data or {}).get('provider') for x in response}
-
-    # Assert the response contains information from all the providers
-    provider_set == {'LSP', 'Fallback', 'Snippets'}
-
-
-@pytest.mark.order(1)
-def test_plugin_first_response_request(qtbot_module, completion_receiver):
-    completion, receiver = completion_receiver
-
-    # Parameters to perform a textDocument/didOpen request
-    params = {
-        'file': 'test2.py',
-        'language': 'python',
-        'version': 2,
-        'text': "# This is some text with some classe\nimport os\n\n",
-        'response_instance': receiver,
-        'offset': 1,
-        'diff': '',
-        'selection_start': 0,
-        'selection_end': 0,
-        'codeeditor': receiver,
-        'requires_response': False
-    }
-
-    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
-        completion.send_request(
-            'python', lsp.TEXT_DOCUMENT_DID_OPEN, params
-        )
-
-    params = {
-        'file': 'test2.py',
-        'line': 1,
-        'column': 8,
-        'offset': 43,
-        'diff': '',
-        'response_instance': receiver,
-        'codeeditor': receiver,
-        'requires_response': True
-    }
-
-    with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
-        completion.send_request(
-            'python', lsp.TEXT_DOCUMENT_HOVER, params
-        )
-
-    _, response = blocker.args
-    assert response
+def test_no_builtin_providers(completion_plugin_all):
+    """Spyder's own providers live in the LanguageServices plugin."""
+    assert completion_plugin_all.providers == {}

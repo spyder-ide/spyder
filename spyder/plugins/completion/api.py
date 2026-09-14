@@ -15,68 +15,36 @@ for the Language Server Protocol.
 from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, Optional, Tuple, TYPE_CHECKING, Union
-from enum import IntEnum
 
 # Third party imports
-from lsprotocol.types import SymbolKind
 from qtpy import PYSIDE6
 from qtpy.QtCore import Signal, QObject, Slot, Qt
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.plugins.languageservices.api.languages import Language
 
 if TYPE_CHECKING:
     from qtpy.QtWidgets import QWidget
 
     from spyder.api.widgets.status import StatusBarWidget
 
-# Supported LSP programming languages
-SUPPORTED_LANGUAGES = [
-    'Bash', 'C#', 'Cpp', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Elixir',
-    'Erlang', 'Fortran', 'Haxe', 'HTML', 'Java', 'JavaScript', 'JSON',
-    'Julia', 'Kotlin', 'OCaml', 'PHP', 'R', 'Rust', 'Scala', 'Swift',
-    'TypeScript'
-]
+# Languages selectable in the language server table (every language known
+# to Spyder except Python, which has its own preconfigured server).
+SUPPORTED_LANGUAGES = sorted(
+    (
+        language.name
+        for language in Language
+        if language not in (Language.PYTHON, Language.IPYTHON)
+    ),
+    key=str.lower,
+)
 
-# ---- Spyder-specific symbol kind extensions (not in the LSP spec) -----------
-
-class SpyderSymbolKind(IntEnum):
-    #: Integer sentinel for block comments in the outline explorer.
-    BlockComment = 224
-    #: Integer sentinel for notebook cells in the outline explorer.
-    Cell = 225
-
-# Mapping between SymbolKind values and icon identifiers used by the UI.
-SYMBOL_KIND_ICON = {
-    SymbolKind.File: 'file',
-    SymbolKind.Module: 'module',
-    SymbolKind.Namespace: 'namespace',
-    SymbolKind.Package: 'package',
-    SymbolKind.Class: 'class',
-    SymbolKind.Method: 'method',
-    SymbolKind.Property: 'property',
-    SymbolKind.Field: 'field',
-    SymbolKind.Constructor: 'constructor',
-    SymbolKind.Enum: 'enum',
-    SymbolKind.Interface: 'interface',
-    SymbolKind.Function: 'function',
-    SymbolKind.Variable: 'variable',
-    SymbolKind.Constant: 'constant',
-    SymbolKind.String: 'string',
-    SymbolKind.Number: 'number',
-    SymbolKind.Boolean: 'boolean',
-    SymbolKind.Array: 'array',
-    SymbolKind.Object: 'object',
-    SymbolKind.Key: 'key',
-    SymbolKind.Null: 'null',
-    SymbolKind.EnumMember: 'enum_member',
-    SymbolKind.Struct: 'struct',
-    SymbolKind.Event: 'event',
-    SymbolKind.Operator: 'operator',
-    SymbolKind.TypeParameter: 'type_parameter',
-    SpyderSymbolKind.BlockComment: 'blockcomment',
-    SpyderSymbolKind.Cell: 'cell',
-}
+# Symbol kind extensions live in the language services API
+from spyder.plugins.languageservices.api.symbols import (  # noqa: E402,F401
+    SYMBOL_KIND_ICON,
+    SpyderSymbolKind,
+)
 
 #: Spyder-specific LSP extension: cursor event notification method name.
 #: There is no equivalent constant in ``lsprotocol.types``.
@@ -160,10 +128,15 @@ class CompletionConfigurationObserver(SpyderConfigurationObserver):
 
 class SpyderCompletionProvider(CompletionConfigurationObserver, QObject):
     """
-    Spyder provider API for completion providers.
+    Legacy provider API for completion providers.
 
-    All completion providers must implement this interface in order to interact
-    with Spyder CodeEditor and Projects manager.
+    .. deprecated::
+        Implement
+        :class:`spyder.plugins.languageservices.api.provider.LanguageServicesProvider`
+        and register it through the ``spyder.language_services`` entry point
+        instead. Providers of this kind are served through
+        :class:`spyder.plugins.completion.adapter.LegacyCompletionsProvider`,
+        which cannot forward their diagnostics.
     """
 
     sig_response_ready = Signal(str, int, object)
