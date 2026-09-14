@@ -1185,6 +1185,7 @@ class CodeEditor(
         self.comment_string = ''
         self.language = 'Text'
         self.supported_language = False
+        self.tab_indents = False
         sh_class = sh.TextSH
         if language is not None:
             spyder_language = (
