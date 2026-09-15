@@ -151,13 +151,19 @@ class Switcher(SpyderPluginV2):
         """Setup list widget content based on filtering."""
         self._switcher.setup()
 
-    def open_switcher(self, symbol=False):
-        """Open switcher dialog."""
-        self.get_container().open_switcher(symbol)
+    def open_switcher(self, mode: str = ""):
+        """
+        Open switcher.
 
-    def open_symbolfinder(self):
-        """Open symbol list management dialog."""
-        self.get_container().open_symbolfinder()
+        Parameters
+        ----------
+        mode: str
+            The mode in which the switcher will be open. Default is an empty
+            string, which allows to switch between files in the Editor. Another
+            mode is "@" (registerd by the Outline), which allows to find
+            symbols in the current file.
+        """
+        self.get_container().open_switcher(mode)
 
     # --- QDialog methods
     def show(self):
