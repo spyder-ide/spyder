@@ -60,7 +60,10 @@ from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.plugins.outlineexplorer.api import (
+    cell_name,
+    OutlineExplorerActions,
+)
 from spyder.plugins.switcher.api import SwitcherActions
 from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import getcwd_or_home
@@ -1272,12 +1275,16 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                     SwitcherActions.FileSwitcherAction,
                     plugin=Plugins.Switcher,
                 )
-                symbolfinder_action = self.get_action(
-                    SwitcherActions.SymbolFinderAction,
-                    plugin=Plugins.Switcher,
-                )
+                switcher_path_actions += [switcher_action]
+            except KeyError:
+                pass
 
-                switcher_path_actions += [switcher_action, symbolfinder_action]
+            try:
+                symbolfinder_action = self.get_action(
+                    OutlineExplorerActions.SymbolFinderAction,
+                    plugin=Plugins.OutlineExplorer,
+                )
+                switcher_path_actions += [symbolfinder_action]
             except KeyError:
                 pass
 

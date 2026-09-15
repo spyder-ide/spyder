@@ -23,6 +23,7 @@ from spyder.api.plugin_registration.decorators import (on_plugin_available,
 from spyder.plugins.switcher.api import SwitcherActions
 from spyder.plugins.switcher.container import SwitcherContainer
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
+from spyder.plugins.outlineexplorer.api import OutlineExplorerActions
 
 
 class Switcher(SpyderPluginV2):
@@ -115,32 +116,29 @@ class Switcher(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for switcher_action in [
-                SwitcherActions.FileSwitcherAction,
-                SwitcherActions.SymbolFinderAction]:
-            action = self.get_action(switcher_action)
-            if sys.platform == 'darwin':
-                before_section = FileMenuSections.Navigation
-            else:
-                before_section = FileMenuSections.Restart
-            mainmenu.add_item_to_application_menu(
-                action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Switcher,
-                before_section=before_section
-            )
+        action = self.get_action(SwitcherActions.FileSwitcherAction)
+
+        if sys.platform == 'darwin':
+            before_section = FileMenuSections.Navigation
+        else:
+            before_section = FileMenuSections.Restart
+
+        mainmenu.add_item_to_application_menu(
+            action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Switcher,
+            before=OutlineExplorerActions.SymbolFinderAction,
+            before_section=before_section,
+            render=not self.is_app_starting,
+        )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for switcher_action in [
-                SwitcherActions.FileSwitcherAction,
-                SwitcherActions.SymbolFinderAction]:
-            action = self.get_action(switcher_action)
-            mainmenu.remove_item_from_application_menu(
-                action,
-                menu_id=ApplicationMenus.File
-            )
+        action = self.get_action(SwitcherActions.FileSwitcherAction)
+        mainmenu.remove_item_from_application_menu(
+            action, menu_id=ApplicationMenus.File
+        )
 
     # ---- Public API
     # -------------------------------------------------------------------------

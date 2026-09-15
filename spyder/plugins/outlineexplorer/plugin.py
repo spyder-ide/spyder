@@ -6,6 +6,9 @@
 
 """Outline Explorer Plugin."""
 
+# Standard library plugins
+import sys
+
 # Third party imports
 import lsprotocol.types as lsp
 from qtpy.QtCore import Qt, Slot
@@ -15,13 +18,17 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
-from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
+from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
+from spyder.plugins.outlineexplorer.main_widget import (
+    OutlineExplorerActions,
+    OutlineExplorerWidget,
+)
 
 
 class OutlineExplorer(SpyderDockablePlugin):
     NAME = 'outline_explorer'
     CONF_SECTION = 'outline_explorer'
-    REQUIRES = [Plugins.Completions, Plugins.Editor]
+    REQUIRES = [Plugins.Completions, Plugins.Editor, Plugins.MainMenu]
     OPTIONAL = [Plugins.Switcher]
     TABIFY = [Plugins.Projects]
 
@@ -52,6 +59,7 @@ class OutlineExplorer(SpyderDockablePlugin):
     def on_initialize(self):
         self._editor = None
         self._switcher = None
+        self._symbol_finder_action = None
 
         if self.main:
             self.main.restore_scrollbar_position.connect(
@@ -135,6 +143,25 @@ class OutlineExplorer(SpyderDockablePlugin):
             self._handle_switcher_item_change
         )
 
+        # This action can only be created when the Switcher is enabled.
+        # Otherwise, it won't do anything.
+        self._symbol_finder_action = self.create_action(
+            OutlineExplorerActions.SymbolFinderAction,
+            _('Symbol finder...'),
+            icon=self.create_icon('symbol_find'),
+            tip=_('Search for symbols in the current file'),
+            triggered=self._switcher.open_symbolfinder,
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_",
+        )
+
+        self._add_symbol_finder_action_to_menu()
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_mainmenu_available(self):
+        self._add_symbol_finder_action_to_menu()
+
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
         completions = self.get_plugin(Plugins.Completions)
@@ -170,7 +197,14 @@ class OutlineExplorer(SpyderDockablePlugin):
             self._handle_switcher_item_change
         )
 
+        self._remove_symbol_finder_action()
+
         self._switcher = None
+        self._symbol_finder_action = None
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_mainmenu_teardown(self):
+        self._remove_symbol_finder_action()
 
     def on_close(self, cancelable: bool = False):
         if self.main:
@@ -239,6 +273,37 @@ class OutlineExplorer(SpyderDockablePlugin):
                 self._editor.get_current_editorstack().go_to_line(
                     int(data['line_number'])
                 )
+
+    def _add_symbol_finder_action_to_menu(self):
+        if self._symbol_finder_action is None:
+            return
+
+        if sys.platform == 'darwin':
+            before_section = FileMenuSections.Navigation
+        else:
+            before_section = FileMenuSections.Restart
+
+        mainmenu = self.get_plugin(Plugins.MainMenu, error=False)
+        if mainmenu:
+            mainmenu.add_item_to_application_menu(
+                self._symbol_finder_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Switcher,
+                before_section=before_section,
+                render=not self.is_app_starting,
+            )
+
+    def _remove_symbol_finder_action(self):
+        if self._symbol_finder_action is None:
+            return
+
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            self._symbol_finder_action, menu_id=ApplicationMenus.File,
+        )
+
+        self.delete_action(OutlineExplorerActions.SymbolFinderAction)
+        self._symbol_finder_action = None
 
     # ----- Public API
     # -------------------------------------------------------------------------
