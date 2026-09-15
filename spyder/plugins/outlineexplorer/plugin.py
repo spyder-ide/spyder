@@ -7,6 +7,7 @@
 """Outline Explorer Plugin."""
 
 # Standard library plugins
+import functools
 import sys
 
 # Third party imports
@@ -148,7 +149,9 @@ class OutlineExplorer(SpyderDockablePlugin):
             _('Symbol finder...'),
             icon=self.create_icon('symbol_find'),
             tip=_('Search for symbols in the current file'),
-            triggered=self._switcher.open_symbolfinder,
+            triggered=functools.partial(
+                self._switcher.open_switcher, mode=self._SWITCHER_MODE
+            ),
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
