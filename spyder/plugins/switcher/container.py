@@ -32,7 +32,7 @@ class SwitcherContainer(PluginMainContainer):
             SwitcherActions.FileSwitcherAction,
             _('File switcher...'),
             icon=self._plugin.get_icon(),
-            tip=_('Fast switch between files'),
+            tip=_('Quickly switch between files'),
             triggered=self.open_switcher,
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
