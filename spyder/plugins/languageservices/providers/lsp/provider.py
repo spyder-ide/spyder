@@ -492,7 +492,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             if isinstance(result, asyncio.CancelledError):
                 raise result
             if isinstance(result, BaseException):
-                logger.error(
+                logger.warning(
                     "Server %r failed answering %s",
                     connection.name,
                     method,
