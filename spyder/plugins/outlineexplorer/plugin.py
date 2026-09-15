@@ -47,9 +47,7 @@ class OutlineExplorer(SpyderDockablePlugin):
     @staticmethod
     def get_description() -> str:
         """Return the description of the outline explorer widget."""
-        return _("Explore functions, classes and methods in open files. Note "
-                 "that if you disable the 'Completion and linting' plugin, "
-                 "this one won't work.")
+        return _("Explore functions, classes and methods in open files.")
 
     @classmethod
     def get_icon(cls):
