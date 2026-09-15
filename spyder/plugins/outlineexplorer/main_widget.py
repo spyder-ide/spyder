@@ -13,6 +13,11 @@ from qtpy.QtWidgets import QHBoxLayout
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import _
 from spyder.plugins.completion.api import SYMBOL_KIND_ICON
+from spyder.plugins.outlineexplorer.api import (
+    OutlineExplorerActions,
+    OutlineExplorerOptionsMenuSections,
+    OutlineExplorerToolbuttons,
+)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerTreeWidget
 from spyder.utils.icon_manager import ima
 
@@ -23,28 +28,6 @@ def _symbol_range(symbol):
         return symbol.location.range
 
     return symbol.range
-
-
-# ---- Enums
-# -----------------------------------------------------------------------------
-class OutlineExplorerToolbuttons:
-    GoToCursor = 'go_to_cursor'
-
-
-class OutlineExplorerSections:
-    Main = 'main_section'
-    DisplayOptions = 'display_options'
-
-
-class OutlineExplorerActions:
-    GoToCursor = 'go_to_cursor'
-    ShowFullPath = 'show_fullpath'
-    ShowAllFiles = 'show_all_files'
-    ShowSpecialComments = 'show_comments'
-    GroupCodeCells = 'group_code_cells'
-    DisplayVariables = 'display_variables'
-    FollowCursor = 'follow_cursor'
-    SortFiles = 'sort_files_alphabetically'
 
 
 # ---- Main widget
@@ -104,8 +87,7 @@ class OutlineExplorerWidget(PluginMainWidget):
                      self.treewidget.restore_action,
                      self.treewidget.collapse_selection_action,
                      self.treewidget.expand_selection_action]:
-            self.add_item_to_toolbar(item, toolbar=toolbar,
-                                     section=OutlineExplorerSections.Main)
+            self.add_item_to_toolbar(item, toolbar=toolbar)
 
         # Actions
         fromcursor_act = self.create_action(
@@ -168,7 +150,7 @@ class OutlineExplorerWidget(PluginMainWidget):
             self.add_item_to_menu(
                 action,
                 option_menu,
-                section=OutlineExplorerSections.DisplayOptions,
+                section=OutlineExplorerOptionsMenuSections.DisplayOptions,
             )
 
     def update_actions(self):

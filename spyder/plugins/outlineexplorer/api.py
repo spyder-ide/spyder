@@ -35,6 +35,29 @@ from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 
 
+# ---- Enums
+# -----------------------------------------------------------------------------
+class OutlineExplorerToolbuttons:
+    GoToCursor = 'go_to_cursor'
+
+
+class OutlineExplorerOptionsMenuSections:
+    DisplayOptions = 'display_options'
+
+
+class OutlineExplorerActions:
+    GoToCursor = 'go_to_cursor'
+    ShowFullPath = 'show_fullpath'
+    ShowAllFiles = 'show_all_files'
+    ShowSpecialComments = 'show_comments'
+    GroupCodeCells = 'group_code_cells'
+    DisplayVariables = 'display_variables'
+    FollowCursor = 'follow_cursor'
+    SortFiles = 'sort_files_alphabetically'
+
+
+# ---- Auxiliary functions
+# -----------------------------------------------------------------------------
 def document_cells(block, forward=True, cell_list=None):
     """
     Get cells oedata before or after block in the document.
@@ -95,7 +118,7 @@ def is_cell_header(block):
             and data.oedata.def_type == OutlineExplorerData.CELL)
 
 
-def cell_index(block):
+def _cell_index(block):
     """Get the cell index of the given block."""
     index = len(list(document_cells(block, forward=False)))
     if is_cell_header(block):
@@ -121,7 +144,7 @@ def cell_name(block):
         return header.def_name
     else:
         # No name, return the index
-        return cell_index(block)
+        return _cell_index(block)
 
 
 class OutlineExplorerProxy(QObject):
