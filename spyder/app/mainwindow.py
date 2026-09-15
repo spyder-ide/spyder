@@ -20,7 +20,6 @@ Licensed under the terms of the MIT License
 # Stdlib imports
 # =============================================================================
 from collections import OrderedDict
-from enum import Enum
 import errno
 import functools
 import gc
@@ -44,9 +43,8 @@ requirements.check_qt()
 #==============================================================================
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence, QMoveEvent, QResizeEvent
-from qtpy.QtWidgets import (
-    QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
+from qtpy.QtGui import QColor, QMoveEvent, QResizeEvent
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox, QTabBar
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -216,7 +214,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
 
         # Shortcut management data
         self.shortcut_data = []
-        self.shortcut_queue = []
 
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
@@ -452,48 +449,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             if self.get_conf('use_custom_margin'):
                 margin = self.get_conf('custom_margin')
             plugin.update_margins(margin)
-
-        if plugin_name == Plugins.Shortcuts:
-            for action, context, action_name in self.shortcut_queue:
-                self.shortcuts.register_shortcut(action, context, action_name)
-            self.shortcut_queue = []
-
-        logger.info("Registering shortcuts for {}...".format(plugin.NAME))
-        for action_name, action in plugin.get_actions().items():
-            context = (getattr(action, 'shortcut_context', plugin.NAME)
-                       or plugin.NAME)
-
-            if getattr(action, 'register_shortcut', True):
-                if isinstance(action_name, Enum):
-                    action_name = action_name.value
-                if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                    self.shortcuts.register_shortcut(
-                        action, context, action_name
-                    )
-                else:
-                    self.shortcut_queue.append((action, context, action_name))
-
-        # Register shortcut to switch to plugin
-        if isinstance(plugin, SpyderDockablePlugin):
-            context = '_'
-            name = 'switch to {}'.format(plugin.CONF_SECTION)
-
-            sc = QShortcut(
-                QKeySequence(), self, lambda: self.switch_to_plugin(plugin)
-            )
-            sc.setContext(Qt.ApplicationShortcut)
-            plugin._switch_to_shortcut = sc
-
-            if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                self.shortcuts.register_shortcut(sc, context, name)
-                self.shortcuts.register_shortcut(
-                    plugin.toggle_view_action, context, name
-                )
-            else:
-                self.shortcut_queue.append((sc, context, name))
-                self.shortcut_queue.append(
-                    (plugin.toggle_view_action, context, name)
-                )
 
         # Actions to perform when the plugin is re-registered
         if not self.is_setting_up:
@@ -771,9 +726,13 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             self.DOCKOPTIONS = self.DOCKOPTIONS | QMainWindow.VerticalTabs
         self.setDockOptions(self.DOCKOPTIONS)
 
+        # Register shortcuts for all plugins
+        self.shortcuts.before_mainwindow_visible()
+
         for plugin_name in PLUGIN_REGISTRY:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            plugin_instance.before_mainwindow_visible()
+            if plugin_name != Plugins.Shortcuts:
+                plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
+                plugin_instance.before_mainwindow_visible()
 
         if self.splash is not None:
             self.splash.hide()

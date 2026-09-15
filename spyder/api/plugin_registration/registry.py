@@ -572,6 +572,16 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
         if notify_main:
             self.sig_plugin_ready.emit(plugin_name, omit_conf)
 
+        # To re-register shortcuts.
+        if self.main and not self.main.is_setting_up:
+            try:
+                shortcuts = self.plugin_registry[Plugins.Shortcuts]
+            except KeyError:
+                if running_under_pytest():
+                    shortcuts = None
+                else:
+                    raise
+
         # Notify plugin dependents
         plugin_dependents = self.plugin_dependents.get(plugin_name, {})
         required_plugins = plugin_dependents.get("requires", [])
@@ -582,9 +592,22 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                 plugin_instance = self.plugin_registry[plugin]
                 plugin_instance._on_plugin_available(plugin_name)
 
+                if self.main and not self.main.is_setting_up:
+                    # We need to re-register shortcuts for dependents because
+                    # they can create actions with shortcuts that rely on the
+                    # plugin's existence.
+                    if shortcuts:
+                        shortcuts.register_shortcuts_for_plugin(plugin)
+
         if plugin_name == Plugins.Preferences and not running_under_pytest():
             plugin_instance = self.plugin_registry[plugin_name]
             plugin_instance.register_plugin_preferences(self)
+
+        if self.main and not self.main.is_setting_up:
+            # Re-register shortcuts for the plugin. That's done at this point
+            # so that shortcuts created by its dependencies are registered too.
+            if shortcuts:
+                shortcuts.register_shortcuts_for_plugin(plugin_name)
 
     def can_delete_plugin(self, plugin_name: str) -> bool:
         """
