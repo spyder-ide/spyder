@@ -499,7 +499,7 @@ class LanguageServices(SpyderPluginV2):
     @Slot(object)
     def _on_log_message(self, params: lsp.LogMessageParams):
         level = {
-            lsp.MessageType.Error: logging.ERROR,
+            lsp.MessageType.Error: logging.WARNING,  # Spyder raises any error messages, so use warning
             lsp.MessageType.Warning: logging.WARNING,
             lsp.MessageType.Info: logging.INFO,
         }.get(params.type, logging.DEBUG)
