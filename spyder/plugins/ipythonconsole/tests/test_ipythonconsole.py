@@ -29,7 +29,7 @@ from flaky import flaky
 import numpy as np
 from packaging.version import parse
 import pytest
-from qtpy import PYQT6, PYSIDE6
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -46,7 +46,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     get_console_background_color,
     get_console_font_color,
     NEW_DIR,
-    PY312_OR_GREATER,
+    PY313_OR_GREATER,
     SHELL_TIMEOUT,
 )
 from spyder.utils.programs import run_shell_command
@@ -173,7 +173,6 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
@@ -384,6 +383,7 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(not os.name == "nt", reason="Only works on Windows")
 def test_conf_env_vars(ipyconsole, qtbot):
     """Test that kernels have env vars set by our kernel spec."""
     # Wait until the window is fully up
@@ -391,7 +391,7 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
     # Get a CONF env var
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; a = os.environ.get('SPY_TESTING')")
+        shell.execute("import os; a = os.environ.get('SPY_HIDE_CMD')")
 
     # Assert we get the assigned value correctly
     assert shell.get_value('a') == 'True'
@@ -751,7 +751,7 @@ def test_values_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: not is_defined('aa'))
     with qtbot.waitSignal(shell.executed):
         shell.execute('aa')
-    # Wait until the message is recieved
+    # Wait until the message is received
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
@@ -1978,7 +1978,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     control = ipyconsole.get_widget().get_focus_widget()
 
     # Code to run
-    code = "locals = 1\nx = [locals + i for i in range(2)]"
+    code = "locals = 1\nx = [\n\tlocals + i for i in range(2)\n]"
 
     # Write code to file on disk
     file = tmpdir.join('test_breakpoint.py')
@@ -1989,7 +1989,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.execute(f"%debugfile {repr(str(file))}")
 
     # steps into the comprehension
-    comprehension_steps = 2 if PY312_OR_GREATER else 4
+    comprehension_steps = 4
     for i in range(comprehension_steps):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute("s")
@@ -1999,7 +1999,11 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.pdb_execute("print('test', locals + i + 10)")
 
     assert "Error" not in control.toPlainText()
-    assert "test 11" in control.toPlainText()
+    assert (
+        "test 12" in control.toPlainText()
+        if PY313_OR_GREATER
+        else "test 11" in control.toPlainText()
+    )
 
     settings = {
         'check_all': False,
@@ -2029,10 +2033,6 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
-# Note: PySide6 is skipped until our Spyder-kernels copy detects it as a Qt
-# binding in automatic_backend() (otherwise the auto backend resolves to tk);
-# revisit once that change is synced here (see spyder-ide/spyder#25422).
-@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different
@@ -2832,6 +2832,114 @@ def test_pixi_global_envs(ipyconsole, qtbot):
     assert "In [1]" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "Error" not in control.toPlainText()
+
+
+def test_umr(ipyconsole, qtbot, tmp_path):
+    """Test that the UMR works as expected."""
+    # Create a dummy module to check the UMR
+    moddir = tmp_path / "umr_mod"
+    moddir.mkdir()
+    modfile = moddir / "bar.py"
+    mod_code = dedent(
+        """
+        def square(x):
+            return x**2
+        """
+    )
+    modfile.write_text(mod_code)
+
+    init_file = moddir / "__init__.py"
+    init_file.write_text("#")
+
+    # Import the module in another file to run it
+    file_to_run = tmp_path / "umr_run.py"
+    run_code = dedent(
+        """
+        from umr_mod.bar import square
+
+        print(square(3))
+        """
+    )
+    file_to_run.write_text(run_code)
+    fname = str(file_to_run).replace('\\', '/')
+
+    # Wait until the console is up
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Add tmp_path to the kernel's sys.path
+    with qtbot.waitSignal(shell.executed):
+        tmp_path_name = str(tmp_path).replace('\\', '/')
+        shell.execute(f"import sys; sys.path.append('{tmp_path_name}')")
+
+    # Run file twice so the module is reloaded
+    for __ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(f"%runfile {fname}")
+
+    # Check module was reloaded
+    assert "Reloaded modules" in control.toPlainText()
+    assert "umr_mod" in control.toPlainText()
+    assert "umr_mod.bar" in control.toPlainText()
+
+    # Add/remove module to UMR blacklist
+    shell.reset(clear=True)
+    ipyconsole.set_conf(
+        "umr/namelist", ["umr_mod"], section="main_interpreter"
+    )
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" not in control.toPlainText()
+
+    ipyconsole.set_conf("umr/namelist", [], section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" in control.toPlainText()
+
+    # Disable/reenable UMR verbosity
+    shell.reset(clear=True)
+    ipyconsole.set_conf("umr/verbose", False, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" not in control.toPlainText()
+
+    ipyconsole.set_conf("umr/verbose", True, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" in control.toPlainText()
+
+    # Disable/reenable UMR
+    shell.reset(clear=True)
+    ipyconsole.set_conf("umr/enabled", False, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" not in control.toPlainText()
+
+    ipyconsole.set_conf("umr/enabled", True, section="main_interpreter")
+    qtbot.wait(100)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "Reloaded modules" in control.toPlainText()
 
 
 if __name__ == "__main__":

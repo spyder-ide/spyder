@@ -218,7 +218,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._waiting_pdb_input = False  # Are we waiting on the user
         # Other state
         self._pdb_prompt = None  # prompt
-        self._pdb_prompt_input = False  # wether pdb waits for input or comm
+        self._pdb_prompt_input = False  # whether pdb waits for input or comm
         self._pdb_last_cmd = ''  # last command sent to pdb
         self._pdb_frame_loc = (None, None)  # fname, lineno
         self._pdb_take_focus = True  # Focus to shell after command execution
@@ -355,7 +355,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             If not hidden, if the stack entry should be printed
 
         add_history: bool
-            If not hidden, wether the line should be added to history
+            If not hidden, whether the line should be added to history
         """
         if not self.is_debugging():
             return

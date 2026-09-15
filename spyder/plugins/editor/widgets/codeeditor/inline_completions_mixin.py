@@ -66,9 +66,10 @@ class InlineCompletionsMixin:
         # NOTE: This is surrounded by beginEditBlock/endEditBlock so that the
         # undo that is called when rejecting the completion only removes this
         # text and doesn't undo other previous edits.
-        cursor.beginEditBlock()
-        self.insert_text(text)
-        cursor.endEditBlock()
+        with self.single_edit_block():
+            cursor.beginEditBlock()
+            self.insert_text(text)
+            cursor.endEditBlock()
 
         # Move cursor back to the initial position (that's how VSCode works)
         self.set_cursor_position(self._inline_initial_position)

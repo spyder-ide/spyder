@@ -159,10 +159,7 @@ class SpyderCodeRunner(Magics):
 
         self.show_global_msg = True
         self.show_invalid_syntax_msg = True
-        self.umr = UserModuleReloader(
-            namelist=os.environ.get("SPY_UMR_NAMELIST", None),
-            shell=self.shell,
-        )
+        self.umr = UserModuleReloader(shell=self.shell)
 
     @runfile_arguments
     @needs_local_scope

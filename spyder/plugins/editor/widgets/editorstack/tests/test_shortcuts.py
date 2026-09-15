@@ -331,6 +331,7 @@ def test_builtin_undo_redo(editorstack, qtbot):
 
     # Write something on a new line.
     qtbot.keyClicks(editor, 'Something')
+    editor._commit_pending_edit()
     qtbot.keyClick(editor, Qt.Key_Return)
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
 

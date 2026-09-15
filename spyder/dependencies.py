@@ -38,7 +38,6 @@ BCRYPT_REQVER = ">=4.3.0"
 CHARDET_REQVER = '>=5.2.0,<8.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
-DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=9.15.0,<10.0.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
@@ -72,10 +71,11 @@ QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.4.1,<1.5.0'
 QTCONSOLE_REQVER = '>=5.7.2,<5.8.0'
 QTPY_REQVER = '>=2.4.0'
+RTFUNICODE = '>=2.2,<3'
 RTREE_REQVER = '>=0.9.7'
 SPHINX_REQVER = '>=7.2.0'
 SPYDER_KERNELS_REQVER = '>=3.2.0a1,<3.2.0a2'
-SPYDER_THEMES_REQVER = '>=1.0.5,<2.0.0'
+SPYDER_THEMES_REQVER = '>=1.0.13,<1.1.0'
 SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -128,10 +128,6 @@ DESCRIPTIONS = [
      'package_name': "cookiecutter",
      'features': _("Create projects from cookiecutter templates"),
      'required_version': COOKIECUTTER_REQVER},
-    {'modname': "diff_match_patch",
-     'package_name': "diff-match-patch",
-     'features': _("Compute text file diff changes during edition"),
-     'required_version': DIFF_MATCH_PATCH_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
@@ -273,6 +269,10 @@ DESCRIPTIONS = [
      'package_name': "rtree",
      'features': _("Fast access to code snippet regions"),
      'required_version': RTREE_REQVER},
+    {'modname': "rtfunicode",
+     'package_name': "rtfunicode",
+     'features': _("Copy and export files as rich text in the Editor"),
+     'required_version': RTFUNICODE},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),

@@ -26,7 +26,6 @@ from spyder.api.plugins import Plugins
 from spyder.app.cli_options import get_options
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.plugin import Debugger
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.theme_manager import THEME_MANAGER
@@ -37,7 +36,7 @@ from spyder.utils.theme_manager import THEME_MANAGER
 # =============================================================================
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 NEW_DIR = 'new_workingdir'
-PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
+PY313_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
 
 # =============================================================================
@@ -190,7 +189,9 @@ def ipyconsole(qtbot, request, tmpdir):
         configuration.set('main_interpreter', 'executable', '')
 
     # Conf css_path in the Appeareance plugin
-    configuration.set('appearance', 'css_path', CSS_PATH)
+    configuration.set(
+        'appearance', 'css_path', THEME_MANAGER.get_css_path()
+    )
 
     # Create the console and a new client and set environment
     os.environ['IPYCONSOLE_TESTING'] = 'True'

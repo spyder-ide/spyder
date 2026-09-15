@@ -9,7 +9,6 @@
 """Tests for the User Module Reloader."""
 
 # Stdlib imports
-import os
 import sys
 
 # Third party imports
@@ -44,14 +43,13 @@ def test_umr_run(user_module):
     # Create user module
     user_module('foo1')
 
-    # Activate verbose mode in the UMR
-    os.environ['SPY_UMR_VERBOSE'] = 'True'
-
     # Create UMR
     umr = UserModuleReloader()
 
-    from foo1.bar import square
+    from foo1.bar import square  # noqa
     assert umr.run() == ['foo1', 'foo1.bar']
+    assert "foo1" not in sys.modules
+    assert "foo1.bar" not in sys.modules
 
 
 def test_umr_previous_modules(user_module):
@@ -62,8 +60,8 @@ def test_umr_previous_modules(user_module):
     # Create UMR
     umr = UserModuleReloader()
 
-    import foo2
-    assert 'IPython' in umr.previous_modules
+    import foo2  # noqa
+    assert 'sys' in umr.previous_modules
     assert 'foo2' not in umr.previous_modules
 
 
