@@ -54,6 +54,7 @@ class OutlineExplorerActions:
     DisplayVariables = 'display_variables'
     FollowCursor = 'follow_cursor'
     SortFiles = 'sort_files_alphabetically'
+    SymbolFinderAction = 'symbol finder'
 
 
 # ---- Auxiliary functions

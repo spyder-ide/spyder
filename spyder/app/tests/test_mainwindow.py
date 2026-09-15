@@ -85,6 +85,7 @@ from spyder.plugins.ipythonconsole.api import (
 )
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
+from spyder.plugins.outlineexplorer.api import OutlineExplorerActions
 from spyder.plugins.profiler.widgets.main_widget import ProfilerWidgetActions
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
@@ -2785,7 +2786,8 @@ def example_def_2():
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
     symbolfinder_action = editorstack.get_action(
-        SwitcherActions.SymbolFinderAction, plugin=Plugins.Switcher
+        OutlineExplorerActions.SymbolFinderAction,
+        plugin=Plugins.OutlineExplorer,
     )
     symbolfinder_action.trigger()
     qtbot.wait(500)

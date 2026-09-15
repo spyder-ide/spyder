@@ -39,17 +39,6 @@ class SwitcherContainer(PluginMainContainer):
             shortcut_context="_",
         )
 
-        self.create_action(
-            SwitcherActions.SymbolFinderAction,
-            _('Symbol finder...'),
-            icon=self.create_icon('symbol_find'),
-            tip=_('Fast symbol search in file'),
-            triggered=self.open_symbolfinder,
-            register_shortcut=True,
-            context=Qt.ApplicationShortcut,
-            shortcut_context="_",
-        )
-
     def update_actions(self):
         pass
 
