@@ -1426,7 +1426,8 @@ class CodeEditor(
     def fix_indentation(self):
         """Replace tabs by spaces."""
         text_before = str(self.toPlainText())
-        text_after = sourcecode.fix_indentation(text_before, self.indent_chars)
+        indent_chars = ' ' * self.tab_stop_width_spaces
+        text_after = sourcecode.fix_indentation(text_before, indent_chars)
         if text_before != text_after:
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
