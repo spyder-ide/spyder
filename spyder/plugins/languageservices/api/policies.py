@@ -110,16 +110,16 @@ def feature_name(method: str) -> str:
     """Configuration key of the LSP ``method`` (its feature name)."""
     try:
         return FEATURE_METHODS[method]
-    except KeyError:
-        raise KeyError(f"{method!r} is not a language services feature")
+    except KeyError as exc:
+        raise KeyError(f"{method!r} is not a language services feature") from exc
 
 
 def feature_method(name: str) -> str:
     """LSP method of the feature ``name``."""
     try:
         return FEATURE_NAMES[name]
-    except KeyError:
-        raise KeyError(f"{name!r} is not a language services feature")
+    except KeyError as exc:
+        raise KeyError(f"{name!r} is not a language services feature") from exc
 
 
 # ---- Strategies ------------------------------------------------------------
