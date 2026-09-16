@@ -204,6 +204,19 @@ class MultiCursorMixin:
             self.merge_extra_cursors(True)
             self.last_append_direction += 1
 
+    def add_cursor_previous_occurrence(self):
+        if self.multi_cursor_enabled:
+            previous_cursor = self.go_to_previous_occurrence()
+            # merge already called in go_to_XX_occurrence
+            if previous_cursor is not None:
+                self.extra_cursors.append(previous_cursor)
+    
+    def add_cursor_next_occurrence(self):
+        if self.multi_cursor_enabled:
+            previous_cursor = self.go_to_next_occurrence()
+            if previous_cursor is not None:
+                self.extra_cursors.append(previous_cursor)
+
     def set_extra_cursor_selections(self):
         selections = []
         for cursor in self.extra_cursors:
