@@ -72,8 +72,8 @@ def parse_languages(text: str) -> tuple[str, ...] | str:
         if language is None:
             try:
                 Language.from_language_id(part)
-            except LookupError:
-                raise ValueError(_("Unknown language: {0}").format(part))
+            except LookupError as exc:
+                raise ValueError(_("Unknown language: {0}").format(part)) from exc
             ids.append(part)
         else:
             ids.append(language.language_id)

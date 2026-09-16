@@ -170,10 +170,10 @@ class DocumentRegistry:
         """
         try:
             return self.documents[uri]
-        except KeyError:
+        except KeyError as exc:
             raise DocumentNotOpenError(
                 f"Document {uri!r} is not open. Call open_document first"
-            ) from None
+            ) from exc
 
     def language_of(self, uri: str) -> Language:
         return self.get(uri).language
