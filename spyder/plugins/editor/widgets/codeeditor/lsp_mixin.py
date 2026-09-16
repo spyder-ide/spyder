@@ -75,8 +75,10 @@ def request(req=None, method=None, requires_response=True):
 
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
+        if not self.completions_available:
+            return
         params = req(self, *args, **kwargs)
-        if params is not None and self.completions_available:
+        if params is not None:
             self.emit_request(method, params, requires_response)
 
     return wrapper
@@ -116,7 +118,6 @@ def schedule_request(
 
     @functools.wraps(req)
     def wrapper(self, *args, _cancel_previous=False, **kwargs):
-        params = req(self, *args, **kwargs)
         if _cancel_previous or cancel_previous:
             pending_reqeusts = self._pending_server_requests
             index = next(
@@ -132,7 +133,11 @@ def schedule_request(
                     pending_reqeusts[:index] + pending_reqeusts[index + 1 :]
                 )
 
-        if params is not None and self.completions_available:
+        if not self.completions_available:
+            return
+
+        params = req(self, *args, **kwargs)
+        if params is not None:
             self._pending_server_requests.append(
                 (method, params, requires_response)
             )
@@ -1661,9 +1666,8 @@ class LSPMixin:
             text=self.get_text_with_eol() if self.save_include_text else None,
         )
 
-    @request(method=lsp.TEXT_DOCUMENT_DID_CLOSE, requires_response=False)
     def notify_close(self):
-        """Send close request."""
+        """Abort pending LSP work and send a close request when applicable."""
         self._pending_server_requests = []
         self._cancel_pending_futures()
 
@@ -1675,20 +1679,23 @@ class LSPMixin:
             pass
 
         # Cloned editors share the document opened by the original one.
-        if self.completions_available and not self.is_cloned:
-            # This is necessary to prevent an error in our tests.
-            try:
-                # Servers can send an empty publishDiagnostics reply to clear
-                # diagnostics after they receive a didClose request. Since
-                # we also ask for symbols and folding when processing
-                # diagnostics, we need to prevent it from happening
-                # before sending that request here.
-                self._timer_sync_symbols_and_folding.timeout.disconnect()
-            except (TypeError, RuntimeError):
-                pass
+        if not self.completions_available or self.is_cloned:
+            return
 
-            return lsp.DidCloseTextDocumentParams(
-                text_document=lsp.TextDocumentIdentifier(
-                    uri=self.document_uri
-                )
-            )
+        # This is necessary to prevent an error in our tests.
+        try:
+            # Servers can send an empty publishDiagnostics reply to clear
+            # diagnostics after they receive a didClose request. Since
+            # we also ask for symbols and folding when processing
+            # diagnostics, we need to prevent it from happening
+            # before sending that request here.
+            self._timer_sync_symbols_and_folding.timeout.disconnect()
+        except (TypeError, RuntimeError):
+            pass
+
+        params = lsp.DidCloseTextDocumentParams(
+            text_document=lsp.TextDocumentIdentifier(uri=self.document_uri)
+        )
+        self.emit_request(
+            lsp.TEXT_DOCUMENT_DID_CLOSE, params, requires_response=False
+        )
