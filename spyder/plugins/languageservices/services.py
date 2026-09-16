@@ -286,10 +286,10 @@ class LanguageServicesAPI(QObject):
     def _state(self, name: str) -> _ProviderState:
         try:
             return self._providers[name]
-        except KeyError:
+        except KeyError as exc:
             raise ProviderNotFoundError(
                 f"No provider named {name!r}"
-            ) from None
+            ) from exc
 
     def _sorted_states(self) -> list[_ProviderState]:
         return sorted(
