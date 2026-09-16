@@ -17,7 +17,7 @@ from qtpy.QtCore import Qt, QTimer, Slot
 from qtpy.QtGui import (
     QColor, QFontMetrics, QPaintEvent, QPainter, QTextCursor, QKeyEvent
 )
-from qtpy.QtWidgets import QApplication, QMessageBox
+from qtpy.QtWidgets import QApplication, QMessageBox, QPlainTextEdit
 
 # Local imports
 from spyder.api.translations import _
@@ -171,6 +171,8 @@ class MultiCursorMixin:
             self.setTextCursor(cursor_for_pos)
             self.extra_cursors.append(old_cursor)
             self.merge_extra_cursors(True)
+            # process event to allow dragging a selection on new cursor
+            QPlainTextEdit.mousePressEvent(self, event)
 
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
