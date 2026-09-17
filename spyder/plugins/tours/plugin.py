@@ -13,9 +13,12 @@ Tours Plugin.
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.config.base import get_safe_mode, running_under_pytest
+from spyder.plugins.help.api import HelpActions
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.tours.container import TourActions, ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
@@ -29,7 +32,6 @@ class Tours(SpyderPluginV2):
     NAME = 'tours'
     CONF_SECTION = NAME
     REQUIRES = [Plugins.MainMenu]
-    OPTIONAL = [Plugins.Help]
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
 
@@ -50,25 +52,26 @@ class Tours(SpyderPluginV2):
     def on_initialize(self):
         pass
 
-    @on_plugin_available(plugin=Plugins.Help)
-    def on_help_available(self):
-        if self.is_plugin_available(Plugins.MainMenu):
-            self._populate_help_menu()
-
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        if self.is_plugin_enabled(Plugins.Help):
-            if self.is_plugin_available(Plugins.Help):
-                self._populate_help_menu()
-        else:
-            self._populate_help_menu()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        mainmenu.add_item_to_application_menu(
+            self.get_container().tour_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Documentation,
+            before=HelpActions.ShowSpyderTutorialAction,
+            before_section=HelpMenuSections.ExternalDocumentation,
+        )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
         mainmenu.remove_item_from_application_menu(
             TourActions.ShowTour,
-            menu_id=ApplicationMenus.Help)
+            menu_id=ApplicationMenus.Help
+        )
 
     def on_mainwindow_visible(self):
         # Remove from intro tour steps for unavailable plugins.
@@ -158,21 +161,3 @@ class Tours(SpyderPluginV2):
                 trimmed_tour.append(step)
 
         return trimmed_tour
-
-    def _populate_help_menu(self):
-        """Add the Tour item to Spyder's Help menu."""
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        help_plugin = self.get_plugin(Plugins.Help)
-        help_tutorial_action = None
-
-        if help_plugin:
-            from spyder.plugins.help.plugin import HelpActions
-            help_tutorial_action = HelpActions.ShowSpyderTutorialAction
-
-        mainmenu.add_item_to_application_menu(
-            self.get_container().tour_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Documentation,
-            before=help_tutorial_action,
-            before_section=HelpMenuSections.ExternalDocumentation,
-        )
