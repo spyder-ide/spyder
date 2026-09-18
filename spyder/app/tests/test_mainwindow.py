@@ -3498,6 +3498,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 @pytest.mark.order(before="test_PYTHONPATH_in_consoles")
+@pytest.mark.use_introspection
 @pytest.mark.skipif(
     not is_conda_env(sys.prefix), reason='Only works with Anaconda'
 )
