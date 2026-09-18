@@ -270,6 +270,12 @@ class PydocBrowser(PluginMainWidget):
 
     def _finish(self, code):
         """Webview load finished."""
+        # Ignore the loading placeholder; keep spinner until pydoc loads.
+        if self.home_url is not None:
+            current = self.webview.url().toString()
+            if not current.startswith(self.home_url.toString()):
+                return
+
         self._is_running = False
         self.stop_spinner()
         self.update_actions()
@@ -279,6 +285,14 @@ class PydocBrowser(PluginMainWidget):
         """Load home page."""
         self.go_home()
         QApplication.restoreOverrideCursor()
+
+    def _show_loading_placeholder(self):
+        """Paint a blank themed page while the pydoc server starts."""
+        html = (
+            f'<html><body style="background:{MAIN_BG_COLOR};margin:0;">'
+            f'</body></html>'
+        )
+        self.webview.setHtml(html)
 
     def _handle_url_combo_activation(self):
         """Load URL from combo box first item."""
@@ -296,7 +310,10 @@ class PydocBrowser(PluginMainWidget):
         """
         Displayed URL has changed -> updating URL combo box.
         """
-        self.url_combo.add_text(self.url_to_text(url))
+        text = self.url_to_text(url)
+        if not text or text == 'about:blank':
+            return
+        self.url_combo.add_text(text)
 
     def _handle_icon_change(self):
         """
@@ -364,6 +381,7 @@ class PydocBrowser(PluginMainWidget):
             self.server.quit()
             self.server.wait()
 
+        self._show_loading_placeholder()
         self.server = PydocServer(None, port=PORT)
         self.server.sig_server_started.connect(
             self._continue_initialization)
