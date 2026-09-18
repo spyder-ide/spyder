@@ -163,7 +163,17 @@ def language_services_all_started(
     capabilities = language_services.capabilities(Language.PYTHON)
     assert capabilities.completion_provider is not None
 
+    # The app drives interpreter changes through the Main Interpreter (or
+    # IPython Console) plugin, which is absent here. Route the stand-in signal
+    # to the same handler so providers reconfigure when tests switch it.
+    completion_plugin._sig_interpreter_changed.connect(
+        language_services._on_interpreter_changed
+    )
+
     def teardown():
+        completion_plugin._sig_interpreter_changed.disconnect(
+            language_services._on_interpreter_changed
+        )
         for provider in providers:
             wait_for(language_services.stop_provider(provider.NAME), 30)
             CONF.unobserve_configuration(provider)
