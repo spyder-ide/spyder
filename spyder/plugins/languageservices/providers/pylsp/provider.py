@@ -11,13 +11,12 @@ from __future__ import annotations
 # Standard library imports
 import logging
 
-# Third party imports
-from superqt.utils import qdebounced
-
 # Local imports
+from spyder.api.asyncdispatcher import debounce
 from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import running_under_pytest
 from spyder.plugins.languageservices.api.provider import ProviderStatus
+from spyder.plugins.languageservices.plugin import dispatch
 from spyder.plugins.languageservices.providers.lsp.provider import (
     LanguageServerClientProvider,
 )
@@ -96,7 +95,6 @@ class PylspProvider(LanguageServerClientProvider):
     def _reconfigure(self):
         if not self._started:
             return
-        from spyder.plugins.languageservices.plugin import dispatch
 
         dispatch(self.apply_server_configs)(self.get_server_configs())
 
@@ -125,13 +123,14 @@ class PylspProvider(LanguageServerClientProvider):
         await self.apply_server_configs(self.get_server_configs())
 
     async def on_interpreter_changed(self, interpreter: str) -> None:
-        if interpreter != self._interpreter:
-            logger.debug("pylsp interpreter changed to %s", interpreter)
-            self._interpreter = interpreter
-            self._debounced_reconfigure()
+        if interpreter == self._interpreter:
+            return
+        logger.debug("pylsp interpreter changed to %s", interpreter)
+        self._interpreter = interpreter
+        await self._debounced_reconfigure()
 
-    @qdebounced(timeout=600)
-    def _debounced_reconfigure(self):
+    @debounce(time=0.6, replace=True)
+    async def _debounced_reconfigure(self):
         """Switching consoles of different environments in quick succession
         would otherwise restart the server for each of them."""
-        self._reconfigure()
+        await self.apply_server_configs(self.get_server_configs())
