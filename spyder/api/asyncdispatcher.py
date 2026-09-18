@@ -755,3 +755,277 @@ def run_coroutine_threadsafe(
 
     loop.call_soon_threadsafe(callback)
     return future
+
+
+class debounce:
+    """Rate-limit an async function so repeated calls collapse onto shared tasks.
+
+    Each unique call (see ``consider_args``) has a debounce window of ``time``
+    seconds, starting when its function begins executing. Subsequent calls 
+    will either wait for the current execution to finish and share its results,
+    replace it, or enqueued, during the window time depending on ``leading``,
+    ``replace`` and ``enqueue`` params:
+
+    - ``leading`` selects the edge. True runs the function immediately on the
+      first call, while False waits ``time`` before running it (trailing edge).
+    - ``replace`` (ignored when ``enqueue`` is True) uses subsequent calls
+      arriving while the current execution is unfinished instead of the firt
+      one for the rest of the window. Thus, if ``leading`` is True, the replace
+      can only take place while the first execution is still running instead of
+      the full window.
+    - ``enqueue``: in-window calls are serialized rather than collapsed, each
+      runs in turn, at least ``time`` apart. With ``leading`` False the first
+      call waits ``time`` before starting.
+
+    Parameters
+    ----------
+        time : float
+            The debounce interval in seconds.
+        leading : bool, optional
+            Run on the first call instead of after ``time``. Defaults to False.
+        enqueue : bool, optional
+            Serialize in-window calls, each spaced by ``time``. Defaults to
+            False.
+        replace : bool, optional
+            Let a newer call replace the current unfinished execution. Ignored
+            when ``enqueue`` is True. Defaults to False.
+        consider_args : bool, optional
+            If True, different arguments will be treated as different calls.
+            Defaults to False.
+        typed_args : bool, optional
+            If True, arguments of different types will be treated as different
+            calls. Defaults to False. Ex: fnc(1) and fnc(1.0).
+        ignore_type : tuple[type] | None, optional
+            A tuple of types to ignore when creating the cache key. Defaults to None.
+
+    Examples
+    --------
+    .. code-block:: python
+        @debounce(time=0.5)
+        async def my_function():
+            # when called wait 0.5 seconds before executing,
+            # subsequent calls will share the last execution
+            # result
+            ...
+
+        @debounce(time=1.0, leading=True)
+        async def my_function():
+            # start execution immediately on the first
+            # call, subsequent ones will share the first
+            # execution result until the time window
+            # is over.
+            ...
+
+        @debounce(time=1.0, replace=True)
+        async def my_function():
+            # execute only once every 1.0 second, if
+            # called multiple times withing the time
+            # window, only the last one will be executed,
+            # the rest will be cancelled and the last
+            # result will be shared with all calls.
+            ...
+
+        @debounce(time=1.0, leading=True, replace=True)
+        async def my_function():
+            # start execution immediately on the first
+            # call, subsequent ones will only replace
+            # while the last hasn't finished. After the
+            # execution is finished, it's result will be
+            # shared until the time window is over.
+            ...
+
+        @debounce(time=1.0, enqueue=True)
+        async def my_function():
+            # execute only once every 1.0 second,
+            # subsequent calls will be serialized
+            # and executed in order, each spaced
+            # by at least 1.0 second.
+    """
+
+    MAX_SIZE = 1024
+    """The maximum number of unique calls to store in the debounce cache."""
+
+    def __init__(
+        self,
+        *,
+        time: float,
+        leading: bool = False,
+        enqueue: bool = False,
+        replace: bool = False,
+        consider_args: bool = False,
+        typed_args: bool = False,
+        ignore_type: tuple[type] | None = None,
+    ):
+        self.time = time
+        self.leading = leading
+        self.enqueue = enqueue
+        self.replace = replace
+        self.consider_args = consider_args
+        self.typed_args = typed_args
+        self.ignore_type = ignore_type
+        self.__waiters: dict[collections.abc.Hashable, _Debounced] = {}
+        self.__locks: dict[collections.abc.Hashable, asyncio.Lock] = {}
+
+    def _make_key(self, args: tuple[typing.Any, ...], kwargs: dict[str, typing.Any]) -> collections.abc.Hashable:
+        if not self.consider_args:
+            return None
+        return functools._make_key(
+            tuple(arg for arg in args if not isinstance(arg, self.ignore_type))
+            if self.ignore_type
+            else args,
+            {k: v for k, v in kwargs.items() if not isinstance(v, self.ignore_type)}
+            if self.ignore_type
+            else kwargs,
+            typed=self.typed_args,
+        )
+
+    def _create_waiter(
+        self,
+        key: collections.abc.Hashable,
+        func: collections.abc.Callable[..., collections.abc.Awaitable[_RT]],
+        args: tuple[typing.Any, ...],
+        kwargs: dict[str, typing.Any],
+        *,
+        immediate: bool = False,
+    ) -> _Debounced:
+        if key not in self.__waiters and len(self.__waiters) >= self.MAX_SIZE:
+            self._evict_one()
+        delay = 0.0 if immediate or self.leading else self.time
+        self.__waiters[key] = waiter = _Debounced(delay, func, args, kwargs)
+        return waiter
+
+    def _evict_one(self) -> None:
+        for key, waiter in self.__waiters.items():
+            if waiter.elapsed_time >= self.time:
+                del self.__waiters[key]
+                return
+        del self.__waiters[next(iter(self.__waiters))]
+
+    def _get_waiter(self, key: collections.abc.Hashable) -> _Debounced | None:
+        return self.__waiters.get(key)
+
+    def _get_lock(self, key: collections.abc.Hashable) -> asyncio.Lock:
+        lock = self.__locks.get(key)
+        if lock is None:
+            if len(self.__locks) >= self.MAX_SIZE:
+                for stale in [k for k, lk in self.__locks.items() if not lk.locked()]:
+                    del self.__locks[stale]
+            lock = self.__locks[key] = asyncio.Lock()
+        return lock
+
+    def _clear_waiter(self, key: collections.abc.Hashable) -> None:
+        self.__waiters.pop(key, None)
+
+    def _clear_waiters(self) -> None:
+        self.__waiters.clear()
+
+    def __call__(
+        self, func: collections.abc.Callable[_P, collections.abc.Coroutine[typing.Any, typing.Any, _RT]]
+    ) -> collections.abc.Callable[_P, collections.abc.Coroutine[typing.Any, typing.Any, _RT]]:
+        @functools.wraps(func)
+        async def debouncer(
+            *args: _P.args,
+            **kwargs: _P.kwargs,
+        ) -> _RT:
+            key = self._make_key(args, kwargs)
+
+            if self.enqueue:
+                async with self._get_lock(key):
+                    waiter = self._get_waiter(key)
+                    if waiter is None:
+                        if not self.leading:
+                            await asyncio.sleep(self.time)
+                    else:
+                        if not waiter.done():
+                            await waiter
+                        await asyncio.sleep(max(0, self.time - waiter.elapsed_time))
+                    return await self._create_waiter(key, func, args, kwargs, immediate=True)
+
+            waiter = self._get_waiter(key)
+            if waiter is None:
+                return await self._create_waiter(key, func, args, kwargs)
+
+            if waiter.elapsed_time < self.time:
+                if self.replace and not waiter.done():
+                    waiter.replace(func, args, kwargs)
+                return await waiter
+
+            return await self._create_waiter(key, func, args, kwargs)
+
+        return debouncer
+
+class _Debounced(collections.abc.Awaitable[_RT]):
+    """A debounce cycle: run ``func`` after ``delay`` and deliver its result.
+
+    ``start_time`` marks when the wrapped function begins executing, so
+    ``elapsed_time`` is negative while a trailing call is still waiting for its
+    delay and reaches ``time`` once the debounce window has passed.
+    """
+
+    def __init__(
+        self,
+        delay: float,
+        func: collections.abc.Callable[..., collections.abc.Awaitable[_RT]],
+        args: tuple[typing.Any, ...],
+        kwargs: dict[str, typing.Any],
+    ):
+        self._loop = asyncio.get_running_loop()
+        self._start_time = self._loop.time() + delay
+        self._future: asyncio.Future[_RT] = self._loop.create_future()
+        self._payload = (func, args, kwargs)
+        self._executing = False
+        self._task = self._loop.create_task(self._run(delay))
+        self._task.add_done_callback(self._on_task_done)
+
+    @property
+    def start_time(self) -> float:
+        return self._start_time
+
+    @property
+    def elapsed_time(self) -> float:
+        return self._loop.time() - self._start_time
+
+    def __await__(self):
+        return self._future.__await__()
+
+    def done(self) -> bool:
+        return self._future.done()
+
+    async def _run(self, delay: float) -> _RT:
+        if delay > 0:
+            await asyncio.sleep(delay)
+        self._executing = True
+        func, args, kwargs = self._payload
+        return await func(*args, **kwargs)
+
+    def replace(
+        self,
+        func: collections.abc.Callable[..., collections.abc.Awaitable[_RT]],
+        args: tuple[typing.Any, ...],
+        kwargs: dict[str, typing.Any],
+    ) -> None:
+        self._payload = (func, args, kwargs)
+        if not self._executing:
+            return
+        self._task.remove_done_callback(self._on_task_done)
+        self._task.cancel()
+        self._executing = False
+        self._start_time = self._loop.time()
+        self._task = self._loop.create_task(self._run(0))
+        self._task.add_done_callback(self._on_task_done)
+
+    def add_done_callback(self, callback: collections.abc.Callable[[asyncio.Future[_RT]], typing.Any]):
+        self._future.add_done_callback(callback)
+
+    def _on_task_done(self, task: asyncio.Task[_RT]):
+        if self._future.done():
+            return
+        if task.cancelled():
+            self._future.cancel()
+        else:
+            exception = task.exception()
+            if exception is not None:
+                self._future.set_exception(exception)
+            else:
+                result = task.result()
+                self._future.set_result(result)
