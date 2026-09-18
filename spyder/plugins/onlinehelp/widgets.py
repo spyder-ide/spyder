@@ -16,13 +16,14 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QUrl, Signal, Slot
-from qtpy.QtGui import QCursor
+from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
 
@@ -36,6 +37,7 @@ except ImportError:
 # --- Constants
 # ----------------------------------------------------------------------------
 PORT = 30128
+MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
 class PydocBrowserActions:
@@ -166,6 +168,14 @@ class PydocBrowser(PluginMainWidget):
             handle_links=self.get_conf('handle_links')
         )
         self.webview.setup()
+        if WEBENGINE:
+            self.webview.web_widget.page().setBackgroundColor(
+                QColor(MAIN_BG_COLOR)
+            )
+        else:
+            self.webview.web_widget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR)
+            )
         self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
         self.webview.loadStarted.connect(self._start)
         self.webview.loadFinished.connect(self._finish)
@@ -345,6 +355,7 @@ class PydocBrowser(PluginMainWidget):
 
     def start_server(self):
         """Start pydoc server."""
+        self._start()
         if self.server is None:
             self.set_home_url('http://127.0.0.1:{}/'.format(PORT))
         elif self.server.is_running():
