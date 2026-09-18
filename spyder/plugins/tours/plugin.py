@@ -105,6 +105,17 @@ class Tours(SpyderPluginV2):
         """
         self.get_container().register_tour(tour_id, title, tour_data)
 
+    def unregister_tour(self, tour_id):
+        """
+        Unregister a tour from Spyder.
+
+        Parameters
+        ----------
+        tour_id: str
+            Unique tour string identifier.
+        """
+        self.get_container().unregister_tour(tour_id)
+
     def show_tour(self, index):
         """
         Show interactive tour.
