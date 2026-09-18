@@ -442,6 +442,11 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                     plugin_instance = self.plugin_registry[plugin]
                     plugin_instance._on_plugin_teardown(plugin_name)
 
+        # Set plugin availability to False. This needs to be done before
+        # emitting sig_plugin_deleted so that other plugins can correctly react
+        # to this one being disabled on the fly.
+        self.plugin_availability[plugin_name] = False
+
         # Notify the main window that the plugin was deleted
         if notify_main:
             self.sig_plugin_deleted.emit(plugin_name)
@@ -737,6 +742,9 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
             # Disconnect depending plugins from the plugin to delete
             self._notify_plugin_teardown(plugin_name)
 
+        # Delete plugin actions, menus, toolbars and toolbuttons from their
+        # respective registries. This is needed in case the plugin is reenabled
+        # on the fly
         try:
             for registry in [
                 ACTION_REGISTRY,
@@ -750,14 +758,16 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
             if not running_under_pytest():
                 raise
 
-        # Delete plugin from the registry and auxiliary structures
-        self.plugin_dependencies.pop(plugin_name, None)
+        # This must be done after on_close() so that plugins can modify
+        # their (external) config therein.
         if plugin_instance.CONF_FILE:
-            # This must be done after on_close() so that plugins can modify
-            # their (external) config therein.
             CONF.unregister_plugin(plugin_instance)
 
-        self.plugin_availability.pop(plugin_name)
+        # Delete plugin from the registry and auxiliary structures.
+        # This can only be done only after _teardown_plugin is called because
+        # it needs the plugin dependencies and the plugin itself available in
+        # the registry to work
+        self.plugin_dependencies.pop(plugin_name, None)
         self.enabled_plugins -= {plugin_name}
         self.internal_plugins -= {plugin_name}
         self.external_plugins -= {plugin_name}
