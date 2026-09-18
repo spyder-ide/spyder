@@ -11,12 +11,14 @@ Tours Plugin.
 """
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import DockablePlugins, Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
 )
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import _
+from spyder.api.utils import get_class_values
 from spyder.config.base import get_safe_mode, running_under_pytest
 from spyder.plugins.help.api import HelpActions
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
@@ -29,6 +31,7 @@ class Tours(SpyderPluginV2):
     """
     Tours Plugin.
     """
+
     NAME = 'tours'
     CONF_SECTION = NAME
     REQUIRES = [Plugins.MainMenu]
@@ -74,19 +77,18 @@ class Tours(SpyderPluginV2):
         )
 
     def on_mainwindow_visible(self):
-        # Remove from intro tour steps for unavailable plugins.
-        # Fixes spyder-ide/spyder#22635
-        trimmed_intro_tour = self._trim_intro_tour()
+        self._register_intro_tour_and_connect_signals()
 
-        # Register trimmed tour
-        self.register_tour(
-            TourIdentifiers.IntroductionTour,
-            _("Introduction to Spyder"),
-            trimmed_intro_tour,
+    def on_close(self, cancelable=False):
+        PLUGIN_REGISTRY.sig_plugin_ready.disconnect(
+            self._on_plugin_enabled_or_disabled
+        )
+        PLUGIN_REGISTRY.sig_plugin_deleted.disconnect(
+            self._on_plugin_enabled_or_disabled
         )
 
-        # Show tour message (only the first time Spyder starts)
-        self.show_tour_message()
+    def on_reenabled(self):
+        self._register_intro_tour_and_connect_signals(show_tour_message=False)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -172,3 +174,47 @@ class Tours(SpyderPluginV2):
                 trimmed_tour.append(step)
 
         return trimmed_tour
+
+    def _register_intro_tour_and_connect_signals(
+        self, show_tour_message: bool = True
+    ):
+        # Remove from intro tour steps for unavailable plugins.
+        # Fixes spyder-ide/spyder#22635
+        trimmed_intro_tour = self._trim_intro_tour()
+
+        # Register trimmed tour
+        self.register_tour(
+            TourIdentifiers.IntroductionTour,
+            _("Introduction to Spyder"),
+            trimmed_intro_tour,
+        )
+
+        # Show tour message (only the first time Spyder starts)
+        if show_tour_message:
+            self.show_tour_message()
+
+        # This is necessary to trim the intro tour in case plugins are
+        # enabled/disabled on the fly
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(
+            self._on_plugin_enabled_or_disabled
+        )
+        PLUGIN_REGISTRY.sig_plugin_deleted.connect(
+            self._on_plugin_enabled_or_disabled
+        )
+
+    def _on_plugin_enabled_or_disabled(
+        self, plugin_name: str, omit_conf: bool = False
+    ):
+        # This is only needed for internal/dockable plugins
+        if plugin_name not in get_class_values(DockablePlugins):
+            return
+
+        intro_tour_id = TourIdentifiers.IntroductionTour
+
+        self.get_container().unregister_tour(intro_tour_id)
+        trimmed_intro_tour = self._trim_intro_tour()
+        self.register_tour(
+            intro_tour_id,
+            _("Introduction to Spyder"),
+            trimmed_intro_tour,
+        )

@@ -88,10 +88,12 @@ class ToursContainer(PluginMainContainer):
 
         self._tours[tour_id] = tour_data
         self._tour_titles[tour_id] = title
+
         action = self.create_action(
             tour_id,
             text=title,
             triggered=lambda: self.show_tour(tour_id),
+            register_action=False,
         )
         self.add_item_to_menu(action, menu=self.tours_menu)
 
