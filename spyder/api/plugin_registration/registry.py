@@ -717,6 +717,7 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
 
             try:
                 plugin_instance.get_widget().close()
+                plugin_instance.get_widget().dockwidget.deleteLater()
                 plugin_instance.get_widget().deleteLater()
             except RuntimeError:
                 pass
