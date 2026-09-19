@@ -19,6 +19,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown
 )
 from spyder.config.base import is_conda_based_app
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
@@ -32,7 +33,7 @@ from spyder.plugins.updatemanager.widgets.status import (
 
 class UpdateManager(SpyderPluginV2):
     NAME = 'update_manager'
-    REQUIRES = [Plugins.Application, Plugins.MainMenu, Plugins.Preferences]
+    REQUIRES = [Plugins.MainMenu, Plugins.Preferences]
     OPTIONAL = [Plugins.StatusBar]
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
@@ -70,18 +71,15 @@ class UpdateManager(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    @on_plugin_available(plugin=Plugins.Application)
-    def on_application_available(self):
-        if self.is_plugin_available(Plugins.MainMenu):
-            self._populate_help_menu()
-
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        if self.is_plugin_enabled(Plugins.Application):
-            if self.is_plugin_available(Plugins.Application):
-                self._populate_help_menu()
-        else:
-            self._populate_help_menu()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            self.get_container().check_update_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.About,
+            before=ApplicationActions.HelpSpyderAction,
+        )
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -118,7 +116,11 @@ class UpdateManager(SpyderPluginV2):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        self._depopulate_help_menu()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            UpdateManagerActions.SpyderCheckUpdateAction,
+            menu_id=ApplicationMenus.Help
+        )
 
     def on_mainwindow_visible(self):
         """Actions after the mainwindow is visible."""
@@ -158,29 +160,9 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Private API
     # ------------------------------------------------------------------------
-    def _populate_help_menu(self):
-        """Add update action and menu to the Help menu."""
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        from spyder.plugins.application.api import ApplicationActions
-        help_spyder_action = ApplicationActions.HelpSpyderAction
-
-        mainmenu.add_item_to_application_menu(
-            self.get_container().check_update_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.About,
-            before=help_spyder_action,
-        )
-
     @property
     def _window(self):
         return self.main.window()
-
-    def _depopulate_help_menu(self):
-        """Remove update action from the Help main menu."""
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.remove_item_from_application_menu(
-            UpdateManagerActions.SpyderCheckUpdateAction,
-            menu_id=ApplicationMenus.Help)
 
     # ---- Public API
     # ------------------------------------------------------------------------
