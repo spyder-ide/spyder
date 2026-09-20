@@ -30,7 +30,7 @@ import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy import PYQT6, PYSIDE6
-from qtpy.QtCore import Qt
+from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QKeySequence, QShortcut, QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
@@ -50,6 +50,9 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     SHELL_TIMEOUT,
 )
 from spyder.utils.programs import run_shell_command
+from spyder.plugins.ipythonconsole.api import (
+    ClientContextMenuActions, ClientContextMenuSections
+)
 from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
 from spyder.plugins.ipythonconsole.widgets.shell import PROMPT_BLOCK_RE
 from spyder.utils.conda import get_list_conda_envs, find_pixi
@@ -2965,6 +2968,33 @@ def test_jump_to_prompt_while_debugging(ipyconsole, qtbot):
     # Quit debugging for a clean teardown.
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
+
+
+def test_jump_to_prompt_context_menu_actions(ipyconsole, qtbot):
+    """
+    Test that the "Move to previous/next prompt" actions are present in the
+    console context menu, in their own section right above "Inspect current
+    object".
+    """
+    shell = ipyconsole.get_current_shellwidget()
+
+    context_menu = shell._context_menu_make(QPoint(0, 0))
+    sections = context_menu.get_sections()
+    assert sections.index(ClientContextMenuSections.Navigation) == (
+        sections.index(ClientContextMenuSections.Edit) + 1
+    )
+    assert sections.index(ClientContextMenuSections.Navigation) == (
+        sections.index(ClientContextMenuSections.Inspect) - 1
+    )
+
+    previous_action = shell.get_action(
+        ClientContextMenuActions.MoveToPreviousPrompt
+    )
+    next_action = shell.get_action(ClientContextMenuActions.MoveToNextPrompt)
+    assert previous_action.text() == "Move to previous prompt"
+    assert next_action.text() == "Move to next prompt"
+    assert previous_action in context_menu.get_actions()
+    assert next_action in context_menu.get_actions()
 
 
 def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):

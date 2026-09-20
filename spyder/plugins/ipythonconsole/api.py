@@ -95,6 +95,7 @@ class IPythonConsoleWidgetTabsContextMenuSections:
 
 class ClientContextMenuSections:
     Edit = 'edit'
+    Navigation = 'navigation'
     Inspect = 'inspect'
     Array = 'array'
     Export = 'export'
@@ -111,6 +112,13 @@ class ClientContextMenuActions:
     CopyRaw = 'copy_raw'
     Paste = 'paste'
     SelectAll = 'select_all'
+
+    # Navigation section
+    # Note: These ids match the "go to previous/next prompt" shortcut names
+    # registered in ShellWidget.regiter_shortcuts, so this action shares the
+    # same customizable shortcut instead of introducing a separate one.
+    MoveToPreviousPrompt = 'go to previous prompt'
+    MoveToNextPrompt = 'go to next prompt'
 
     # Inspect section
     InspectObject = 'Inspect current object'
