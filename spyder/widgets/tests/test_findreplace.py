@@ -30,7 +30,7 @@ def get_text_changed_receivers(editor):
         from qtpy.QtCore import SIGNAL
         return editor.receivers(SIGNAL("textChanged()"))
 
-    # PyQT has a different method signature
+    # PyQt has a different method signature
     return editor.receivers(editor.textChanged)
 
 
