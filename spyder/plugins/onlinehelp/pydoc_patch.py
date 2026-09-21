@@ -15,9 +15,23 @@ from pathlib import Path
 import pkgutil
 import platform
 from pydoc import (
-    classname, classify_class_attrs, describe, Doc, format_exception_only,
-    Helper, HTMLRepr, _is_bound_method, ModuleScanner, locate, replace,
-    visiblename, isdata, getdoc, deque, _split_list)
+    classname,
+    classify_class_attrs,
+    describe,
+    Doc,
+    format_exception_only,
+    Helper,
+    HTMLRepr,
+    _is_bound_method,
+    ModuleScanner,
+    locate,
+    replace,
+    visiblename,
+    isdata,
+    getdoc,
+    deque,
+    _split_list,
+)
 import re
 import sys
 import tokenize
@@ -89,6 +103,7 @@ def _resolve_theme_asset(url):
 
     if not asset.is_file():
         return None
+
     return asset
 
 
@@ -727,7 +742,7 @@ def _url_handler(url, content_type="text/html"):
         def page(self, title, contents):
             """Format an HTML page."""
             css_link = (
-                '<link rel="stylesheet" type="text/css" '
+                f'<link rel="stylesheet" type="text/css" '
                 f'href="/{_THEME_STATIC_PREFIX}/pydoc.css">'
             )
 
@@ -989,10 +1004,9 @@ def _start_server(urlhandler, hostname, port):
                     if asset is None:
                         self.send_error(404)
                         return
+
                     body = asset.read_bytes()
-                    content_type = _THEME_CONTENT_TYPES[
-                        asset.suffix.lower()
-                    ]
+                    content_type = _THEME_CONTENT_TYPES[asset.suffix.lower()]
                     self.send_response(200)
                     self.send_header('Content-Type', content_type)
                     self.send_header('Content-Length', str(len(body)))
@@ -1000,11 +1014,11 @@ def _start_server(urlhandler, hostname, port):
                     self.wfile.write(body)
                     return
 
-                payload = self.urlhandler(
-                    self.path, 'text/html').encode('utf-8')
+                payload = self.urlhandler(self.path, "text/html").encode(
+                    "utf-8"
+                )
                 self.send_response(200)
-                self.send_header(
-                    'Content-Type', 'text/html; charset=UTF-8')
+                self.send_header("Content-Type", "text/html; charset=UTF-8")
                 self.send_header('Content-Length', str(len(payload)))
                 self.end_headers()
                 self.wfile.write(payload)

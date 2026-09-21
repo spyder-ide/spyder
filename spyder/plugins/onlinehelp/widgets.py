@@ -168,6 +168,12 @@ class PydocBrowser(PluginMainWidget):
             handle_links=self.get_conf('handle_links')
         )
         self.webview.setup()
+        self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
+        self.webview.loadStarted.connect(self._start)
+        self.webview.loadFinished.connect(self._finish)
+        self.webview.titleChanged.connect(self.setWindowTitle)
+        self.webview.urlChanged.connect(self._change_url)
+
         if WEBENGINE:
             self.webview.web_widget.page().setBackgroundColor(
                 QColor(MAIN_BG_COLOR)
@@ -176,12 +182,6 @@ class PydocBrowser(PluginMainWidget):
             self.webview.web_widget.setStyleSheet(
                 "background:{}".format(MAIN_BG_COLOR)
             )
-        self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
-        self.webview.loadStarted.connect(self._start)
-        self.webview.loadFinished.connect(self._finish)
-        self.webview.titleChanged.connect(self.setWindowTitle)
-        self.webview.urlChanged.connect(self._change_url)
-        if not WEBENGINE:
             self.webview.iconChanged.connect(self._handle_icon_change)
 
         # Setup find widget
@@ -313,6 +313,7 @@ class PydocBrowser(PluginMainWidget):
         text = self.url_to_text(url)
         if not text or text == 'about:blank':
             return
+
         self.url_combo.add_text(text)
 
     def _handle_icon_change(self):
