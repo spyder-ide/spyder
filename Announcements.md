@@ -161,15 +161,15 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.2.0a2 is released!
+**Subject**: [ANN] Spyder 6.2.0a3 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the second alpha of our next minor version: Spyder **6.2**.
+I'm pleased to announce the third alpha of our next minor version: Spyder **6.2**.
 
-We've been working on this version for more than nine months and we encourage all people
+We've been working on this version for more than ten months and we encourage all people
 who like the bleeding edge to give it a try.
 
 Spyder 6.2 comes with the following interesting new features and fixes:
@@ -188,11 +188,17 @@ Spyder 6.2 comes with the following interesting new features and fixes:
     * Add button to close all open viewers to the Variable Explorer and its viewers.
     * Add shortcuts and menu entries to expand/collapse all foldable regions in the
       Editor to the `Source` menu.
+    * Allow Editor and IPython console tabs to be reordered from the browse tabs menu
+      (i.e. the one to the left of tabs) by keeping `Shift` pressed and dragging its
+      entries with the left mouse button.
+    * The position for the close button in tabs (left, right or automatic) can be
+      configured in `Preferences > Application > Panes`
     * Add support to introduce inline (or ghost) completions to the Editor.
 
 - Important fixes
     * Base the standalone installers in Python 3.13.
     * Sign the Windows standalone installer so it's not flagged as untrusted.
+    * The Matplotlib automatic backend works with PyQt6 and PySide6.
     * Add support for PySide6 6.9+.
     * Automatically disable plugins when users disable the ones they depend on (e.g.
       the Variable Explorer, Debugger and Plots will be auto-disabled if the
@@ -209,7 +215,7 @@ For a more complete list of changes, please see our
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_dev -c conda-forge spyder=6.2.0a2
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_dev -c conda-forge spyder=6.2.0a3
 
 Or you can use pip with this command:
 

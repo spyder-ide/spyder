@@ -44,6 +44,37 @@
 
 ----
 
+## Version 6.2.0a3 (2026-09-22)
+
+### Issues Closed
+
+* [Issue 26148](https://github.com/spyder-ide/spyder/issues/26148) - Customize location to close tabs on macOS ([PR 26200](https://github.com/spyder-ide/spyder/pull/26200) by [@athompson673](https://github.com/athompson673))
+* [Issue 25775](https://github.com/spyder-ide/spyder/issues/25775) - Allow drag and rearrange tabs directly in the browse tabs menu ([PR 26247](https://github.com/spyder-ide/spyder/pull/26247) by [@SimpleZion](https://github.com/SimpleZion))
+* [Issue 25550](https://github.com/spyder-ide/spyder/issues/25550) - `TypeError: SpyderPdb.__init__() got an unexpected keyword argument 'mode'` in Python 3.14
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26358](https://github.com/spyder-ide/spyder/pull/26358) - PR: Update `spyder-kernels` to 3.2.0a2 (for Spyder 6.2.0a3), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26354](https://github.com/spyder-ide/spyder/pull/26354) - PR: Update user facing changelog with changes added in 6.2.0a3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26331](https://github.com/spyder-ide/spyder/pull/26331) - PR: Use SVGs as they are when they do not have a colorizer-enabled class (Utils), by [@conradolandia](https://github.com/conradolandia)
+* [PR 26329](https://github.com/spyder-ide/spyder/pull/26329) - PR: Support Matplotlib automatic backend detection for Qt6 and enable two tests for it (IPython console) , by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26328](https://github.com/spyder-ide/spyder/pull/26328) - PR: Make tabs scroll buttons smaller in all operating systems (Utils), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26324](https://github.com/spyder-ide/spyder/pull/26324) - PR: Update Python version when creating dev conda environment in Contributing guide, by [@dalthviz](https://github.com/dalthviz)
+* [PR 26319](https://github.com/spyder-ide/spyder/pull/26319) - PR: Make Online Help follow the interface theme, by [@conradolandia](https://github.com/conradolandia)
+* [PR 26314](https://github.com/spyder-ide/spyder/pull/26314) - PR: UI improvements to the in-app appeal dialog (Application), by [@conradolandia](https://github.com/conradolandia)
+* [PR 26304](https://github.com/spyder-ide/spyder/pull/26304) - PR: Make in-app appeal message follow the interface theme (Application), by [@conradolandia](https://github.com/conradolandia)
+* [PR 26293](https://github.com/spyder-ide/spyder/pull/26293) - PR: Improve option to change close tabs button position (Preferences), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26285](https://github.com/spyder-ide/spyder/pull/26285) - PR: Remove using environment variables for kernel configuration (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26276](https://github.com/spyder-ide/spyder/pull/26276) - PR: Fix issue where assets could not be uploaded (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 26247](https://github.com/spyder-ide/spyder/pull/26247) - PR: Improve the Browse tabs menu for many open files (Editor), by [@SimpleZion](https://github.com/SimpleZion) ([25775](https://github.com/spyder-ide/spyder/issues/25775))
+* [PR 26200](https://github.com/spyder-ide/spyder/pull/26200) - PR: Allow users to configure the close button position of tabs, by [@athompson673](https://github.com/athompson673) ([26148](https://github.com/spyder-ide/spyder/issues/26148))
+
+In this release 14 pull requests were closed.
+
+----
+
 ## Version 6.2.0a2 (2026-08-19)
 
 ### Issues Closed
