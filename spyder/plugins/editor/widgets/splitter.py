@@ -295,44 +295,52 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             editor.clearFocus()
             editor.setFocus()
 
+    def move_to_editorstack(self, editorstack, direction):
+        print("=============================== MOVE", editorstack, direction)
+
+        target = self.get_editorstack_in_direction(
+            editorstack,
+            direction,
+        )
+
+        print("=============================== TARGET", target)
+
+        if target is not None:
+            editor = target.get_current_editor()
+            if editor is not None:
+                editor.setFocus()
+
+    def get_editorstacks(self):
+        """Return all EditorStacks recursively."""
+        editorstacks = []
+
+        for index in range(self.count()):
+            widget = self.widget(index)
+
+            if isinstance(widget, EditorStack):
+                editorstacks.append(widget)
+            elif isinstance(widget, EditorSplitter):
+                editorstacks.extend(widget.get_editorstacks())
+
+        return editorstacks
+
     def get_editorstack_in_direction(self, editorstack, direction):
-        """Return the EditorStack in the given direction."""
-        splitter = editorstack.parentWidget()
-        child = editorstack
+        """Return the next EditorStack in the given direction."""
+        editorstacks = self.get_editorstacks()
 
-        while splitter is not None:
-            if splitter.widget(0) is child:
-                if (
-                    splitter.orientation() == Qt.Vertical
-                    and direction == 'right'
-                ) or (
-                    splitter.orientation() == Qt.Horizontal
-                    and direction == 'down'
-                ):
-                    return self._get_first_editorstack(splitter.widget(1))
+        if editorstack not in editorstacks:
+            return None
 
-            elif splitter.widget(1) is child:
-                if (
-                    splitter.orientation() == Qt.Vertical
-                    and direction == 'left'
-                ) or (
-                    splitter.orientation() == Qt.Horizontal
-                    and direction == 'up'
-                ):
-                    return splitter.widget(0)
+        current_index = editorstacks.index(editorstack)
 
-            child = splitter
-            splitter = splitter.parentWidget()
+        if direction in ('right', 'down'):
+            target_index = (current_index + 1) % len(editorstacks)
+        elif direction in ('left', 'up'):
+            target_index = (current_index - 1) % len(editorstacks)
+        else:
+            return None
 
-        return None
-
-
-    def _get_first_editorstack(self, widget):
-        """Return the first EditorStack in a splitter subtree."""
-        while isinstance(widget, EditorSplitter):
-            widget = widget.widget(0)
-
-        return widget
+        return editorstacks[target_index]
 
     @property
     def _stylesheet(self):
