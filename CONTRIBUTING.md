@@ -44,7 +44,7 @@ $ git remote add upstream https://github.com/spyder-ide/spyder.git
 If you use Anaconda or Conda-forge, you can create an environment and install the necessary dependencies as follows:
 
 ```bash
-$ conda create -n spyder-dev -c conda-forge python=3.9
+$ conda create -n spyder-dev -c conda-forge python=3.11
 $ conda activate spyder-dev
 $ conda env update --file requirements/main.yml
 ```

@@ -24,8 +24,8 @@ license_file: {{ RESOURCE_PATH }}/bundle_license.rtf  # [win or osx]
 uninstall_name: Spyder 6  # [win]
 welcome_image: {{ BUILD_PATH }}/welcome_img_win.png  # [win]
 header_image: {{ BUILD_PATH }}/header_img_win.png  # [win]
-icon_image: {{ environ["REPO_PATH"] }}\img_src\spyder.ico  # [win]
-check_path_length: false  # [win]
+icon_image: {{ environ["REPO_PATH"] }}/img_src/spyder.ico  # [win]
+nsis_template: {{ BUILD_PATH }}/spyder.nsi.tmpl  # [win]
 
 conclusion_text: ''  # [osx]
 readme_text: ''  # [osx]
@@ -50,7 +50,6 @@ pre_install: {{ RESOURCE_PATH }}/pre-install.sh  # [unix]
 pre_install: {{ RESOURCE_PATH }}/pre-install.bat  # [win]
 
 post_install: {{ RESOURCE_PATH }}/post-install.sh  # [unix]
-post_install: {{ RESOURCE_PATH }}/post-install.bat  # [win]
 
 extra_files:
   - {{ RESOURCE_PATH }}/bundle_readme.md: README.txt

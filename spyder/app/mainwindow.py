@@ -666,20 +666,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         qapp = QApplication.instance()
         set_links_color(qapp)
 
-        # Set css_path as a configuration to be used by the plugins.
-        # TODO: Remove circular dependency between help and ipython console
-        # and remove this import. Help plugin should take care of it
-        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-        from spyder.utils.theme_manager import THEME_MANAGER
-
-        # Determine CSS path based on whether interface is dark
-        if THEME_MANAGER.is_dark_interface():
-            css_path = DARK_CSS_PATH
-        else:
-            css_path = CSS_PATH
-
-        self.set_conf('css_path', css_path, section='appearance')
-
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -925,7 +911,14 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
 
     def resizeEvent(self, event):
         """Reimplement Qt method"""
-        if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+        # This is necessary to avoid an error when layouts is unavailable.
+        # Fixes spyder-ide/spyder#26226
+        logger.debug(f"resizeEvent while Layouts plugin is {self.layouts}")
+        if (
+            not self.isMaximized()
+            and self.layouts is not None
+            and not self.layouts.get_fullscreen_flag()
+        ):
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
 

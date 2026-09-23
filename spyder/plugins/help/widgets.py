@@ -28,8 +28,12 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
-from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
-                                                 loading, usage, warning)
+from spyder.plugins.help.utils.sphinxify import (
+    generate_context,
+    loading,
+    usage,
+    warning,
+)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
@@ -300,7 +304,7 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_doc = None
         self._last_console_cb = None
         self._last_editor_cb = None
-        self.css_path = self.get_conf('css_path', CSS_PATH, 'appearance')
+        self.css_path = self.get_conf('css_path', section='appearance')
         self.no_docs = _("No documentation available")
         self.docstring = True  # TODO: What is this used for?
 
@@ -849,12 +853,13 @@ class HelpWidget(PluginMainWidget):
     def show_tutorial(self):
         """Show the Spyder tutorial."""
         tutorial_path = get_module_source_path('spyder.plugins.help.utils')
+        img_path = os.path.join(tutorial_path, "static", "images")
         tutorial = os.path.join(tutorial_path, 'tutorial.rst')
 
         with open(tutorial, 'r') as fh:
             text = fh.read()
 
-        self.show_rich_text(text, collapse=True)
+        self.show_rich_text(text, collapse=True, img_path=img_path)
 
     def handle_link_clicks(self, url):
         """
@@ -989,7 +994,7 @@ class HelpWidget(PluginMainWidget):
 
         return self.shell
 
-    def render_sphinx_doc(self, help_data, context=None, css_path=CSS_PATH):
+    def render_sphinx_doc(self, help_data, context=None):
         """
         Transform help_data dictionary to HTML and show it.
 
@@ -999,8 +1004,6 @@ class HelpWidget(PluginMainWidget):
             Dictionary with editor introspection information.
         context: dict
             Sphinx context.
-        css_path: str
-            Path to CSS file for styling.
         """
         if isinstance(help_data, dict):
             path = help_data.pop('path', '')
@@ -1076,7 +1079,7 @@ class HelpWidget(PluginMainWidget):
                     'docstring': documentation
                 }
 
-            self.render_sphinx_doc(doc, css_path=self.css_path)
+            self.render_sphinx_doc(doc)
             return doc is not None
         elif self.docstring:
             hlp_text = doc

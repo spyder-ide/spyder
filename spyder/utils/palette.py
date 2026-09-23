@@ -22,9 +22,15 @@ def _get_theme_palette():
     class
         SpyderPalette class from the loaded theme, or None if loading fails.
     """
+    default_theme = "spyder_themes.spyder/dark"
     selected = CONF.get(
-        "appearance", "selected", default="spyder_themes.spyder/dark"
+        "appearance", "selected", default=default_theme
     )
+
+    # Set new default theme in case users set before one of old ones
+    if "spyder_themes" not in selected:
+        selected = default_theme
+        CONF.set("appearance", "selected", default_theme)
 
     selected = THEME_MANAGER.canonical_theme_variant_id(selected)
 

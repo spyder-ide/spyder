@@ -227,7 +227,7 @@ def get_spyder_conda_channel():
         return None, None
 
     # Avoids iterating over non-dict objects
-    if 'error' in out:
+    if 'error' in out or not isinstance(out, list):
         return None, None
 
     # These variables can be unassigned after the next for, so we need to give
@@ -236,6 +236,9 @@ def get_spyder_conda_channel():
     channel, channel_url = None, None
 
     for package_info in out:
+        if not isinstance(package_info, dict):
+            continue
+
         if package_info["name"] == 'spyder':
             channel = package_info["channel"]
             channel_url = package_info["base_url"]

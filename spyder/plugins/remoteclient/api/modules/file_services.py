@@ -382,7 +382,7 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         )
 
     async def ls(self, path: Path, *, detail: bool = True):
-        # The try/except is neccessary to prevent an error on CIs
+        # The try/except is necessary to prevent an error on CIs
         try:
             async with self.session.get(
                 self.api_url / "ls",
