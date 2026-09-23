@@ -23,7 +23,7 @@ from tokenize import generate_tokens, TokenError
 
 # Third party imports
 from packaging.version import parse
-from qtpy import QT_VERSION
+from qtpy import PYQT6, QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
@@ -38,6 +38,10 @@ from spyder.utils.misc import get_error_match
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
+
+if PYQT6:
+    from qtpy import sip
+    from qtpy.QtCore import QVariant
 
 # ---- Constants
 # -----------------------------------------------------------------------------
@@ -1579,9 +1583,25 @@ class BaseEditMixin(object):
             )
             response = cursor_rect
         elif isinstance(self, QPlainTextEdit):
-            response = QPlainTextEdit.inputMethodQuery(self, query)
+            # Need to handle `QVariant` auto-conversion to prevent `TypeError`
+            # See spyder-ide/spyder#26309
+            # Based on https://github.com/saga-soft/novelWriter/issues/2622#issuecomment-3692890124
+            if PYQT6:
+                autoconversion = sip.enableautoconversion(QVariant, False)
+                response = QPlainTextEdit.inputMethodQuery(self, query)
+                sip.enableautoconversion(QVariant, autoconversion)
+            else:
+                response = QPlainTextEdit.inputMethodQuery(self, query)
         elif isinstance(self, QTextEdit):
-            response = QTextEdit.inputMethodQuery(self, query)
+            # Need to handle `QVariant` auto-conversion to prevent `TypeError`
+            # See spyder-ide/spyder#26309
+            # Based on https://github.com/saga-soft/novelWriter/issues/2622#issuecomment-3692890124
+            if PYQT6:
+                autoconversion = sip.enableautoconversion(QVariant, False)
+                response = QTextEdit.inputMethodQuery(self, query)
+                sip.enableautoconversion(QVariant, autoconversion)
+            else:
+                response = QTextEdit.inputMethodQuery(self, query)
 
         self.setCursorWidth(old_width)  # restore original cursor width
         return response
