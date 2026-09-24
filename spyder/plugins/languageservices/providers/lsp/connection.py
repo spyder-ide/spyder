@@ -243,7 +243,7 @@ class LanguageServerConnection:
     async def request(self, method: str, params: Any) -> Any:
         """Send a request and return its typed result.
 
-        ``asyncio.CancelledError`` while waiting sends ``$/cancelRequest``.
+        On cancellation, drop the pending request and send ``$/cancelRequest``.
         """
         if not self.initialized:
             raise ServerDownError(f"Server {self.name!r} is not initialized")
@@ -254,6 +254,11 @@ class LanguageServerConnection:
         try:
             return await asyncio.wrap_future(future)
         except asyncio.CancelledError:
+            # pygls resolves this future without checking for cancellation, so
+            # a response arriving after the cancel would raise InvalidStateError
+            # on the cancelled future. Drop the pending entry to ignore it.
+            protocol._request_futures.pop(msg_id, None)
+            protocol._result_types.pop(msg_id, None)
             if not self._client.stopped:
                 protocol.notify(lsp.CANCEL_REQUEST, lsp.CancelParams(id=msg_id))
             raise
