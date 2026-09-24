@@ -570,11 +570,16 @@ class LanguageServicesAPI(QObject):
         if method == lsp.COMPLETION_ITEM_RESOLVE:
             data = params.data if isinstance(params.data, dict) else {}
             name = data.get("provider")
-            if name is None or name not in self._providers:
+            if (
+                not data.get("resolve") or
+                name is None or
+                name not in self._providers
+            ):
                 return None
-            state = self._state(name)
-            providers = [state.provider] if state.started else []
-            return await self._request(method, params, providers)
+            state = self._providers[name]
+            if not state.started:
+                return None
+            return await self._request(method, params, [state.provider])
         if method in _NO_DOCUMENT_METHODS:
             providers = [s.provider for s in self._sorted_states() if s.started]
             return await self._request(method, params, providers)
@@ -585,12 +590,23 @@ class LanguageServicesAPI(QObject):
 
     # Feature coroutines ---------------------------------------------------
     async def completion(self, params: lsp.CompletionParams):
-        """Merged completion items, each stamped with ``data["provider"]``
-        and ``data["uri"]`` so ``completionItem/resolve`` can be routed."""
+        """Merged completion items, each stamped with ``data["provider"]``,
+        ``data["uri"]`` and ``data["resolve"]``. ``uri`` lets a provider resolve
+        against the right document; ``resolve`` is true only for items whose
+        provider supports ``completionItem/resolve``"""
+        uri = params.text_document.uri
+        language = self.documents.language_of(uri)
         items = await self.request(lsp.TEXT_DOCUMENT_COMPLETION, params)
+        resolving = {
+            provider.NAME
+            for provider in self.providers_for(
+                language, lsp.COMPLETION_ITEM_RESOLVE
+            )
+        }
         for item in items or ():
             data = item.data if isinstance(item.data, dict) else {}
-            item.data = {**data, "uri": params.text_document.uri}
+            name = data.get("provider")
+            item.data = {**data, "uri": uri, "resolve": name in resolving}
         return items
 
     async def resolve_completion_item(self, item: lsp.CompletionItem):
