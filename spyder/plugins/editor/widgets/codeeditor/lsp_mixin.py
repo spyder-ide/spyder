@@ -1093,7 +1093,9 @@ class LSPMixin:
         except Exception:
             self.manage_lsp_handle_errors("Error when processing completions")
 
-    @schedule_request(method=lsp.COMPLETION_ITEM_RESOLVE)
+    @schedule_request(
+        method=lsp.COMPLETION_ITEM_RESOLVE, cancel_previous=True
+    )
     def resolve_completion_item(self, item):
         return item
 
