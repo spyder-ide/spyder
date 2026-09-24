@@ -61,6 +61,30 @@ def test_initialize_sends_workspace_folders(monkeypatch):
     assert sent["params"].workspace_folders == [folder]
 
 
+def test_late_response_after_cancel_is_ignored():
+    connection = make_connection()
+    connection.initialized = True
+    protocol = connection._client.protocol
+
+    async def cancel_pending_request():
+        task = asyncio.create_task(
+            connection.request(lsp.TEXT_DOCUMENT_DEFINITION, None)
+        )
+        await asyncio.sleep(0)
+        (msg_id,) = protocol._request_futures
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        return msg_id
+
+    msg_id = asyncio.run(cancel_pending_request())
+
+    assert msg_id not in protocol._request_futures
+    assert msg_id not in protocol._result_types
+
+    protocol._handle_response(msg_id, result=None)
+
+
 def test_initialize_rejects_non_utf16_encoding(monkeypatch):
     connection = make_connection()
 
