@@ -318,13 +318,23 @@ def test_cancellation_propagates_to_providers(api):
 
 
 def test_resolve_routes_to_stamped_provider(api):
-    asyncio.run(
-        setup_api(api, FakeProvider("a", priority=1), FakeProvider("b", priority=2))
+    resolve_caps = lsp.ServerCapabilities(
+            completion_provider=lsp.CompletionOptions(resolve_provider=True)
+        )
+    no_resolve_caps = lsp.ServerCapabilities(
+        completion_provider=lsp.CompletionOptions(resolve_provider=False)
     )
-    item = lsp.CompletionItem(label="x", data={"provider": "b"})
-    resolved = asyncio.run(api.resolve_completion_item(item))
-    assert resolved.label == "x:b"
-    assert api.get_provider("a").calls == []
+    asyncio.run(
+        setup_api(
+            api,
+            FakeProvider("a", priority=1, completions=["x"], capabilities=no_resolve_caps), 
+            FakeProvider("b", priority=2, completions=["y"], capabilities=resolve_caps)
+        )
+    )
+    items = asyncio.run(api.completion(completion_params()))
+    assert asyncio.run(api.resolve_completion_item(items[0])) is None
+    assert asyncio.run(api.resolve_completion_item(items[1])).label == "y:b"
+    assert api.get_provider("a").calls == ['completion']
     unstamped = lsp.CompletionItem(label="x")
     assert asyncio.run(api.resolve_completion_item(unstamped)) is None
 
