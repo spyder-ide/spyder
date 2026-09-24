@@ -113,6 +113,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 "!!!, ???</tt> (and their lowercase variants)"
             ),
         )
+        custom_annotations_input = self.create_lineedit(
+            _("Custom code annotations:"),
+            'custom_annotations',
+            tip=_("Add comma-separated comment annotations to be highlighted."),
+        )
 
         helpers_layout = QVBoxLayout()
         helpers_layout.addWidget(showindentguides_box)
@@ -120,6 +125,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         helpers_layout.addWidget(linenumbers_box)
         helpers_layout.addWidget(breakpoints_box)
         helpers_layout.addWidget(todolist_box)
+        helpers_layout.addWidget(custom_annotations_input)
         helpers_group.setLayout(helpers_layout)
 
         # -- Highlight group
