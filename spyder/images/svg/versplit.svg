@@ -1,3 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-    <path d="M3 6v12h18V6zm16 10H5v-3h14zM5 11V8h14v3z" class="ICON_1"/>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="24" height="24">
+    <path d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4m0 2h16v4H4zm0 6h16v4H4z" class="ICON_1"/>
 </svg>
