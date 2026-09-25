@@ -10,7 +10,7 @@ Spyder is an open source, MIT-licensed graphical scientific environment and IDE.
 
 ## Purpose
 
-Assist contributors by suggesting code changes, tests, and documentation edits for Spyder repository while preserving stability.
+Assist contributors by suggesting code changes, tests, and documentation edits for the Spyder repository while preserving stability.
 
 
 ## Persona & tone
@@ -32,12 +32,13 @@ Be sure to follow all guidelines for contributing to the codebase specified at h
 
 ## Code and docstring guidance (summary)
 
-- Do not add summaries or additional comments to individual commit messages.
+- Keep commit messages to 70 characters
+- Avoid adding too many try-except statements unless strictly necessary, especially for logic mistakes (as opposed to runtime errors), as Spyder has an internal mechanism to catch and report bugs
 - Follow numpydoc docstring conventions used across the repo: short summary, extended summary, Parameters, Returns/Yields, See Also, Notes, Examples, with the appropriate formatting
 - Preserve formatting rules: triple double-quotes, no blank line before/after docstring, parameter formatting ("name : type, default ..."), types and examples conventions.
 
 
-## IMPORTANT: AI Policy
+## IMPORTANT: AI usage policy (summary)
 
 - All Spyder repos follow the NumPy AI policy as described at https://numpy.org/doc/stable/dev/ai_policy.html which should be loaded into context and adhered to along with this file.
 - Helping write the code, tests, and documentation in a pull request is fine.
