@@ -11,17 +11,20 @@ Shortcuts Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 import configparser
-from typing import List
+from enum import Enum
+import logging
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QAction, QShortcut
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown
 )
@@ -35,6 +38,9 @@ from spyder.plugins.shortcuts.utils import (
 )
 from spyder.plugins.shortcuts.widgets.summary import ShortcutsSummaryDialog
 from spyder.utils.qthelpers import add_shortcut_to_tooltip, SpyderAction
+
+
+logger = logging.getLogger(__name__)
 
 
 class ShortcutActions:
@@ -84,8 +90,8 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         return cls.create_icon('keyboard')
 
     def on_initialize(self):
-        self._shortcut_data: List[ShortcutData] = []
-        self._shortcut_sequences = set({})
+        self._shortcut_data: list[ShortcutData] = []
+        self._shortcut_sequences: set[tuple(str, str)] = set()
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
             text=_("Shortcuts summary"),
@@ -126,6 +132,10 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
             menu_id=ApplicationMenus.Help
         )
 
+    def before_mainwindow_visible(self):
+        for plugin_name in PLUGIN_REGISTRY:
+            self.register_shortcuts_for_plugin(plugin_name)
+
     def on_mainwindow_visible(self):
         self.apply_shortcuts()
 
@@ -161,15 +171,16 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         name = name.lower()
         context = context.lower()
 
-        self._shortcut_data.append(
-            ShortcutData(
-                qobject=qaction_or_qshortcut,
-                name=name,
-                context=context,
-                plugin_name=plugin_name,
-                add_shortcut_to_tip=add_shortcut_to_tip,
-            )
+        data = ShortcutData(
+            qobject=qaction_or_qshortcut,
+            name=name,
+            context=context,
+            plugin_name=plugin_name,
+            add_shortcut_to_tip=add_shortcut_to_tip,
         )
+
+        if data not in self._shortcut_data:
+            self._shortcut_data.append(data)
 
     def unregister_shortcut(self, qaction_or_qshortcut, context, name,
                             add_shortcut_to_tip=True, plugin_name=None):
@@ -191,8 +202,32 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         )
 
         if data in self._shortcut_data:
+            # Disable Qt shortcut
+            try:
+                if isinstance(qaction_or_qshortcut, QAction):
+                    qaction_or_qshortcut.setShortcut(QKeySequence())
+                elif isinstance(qaction_or_qshortcut, QShortcut):
+                    qaction_or_qshortcut.setEnabled(False)
+                    qaction_or_qshortcut.deleteLater()
+            except RuntimeError:
+                # Object has been deleted
+                pass
+
+            # Remove shortcut sequence
+            try:
+                shortcut_sequence = self.get_shortcut(
+                    name, context, plugin_name
+                )
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                shortcut_sequence = ''
+
+            if (context, shortcut_sequence) in self._shortcut_sequences:
+                self._shortcut_sequences -= {(context, shortcut_sequence)}
+
+            # Remove shortcut data
             self._shortcut_data.remove(data)
 
+    @qdebounced(timeout=150)
     def apply_shortcuts(self):
         """
         Apply shortcuts settings to all widgets/plugins.
@@ -256,3 +291,35 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
             self._shortcut_data.pop(index)
 
         self.sig_shortcuts_updated.emit()
+
+    def register_shortcuts_for_plugin(self, plugin_name):
+        """Register shortcuts for all actions created by a plugin."""
+        logger.info("Registering shortcuts for {}...".format(plugin_name))
+
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+        for action_name, action in plugin.get_actions().items():
+            context = (
+                getattr(action, "shortcut_context", plugin_name)
+                or plugin_name
+            )
+
+            if getattr(action, 'register_shortcut', True):
+                if isinstance(action_name, Enum):
+                    action_name = action_name.value
+
+                self.register_shortcut(action, context, action_name)
+
+        if isinstance(plugin, SpyderDockablePlugin):
+            context = '_'
+            name = 'switch to {}'.format(plugin.CONF_SECTION)
+
+            sc = QShortcut(
+                QKeySequence(),
+                self._main,
+                lambda: self._main.switch_to_plugin(plugin),
+            )
+            sc.setContext(Qt.ApplicationShortcut)
+            plugin._switch_to_shortcut = sc
+
+            self.register_shortcut(sc, context, name)
+            self.register_shortcut(plugin.toggle_view_action, context, name)

@@ -91,7 +91,8 @@ class PythonpathManager(SpyderPluginV2):
         toolbar.add_item_to_application_toolbar(
             container.path_manager_action,
             toolbar_id=ApplicationToolbars.Main,
-            section=MainToolbarSections.ApplicationSection
+            section=MainToolbarSections.ApplicationSection,
+            render=not self.is_app_starting,
         )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
@@ -114,6 +115,18 @@ class PythonpathManager(SpyderPluginV2):
         toolbar.remove_item_from_application_toolbar(
             PythonpathActions.Manager,
             toolbar_id=ApplicationToolbars.Main
+        )
+
+    def on_close(self, cancelable=False):
+        # Clear Python path in dependent plugins if being disabled while the
+        # session is active
+        if not self.is_app_closing:
+            self.sig_pythonpath_changed.emit([], self.get_conf('prioritize'))
+
+    def on_reenabled(self):
+        # Update Python path in dependent plugins after being reenabled
+        self.sig_pythonpath_changed.emit(
+            self.get_conf('spyder_pythonpath'), self.get_conf('prioritize')
         )
 
     # ---- Public API

@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self._cli_options = MagicMock()
+        self.is_setting_up = False
 
     def get_plugin(self, name, error=True):
         return MagicMock()

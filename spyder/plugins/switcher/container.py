@@ -32,19 +32,8 @@ class SwitcherContainer(PluginMainContainer):
             SwitcherActions.FileSwitcherAction,
             _('File switcher...'),
             icon=self._plugin.get_icon(),
-            tip=_('Fast switch between files'),
+            tip=_('Quickly switch between files'),
             triggered=self.open_switcher,
-            register_shortcut=True,
-            context=Qt.ApplicationShortcut,
-            shortcut_context="_",
-        )
-
-        self.create_action(
-            SwitcherActions.SymbolFinderAction,
-            _('Symbol finder...'),
-            icon=self.create_icon('symbol_find'),
-            tip=_('Fast symbol search in file'),
-            triggered=self.open_symbolfinder,
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
@@ -55,7 +44,7 @@ class SwitcherContainer(PluginMainContainer):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def open_switcher(self, symbol=False):
+    def open_switcher(self, mode=""):
         """Open switcher dialog."""
         switcher = self.switcher
         if switcher is not None and switcher.isVisible():
@@ -64,15 +53,15 @@ class SwitcherContainer(PluginMainContainer):
             return
 
         # Set mode and setup
-        if symbol:
+        if mode:
             # Avoid emitting sig_search_text_available
             with signals_blocked(switcher.edit):
-                switcher.set_search_text('@')
+                switcher.set_search_text(mode)
 
             # Manually set mode and emit sig_mode_selected so that symbols are
             # shown instantly.
-            switcher._mode_on = "@"
-            switcher.sig_mode_selected.emit("@")
+            switcher._mode_on = mode
+            switcher.sig_mode_selected.emit(mode)
         else:
             switcher.set_search_text('')
 
@@ -105,7 +94,3 @@ class SwitcherContainer(PluginMainContainer):
 
         switcher.set_position(delta_top, current_window)
         switcher.show()
-
-    def open_symbolfinder(self):
-        """Open symbol list management dialog box."""
-        self.open_switcher(symbol=True)

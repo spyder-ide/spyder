@@ -64,15 +64,8 @@ class RunExecutorListModel(QAbstractListModel):
         all_exec_prio.pop(executor_id, None)
         all_exec_prio[executor_id] = priority
 
-        input_values = list(all_exec_prio.items())
-        input_values = sorted(input_values, key=lambda k: k[1])
-
-        input_values = [(x, i) for i, (x, _) in enumerate(input_values)]
-        self.executors_per_input[(ext, context_id)] = dict(input_values)
-
-        self.inverted_pos[(ext, context_id)] = {
-            v: k for (k, v) in input_values}
         self.executor_priority[(ext, context_id)] = all_exec_prio
+        self._build_exec_dicts(ext, context_id)
 
     def remove_input_executor_configuration(
         self,
@@ -80,11 +73,18 @@ class RunExecutorListModel(QAbstractListModel):
         context_id: str,
         executor_id: str
     ):
+        # Remove executor from the necessary dicts
         input_executors = self.executors_per_input[(ext, context_id)]
         pos = input_executors.pop(executor_id)
 
         inverted_executors = self.inverted_pos[(ext, context_id)]
         inverted_executors.pop(pos)
+
+        all_exec_prio = self.executor_priority[(ext, context_id)]
+        all_exec_prio.pop(executor_id)
+
+        # Rebuild executor dicts
+        self._build_exec_dicts(ext, context_id)
 
     def switch_input(self, uuid: str, run_input: Tuple[str, str]):
         if run_input in self.executors_per_input:
@@ -123,7 +123,12 @@ class RunExecutorListModel(QAbstractListModel):
 
         if executor_id is not None:
             executors = self.executors_per_input[self.current_input]
-            pos = executors[executor_id]
+
+            # This avoids an error when the last executor is disabled
+            try:
+                pos = executors[executor_id]
+            except KeyError:
+                pass
 
         return pos
 
@@ -149,6 +154,18 @@ class RunExecutorListModel(QAbstractListModel):
     def rowCount(self, parent: QModelIndex = None) -> int:
         executors = self.executors_per_input.get(self.current_input, {})
         return len(executors)
+
+    def _build_exec_dicts(self, ext: str, context_id: str):
+        all_exec_prio = self.executor_priority.get((ext, context_id), {})
+        input_values = list(all_exec_prio.items())
+        input_values = sorted(input_values, key=lambda k: k[1])
+
+        input_values = [(x, i) for i, (x, _) in enumerate(input_values)]
+        self.executors_per_input[(ext, context_id)] = dict(input_values)
+
+        self.inverted_pos[(ext, context_id)] = {
+            v: k for (k, v) in input_values
+        }
 
     def __contains__(self, exec_input: Tuple[str, str]) -> bool:
         return exec_input in self.executor_configurations

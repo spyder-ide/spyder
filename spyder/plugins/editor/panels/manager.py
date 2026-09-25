@@ -57,7 +57,9 @@ class PanelsManager(Manager):
                 self._update_viewport_margins
             )
 
-    def register(self, panel: Panel, position=PanelPosition.LEFT) -> Panel:
+    def register(
+        self, panel: Panel, position: PanelPosition = PanelPosition.LEFT
+    ) -> Panel:
         """
         Register a panel in a CodeEditor.
 
@@ -92,7 +94,11 @@ class PanelsManager(Manager):
 
         return panel
 
-    def remove(self, name_or_class: str | type[Panel]) -> Panel:
+    def remove(
+        self,
+        name_or_class: str | type[Panel],
+        position: PanelPosition = PanelPosition.LEFT,
+    ) -> Panel:
         """
         Remove the specified panel.
 
@@ -100,6 +106,8 @@ class PanelsManager(Manager):
         ----------
         name_or_class: str or type[Panel]
             Name or class of the panel to remove.
+        position: PanelPosition
+            Position where the panel is installed.
 
         Returns
         -------
@@ -107,10 +115,14 @@ class PanelsManager(Manager):
             The removed panel.
         """
         logger.debug('Removing panel %s' % name_or_class)
-        panel = self.get(name_or_class)
+
+        panel = self.get(name_or_class, position)
         panel.on_uninstall()
         panel.hide()
         panel.setParent(None)
+        panel.deleteLater()
+        self.refresh()
+
         return self._panels[panel.position].pop(panel.name, None)
 
     def clear(self) -> None:
@@ -118,10 +130,14 @@ class PanelsManager(Manager):
         for zone in PanelPosition:
             while len(self._panels[zone]):
                 key = sorted(list(self._panels[zone].keys()))[0]
-                panel = self.remove(key)
+                panel = self.remove(key, zone)
                 panel.setParent(None)
 
-    def get(self, name_or_class: str | type[Panel]) -> Panel:
+    def get(
+        self,
+        name_or_class: str | type[Panel],
+        position: PanelPosition = PanelPosition.LEFT,
+    ) -> Panel:
         """
         Get a specific panel.
 
@@ -129,6 +145,8 @@ class PanelsManager(Manager):
         ----------
         name_or_class: str or type[Panel]
             Name or class of the panel to get.
+        position: PanelPosition
+            Position where the panel is installed.
 
         Returns
         -------
@@ -143,15 +161,7 @@ class PanelsManager(Manager):
         if not isinstance(name_or_class, str):
             name_or_class = name_or_class.__name__
 
-        for zone in PanelPosition:
-            try:
-                panel = self._panels[zone][name_or_class]
-            except KeyError:
-                pass
-            else:
-                return panel
-
-        raise KeyError(name_or_class)
+        return self._panels[position][name_or_class]
 
     def __iter__(self):
         lst = []

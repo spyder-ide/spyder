@@ -274,34 +274,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.recent_project_menu.aboutToShow.connect(self._setup_menu_actions)
         self._setup_menu_actions()
 
-        # We need to give users a way to disable searching files in the
-        # switcher because in some situations it introduces delays in the
-        # switcher or Spyder itself.
-        # Fixes spyder-ide/spyder#22641
-        search_in_switcher_action = self.create_action(
-            ProjectsOptionsMenuActions.SearchInSwitcher,
-            text=_("Search project files in the switcher"),
-            toggled=True,
-            option='search_files_in_switcher',
-        )
-
-        # Add some DirView actions to the Options menu for easy access.
-        hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
-        single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
-
-        # Options menu
-        menu = self.get_options_menu()
-        for action in [
-            hidden_action,
-            single_click_action,
-            search_in_switcher_action,
-        ]:
-            self.add_item_to_menu(
-                action,
-                menu=menu,
-                section=ProjectExplorerOptionsMenuSections.Main
-            )
-
     def update_actions(self):
         pass
 
@@ -675,6 +647,26 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.setVisible(True)
         self.raise_()
         self.update()
+
+    def update_options_menu(self):
+        # Add some DirView actions to the Options menu for easy access.
+        hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
+        single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
+
+        # Actions
+        actions = [hidden_action, single_click_action]
+
+        if self._plugin._search_in_switcher_action is not None:
+            actions += [self._plugin._search_in_switcher_action]
+
+        # Options menu
+        menu = self.get_options_menu()
+        for action in actions:
+            self.add_item_to_menu(
+                action,
+                menu=menu,
+                section=ProjectExplorerOptionsMenuSections.Main
+            )
 
     # ---- Public API for the Switcher
     # -------------------------------------------------------------------------

@@ -15,7 +15,9 @@ from qtpy.QtCore import Slot
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import running_under_pytest
@@ -38,10 +40,10 @@ class StatusBar(SpyderPluginV2):
     CONF_FILE = False
     CONF_WIDGET_CLASS = StatusBarConfigPage
 
-    STATUS_WIDGETS = {}
-    EXTERNAL_RIGHT_WIDGETS = {}
-    EXTERNAL_LEFT_WIDGETS = {}
-    INTERNAL_WIDGETS = {}
+    STATUS_WIDGETS: dict[str, StatusBarWidget] = {}
+    EXTERNAL_RIGHT_WIDGETS: dict[str, StatusBarWidget] = {}
+    EXTERNAL_LEFT_WIDGETS: dict[str, StatusBarWidget] = {}
+    INTERNAL_WIDGETS: dict[str, StatusBarWidget] = {}
     INTERNAL_WIDGETS_IDS = {
         "clock_status",
         "cpu_status",
@@ -59,6 +61,7 @@ class StatusBar(SpyderPluginV2):
     }
 
     # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _('Status Bar')
@@ -79,9 +82,6 @@ class StatusBar(SpyderPluginV2):
             self.clock_status, StatusBarWidgetPosition.Right
         )
 
-    def on_close(self, _unused):
-        self._statusbar.setVisible(False)
-
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -98,7 +98,24 @@ class StatusBar(SpyderPluginV2):
             self.show_status_bar
         )
 
+    def on_close(self, _unused):
+        self._statusbar.setVisible(False)
+
+    def on_reenabled(self):
+        # Organize widgets according to the default layout
+        self._organize_status_widgets()
+
+        # Set basic widgets visibility
+        if not self.is_app_starting:
+            self.mem_status.setVisible(self.get_conf("memory_usage/enable"))
+            self.cpu_status.setVisible(self.get_conf("cpu_usage/enable"))
+            self.clock_status.setVisible(self.get_conf("clock/enable"))
+
+        # Make status bar visible
+        self._statusbar.setVisible(True)
+
     # ---- Public API
+    # -------------------------------------------------------------------------
     def add_status_widget(self, widget, position=StatusBarWidgetPosition.Left):
         """
         Add status widget to main application status bar.
@@ -159,6 +176,10 @@ class StatusBar(SpyderPluginV2):
             widget = self.get_status_widget(id_)
             self.STATUS_WIDGETS.pop(id_)
             self._statusbar.removeWidget(widget)
+
+            # Widgets are not deleted when removeWidget is called, so we need
+            # to do it manually
+            widget.deleteLater()
         except RuntimeError:
             # This can happen if the widget was already removed (tests fail
             # without this).
@@ -200,6 +221,7 @@ class StatusBar(SpyderPluginV2):
         self._statusbar.setVisible(value)
 
     # ---- Default status widgets
+    # -------------------------------------------------------------------------
     @property
     def mem_status(self):
         return self.get_container().mem_status
@@ -213,6 +235,7 @@ class StatusBar(SpyderPluginV2):
         return self.get_container().clock_status
 
     # ---- Private API
+    # -------------------------------------------------------------------------
     @property
     def _statusbar(self):
         """Reference to main window status bar."""
@@ -240,11 +263,25 @@ class StatusBar(SpyderPluginV2):
         ]
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
+        # To save the widgets' current visibility before being removed. That
+        # way we'll be able to restore it after they are inserted again
+        internal_widgets_visibility: dict[str, bool] = {}
+        external_left_widgets_visibility: dict[str, bool] = {}
+
         # Remove all widgets from the statusbar, except the external right
         for id_ in self.INTERNAL_WIDGETS:
+            # We need to use isHidden because it correctly reports if the
+            # widget is not visible (isVisible fails to do that).
+            internal_widgets_visibility[id_] = not self.INTERNAL_WIDGETS[
+                id_
+            ].isHidden()
             self._statusbar.removeWidget(self.INTERNAL_WIDGETS[id_])
 
         for id_ in self.EXTERNAL_LEFT_WIDGETS:
+            # See note about isHidden above.
+            external_left_widgets_visibility[id_] = not self.INTERNAL_WIDGETS[
+                id_
+            ].isHidden()
             self._statusbar.removeWidget(self.EXTERNAL_LEFT_WIDGETS[id_])
 
         # Add the internal widgets in the desired layout
@@ -262,6 +299,15 @@ class StatusBar(SpyderPluginV2):
                 StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_]
             )
             self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(True)
+
+        # Restore visibility for removed widgets. This is only needed if the
+        # plugin is reenabled.
+        if not self.is_app_starting:
+            for id_, visibility in internal_widgets_visibility.items():
+                self.INTERNAL_WIDGETS[id_].setVisible(visibility)
+
+            for id_, visibility in external_left_widgets_visibility.items():
+                self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(visibility)
 
     def before_mainwindow_visible(self):
         """Perform actions before the mainwindow is visible"""
