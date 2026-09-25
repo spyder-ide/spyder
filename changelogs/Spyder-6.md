@@ -23,6 +23,8 @@
 * The position for the close button in tabs (left, right or automatic) can be
   configured in `Preferences > Application > Panes`
 * Add support to introduce inline (or ghost) completions to the Editor.
+* Add an `Extract function` refactoring action to the Editor's context menu,
+  which extracts the selected block of code into a new function.
 
 ### Important fixes
 
