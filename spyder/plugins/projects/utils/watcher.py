@@ -26,10 +26,10 @@ from spyder.config.utils import EDIT_EXTENSIONS
 # -----------------------------------------------------------------------------
 logger = logging.getLogger(__name__)
 
-FOLDERS_TO_IGNORE = [
+FOLDERS_TO_IGNORE = {
     "__pycache__",
     "build",
-]
+}
 
 
 # ---- Monkey patches
@@ -62,26 +62,20 @@ watchdog.utils.BaseThread = BaseThreadWrapper
 
 # ---- Auxiliary functions
 # -----------------------------------------------------------------------------
-def ignore_entry(entry: os.DirEntry) -> bool:
+def ignore_entry(
+    entry: os.DirEntry, folders_to_ignore=FOLDERS_TO_IGNORE
+) -> bool:
     """Check if an entry should be ignored."""
-    parts = Path(entry.path).parts
-
-    # Ignore files in hidden directories (e.g. .git)
-    if any([p.startswith(".") for p in parts]):
-        return True
-
-    # Ignore specific folders
-    for folder in FOLDERS_TO_IGNORE:
-        if folder in parts:
-            return True
-
-    return False
+    # ignore any file/folder starting with a
+    #  dot or in the folders_to_ignore set
+    name = entry.name
+    return name.startswith(".") or name in folders_to_ignore
 
 
 def editable_file(entry: os.DirEntry) -> bool:
     """Check if an entry file is editable."""
     if entry.is_file():
-        return (os.path.splitext(entry.path)[1] in EDIT_EXTENSIONS)
+        return (os.path.splitext(entry.name)[1] in EDIT_EXTENSIONS)
     return True
 
 
