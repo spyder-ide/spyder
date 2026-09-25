@@ -112,6 +112,7 @@ class DataframeEditorActions:
     Edit = 'edit_action'
     EditHeader = 'edit_header_action'
     EditIndex = 'edit_index_action'
+    ScatterPlot = 'scatterplot'
     Histogram = 'histogram'
     InsertAbove = 'insert_above_action'
     InsertAfter = 'insert_after_action'
@@ -770,6 +771,7 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
         self.resize_action = None
         self.resize_columns_action = None
         self.histogram_action = None
+        self.scatterplot_action = None
         self.export_action = None
         self.export_filename = None
 
@@ -903,12 +905,13 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
         )
 
         for action in [self.copy_action, self.remove_row_action,
-                       self.remove_col_action, self.histogram_action]:
+                       self.remove_col_action, self.histogram_action, self.scatterplot_action]:
             action.setEnabled(condition_copy_remove)
 
         # Enable/disable action for plot
         condition_plot = (index.isValid() and len(self.selectedIndexes()) > 0)
         self.histogram_action.setEnabled(condition_plot)
+        self.scatterplot_action.setEnabled(condition_plot)
 
     def setup_menu(self):
         """Setup context menu."""
@@ -1008,6 +1011,16 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
             triggered=self.plot_hist,
             register_action=False
         )
+
+        self.scatterplot_action = self.create_action(
+            name=DataframeEditorActions.ScatterPlot,
+            text=_("ScatterPlot"),
+            tip=_("Plot a graph of the selected columns"),
+            icon=ima.icon('plot_scatter'),
+            triggered=self.plot_scatter,
+            register_action=False
+        )
+
         self.export_action = self.create_action(
             name=DataframeEditorActions.Export,
             text=_("Export..."),
@@ -1590,29 +1603,59 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
         cols = list(set(cols))  # Remove duplicates
         model = self.model()
         col_labels = [model.header(0, col) for col in cols]
-        if self.is_hist_plottable(model, col_labels):
+        col_labels =  self.plottable_cols(model, col_labels, graph_type='hist')
+
+        if col_labels:
             if self.namespacebrowser is None:
                 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
                     NamespaceBrowser
                 )
-                NamespaceBrowser(self).plot(plot_function)
+                NamespaceBrowser.plot_in_window(plot_function)
             else:
                 self.namespacebrowser.plot(plot_function)
 
-    def is_hist_plottable(self, model=None, cols=[]):
+    def plot_scatter(self) -> None:
+            """
+            Plot graph of selected columns
+            """
+            def plot_function(figure: Figure) -> None:
+                ax = figure.subplots()
+                model.df.plot.line(ax=ax, y=col_labels)
+    
+            cols = list(index.column() for index in self.selectedIndexes())
+            cols = list(set(cols))  # Remove duplicates
+            model = self.model()
+            col_labels = [model.header(0, col) for col in cols]
+            col_labels =  self.plottable_cols(model, col_labels, graph_type='scatter')
+
+            if col_labels:
+                if self.namespacebrowser is None:
+                    from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+                        NamespaceBrowser
+                    )
+                    NamespaceBrowser.plot_in_window(plot_function)
+                else:
+                    self.namespacebrowser.plot(plot_function)
+
+    def plottable_cols(self, model=None, cols=[], graph_type=None):
         """
-        Validate if selected histogram is plottable
+        Return plottable items(columns) of Dataframe. 
         """
-        if model is None or not cols:
-            return False
+        if model is None or not cols or graph_type is None:
+            return []
+        new_cols = cols[:]
         try:
             for col in cols:
-                if not pd.api.types.is_numeric_dtype(model.df[col]) and \
-                   not pd.api.types.is_datetime64_any_dtype(model.df[col]):
-                    return False
+                if graph_type == 'hist':
+                    if not pd.api.types.is_numeric_dtype(model.df[col]) and \
+                    not pd.api.types.is_datetime64_any_dtype(model.df[col]):
+                        new_cols.remove(col)
+                elif graph_type == 'scatter':
+                    if not pd.api.types.is_numeric_dtype(model.df[col]):
+                        new_cols.remove(col)
         except:
-            return False
-        return True
+            return []
+        return new_cols
 
 class DataFrameHeaderModel(SpyderFontsMixin, QAbstractTableModel):
     """
@@ -2198,6 +2241,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.close_all_editors_action,
             stretcher,
             self.dataTable.histogram_action,
+            self.dataTable.scatterplot_action,
             self.dataTable.export_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,

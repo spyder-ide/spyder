@@ -1114,10 +1114,12 @@ def test_dataframeeditor_plot():
     # Initially, nothing is selected so action should be disabled
     view = dialog.dataTable
     assert view.histogram_action.isEnabled() is False
+    assert view.scatterplot_action.isEnabled() is False
 
     # Select first entry and check action is now enabled
     view.setCurrentIndex(view.model().index(0, 0))
     assert view.histogram_action.isEnabled() is True
+    assert view.scatterplot_action.isEnabled() is True
 
     # Trigger action and check that function in namespacebrowser is called
     view.histogram_action.trigger()
@@ -1149,6 +1151,36 @@ def test_dataframeeditor_plot():
         plot_function(mock_figure)
     mock_hist.assert_called_once_with(ax=axis, column=['first', 'second'])
 
+    mock_namespacebrowser.plot.reset_mock()
+    view.setCurrentIndex(view.model().index(0, 0))
+    view.scatterplot_action.trigger()
+    mock_namespacebrowser.plot.assert_called_once()
+
+    # Check that calling the plot function passed to the namespacebrowser
+    # calls the `plot` member function of the dataframe
+    mock_figure = Mock()
+    axis = mock_figure.subplots.return_value
+    plot_function = mock_namespacebrowser.plot.call_args.args[0]
+    with patch.object(test_df, 'plot') as mock_scatter:
+        plot_function(mock_figure)
+    mock_scatter.line.assert_called_once_with(ax=axis, y=['first'])
+
+    # Select the (0,0) and (0,1) items
+    top_left = view.model().index(0, 0)
+    top_right = view.model().index(0, 1)
+    view.selectionModel().select(
+        QItemSelection(top_left, top_right),
+        QItemSelectionModel.Select
+    )
+
+    # Trigger action and check as before
+    mock_namespacebrowser.plot.reset_mock()
+    view.scatterplot_action.trigger()
+    mock_namespacebrowser.plot.assert_called_once()
+    plot_function = mock_namespacebrowser.plot.call_args.args[0]
+    with patch.object(test_df, 'plot') as mock_scatter:
+        plot_function(mock_figure)
+    mock_scatter.line.assert_called_once_with(ax=axis, y=['first', 'second'])
 
 def test_dataframeeditor_readonly(qtbot):
     """
