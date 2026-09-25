@@ -408,6 +408,12 @@ class ProjectExplorerWidget(PluginMainWidget):
                 parent_plugin=project_type_class._PARENT_PLUGIN,
             )
 
+        try:
+            watcher_options = self._get_watcher_options(project_type)
+        except ValueError as error:
+            QMessageBox.critical(self, _("Project open"), str(error))
+            return
+
         if self.current_active_project is None:
             # A project was not open before
             if save_previous_files:
@@ -442,7 +448,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             else:
                 self.sig_project_loaded.emit(path)
 
-        self.watcher.start(path)
+        self.watcher.start(path, **watcher_options)
 
         if restart_console:
             self.sig_restart_console_requested.emit()
@@ -904,6 +910,42 @@ class ProjectExplorerWidget(PluginMainWidget):
         if self.get_plugin().main:
             self.sig_unmaximize_plugin_requested[object].emit(
                 self.get_plugin()
+            )
+
+    def _get_watcher_options(self, project):
+        """Get the watcher options, with the project's taking precedence."""
+        config_file = pathlib.Path(
+            project.root_path, get_project_config_folder(), "config",
+            f"{WORKSPACE}.ini"
+        )
+
+        follow_gitignore = project.get_option("follow_gitignore", default=None)
+        if follow_gitignore is None:
+            follow_gitignore = self.get_conf("follow_gitignore")
+        if not isinstance(follow_gitignore, bool):
+            raise ValueError(
+                f"follow_gitignore must be True, False or None in "
+                f"{config_file}, not {follow_gitignore!r}"
+            )
+
+        folders_to_ignore = project.get_option("folders_to_ignore", default=[])
+        if not (
+            isinstance(folders_to_ignore, (list, tuple))
+            and all(isinstance(name, str) for name in folders_to_ignore)
+        ):
+            raise ValueError(
+                f"folders_to_ignore must be a list of folder names in "
+                f"{config_file}, not {folders_to_ignore!r}"
+            )
+
+        return dict(follow_gitignore=follow_gitignore,
+                    folders_to_ignore=folders_to_ignore)
+
+    @on_conf_change(option="follow_gitignore")
+    def _on_follow_gitignore_changed(self, value):
+        if self.current_active_project is not None:
+            self.watcher.update_options(
+                **self._get_watcher_options(self.current_active_project)
             )
 
     def _load_project_type_class(self, path):
