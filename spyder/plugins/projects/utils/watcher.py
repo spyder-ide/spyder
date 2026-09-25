@@ -396,6 +396,18 @@ class WorkspaceWatcher(QObject):
             except RuntimeError:
                 pass
 
+    def update_options(self, follow_gitignore, folders_to_ignore):
+        """Restart watching with new options if they differ."""
+        if self.observer is None:
+            return
+
+        workspace_folder = self._filter_settings[0]
+        if self._filter_settings != (
+            workspace_folder, follow_gitignore, frozenset(folders_to_ignore)
+        ):
+            self.stop()
+            self.start(workspace_folder, follow_gitignore, folders_to_ignore)
+
     @qthrottled(timeout=200)
     def on_moved(self, src_path, dest_path, is_dir):
         self.sig_file_moved.emit(src_path, dest_path, is_dir)
