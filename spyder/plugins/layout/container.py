@@ -14,7 +14,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QActionGroup, QMessageBox
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -184,6 +184,10 @@ class LayoutContainer(PluginMainContainer):
         order = self.get_conf('order')
         active = self.get_conf('active')
 
+        # Add the layout actions to an exclusive QActionGroup
+        layout_action_group = QActionGroup(self)
+        layout_action_group.setExclusive(True)
+
         actions = []
         for name in order:
             if name in active:
@@ -201,11 +205,13 @@ class LayoutContainer(PluginMainContainer):
                 layout_switch_action = self.create_action(
                     name,
                     text=name,
+                    toggled=True,
                     triggered=trigger(),
                     register_shortcut=False,
-                    overwrite=True
+                    overwrite=True,
                 )
 
+                layout_action_group.addAction(layout_switch_action)
                 actions.append(layout_switch_action)
 
         for item in actions:
