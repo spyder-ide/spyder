@@ -326,6 +326,8 @@ class WorkspaceWatcher(QObject):
     """
 
     observer = None
+    scandir_filter = None
+    _filter_settings = None
 
     sig_file_moved = Signal(str, str, bool)
     sig_file_created = Signal(str, bool)
@@ -347,7 +349,17 @@ class WorkspaceWatcher(QObject):
         self.sig_file_deleted.connect(project.file_deleted)
         self.sig_file_modified.connect(project.file_modified)
 
-    def start(self, workspace_folder):
+    def start(self, workspace_folder, follow_gitignore=True,
+              folders_to_ignore=()):
+        settings = (
+            workspace_folder, follow_gitignore, frozenset(folders_to_ignore)
+        )
+        if settings != self._filter_settings:
+            self.scandir_filter = ScandirFilter(
+                workspace_folder, follow_gitignore, folders_to_ignore
+            )
+            self._filter_settings = settings
+
         # We use a polling observer because:
         # * It doesn't introduce long freezes on Linux when switching git
         #   branches that have many changes between them. That's because the
@@ -357,7 +369,7 @@ class WorkspaceWatcher(QObject):
         # * There doesn't seem to be issues on Mac, but it's simpler to use a
         #   single observer for all OSes.
         self.observer = PollingObserverVFS(
-            stat=os.stat, listdir=filter_scandir
+            stat=os.stat, listdir=self.scandir_filter
         )
 
         self.observer.schedule(
