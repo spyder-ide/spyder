@@ -25,9 +25,7 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
-from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri,
-)
+from spyder.plugins.languageservices.api.uri import path_as_uri
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -487,6 +485,30 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     assert editorstack.sig_open_file.emit.called == 1
 
 
+@pytest.mark.show_save_dialog
+def test_save_as_emits_resolved_language(editor_bot, mocker, tmpdir):
+    """
+    Save-as across file types must announce the resolved language name,
+    not the raw extension as report_open_file looks languages up by name.
+    """
+    editorstack, qtbot = editor_bot
+
+    editorstack.tabs.setCurrentIndex(1)
+    editor = editorstack.get_current_editor()
+    mocker.patch.object(editor, 'notify_close')
+    editorstack.sig_open_file = Mock()
+
+    new_filename = osp.join(tmpdir.strpath, 'foo.tsx')
+    mocker.patch.object(editorstack, 'select_savename',
+                        return_value=new_filename)
+    assert editorstack.save_as() is True
+
+    assert editor.language == 'TypeScript'
+    options = editorstack.sig_open_file.emit.call_args[0][0]
+    assert options['language'] == 'TypeScript'
+    assert options['filename'] == new_filename
+
+
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
@@ -614,12 +636,12 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # First call: notify_close() must have been called
     call = code_editor.emit_request.call_args_list[0]
     assert call.args[0] == 'textDocument/didClose'
-    assert call.args[1]['file'].endswith('test.py')
+    assert call.args[1].text_document.uri.endswith('test.py')
 
     # Second call: document_did_open() must have been called
     call = code_editor.emit_request.call_args_list[1]
     assert call.args[0] == 'textDocument/didOpen'
-    assert call.args[1]['file'].endswith('new_filename.py')
+    assert call.args[1].text_document.uri.endswith('new_filename.py')
 
     # === Append new text
     code_editor.append(dedent("""

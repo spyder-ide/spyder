@@ -5,18 +5,24 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder completion plugin.
+Legacy completion plugin.
 
-This plugin is in charge of creating and managing multiple code completion and
-introspection providers.
+Hosts third-party :class:`SpyderCompletionProvider` instances registered
+through the ``spyder.completions`` entry point and exposes them to the
+LanguageServices plugin as a single provider named ``"completions"``.
+
+.. deprecated::
+    New providers must implement
+    :class:`spyder.plugins.languageservices.api.provider.LanguageServicesProvider`
+    and register through the ``spyder.language_services`` entry point.
 """
 
 # Standard library imports
-import functools
 from importlib.metadata import entry_points
 import inspect
 import logging
 from typing import List, Union
+import warnings
 import weakref
 
 # Third-party imports
@@ -35,7 +41,6 @@ from spyder.plugins.completion.api import (
     DOCUMENT_CURSOR_EVENT,
     SpyderCompletionProvider,
 )
-from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
 
 
@@ -92,27 +97,15 @@ COMPLETION_REQUESTS = [
 ]
 
 
-def partialclass(cls, *args, **kwds):
-    """Return a partial class constructor."""
-    class NewCls(cls):
-        __init__ = functools.partialmethod(cls.__init__, *args, **kwds)
-    return NewCls
-
-
 class CompletionPlugin(SpyderPluginV2):
     """
-    Spyder completion plugin.
+    Legacy completion plugin (deprecated).
 
-    This class provides a completion and linting plugin for the editor in
-    Spyder.
-
-    This plugin works by forwarding all the completion/linting requests to a
-    set of :class:`SpyderCompletionProvider` instances that are discovered
-    and registered via entrypoints.
-
-    This plugin can assume that `fallback`, `snippets` and `lsp`
-    completion providers are available, since they are included as part of
-    Spyder.
+    Forwards completion/linting requests to the third-party
+    :class:`SpyderCompletionProvider` instances discovered through the
+    ``spyder.completions`` entry point. Spyder's own providers live in the
+    LanguageServices plugin, which also consumes this plugin's providers
+    through :class:`~spyder.plugins.completion.adapter.LegacyCompletionsProvider`.
     """
 
     NAME = 'completions'
@@ -125,19 +118,11 @@ class CompletionPlugin(SpyderPluginV2):
     ]
     OPTIONAL = [
         Plugins.IPythonConsole,
+        Plugins.LanguageServices,
         Plugins.PythonpathManager,
-        Plugins.StatusBar,
     ]
 
     CONF_FILE = False
-
-    # Additional configuration tabs for this plugin, this attribute is
-    # initialized dynamically based on the provider information.
-    ADDITIONAL_CONF_TABS = {}
-
-    # The configuration page is created dynamically based on the providers
-    # loaded
-    CONF_WIDGET_CLASS = None
 
     # Container used to store graphical widgets
     CONTAINER_CLASS = CompletionContainer
@@ -286,15 +271,8 @@ class CompletionPlugin(SpyderPluginV2):
                                f'point {entry_point}')
                 raise e
 
-        # To hold a reference to the statusbar plugin
-        self.statusbar = None
-
-        # Define configuration page and tabs
-        (conf_providers, conf_tabs) = self.gather_providers_and_configtabs()
-        self.CONF_WIDGET_CLASS = partialclass(
-            CompletionConfigPage, providers=conf_providers
-        )
-        self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
+        # Provider registered with the LanguageServices plugin
+        self._legacy_provider = None
 
     # ---- SpyderPluginV2 API
     @staticmethod
@@ -312,12 +290,18 @@ class CompletionPlugin(SpyderPluginV2):
         return cls.create_icon('completions')
 
     def on_initialize(self):
+        if self.providers:
+            warnings.warn(
+                "The spyder.completions entry point and "
+                "SpyderCompletionProvider are deprecated. Implement "
+                "spyder.plugins.languageservices.api.LanguageServicesProvider "
+                "and register it through the spyder.language_services entry "
+                f"point instead. Loaded legacy providers: "
+                f"{sorted(self.providers)}",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.start_all_providers()
-
-    @on_plugin_available(plugin=Plugins.Preferences)
-    def on_preferences_available(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
 
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_available(self):
@@ -329,11 +313,6 @@ class CompletionPlugin(SpyderPluginV2):
             maininterpreter.sig_interpreter_changed.connect(
                 self._sig_interpreter_changed
             )
-
-    @on_plugin_available(plugin=Plugins.StatusBar)
-    def on_statusbar_available(self):
-        self.statusbar = self.get_plugin(Plugins.StatusBar)
-        self.register_statusbar_widgets()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -360,10 +339,25 @@ class CompletionPlugin(SpyderPluginV2):
             self._sig_interpreter_changed
         )
 
-    @on_plugin_teardown(plugin=Plugins.Preferences)
-    def on_preferences_teardown(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.deregister_plugin_preferences(self)
+    @on_plugin_available(plugin=Plugins.LanguageServices)
+    def on_language_services_available(self):
+        from spyder.plugins.completion.adapter import (
+            LegacyCompletionsProvider,
+        )
+
+        language_services = self.get_plugin(Plugins.LanguageServices)
+        self._legacy_provider = LegacyCompletionsProvider(
+            language_services, self
+        )
+        language_services.register_provider(self._legacy_provider)
+
+    @on_plugin_teardown(plugin=Plugins.LanguageServices)
+    def on_language_services_teardown(self):
+        language_services = self.get_plugin(Plugins.LanguageServices)
+        language_services.unregister_provider(
+            self._legacy_provider.NAME
+        )
+        self._legacy_provider = None
 
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_teardown(self):
@@ -374,13 +368,6 @@ class CompletionPlugin(SpyderPluginV2):
             maininterpreter.sig_interpreter_changed.disconnect(
                 self._sig_interpreter_changed
             )
-
-    @on_plugin_teardown(plugin=Plugins.StatusBar)
-    def on_statusbar_teardown(self):
-        container = self.get_container()
-
-        for sb in container.all_statusbar_widgets():
-            self.statusbar.remove_status_widget(sb.ID)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_mainmenu_teardown(self):
@@ -475,10 +462,8 @@ class CompletionPlugin(SpyderPluginV2):
                     )
                     if provider_status:
                         self.start_provider_instance(provider_name)
-                        self.register_statusbar_widget(provider_name)
                     else:
                         self.shutdown_provider_instance(provider_name)
-                        self.unregister_statusbar(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
 
@@ -486,261 +471,6 @@ class CompletionPlugin(SpyderPluginV2):
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             provider_info['instance'].on_mainwindow_visible()
-
-    # ---------------------------- Status bar widgets -------------------------
-    def register_statusbar_widgets(self, plugin_loaded=True):
-        """
-        Register status bar widgets for all providers with the container.
-
-        Parameters
-        ----------
-        plugin_loaded: bool
-            True if the plugin is already loaded in Spyder, False if it is
-            being loaded. It has no effect since 6.1.5 and will be removed in
-            6.2.0
-        """
-        for provider_key in self.providers:
-            provider_on = self.get_conf(
-                ('enabled_providers', provider_key), True
-            )
-            if provider_on:
-                self.register_statusbar_widget(provider_key)
-
-    def register_statusbar_widget(self, provider_name, plugin_loaded=True):
-        """
-        Register statusbar widgets for a given provider.
-
-        Parameters
-        ----------
-        provider_name: str
-            Name of the provider that is going to create statusbar widgets.
-        plugin_loaded: bool
-            True if the plugin is already loaded in Spyder, False if it is
-            being loaded. It has no effect since 6.1.5 and will be removed in
-            6.2.0.
-        """
-        if self.statusbar is None:
-            return
-
-        container = self.get_container()
-        provider = self.providers[provider_name]['instance']
-        widgets_ids = container.register_statusbar_widgets(
-            provider.STATUS_BAR_CLASSES, provider_name
-        )
-
-        for id_ in widgets_ids:
-            current_widget = container.statusbar_widgets[id_]
-            # Validation to check for status bar registration before trying
-            # to add a widget.
-            # See spyder-ide/spyder#16997
-            if id_ not in self.statusbar.get_status_widgets():
-                self.statusbar.add_status_widget(current_widget)
-
-    def unregister_statusbar(self, provider_name):
-        """
-        Unregister statusbar widgets for a given provider.
-
-        Parameters
-        ----------
-        provider_name: str
-            Name of the provider that is going to delete statusbar widgets.
-        """
-        if self.statusbar is None:
-            return
-
-        container = self.get_container()
-        provider_keys = self.get_container().get_provider_statusbar_keys(
-            provider_name
-        )
-
-        for id_ in provider_keys:
-            # Validation to check for status bar registration before trying
-            # to remove a widget.
-            # See spyder-ide/spyder#16997
-            if id_ in container.statusbar_widgets:
-                self.get_container().remove_statusbar_widget(id_)
-                self.statusbar.remove_status_widget(id_)
-
-    # -------- Completion provider initialization redefinition wrappers -------
-    def gather_providers_and_configtabs(self):
-        """
-        Gather and register providers and their configuration tabs.
-
-        This method iterates over all completion providers, takes their
-        corresponding configuration tabs, and patches the methods that
-        interact with writing/reading/removing configuration options to
-        consider provider options that are stored inside this plugin's
-        `provider_configuration` option, which makes providers unaware
-        of the CompletionPlugin existence.
-        """
-        conf_providers = []
-        conf_tabs = []
-        widget_funcs = self.gather_create_ops()
-
-        for provider_key in self.providers:
-            provider = self.providers[provider_key]['instance']
-            for tab in provider.CONF_TABS:
-                # Add set_option/get_option/remove_option to tab definition
-                setattr(tab, 'get_option',
-                        self.wrap_get_option(provider_key))
-                setattr(tab, 'set_option',
-                        self.wrap_set_option(provider_key))
-                setattr(tab, 'remove_option',
-                        self.wrap_remove_option(provider_key))
-
-                # Wrap apply_settings to return settings correctly
-                setattr(tab, 'apply_settings',
-                        self.wrap_apply_settings(tab, provider_key))
-
-                # Wrap create_* methods to consider provider
-                for name, pos in widget_funcs:
-                    setattr(tab, name,
-                            self.wrap_create_op(name, pos, provider_key))
-
-            conf_tabs += provider.CONF_TABS
-            conf_providers.append((provider_key, provider.get_name()))
-
-        return conf_providers, conf_tabs
-
-    def gather_create_ops(self):
-        """
-        Extract all the create_* methods declared in the
-        :class:`spyder.api.preferences.PluginConfigPage` class
-        """
-        # Filter widget creation functions in ConfigPage
-        members = inspect.getmembers(CompletionConfigPage)
-        widget_funcs = []
-        for name, call in members:
-            if name.startswith('create_'):
-                sig = inspect.signature(call)
-                parameters = sig.parameters
-                if 'option' in sig.parameters:
-                    pos = -1
-                    for param in parameters:
-                        if param == 'option':
-                            break
-                        pos += 1
-                    widget_funcs.append((name, pos))
-        return widget_funcs
-
-    def wrap_get_option(self, provider):
-        """
-        Wraps `get_option` method for a provider config tab to consider its
-        actual section nested inside the `provider_configuration` key of this
-        plugin options.
-
-        This wrapper method allows configuration tabs to not be aware about
-        their presence behind the completion plugin.
-        """
-        plugin = self
-
-        def wrapper(self, option, default=NoDefault, section=None):
-            if section is None:
-                if isinstance(option, tuple):
-                    option = ('provider_configuration', provider, 'values',
-                              *option)
-                else:
-                    option = ('provider_configuration', provider, 'values',
-                              option)
-            return plugin.get_conf(option, default, section)
-        return wrapper
-
-    def wrap_set_option(self, provider):
-        """
-        Wraps `set_option` method for a provider config tab to consider its
-        actual section nested inside the `provider_configuration` key of this
-        plugin options.
-
-        This wrapper method allows configuration tabs to not be aware about
-        their presence behind the completion plugin.
-        """
-        plugin = self
-
-        def wrapper(self, option, value, section=None,
-                    recursive_notification=False):
-            if section is None:
-                if isinstance(option, tuple):
-                    option = ('provider_configuration', provider, 'values',
-                              *option)
-                else:
-                    option = ('provider_configuration', provider, 'values',
-                              option)
-            return plugin.set_conf(
-                option, value, section,
-                recursive_notification=recursive_notification)
-        return wrapper
-
-    def wrap_remove_option(self, provider):
-        """
-        Wraps `remove_option` method for a provider config tab to consider its
-        actual section nested inside the `provider_configuration` key of this
-        plugin options.
-
-        This wrapper method allows configuration tabs to not be aware about
-        their presence behind the completion plugin.
-        """
-        plugin = self
-
-        def wrapper(self, option, section=None):
-            if section is None:
-                if isinstance(option, tuple):
-                    option = ('provider_configuration', provider, 'values',
-                              *option)
-                else:
-                    option = ('provider_configuration', provider, 'values',
-                              option)
-                return plugin.remove_conf(option, section)
-        return wrapper
-
-    def wrap_create_op(self, create_name, opt_pos, provider):
-        """
-        Wraps `create_*` methods for a provider config tab to consider its
-        actual section nested inside the `provider_configuration` key of this
-        plugin options.
-
-        This wrapper method allows configuration tabs to not be aware about
-        their presence behind the completion plugin.
-        """
-        def wrapper(self, *args, **kwargs):
-            if kwargs.get('section', None) is None:
-                arg_list = list(args)
-                if isinstance(args[opt_pos], tuple):
-                    arg_list[opt_pos] = (
-                        'provider_configuration', provider, 'values',
-                        *args[opt_pos])
-                else:
-                    arg_list[opt_pos] = (
-                        'provider_configuration', provider, 'values',
-                        args[opt_pos])
-                args = tuple(arg_list)
-            call = getattr(self.parent, create_name)
-            widget = call(*args, **kwargs)
-            widget.setParent(self)
-            return widget
-        return wrapper
-
-    def wrap_apply_settings(self, Tab, provider):
-        """
-        Wraps `apply_settings` method for a provider config tab to consider its
-        actual section nested inside the `provider_configuration` key of this
-        plugin options.
-
-        This wrapper method allows configuration tabs to not be aware about
-        their presence behind the completion plugin.
-        """
-        prev_method = Tab.apply_settings
-
-        def wrapper(self):
-            wrapped_opts = set({})
-            for opt in prev_method(self):
-                if isinstance(opt, tuple):
-                    wrapped_opts |= {('provider_configuration',
-                                      provider, 'values', *opt)}
-                else:
-                    wrapped_opts |= {(
-                        'provider_configuration', provider, 'values', opt)}
-            return wrapped_opts
-        return wrapper
 
     # ---------- Completion provider registering/start/stop methods -----------
     @staticmethod
@@ -848,8 +578,6 @@ class CompletionPlugin(SpyderPluginV2):
         provider_instance.sig_show_widget.connect(
             container.show_widget
         )
-        provider_instance.sig_call_statusbar.connect(
-            container.statusbar_rpc)
         provider_instance.sig_open_file.connect(self.sig_open_file)
 
         self.sig_pythonpath_changed.connect(

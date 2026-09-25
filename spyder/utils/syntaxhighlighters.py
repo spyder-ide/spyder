@@ -27,7 +27,6 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
@@ -477,6 +476,9 @@ def get_code_cell_name(text):
 
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
+
+    CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
+
     # Syntax highlighting rules:
     add_kw = ['async', 'await']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
@@ -495,7 +497,7 @@ class PythonSH(BaseSH):
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.cell_separators = CELL_LANGUAGES['Python']
+        self.cell_separators = self.CELL_SEPARATORS
         # Avoid updating the outline explorer with every single letter typed
         self.outline_explorer_data_update_timer = QTimer()
         self.outline_explorer_data_update_timer.setSingleShot(True)

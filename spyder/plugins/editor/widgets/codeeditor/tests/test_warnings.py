@@ -30,8 +30,8 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 @pytest.fixture
 def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     editor, completion_plugin = completions_codeeditor
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'flake8'),
              True)
 
     # After this call the manager needs to be reinitialized
@@ -39,8 +39,8 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     qtbot.wait(2000)
 
     def teardown():
-        CONF.set('completions',
-                 ('provider_configuration', 'lsp', 'values', 'flake8'),
+        CONF.set('language_services',
+                 ('providers', 'pylsp', 'values', 'flake8'),
                  False)
 
         # After this call the manager needs to be reinitialized
@@ -58,8 +58,8 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is ignoring some warnings."""
     editor, completion_plugin = completions_codeeditor_linting
 
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'flake8/extendIgnore'),
              'E261')
 
     # After this call the manager needs to be reinitialized
@@ -83,8 +83,8 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
                  """function definition, found 0""", 7],
                 ["W292 no newline at end of file", 7],]
 
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'flake8/extendIgnore'),
              '')
 
     completion_plugin.after_configuration_update([])
