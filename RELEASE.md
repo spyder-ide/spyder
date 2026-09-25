@@ -277,7 +277,7 @@ Before releasing new minor or major versions, it's necessary to:
 
 * Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-X.md`. For this take a look at closed issues and PRs for the current milestone.
 
-* Add changelog for new version to `spyder/plugins/application/widgets/appeal_page/changelog.md` (only `New features` and `Important fixes`).
+* Add changelog and link to it on Github for new version to `spyder/plugins/application/widgets/appeal_page/changelog.md` (only `New features` and `Important fixes`).
 
 * Update `CHANGELOG_URL` in `spyder/plugins/application/container.py` to point to the changelog for the new version.
 

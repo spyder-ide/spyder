@@ -41,17 +41,25 @@ body {
 }
 
 .fill-link {
-  fill: var(--link);
+  fill: var(--link-color);
+}
+
+.font-weight-black {
+  font-weight: 900;
+}
+
+.font-size-lg {
+  font-size: 1.2rem;
 }
 
 a:not(.button) {
   font-weight: 500;
-  color: var(--link);
+  color: var(--link-color);
   text-decoration: underline;
 }
 
 a:not(.button):hover {
-  color: var(--highlight);
+  color: var(--hover-color);
 }
 
 body {
@@ -194,6 +202,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 2.5rem;
+  padding-top: 1rem;
 }
 
 @media (max-width: 30rem) {

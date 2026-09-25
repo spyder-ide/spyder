@@ -5,8 +5,14 @@
 
 ## General Guidelines
 
-This page documents at a very high level how to contribute to Spyder. Please check the [Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder) for a more detailed guide on how to do so.
-Also, make sure you're familiar with our [Github workflow](https://github.com/spyder-ide/spyder/wiki/Dev:-Github-Workflow).
+This page documents at a very high level how to contribute to Spyder. Please check the [Spyder Developer Documentation](https://spyder-ide.github.io/spyder-api-docs/) for a more detailed guide on how to do so.
+
+
+## AI Policy
+
+Spyder has adopted the [NumPy AI Policy](https://numpy.org/doc/stable/dev/ai_policy.html), and expects all contributors to adhere to it.
+The [AGENTS.md](./AGENTS.md) file in this repo describes this policy to your AI agents to attempt to induce them to follow it, but it is ultimately your responsibility for ensuring that they do.
+In short: you are responsible for and must understand and explain in your own words all code submitted to Spyder's repositories; you must disclose use of AI on your pull requests; and you must not use AI to autonomously create, write or interact with issue or pull requests and their descriptions or comments, nor in other project channels of human communication.
 
 
 ## Troubleshooting
@@ -44,7 +50,7 @@ $ git remote add upstream https://github.com/spyder-ide/spyder.git
 If you use Anaconda or Conda-forge, you can create an environment and install the necessary dependencies as follows:
 
 ```bash
-$ conda create -n spyder-dev -c conda-forge python=3.9
+$ conda create -n spyder-dev -c conda-forge python=3.11
 $ conda activate spyder-dev
 $ conda env update --file requirements/main.yml
 ```
