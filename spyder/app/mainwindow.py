@@ -1318,9 +1318,23 @@ def main(options, args):
             mainwindow = create_window(MainWindow, app, splash, options, args)
     except FontError:
         fonts_directory, fonts = get_fonts_info()
-        fonts_list = "".join(
-            [f"<li><code>{font}</code></li>" for font in fonts]
-        )
+        spyder_fonts_directory = osp.normpath(
+            osp.join(osp.dirname(osp.realpath(__file__)), '../fonts'))
+        spyder_font = 'spyder.ttf'
+        
+        fonts_by_directory = {
+            str(fonts_directory): list(fonts),
+            str(spyder_fonts_directory): [spyder_font],
+        }
+
+        fonts_sections = "".join(
+            f"<p><code>{directory}</code></p><ul>"
+            + "".join(f"<li><code>{font}</code></li>" for font in fontlist)
+            + "</ul>"
+            for directory, fontlist in fonts_by_directory.items()
+        )        
+      
+
         fonts_message = QMessageBox(
             QMessageBox.Icon.Information,
             "Spyder",
@@ -1331,14 +1345,17 @@ def main(options, args):
               "supported by Spyder or Microsoft, or your system administrator "
               "has disabled font installation for non-admin users.<br><br>"
               "Please ask your system administrator for help to upgrade "
-              "Windows or to install for all users the following fonts:"
-              "<ul>{fonts_list}</ul>which are located at:<br><br>"
-              "<code>{fonts_directory}</code><br><br>"
+              "Windows, or to install for all users the following fonts, "
+              "grouped by the directory in which each can be found:"
+              "{fonts_sections}"
               "If you have administrator privileges, you can run the "
-              "following command in a Command Prompt to install the required "
-              "fonts:<br><br>"
-              "<code>qta-install-fonts-all-users</code>").format(
-                fonts_list=fonts_list, fonts_directory=fonts_directory,
+              "following command in a Command Prompt to install the fonts "
+              "located in the first directory listed above:<br><br>"
+              "<code>qta-install-fonts-all-users</code><br><br>"
+              "Any font(s) in directories other than the first must be "
+              "installed manually for all users (right-click the file "
+              "and select \"Install for all users\").").format(
+                fonts_sections=fonts_sections,
             ),
             QMessageBox.StandardButton.Ok
         )
