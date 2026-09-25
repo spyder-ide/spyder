@@ -61,24 +61,14 @@ watchdog.utils.BaseThread = BaseThreadWrapper
 
 # ---- Auxiliary functions
 # -----------------------------------------------------------------------------
-def ignore_entry(entry: os.DirEntry) -> bool:
-    """
-    Check if an entry should be ignored.
-
-    Only the name is checked because the observer doesn't descend into
-    ignored directories, so ancestors already passed this check.
-    """
+def ignore_entry(
+    entry: os.DirEntry, folders_to_ignore=FOLDERS_TO_IGNORE
+) -> bool:
+    """Check if an entry should be ignored."""
+    # ignore any file/folder starting with a
+    #  dot or in the folders_to_ignore set
     name = entry.name
-
-    # Ignore hidden files and directories (e.g. .git)
-    if name.startswith("."):
-        return True
-
-    # Ignore specific folders
-    if name in FOLDERS_TO_IGNORE:
-        return True
-
-    return False
+    return name.startswith(".") or name in folders_to_ignore
 
 
 def editable_file(entry: os.DirEntry) -> bool:
