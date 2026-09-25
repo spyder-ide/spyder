@@ -1586,6 +1586,19 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Accessors
     # -------------------------------------------------------------------------
+    def move_to_editorstack(self, direction):
+        current_editorstack = self.get_current_editorstack()
+
+        if current_editorstack is None:
+            return
+
+        target = self.editorsplitter.get_editorstack_in_direction(
+            current_editorstack,
+            direction
+        )
+
+        if target is not None:
+            target.setFocus()
     def get_filenames(self):
         return [finfo.filename for finfo in self.editorstacks[0].data]
 

@@ -16,7 +16,7 @@ import logging
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtCore import QByteArray, Qt, Slot
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtWidgets import QSplitter
 
 # Local imports
@@ -34,6 +34,8 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
     """QSplitter for editor windows."""
 
     CONF_SECTION = "editor"
+
+    sig_move_to_editorstack = Signal(object, str)
 
     def __init__(self, parent, main_widget, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None,
@@ -77,6 +79,12 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         self.menu_actions = menu_actions
         self.editorstack = EditorStack(self, menu_actions, use_switcher)
         self.register_editorstack_cb(self.editorstack)
+
+        if first:
+            self.sig_move_to_editorstack.connect(
+                self.move_to_editorstack
+                )
+
         if not first:
             self.main_widget.clone_editorstack(editorstack=self.editorstack)
         self.editorstack.destroyed.connect(self.editorstack_closed)
@@ -84,6 +92,12 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
             lambda: self.split(orientation=Qt.Horizontal))
+        self.editorstack.sig_move_to_editorstack.connect(
+            lambda direction: self.sig_move_to_editorstack.emit(
+                self.editorstack,
+                direction,
+            )
+        )
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
@@ -163,6 +177,9 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             self.menu_actions,
             register_editorstack_cb=self.register_editorstack_cb,
             unregister_editorstack_cb=self.unregister_editorstack_cb
+        )
+        editorsplitter.sig_move_to_editorstack.connect(
+            self.sig_move_to_editorstack
         )
         self.addWidget(editorsplitter)
         editorsplitter.destroyed.connect(self.editorsplitter_closed)
@@ -277,6 +294,53 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         if editor is not None:
             editor.clearFocus()
             editor.setFocus()
+
+    def move_to_editorstack(self, editorstack, direction):
+        print("=============================== MOVE", editorstack, direction)
+
+        target = self.get_editorstack_in_direction(
+            editorstack,
+            direction,
+        )
+
+        print("=============================== TARGET", target)
+
+        if target is not None:
+            editor = target.get_current_editor()
+            if editor is not None:
+                editor.setFocus()
+
+    def get_editorstacks(self):
+        """Return all EditorStacks recursively."""
+        editorstacks = []
+
+        for index in range(self.count()):
+            widget = self.widget(index)
+
+            if isinstance(widget, EditorStack):
+                editorstacks.append(widget)
+            elif isinstance(widget, EditorSplitter):
+                editorstacks.extend(widget.get_editorstacks())
+
+        return editorstacks
+
+    def get_editorstack_in_direction(self, editorstack, direction):
+        """Return the next EditorStack in the given direction."""
+        editorstacks = self.get_editorstacks()
+
+        if editorstack not in editorstacks:
+            return None
+
+        current_index = editorstacks.index(editorstack)
+
+        if direction in ('right', 'down'):
+            target_index = (current_index + 1) % len(editorstacks)
+        elif direction in ('left', 'up'):
+            target_index = (current_index - 1) % len(editorstacks)
+        else:
+            return None
+
+        return editorstacks[target_index]
 
     @property
     def _stylesheet(self):
