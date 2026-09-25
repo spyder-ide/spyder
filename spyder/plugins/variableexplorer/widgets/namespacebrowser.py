@@ -534,7 +534,8 @@ class NamespaceBrowser(
             image = image.encode()
         self.sig_show_figure_requested.emit(image, mime_type, self.shellwidget)
 
-    def plot_in_window(self, plot_function: Callable[[Figure], None]):
+    @classmethod
+    def plot_in_window(cls, plot_function: Callable[[Figure], None]):
         """
         Make a plot and display it in a new Qt window.
         """
