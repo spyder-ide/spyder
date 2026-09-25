@@ -586,6 +586,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             triggered=self.current_client_select_all
         )
 
+        self.move_to_previous_prompt_action = self.create_action(
+            ClientContextMenuActions.MoveToPreviousPrompt,
+            text=_("Move to previous prompt"),
+            triggered=self._current_client_jump_to_previous_prompt,
+            register_shortcut=True
+        )
+
+        self.move_to_next_prompt_action = self.create_action(
+            ClientContextMenuActions.MoveToNextPrompt,
+            text=_("Move to next prompt"),
+            triggered=self._current_client_jump_to_next_prompt,
+            register_shortcut=True
+        )
+
         self.inspect_object_action = self.create_action(
             ClientContextMenuActions.InspectObject,
             text=_("Inspect current object"),
@@ -2461,6 +2475,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         client = self.get_current_client()
         if client:
             client.shellwidget.select_all_smart()
+
+    def _current_client_jump_to_previous_prompt(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.jump_to_previous_prompt()
+
+    def _current_client_jump_to_next_prompt(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.jump_to_next_prompt()
 
     def _current_client_inspect_object(self):
         client = self.get_current_client()
