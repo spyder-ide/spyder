@@ -51,7 +51,8 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
 )
 from spyder.utils.programs import run_shell_command
 from spyder.plugins.ipythonconsole.api import (
-    ClientContextMenuActions, ClientContextMenuSections
+    ClientContextMenuActions,
+    ClientContextMenuSections,
 )
 from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
 from spyder.plugins.ipythonconsole.widgets.shell import PROMPT_BLOCK_RE

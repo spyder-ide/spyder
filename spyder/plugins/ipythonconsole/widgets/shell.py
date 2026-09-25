@@ -1533,8 +1533,10 @@ overrided by the Sympy module (e.g. plot)
                     section=ClientContextMenuSections.Edit
                 )
 
-            for name in [ClientContextMenuActions.MoveToPreviousPrompt,
-                         ClientContextMenuActions.MoveToNextPrompt]:
+            for name in [
+                ClientContextMenuActions.MoveToPreviousPrompt,
+                ClientContextMenuActions.MoveToNextPrompt
+            ]:
                 self.add_item_to_menu(
                     self.get_action(name),
                     context_menu,

@@ -114,9 +114,6 @@ class ClientContextMenuActions:
     SelectAll = 'select_all'
 
     # Navigation section
-    # Note: These ids match the "go to previous/next prompt" shortcut names
-    # registered in ShellWidget.regiter_shortcuts, so this action shares the
-    # same customizable shortcut instead of introducing a separate one.
     MoveToPreviousPrompt = 'go to previous prompt'
     MoveToNextPrompt = 'go to next prompt'
 
