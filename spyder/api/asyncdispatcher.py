@@ -757,7 +757,7 @@ def run_coroutine_threadsafe(
     return future
 
 
-class debounce:
+class AsyncDebounce:
     """Rate-limit an async function so repeated calls collapse onto shared tasks.
 
     Each unique call (see ``consider_args``) has a debounce window of ``time``

@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 
 # Local imports
-from spyder.api.asyncdispatcher import debounce
+from spyder.api.asyncdispatcher import AsyncDebounce
 from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import running_under_pytest
 from spyder.plugins.languageservices.api.provider import ProviderStatus
@@ -129,7 +129,7 @@ class PylspProvider(LanguageServerClientProvider):
         self._interpreter = interpreter
         await self._debounced_reconfigure()
 
-    @debounce(time=0.6, replace=True)
+    @AsyncDebounce(time=0.6, replace=True)
     async def _debounced_reconfigure(self):
         """Switching consoles of different environments in quick succession
         would otherwise restart the server for each of them."""
