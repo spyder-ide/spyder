@@ -11,8 +11,14 @@ This page documents at a very high level how to contribute to Spyder. Please che
 ## AI Policy
 
 Spyder has adopted the [NumPy AI Policy](https://numpy.org/doc/stable/dev/ai_policy.html), and expects all contributors to adhere to it.
-The [AGENTS.md](./AGENTS.md) file in this repo describes this policy to your AI agents to attempt to induce them to follow it, but it is ultimately your responsibility for ensuring that they do.
-In short: you are responsible for and must understand and explain in your own words all code submitted to Spyder's repositories; you must disclose use of AI on your pull requests; and you must not use AI to autonomously create, write or interact with issue or pull requests and their descriptions or comments, nor in other project channels of human communication.
+The [AI_POLICY.md](./AI_POLICY.md) file in this repo summarizes this policy as it applies to Spyder.
+In short:
+
+* You may use AI as you wish to assist you in coding, tests, documentation and understanding the repo.
+* However, you are responsible for and must understand and explain in your own words all content submitted to Spyder's repositories.
+* You must disclose use of AI on your pull requests.
+* You must not use AI to autonomously create or interact with issues or pull requests.
+* You must use your own words rather than AI to write descriptions and comments on issues/PRs and other project communication channels.
 
 
 ## Troubleshooting
