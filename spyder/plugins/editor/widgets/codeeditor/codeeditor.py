@@ -285,7 +285,15 @@ class CodeEditor(
     # Used to signal that a text deletion was triggered
     sig_delete_requested = Signal()
 
-    sig_move_to_editorstack = Signal(str)
+    sig_move_to_editorstack_requested = Signal(str)
+    """
+    Request to move to another (splitted) editorstack.
+    
+    Parameters
+    ----------
+    direction: str
+        This can only have four values: "left", "right", "up" and "down".
+    """
 
     def __init__(
         self,
@@ -715,10 +723,22 @@ class CodeEditor(
             ),
             ('fold all regions', self.collapse_all),
             ('unfold all regions', self.expand_all),
-            ('move to editor stack left', lambda: self.sig_move_to_editorstack.emit('left')),
-            ('move to editor stack right', lambda: self.sig_move_to_editorstack.emit('right')),
-            ('move to editor stack up', lambda: self.sig_move_to_editorstack.emit('up')),
-            ('move to editor stack down', lambda: self.sig_move_to_editorstack.emit('down'))
+            (
+                'move to left panel',
+                lambda: self.sig_move_to_editorstack_requested.emit('left')
+            ),
+            (
+                'move to right panel',
+                lambda: self.sig_move_to_editorstack_requested.emit('right')
+            ),
+            (
+                'move to up panel',
+                lambda: self.sig_move_to_editorstack_requested.emit('up')
+            ),
+            (
+                'move to down panel',
+                lambda: self.sig_move_to_editorstack_requested.emit('down')
+            )
 
         )
 

@@ -35,7 +35,7 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
 
     CONF_SECTION = "editor"
 
-    sig_move_to_editorstack = Signal(object, str)
+    sig_move_to_editorstack_requested = Signal(object, str)
 
     def __init__(self, parent, main_widget, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None,
@@ -81,9 +81,9 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         self.register_editorstack_cb(self.editorstack)
 
         if first:
-            self.sig_move_to_editorstack.connect(
+            self.sig_move_to_editorstack_requested.connect(
                 self.move_to_editorstack
-                )
+            )
 
         if not first:
             self.main_widget.clone_editorstack(editorstack=self.editorstack)
@@ -92,8 +92,8 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
             lambda: self.split(orientation=Qt.Horizontal))
-        self.editorstack.sig_move_to_editorstack.connect(
-            lambda direction: self.sig_move_to_editorstack.emit(
+        self.editorstack.sig_move_to_editorstack_requested.connect(
+            lambda direction: self.sig_move_to_editorstack_requested.emit(
                 self.editorstack,
                 direction,
             )
@@ -178,8 +178,8 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             register_editorstack_cb=self.register_editorstack_cb,
             unregister_editorstack_cb=self.unregister_editorstack_cb
         )
-        editorsplitter.sig_move_to_editorstack.connect(
-            self.sig_move_to_editorstack
+        editorsplitter.sig_move_to_editorstack_requested.connect(
+            self.sig_move_to_editorstack_requested
         )
         self.addWidget(editorsplitter)
         editorsplitter.destroyed.connect(self.editorsplitter_closed)
@@ -296,14 +296,10 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             editor.setFocus()
 
     def move_to_editorstack(self, editorstack, direction):
-        print("=============================== MOVE", editorstack, direction)
-
         target = self.get_editorstack_in_direction(
             editorstack,
             direction,
         )
-
-        print("=============================== TARGET", target)
 
         if target is not None:
             editor = target.get_current_editor()

@@ -63,7 +63,7 @@ class EditorWidgetActions:
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
 
-    MoveToEditorStackLeft = "Move to editor stack left"
-    MoveToEditorStackRight = "Move to editor stack right"
-    MoveToEditorStackUp = "Move to editor stack up"
-    MoveToEditorStackDown = "Move to editor stack down"
+    MoveToLeftSplit = "Move to left panel"
+    MoveToRightSplit = "Move to right panel"
+    MoveToUpSplit = "Move to up panel"
+    MoveToDownSplit = "Move to down panel"

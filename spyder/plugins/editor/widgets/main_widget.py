@@ -1599,6 +1599,7 @@ class EditorMainWidget(PluginMainWidget):
 
         if target is not None:
             target.setFocus()
+
     def get_filenames(self):
         return [finfo.filename for finfo in self.editorstacks[0].data]
 
