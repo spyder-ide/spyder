@@ -442,7 +442,7 @@ DEFAULTS = [
               'main/open file': "Ctrl+O",
               'main/open last closed': "Ctrl+Shift+T",
               'main/save file': "Ctrl+S",
-              'main/save all': "Ctrl+Alt+S",
+              'main/save all': "Ctrl+Shift+A",
               'main/save as': 'Ctrl+Shift+S',
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",

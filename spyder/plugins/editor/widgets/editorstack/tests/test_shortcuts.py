@@ -78,7 +78,7 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('main', 'open file') == 'Ctrl+O'
     assert CONF.get_shortcut('main', 'open last closed') == 'Ctrl+Shift+T'
     assert CONF.get_shortcut('main', 'save file') == 'Ctrl+S'
-    assert CONF.get_shortcut('main', 'save all') == 'Ctrl+Alt+S'
+    assert CONF.get_shortcut('main', 'save all') == 'Ctrl+Shift+A'
     assert CONF.get_shortcut('main', 'save as') == 'Ctrl+Shift+S'
     assert CONF.get_shortcut('main', 'close file 1') == 'Ctrl+W'
     assert CONF.get_shortcut('main', 'close file 2') == 'Ctrl+F4'
