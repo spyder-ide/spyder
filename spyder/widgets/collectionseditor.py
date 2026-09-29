@@ -27,7 +27,8 @@ import sys
 import textwrap
 from typing import Any, Callable, Optional
 import warnings
-from dataclasses import (is_dataclass, replace as dataclass_replace, fields as dataclass_fields)
+from dataclasses import (is_dataclass, replace as dataclass_replace, fields as dataclass_fields, make_dataclass)
+from collections import namedtuple
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
@@ -2514,6 +2515,9 @@ def get_test_data():
     testdate = datetime.date(1945, 5, 8)
     test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
 
+    test_namedtuple = namedtuple('NamedTuple', ('a','b','c','d'))
+    test_dataclass = make_dataclass('DataClass',['first',('second',int),('third',float),('fourth',list)])
+
     try:
         import pandas as pd
     except (ModuleNotFoundError, ImportError):
@@ -2582,6 +2586,8 @@ def get_test_data():
             # Test for spyder-ide/spyder#3518.
             'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
                                                       ('param1', 'f8', 5000)]),
+            'namedtuple' : test_namedtuple(1,2.0,'three',[4]*4),
+            'dataclass': test_dataclass(True,2,3.0,['four']*4)
             }
 
 
