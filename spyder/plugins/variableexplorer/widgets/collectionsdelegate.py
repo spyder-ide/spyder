@@ -18,7 +18,6 @@ import operator
 import sys
 import traceback
 from typing import Any, Callable, Optional
-from dataclasses import is_dataclass
 
 # Third party imports
 from qtpy.compat import to_qvariant
