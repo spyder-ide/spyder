@@ -10,6 +10,7 @@
 # Standard library imports
 import ast
 import copy
+from dataclasses import is_dataclass
 import datetime
 import functools
 import math
