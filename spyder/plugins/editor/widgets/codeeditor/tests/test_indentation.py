@@ -118,6 +118,32 @@ def test_fix_indentation(codeeditor_indent):
     assert str(editor.toPlainText()) == fixed
     assert editor.document().isModified()
 
+def test_fix_indentation_with_tabs(codeeditor_indent):
+    """Test fix_indentation() when tabs are used for indentation."""
+    editor = codeeditor_indent
+    editor.set_indent_chars('\t')
+    editor.set_tab_stop_width_spaces(4)
+
+    original = (
+        "\t\n"
+        "class a():\t\n"
+        "\tself.b = 1\n"
+        "\tprint(self.b)\n"
+        "\n"
+    )
+    expected = (
+        "    \n"
+        "class a():    \n"
+        "    self.b = 1\n"
+        "    print(self.b)\n"
+        "\n"
+    )
+
+    editor.set_text(original)
+    editor.fix_indentation()
+
+    assert str(editor.toPlainText()) == expected
+
 
 def test_single_line_unindent(codeeditor_indent):
     """Test unindentation in a single line."""
