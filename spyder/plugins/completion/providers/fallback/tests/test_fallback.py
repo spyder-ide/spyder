@@ -8,7 +8,6 @@ import json
 import os.path as osp
 
 import pytest
-from diff_match_patch import diff_match_patch
 from lsprotocol import types as lsp
 from spyder.plugins.completion.providers.fallback.utils import get_words
 
@@ -58,12 +57,11 @@ def file_fixture(tokens_fixture, request):
 @pytest.fixture(scope="module")
 def fallback_fixture(fallback_completions, qtbot_module, request):
     fallback, completions = fallback_completions
-    diff_match = diff_match_patch()
-    return fallback, completions, diff_match
+    return fallback, completions
 
 
 def test_file_open_close(qtbot_module, fallback_fixture):
-    fallback, completions, diff_match = fallback_fixture
+    fallback, completions = fallback_fixture
 
     open_request = {
         'file': 'test.py',
@@ -95,8 +93,7 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     filename, expected_tokens, contents = file_fixture
     _, ext = osp.splitext(filename)
     language = extension_map[ext[1:]]
-    fallback, completions, diff_match = fallback_fixture
-    # diff = diff_match.patch_make('', contents)
+    fallback, completions = fallback_fixture
     open_request = {
         'file': filename,
         'text': contents,
@@ -123,9 +120,8 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
 
 
 def test_token_update(qtbot_module, fallback_fixture):
-    fallback, completions, diff_match = fallback_fixture
+    fallback, completions = fallback_fixture
 
-    # diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
         'file': 'test.py',
         'text': TEST_FILE,
@@ -150,11 +146,27 @@ def test_token_update(qtbot_module, fallback_fixture):
     initial_tokens = {token.insert_text for token in initial_tokens}
     assert 'args' not in initial_tokens
 
-    diff = diff_match.patch_make(TEST_FILE, TEST_FILE_UPDATE)
+    # Calculate the position where new text should be inserted
+    # The new text is appended at the end of TEST_FILE
+    lines = TEST_FILE.split('\n')
+    last_line = len(lines) - 1
+    last_line_length = len(lines[last_line])
+
+    new_text = "\ndef func(args):\n    pass\n"
+    content_changes = [
+        lsp.TextDocumentContentChangePartial(
+            range=lsp.Range(
+                start=lsp.Position(line=last_line, character=last_line_length),
+                end=lsp.Position(line=last_line, character=last_line_length),
+            ),
+            text=new_text
+        )
+    ]
+
     update_request = {
         'file': 'test.py',
-        'diff': diff,
-        'offset': len(diff),
+        'content_changes': content_changes,
+        'offset': len(TEST_FILE) + len(new_text),
     }
     fallback.send_request(
         'python', lsp.TEXT_DOCUMENT_DID_CHANGE, update_request)

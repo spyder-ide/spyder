@@ -39,7 +39,7 @@ def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()
     assert configpage
     tabs = configpage.tabs
-    for i in range(0, tabs.count()):
+    for i in range(tabs.count()):
         tab_text = tabs.tabText(i)
         assert tab_text in expected_titles
     configpage.save_to_conf()

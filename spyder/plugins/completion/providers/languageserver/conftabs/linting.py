@@ -61,7 +61,7 @@ class LintingConfigTab(SpyderPreferencesTab):
             'flake8',
             button_group=linting_bg
         )
-        ruff_linting_radio = self.create_radiobutton(
+        self.ruff_linting_radio = self.create_radiobutton(
             _("Ruff (Advanced)"),
             'ruff',
             button_group=linting_bg
@@ -76,7 +76,7 @@ class LintingConfigTab(SpyderPreferencesTab):
         linting_select_layout.addSpacing(3 * AppStyle.MarginSize)
         linting_select_layout.addWidget(basic_linting_radio)
         linting_select_layout.addWidget(flake_linting_radio)
-        linting_select_layout.addWidget(ruff_linting_radio)
+        linting_select_layout.addWidget(self.ruff_linting_radio)
         linting_select_layout.addWidget(disable_linting_radio)
         linting_select_group.setLayout(linting_select_layout)
 
@@ -218,7 +218,7 @@ class LintingConfigTab(SpyderPreferencesTab):
         configuration_options_layout.addWidget(pyflakes_conf_options)
         configuration_options_layout.addWidget(not_select_conf_options)
 
-        ruff_linting_radio.radiobutton.toggled.connect(
+        self.ruff_linting_radio.radiobutton.toggled.connect(
             lambda checked: (
                 ruff_grid_widget.setVisible(checked),
                 flake8_grid_widget.setVisible(False),
@@ -281,6 +281,17 @@ class LintingConfigTab(SpyderPreferencesTab):
 
         QMessageBox.critical(self, _("Error"), msg)
 
+    def report_invalid_linter(self):
+        QMessageBox.warning(
+            self,
+            _("Warning"),
+            _(
+                "Since Ruff is selected as formatter, linting can only be "
+                "provided by Ruff and it can't be disabled"
+            ),
+        )
+        self.ruff_linting_radio.radiobutton.setChecked(True)
+
     def is_valid(self):
         # Check regexs
         try:
@@ -306,6 +317,14 @@ class LintingConfigTab(SpyderPreferencesTab):
 
         except re.error:
             self.report_invalid_regex(files=False)
+            return False
+
+        # Check ruff related config
+        if (
+            not self.ruff_linting_radio.radiobutton.isChecked()
+            and self.get_option("formatting") == "ruff"
+        ):
+            self.report_invalid_linter()
             return False
 
         return True

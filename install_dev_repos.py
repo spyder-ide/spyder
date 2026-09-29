@@ -8,6 +8,7 @@
 Helper script for installing spyder and external-deps locally in editable mode.
 """
 
+# Standard Library imports
 import argparse
 from importlib.metadata import PackageNotFoundError, distribution
 from json import loads
@@ -17,7 +18,9 @@ from pathlib import Path
 from subprocess import check_output
 import sys
 
+# Third-party imports
 from packaging.requirements import Requirement
+from yaml import safe_load
 
 # Remove current/script directory from sys.path[0] if added by the Python
 # invocation, otherwise Spyder's install status may be incorrectly determined.
@@ -75,15 +78,14 @@ logger.setLevel('INFO')
 def get_python_lsp_version():
     """Get current version to pass it to setuptools-scm."""
     req_file = DEVPATH / 'requirements' / 'main.yml'
-    with open(req_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            if 'python-lsp-server' not in line:
-                continue
-            line = line.split('-')[-1]
-            specifiers = Requirement(line).specifier
-            break
-        else:
-            return "0.0.0"
+    requirements = safe_load(req_file.read_text())
+    for dep in requirements["dependencies"]:
+        if not dep.startswith("python-lsp-server"):
+            continue
+        specifiers = Requirement(dep).specifier
+        break
+    else:
+        return "0.0.0"
 
     for specifier in specifiers:
         if "=" in specifier.operator:
