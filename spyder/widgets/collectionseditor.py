@@ -19,6 +19,13 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # pylint: disable=R0201
 
 # Standard library imports
+from collections import namedtuple
+from dataclasses import (
+    is_dataclass,
+    replace as dataclass_replace,
+    fields as dataclass_fields,
+    make_dataclass
+)
 import datetime
 from functools import lru_cache
 import io
@@ -27,8 +34,6 @@ import sys
 import textwrap
 from typing import Any, Callable, Optional
 import warnings
-from dataclasses import (is_dataclass, replace as dataclass_replace, fields as dataclass_fields, make_dataclass)
-from collections import namedtuple
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
@@ -169,9 +174,13 @@ class ProxyObject(object):
     def __init__(self, obj, valid_keys=None):
         """Constructor."""
         self.__obj__ = obj
-        # Valid keys are those that will be visible to the user to be retrieved and/or set.
-        # Store as dict for fast membership testing, and to preserve the order of valid_keys while removing duplicates.
-        self.__validkeys = dict.fromkeys(valid_keys) if valid_keys is not None else None
+        # Valid keys are those that will be visible to the user to be retrieved
+        # and/or set.
+        # Store as dict for fast membership testing, and to preserve the order
+        # of valid_keys while removing duplicates.
+        self.__validkeys = (
+            dict.fromkeys(valid_keys) if valid_keys is not None else None
+        )
 
 
     def __len__(self):
@@ -183,8 +192,9 @@ class ProxyObject(object):
         if self.__validkeys is None:
             return dict.fromkeys(get_object_attrs(self.__obj__)).keys()
         else:
-            return dict.fromkeys(key for key in self.__validkeys 
-                                 if hasattr(self.__obj__, key))
+            return dict.fromkeys(
+                key for key in self.__validkeys if hasattr(self.__obj__, key)
+            )
 
     def __getitem__(self, key):
         """Get the attribute corresponding to the given key."""
@@ -2516,7 +2526,9 @@ def get_test_data():
     test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
 
     test_namedtuple = namedtuple('NamedTuple', ('a','b','c','d'))
-    test_dataclass = make_dataclass('DataClass',['first',('second',int),('third',float),('fourth',list)])
+    test_dataclass = make_dataclass(
+        'DataClass',['first',('second',int),('third',float),('fourth',list)]
+    )
 
     try:
         import pandas as pd
