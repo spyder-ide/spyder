@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 3.2.0a2 (2026/09/22)
+
+### Pull Requests Merged
+
+* [PR 603](https://github.com/spyder-ide/spyder-kernels/pull/603) - PR: Remove using environment variables for kernel configuration, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 600](https://github.com/spyder-ide/spyder-kernels/pull/600) - PR: Add other Qt bindings to automatic backend detection, by [@larsoner](https://github.com/larsoner)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.2.0a1 (2026/07/08)
 
 ### Issues Closed
