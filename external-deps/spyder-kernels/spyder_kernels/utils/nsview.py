@@ -13,6 +13,7 @@ from itertools import islice
 import inspect
 import pathlib
 import re
+from dataclasses import is_dataclass
 
 from spyder_kernels.utils.lazymodules import (
     bs4, FakeObject, numpy as np, pandas as pd, PIL)
@@ -143,6 +144,15 @@ def get_object_attrs(obj):
         attrs = dir(obj)
     return attrs
 
+
+def is_namedtuple(obj):
+    """
+    Check if an object is an instance of a collections.namedtuple class.
+    
+    collections.namedtuple() does not define a class as a subclass of namedtuple, so 'instance(x, namedtuple)' does not work.
+    Instead, we check that the variable is an instance of a tuple, and has a _fields attribute as a tuple of strings.
+    """
+    return isinstance(obj, tuple) and hasattr(obj, '_fields') and all(isinstance(f, str) for f in obj._fields)
 
 #==============================================================================
 # Date and datetime objects support
@@ -373,6 +383,8 @@ def value_to_display(value, minmax=False, level=0):
                     display = default_display(value)
             else:
                 display = 'Numpy array'
+        elif is_namedtuple(value) or is_dataclass(value):
+            display = repr(value)
         elif type(value) in [list, set, frozenset, tuple, dict]:
             display = collections_display(value, level+1)
         elif isinstance(value, PIL.Image.Image):
