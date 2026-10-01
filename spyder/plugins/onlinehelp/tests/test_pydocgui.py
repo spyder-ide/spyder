@@ -67,8 +67,7 @@ def test_get_pydoc(pydocbrowser, qtbot, lib):
 
 def test_html_getfile(qtbot):
     """
-    Check that the source file link generated for a module's docs page
-    can be loaded back without errors.
+    Check the source link generated for a module doc can be loaded.
 
     Regression test for spyder-ide/spyder#26367
     """
