@@ -20,6 +20,7 @@ from flaky import flaky
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.plugins.onlinehelp.pydoc_patch import _url_handler
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 
@@ -62,6 +63,23 @@ def test_get_pydoc(pydocbrowser, qtbot, lib):
 
     expected_range = list(range(matches[0], matches[1]))
     qtbot.waitUntil(lambda: webview.get_number_matches(doc) in expected_range)
+
+
+def test_html_getfile(qtbot):
+    """
+    Check that the source file link generated for a module's docs page
+    can be loaded back without errors.
+
+    Regression test for spyder-ide/spyder#26367
+    """
+    page = _url_handler("os.html")
+    start = page.find('getfile?key=')
+    end = page.find('"', start)
+    getfile_href = page[start:end]
+
+    result_page = _url_handler(getfile_href)
+    assert '<title>Pydoc: Error' not in result_page
+    assert 'File Listing' in result_page
 
 
 if __name__ == "__main__":
