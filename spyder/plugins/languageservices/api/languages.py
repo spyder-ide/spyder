@@ -190,6 +190,11 @@ class Language(Enum):
 
     # ---- Lookups ------------------------------------------------------------
     @classmethod
+    def all(cls) -> frozenset[Language]:
+        """Every language, including those added with :meth:`register`."""
+        return cls.__indexes()["all"]
+
+    @classmethod
     def from_name(cls, name: str) -> Language:
         """Return the language called ``name`` (case-insensitive)."""
         language = cls.__indexes()["by_name"].get(name.lower())
@@ -273,14 +278,14 @@ class Language(Enum):
 
     # ---- Indexes ------------------------------------------------------------
     @classmethod
-    def __indexes(cls) -> dict[str, dict[str, Any]]:
+    def __indexes(cls) -> dict[str, Any]:
         indexes = cls.__dict__.get("_Language__index_cache")
         if indexes is None:
             indexes = cls.__rebuild_indexes()
         return indexes
 
     @classmethod
-    def __rebuild_indexes(cls) -> dict[str, dict[str, Any]]:
+    def __rebuild_indexes(cls) -> dict[str, Any]:
         by_name: dict[str, Language] = {}
         by_extension: dict[str, Language] = {}
         by_language_id: dict[str, set[Language]] = {}
@@ -292,6 +297,7 @@ class Language(Enum):
                 language
             )
         indexes = {
+            "all": frozenset(cls),
             "by_name": by_name,
             "by_extension": by_extension,
             "by_language_id": {

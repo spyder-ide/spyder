@@ -90,7 +90,7 @@ class SnippetsProvider(LanguageServicesProvider):
         self._documents: dict[str, _Document] = {}
 
     def supported_languages(self) -> frozenset[Language]:
-        return frozenset(Language)
+        return Language.all()
 
     def capabilities(self, language: Language) -> lsp.ServerCapabilities:
         return lsp.ServerCapabilities(completion_provider=lsp.CompletionOptions())
