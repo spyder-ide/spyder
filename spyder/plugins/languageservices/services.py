@@ -403,20 +403,31 @@ class LanguageServicesAPI(QObject):
 
     def _announce_languages(self, state: _ProviderState) -> frozenset[Language]:
         """Refresh merged capabilities of the languages ``state`` gained or
-        lost, emit the corresponding signals and return the gained ones.
+        lost, emit the corresponding signals and return those languages.
 
         A newly served language emits ``sig_capabilities_changed`` even when
         the merged capabilities are unchanged, so document owners re-send
         ``didOpen`` to the provider that just started serving it.
         """
-        provider = state.provider
-        current = provider.supported_languages() if state.started else frozenset()
-        gained = frozenset(current) - state.languages
-        changed = set(state.languages) | set(current)
-        state.languages = frozenset(current)
-        for language in changed:
-            self._refresh_capabilities(language, force=language in gained)
-        return gained
+        with self._lock:
+            previous = state.languages
+            current = (
+                frozenset(state.provider.supported_languages())
+                if state.started
+                else frozenset()
+            )
+            gained = current - previous
+            lost = previous - current
+            state.languages = current
+        try:
+            for language in gained | lost:
+                self._refresh_capabilities(language, force=language in gained)
+        except BaseException:
+            # Languages left unrefreshed would otherwise never be diffed again
+            with self._lock:
+                state.languages = previous
+            raise
+        return gained | lost
 
     # ---- Queries ---------------------------------------------------------
     def supported_languages(self) -> frozenset[Language]:
