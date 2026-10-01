@@ -301,7 +301,7 @@ class LanguageServerConnection:
         """
         if self.config.auto_languages:
             if not self.registered_languages:
-                return frozenset(Language)
+                return Language.all()
             ids = self.registered_languages
         else:
             ids = set(self.config.languages)

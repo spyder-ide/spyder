@@ -109,7 +109,7 @@ class FallbackProvider(LanguageServicesProvider):
         self._documents: dict[str, TokenIndex] = {}
 
     def supported_languages(self) -> frozenset[Language]:
-        return frozenset(Language)
+        return Language.all()
 
     def capabilities(self, language: Language) -> lsp.ServerCapabilities:
         return lsp.ServerCapabilities(completion_provider=lsp.CompletionOptions())

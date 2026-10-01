@@ -65,6 +65,7 @@ def test_find():
 
 
 def test_register_adds_member():
+    before = Language.all()
     member = Language.register("Test Lang", (".tlang", "tl2"), "testlang")
     assert isinstance(member, Language)
     assert member is Language.TEST_LANG
@@ -75,6 +76,7 @@ def test_register_adds_member():
     assert Language.from_name("test lang") is member
     assert Language.from_extension("tl2") is member
     assert Language.from_language_id("testlang") == frozenset({member})
+    assert Language.all() == before | {member}
 
 
 def test_register_rejects_clashes():
