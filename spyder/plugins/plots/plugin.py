@@ -15,7 +15,7 @@ from spyder.api.translations import _
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 
 
-class Plots(SpyderDockablePlugin, ShellConnectPluginMixin):
+class Plots(ShellConnectPluginMixin, SpyderDockablePlugin):
     """
     Plots plugin.
     """

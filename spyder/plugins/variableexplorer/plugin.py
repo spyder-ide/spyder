@@ -23,14 +23,14 @@ from spyder.plugins.variableexplorer.widgets.main_widget import (
     VariableExplorerWidget)
 
 
-class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
+class VariableExplorer(ShellConnectPluginMixin, SpyderDockablePlugin):
     """
     Variable explorer plugin.
     """
     NAME = 'variable_explorer'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
     OPTIONAL = [Plugins.Plots]
-    TABIFY = None
+    TABIFY = [Plugins.Help, Plugins.Explorer]
     WIDGET_CLASS = VariableExplorerWidget
     CONF_SECTION = NAME
     CONF_FILE = False

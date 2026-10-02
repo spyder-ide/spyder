@@ -9,10 +9,9 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-from functools import cached_property
 import re
 import sys
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -27,9 +26,7 @@ from spyder.api.translations import _
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsolePyConfiguration,
-    IPythonConsoleWidgetActions,
     IPythonConsoleWidgetMenus,
-    RemoteConsolesMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
@@ -54,6 +51,10 @@ from spyder.plugins.run.api import (
     run_execute,
 )
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
+
+
+if TYPE_CHECKING:
+    from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
 
 
 class IPythonConsole(SpyderDockablePlugin, RunExecutor):
@@ -272,8 +273,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_initialize(self):
         widget = self.get_widget()
 
-        self._is_remote_consoles_menu_added = False
-
         # Main widget signals
         # Connect signal to open preferences
         widget.sig_open_preferences_requested.connect(
@@ -463,6 +462,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         statusbar.add_status_widget(matplotlib_status)
         matplotlib_status.register_ipythonconsole(self)
 
+        # This is needed when the statusbar is reenabled
+        if not self.is_app_starting:
+            self.reconnect_statusbar_widget(pythonenv_status)
+            self.reconnect_statusbar_widget(matplotlib_status)
+
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         # Remove status widgets
@@ -479,10 +483,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             widget.sig_open_preferences_requested
         )
         pythonenv_status.unregister_ipythonconsole(self)
+        pythonenv_status.disconnect_shellwidget_signals()
         statusbar.remove_status_widget(PythonEnvironmentStatus.ID)
 
         matplotlib_status = statusbar.get_status_widget(MatplotlibStatus.ID)
         matplotlib_status.unregister_ipythonconsole(self)
+        matplotlib_status.disconnect_shellwidget_signals()
         statusbar.remove_status_widget(MatplotlibStatus.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -495,6 +501,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_main_menu_available(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Create Consoles menu
+        mainmenu.create_application_menu(
+            ApplicationMenus.Consoles, _("C&onsoles")
+        )
 
         # Connect state check/update logic for edit actions
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
@@ -549,13 +560,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             before_section=HelpMenuSections.Support,
         )
 
-        # Add remote console submenu
-        if (
-            self.is_plugin_available(Plugins.RemoteClient)
-            and not self._is_remote_consoles_menu_added
-        ):
-            self._add_remote_consoles_menu()
-
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -604,21 +608,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self._remote_client.sig_server_renamed.connect(
             self._rename_remote_clients
         )
-        self._remote_client.sig_server_changed.connect(
-            self._on_remote_server_changed
-        )
-        self._remote_client.sig_connection_established.connect(
-            self._on_remote_server_connected
-        )
-        self._remote_client.sig_connection_lost.connect(
-            self._on_remote_server_disconnected
-        )
-
-        if (
-            self.is_plugin_available(Plugins.MainMenu)
-            and not self._is_remote_consoles_menu_added
-        ):
-            self._add_remote_consoles_menu()
 
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_main_interpreter_available(self):
@@ -635,6 +624,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_main_menu_teardown(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Delete Consoles menu
         mainmenu.remove_application_menu(ApplicationMenus.Consoles)
 
         # Disconnect state check/update logic for edit actions
@@ -646,12 +637,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             IPythonConsoleWidgetMenus.Documentation,
             menu_id=ApplicationMenus.Help
         )
-
-        if self._is_remote_consoles_menu_added:
-            mainmenu.remove_item_from_application_menu(
-                RemoteConsolesMenus.RemoteConsoles,
-                menu_id=ApplicationMenus.Consoles,
-            )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -701,9 +686,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         )
         self._remote_client.sig_server_renamed.disconnect(
             self._rename_remote_clients
-        )
-        self._remote_client.sig_server_changed.disconnect(
-            self._on_remote_server_changed
         )
 
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
@@ -972,6 +954,26 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             give_focus=give_focus,
             can_close=can_close,
         )
+
+    def create_client_for_server(
+        self, server_id: str, kernel_spec: str | None = None
+    ):
+        """
+        Create a client for a remote server.
+
+        Parameters
+        ----------
+        server : str
+            Server identifier.
+        kernel_spec : str, optional
+            Kernel spec for which the client will be created. The default is
+            None.
+
+        Returns
+        -------
+        None.
+        """
+        self.get_widget().create_ipyclient_for_server(server_id, kernel_spec)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file name."""
@@ -1274,25 +1276,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     # ---- For the Remote client plugin
     # -------------------------------------------------------------------------
-    @cached_property
+    @property
     def _remote_client(self):
+        # Don't use cached_property for this to not hold a reference to a
+        # deleted object when Remote client is disabled on the fly.
         return self.get_plugin(Plugins.RemoteClient)
-
-    def _add_remote_consoles_menu(self):
-        """Add remote consoles submenu to the Consoles menu."""
-        widget = self.get_widget()
-        widget.setup_remote_consoles_submenu(render=False)
-
-        menu = widget.get_menu(RemoteConsolesMenus.RemoteConsoles)
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.add_item_to_application_menu(
-            menu,
-            menu_id=ApplicationMenus.Consoles,
-            section=ConsolesMenuSections.New,
-            before=IPythonConsoleWidgetActions.ConnectToKernel,
-        )
-
-        self._is_remote_consoles_menu_added = True
 
     @Slot(str)
     def _close_remote_clients(self, server_id):
@@ -1301,21 +1289,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     @Slot(str)
     def _rename_remote_clients(self, server_id):
         self.get_widget().rename_remote_clients(server_id)
-
-    @Slot()
-    def _on_remote_server_changed(self):
-        self.get_widget().setup_remote_consoles_submenu()
-
-    @Slot(str)
-    def _on_remote_server_connected(self, server_id):
-        self.get_widget().setup_server_consoles_submenu(server_id)
-
-    @Slot(str)
-    def _on_remote_server_disconnected(self, server_id):
-        # Try to reconnect any remote consoles bound to this server before
-        # altering menus.
-        self.get_widget().reconnect_remote_clients(server_id)
-        self.get_widget().clear_server_consoles_submenu(server_id)
 
     # ---- Methods related to the Application plugin
     # ------------------------------------------------------------------------
@@ -1330,3 +1303,39 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_search_action(action_name, enabled, self.NAME)
+
+    # ---- For the Status bar plugin
+    # ------------------------------------------------------------------------
+    def reconnect_statusbar_widget(
+        self, widget: "ShellConnectStatusBarWidget"
+    ):
+        """
+        Reconnect status bar widget after the Status bar plugin is reenabled.
+
+        Parameters
+        ----------
+        widget: StatusBarWidget
+            Widget to reconnect.
+        """
+        # Leave this import here because calling this method should be an
+        # infrequent situation
+        from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+            KernelConnectionState,
+        )
+
+        # Re-add current shellwidgets to the statusbar one
+        for client in self.get_clients():
+            sw = client.shellwidget
+            widget.add_shellwidget(sw)
+
+            # Get again the status info from the kernel
+            if sw.kernel_handler and sw.kernel_handler.connection_state in [
+                KernelConnectionState.IpykernelReady,
+                KernelConnectionState.SpyderKernelReady
+            ]:
+                status = widget.request_status(sw)
+                widget.shellwidget_to_status[sw] = status
+
+        # Populate widget with the info for the current shellwidget
+        csw = self.get_current_shellwidget()
+        widget.set_shellwidget(csw)

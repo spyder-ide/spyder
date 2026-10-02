@@ -29,7 +29,7 @@ from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 # ---- Qt Test Fixtures
 
 def editor_stack():
-    editor_stack = EditorStack(None, [], False)
+    editor_stack = EditorStack(None, [])
     editor_stack.set_find_widget(Mock())
     return editor_stack
 

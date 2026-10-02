@@ -8,4 +8,5 @@
 Spyder update manager API.
 """
 
-from spyder.plugins.updatemanager.container import UpdateManagerActions
+from spyder.plugins.updatemanager.container import UpdateManagerActions  # noqa
+from spyder.plugins.updatemanager.widgets.update import UpdateStatus  # noqa

@@ -520,7 +520,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     self.update_editor(editor.info, editor)
                 except KeyError:
                     pass
-                self.editors_to_update[language].remove(editor)
+            else:
+                # This is necessary to populate the widget when the plugin is
+                # reenabled on the fly
+                editor.request_symbols()
+
+            self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
         else:
             if self.starting.get(language):

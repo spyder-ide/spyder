@@ -890,6 +890,45 @@ class SpyderActionMixin:
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
+    def delete_action(
+        self,
+        name: str,
+        context: str | None = None,
+        plugin: str | None = None
+    ) -> None:
+        """
+        Delete an action by name, context and plugin.
+
+        Parameters
+        ----------
+        name: str
+            Identifier of the action to delete.
+        context: str | None, optional
+            Context identifier under which the action was stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the action was defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyError
+            If the combination of ``name``, ``context`` and ``plugin`` keys
+            does not exist in the action registry.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+
+        action = self.get_action(name, context, plugin)
+        ACTION_REGISTRY.remove_reference(name, plugin, context)
+        action.deleteLater()
+
     def get_actions(
         self, context: str | None = None, plugin: str | None = None
     ) -> dict[str, spyder.utils.qthelpers.SpyderAction]:

@@ -35,9 +35,15 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
 
     CONF_SECTION = "editor"
 
-    def __init__(self, parent, main_widget, menu_actions, first=False,
-                 register_editorstack_cb=None, unregister_editorstack_cb=None,
-                 use_switcher=True):
+    def __init__(
+        self,
+        parent,
+        main_widget,
+        menu_actions,
+        first=False,
+        register_editorstack_cb=None,
+        unregister_editorstack_cb=None,
+    ):
         """Create a splitter for dividing an editor window into panels.
 
         Adds a new EditorStack instance to this splitter.  If it's not
@@ -75,7 +81,7 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         self.unregister_editorstack_cb = unregister_editorstack_cb
 
         self.menu_actions = menu_actions
-        self.editorstack = EditorStack(self, menu_actions, use_switcher)
+        self.editorstack = EditorStack(self, menu_actions)
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.main_widget.clone_editorstack(editorstack=self.editorstack)

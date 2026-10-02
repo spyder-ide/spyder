@@ -312,21 +312,45 @@ class SpyderMenu(SpyderFontsMixin, QMenu):
             added = False
             before_item = self._actions_map.get(before, None)
 
+            # Interate over current actions
             for sec, act in self._actions:
+                # Place action that we want to add before the one it's required
+                # to be
                 if before_item is not None and act == before_item:
                     added = True
                     new_actions.append((section, action))
 
+                # Add current action
                 new_actions.append((sec, act))
 
-            # Actions can't be added to the menu if the `before` action is
-            # not part of it yet. That's why we need to save them in the
-            # `_unintroduced_actions` dict, so we can add them again when
-            # the menu is rendered.
-            if not added and check_before:
-                before_actions = self._unintroduced_actions.get(before, [])
-                before_actions.append((section, action))
-                self._unintroduced_actions[before] = before_actions
+            # Decide what to do if the action was not added to the menu in the
+            # previous step
+            if not added:
+                if check_before:
+                    # Actions can't be added to the menu if the `before` action
+                    #  is not part of it yet. That's why we need to save them
+                    # in the `_unintroduced_actions` dict, so we can add them
+                    # again when the menu is rendered.
+                    before_actions = self._unintroduced_actions.get(before, [])
+                    before_actions.append((section, action))
+                    self._unintroduced_actions[before] = before_actions
+                else:
+                    # This is necessary to handle the case when the `before`
+                    # action was not added to menu at the end.
+                    unintroduced_actions = []
+
+                    # Iterate over new order for actions
+                    for sec, act in new_actions:
+                        # Add `action` to the first position in its section
+                        # because it's not possible to know where it must be
+                        # placed.
+                        if sec == section:
+                            unintroduced_actions.append((section, action))
+
+                        # Add current action in new order
+                        unintroduced_actions.append((sec, act))
+
+                    new_actions = unintroduced_actions
 
             self._actions = new_actions
 

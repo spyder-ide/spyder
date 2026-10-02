@@ -13,6 +13,7 @@ updating the file tree explorer associated with a project.
 
 # Standard library imports
 import logging
+import os
 import os.path as osp
 
 # Third party imports
@@ -27,7 +28,10 @@ from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.projects.widgets.main_widget import (
-    ProjectsActions, ProjectExplorerWidget)
+    ProjectsActions,
+    ProjectsOptionsMenuActions,
+    ProjectExplorerWidget,
+)
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -48,6 +52,7 @@ class Projects(SpyderDockablePlugin):
         Plugins.IPythonConsole,
         Plugins.Switcher,
     ]
+    TABIFY = [Plugins.OutlineExplorer]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
@@ -107,6 +112,7 @@ class Projects(SpyderDockablePlugin):
         treewidget = widget.treewidget
         self._completions = None
         self._switcher = None
+        self._search_in_switcher_action = None
 
         # Emit public signals so that other plugins can connect to them
         widget.sig_project_created.connect(self.sig_project_created)
@@ -179,14 +185,19 @@ class Projects(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
+
+        # Create Projects menu
+        projects_menu = main_menu.create_application_menu(
+            ApplicationMenus.Projects,
+            _("&Projects"),
+            min_width=150 if os.name == "nt" else 170
+        )
+        projects_menu.aboutToShow.connect(self._is_invalid_active_project)
+
         new_project_action = self.get_action(ProjectsActions.NewProject)
         open_project_action = self.get_action(ProjectsActions.OpenProject)
         close_project_action = self.get_action(ProjectsActions.CloseProject)
         delete_project_action = self.get_action(ProjectsActions.DeleteProject)
-
-        projects_menu = main_menu.get_application_menu(
-            ApplicationMenus.Projects)
-        projects_menu.aboutToShow.connect(self._is_invalid_active_project)
 
         main_menu.add_item_to_application_menu(
             new_project_action,
@@ -214,6 +225,19 @@ class Projects(SpyderDockablePlugin):
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.connect(
             self._handle_switcher_search)
+
+        # We need to give users a way to disable searching files in the
+        # switcher because in some situations it introduces delays in the
+        # switcher or Spyder itself.
+        # Fixes spyder-ide/spyder#22641
+        self._search_in_switcher_action = self.create_action(
+            ProjectsOptionsMenuActions.SearchInSwitcher,
+            text=_("Search project files in the switcher"),
+            toggled=True,
+            option='search_files_in_switcher',
+        )
+
+        self.get_widget().update_options_menu()
 
     @on_plugin_available(plugin=Plugins.Application)
     def on_application_available(self):
@@ -281,7 +305,13 @@ class Projects(SpyderDockablePlugin):
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.disconnect(
             self._handle_switcher_search)
+
+        self.delete_action(ProjectsOptionsMenuActions.SearchInSwitcher)
+
         self._switcher = None
+        self._search_in_switcher_action = None
+
+        self.get_widget().update_options_menu()
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
@@ -292,9 +322,18 @@ class Projects(SpyderDockablePlugin):
         )
 
     def on_close(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        self.get_widget().save_config()
-        self.get_widget().watcher.stop()
+        """Perform actions when the plugin is closed."""
+        if self.is_app_closing:
+            # Actions to take when the main window is closed. We don't close
+            # the project here so that Spyder opens it automatically in the
+            # next session
+            self.get_widget().save_config()
+            self.get_widget().watcher.stop()
+        else:
+            # Close project if the plugin is disabled while the session is
+            # active
+            self.close_project()
+
         return True
 
     def on_mainwindow_visible(self):

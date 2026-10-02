@@ -90,6 +90,7 @@ class Plugin3(SpyderPluginV2):
     def on_initialize(self):
         pass
 
+
 @pytest.mark.skipif(
     sys.platform.startswith("linux") and running_in_ci(),
     reason="Sometimes fails on Linux and CIs"

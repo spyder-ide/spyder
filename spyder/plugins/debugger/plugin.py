@@ -37,15 +37,15 @@ from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
-class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
+class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
     REQUIRES = [
-        Plugins.IPythonConsole,
-        Plugins.MainMenu,
         Plugins.Preferences,
         Plugins.Run,
+        Plugins.IPythonConsole,
+        Plugins.MainMenu,
         Plugins.Toolbar,
     ]
     OPTIONAL = [Plugins.Editor]
@@ -81,12 +81,16 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         return cls.create_icon('debug')
 
     def on_initialize(self):
+        self._run_actions_with_editor_shortcuts = []
+
         widget = self.get_widget()
         widget.sig_pdb_state_changed.connect(
-            self._update_current_codeeditor_pdb_state)
+            self._update_current_codeeditor_pdb_state
+        )
         widget.sig_toggle_breakpoints.connect(self._set_or_clear_breakpoint)
         widget.sig_toggle_conditional_breakpoints.connect(
-            self._set_or_edit_conditional_breakpoint)
+            self._set_or_edit_conditional_breakpoint
+        )
         widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
         widget.sig_load_pdb_file.connect(self._load_pdb_file_in_editor)
         widget.sig_clear_breakpoint.connect(self.clear_breakpoint)
@@ -205,6 +209,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         run = self.get_plugin(Plugins.Run)
         run.register_executor_configuration(self, self.executor_configuration)
 
+        # Create buttons
         run.create_run_in_executor_button(
             RunContext.File,
             self.NAME,
@@ -225,13 +230,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
-        run.create_run_in_executor_button(
+        debug_cell = run.create_run_in_executor_button(
             RunContext.Cell,
             self.NAME,
             text=_("Debug cell"),
             tip=_("Debug cell"),
             icon=self.create_icon('debug_cell'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Debug,
@@ -242,15 +247,16 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "toolbar": ApplicationToolbars.Debug,
                 "before": DebuggerWidgetActions.Next,
             },
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
 
-        run.create_run_in_executor_button(
+        debug_selection = run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
             text=_("Debug the current line or selection"),
             tip=_("Debug the current line or selection"),
             icon=self.create_icon('debug_selection'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Debug,
@@ -261,7 +267,18 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "toolbar": ApplicationToolbars.Debug,
                 "before": DebuggerWidgetActions.Next,
             },
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
+
+        # Register shortcuts
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            self._run_actions_with_editor_shortcuts = [
+                debug_cell,
+                debug_selection,
+            ]
+            for action in self._run_actions_with_editor_shortcuts:
+                editor.add_shortcut(action.name, triggered=action.trigger)
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
@@ -269,9 +286,17 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         run.deregister_executor_configuration(
             self, self.executor_configuration
         )
+
+        # Destroy buttons
         run.destroy_run_in_executor_button(RunContext.File, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
+
+        # Remove shortcuts
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            for action in self._run_actions_with_editor_shortcuts:
+                editor.remove_shortcut(action.name)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -302,17 +327,26 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor.sig_codeeditor_deleted.connect(self._remove_codeeditor)
 
         # Apply shortcuts to editor and add actions to pythonfile list
-        editor_shortcuts = [
+        for name in [
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ShowBreakpointsTable,
-        ]
-        for name in editor_shortcuts:
+        ]:
             action = self.get_action(name)
-            # TODO: This should be handled differently?
+
+            if name != DebuggerBreakpointActions.ShowBreakpointsTable:
+                editor.add_shortcut(name, action.trigger)
+
+            # TODO: Fix this with a proper API
             editor.get_widget().pythonfile_dependent_actions += [action]
 
         editor.add_panel(DebuggerPanel)
+
+        # Reconnect CodeEditors if the plugin is reenabled
+        if not self.is_app_starting:
+            for editorstack in editor.get_editorstacks():
+                for finfo in editorstack.data:
+                    self._add_codeeditor(finfo.editor)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -333,19 +367,32 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor.sig_codeeditor_deleted.disconnect(self._remove_codeeditor)
 
         # Remove editor actions
-        editor_shortcuts = [
+        for name in [
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ShowBreakpointsTable,
-        ]
-        for name in editor_shortcuts:
+        ]:
             action = self.get_action(name)
+
+            if name != DebuggerBreakpointActions.ShowBreakpointsTable:
+                editor.remove_shortcut(name)
+
+            # TODO: Fix this with a proper API
             if action in editor.get_widget().pythonfile_dependent_actions:
                 editor.get_widget().pythonfile_dependent_actions.remove(action)
+
+        editor.remove_panel(DebuggerPanel)
+
+        for editorstack in editor.get_editorstacks():
+            for finfo in editorstack.data:
+                self._remove_codeeditor(finfo.editor)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Create Debug menu
+        mainmenu.create_application_menu(ApplicationMenus.Debug, _("&Debug"))
 
         # ControlDebug section
         for action in [DebuggerWidgetActions.Next,
@@ -390,10 +437,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 menu_id=ApplicationMenus.Debug
             )
 
+        # Remove Debug menu
+        mainmenu.remove_application_menu(ApplicationMenus.Debug)
+
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        toolbar.create_application_toolbar(
+        debug_toolbar = toolbar.create_application_toolbar(
             ApplicationToolbars.Debug, _("Debug toolbar")
         )
 
@@ -409,16 +459,32 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 toolbar_id=ApplicationToolbars.Debug,
             )
 
-        debug_toolbar = toolbar.get_application_toolbar(
-            ApplicationToolbars.Debug
-        )
+        # This is necessary to (i) get the expected result when connecting the
+        # signal below; and (ii) be able to grab the toolbar actions to
+        # recreate the debug toolbar in editor windows, both after the plugin
+        # is reenabled.
+        debug_toolbar.render()
+
         debug_toolbar.sig_is_rendered.connect(
             self.get_widget().on_debug_toolbar_rendered
         )
 
+        # Readd toolbar to active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor and not self.is_app_starting:
+            for window in editor.get_widget().editorwindows:
+                window.add_toolbar(ApplicationToolbars.Debug, reload=True)
+
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
+
+        debug_toolbar = toolbar.get_application_toolbar(
+            ApplicationToolbars.Debug
+        )
+        debug_toolbar.sig_is_rendered.disconnect(
+            self.get_widget().on_debug_toolbar_rendered
+        )
 
         for action_id in [
             DebuggerWidgetActions.Next,
@@ -433,6 +499,26 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             )
 
         toolbar.remove_application_toolbar(ApplicationToolbars.Debug)
+
+        # Remove toolbar from active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor:
+            for window in editor.get_widget().editorwindows:
+                window.remove_toolbar(ApplicationToolbars.Debug)
+
+    def on_close(self, cancelable: bool = False) -> None:
+        if not self.is_app_closing:
+            # Stop debugging in all consoles if the plugin is disabled while
+            # the session is active. Otherwise it's not possible to correctly
+            # restore the debugging session after the plugin is re-enabled.
+            console = self.get_plugin(Plugins.IPythonConsole)
+
+            clients = console.get_clients()
+            for client in clients:
+                if client.shellwidget.is_debugging():
+                    client.shellwidget.stop_debugging()
+
+        super().on_close(cancelable)
 
     # ---- Private API
     # ------------------------------------------------------------------------

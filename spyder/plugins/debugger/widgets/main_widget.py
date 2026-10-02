@@ -332,6 +332,8 @@ class DebuggerWidget(ShellConnectMainWidget):
             icon=self.create_icon('breakpoint_big'),
             triggered=self.sig_toggle_breakpoints,
             register_shortcut=True,
+            shortcut_context="editor",
+            context=Qt.WidgetShortcut,
         )
 
         self.create_action(
@@ -341,6 +343,8 @@ class DebuggerWidget(ShellConnectMainWidget):
             icon=self.create_icon('breakpoint_cond_big'),
             triggered=self.sig_toggle_conditional_breakpoints,
             register_shortcut=True,
+            shortcut_context="editor",
+            context=Qt.WidgetShortcut,
         )
 
         self.create_action(

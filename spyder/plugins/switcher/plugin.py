@@ -23,6 +23,7 @@ from spyder.api.plugin_registration.decorators import (on_plugin_available,
 from spyder.plugins.switcher.api import SwitcherActions
 from spyder.plugins.switcher.container import SwitcherContainer
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
+from spyder.plugins.outlineexplorer.api import OutlineExplorerActions
 
 
 class Switcher(SpyderPluginV2):
@@ -115,32 +116,29 @@ class Switcher(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for switcher_action in [
-                SwitcherActions.FileSwitcherAction,
-                SwitcherActions.SymbolFinderAction]:
-            action = self.get_action(switcher_action)
-            if sys.platform == 'darwin':
-                before_section = FileMenuSections.Navigation
-            else:
-                before_section = FileMenuSections.Restart
-            mainmenu.add_item_to_application_menu(
-                action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Switcher,
-                before_section=before_section
-            )
+        action = self.get_action(SwitcherActions.FileSwitcherAction)
+
+        if sys.platform == 'darwin':
+            before_section = FileMenuSections.Navigation
+        else:
+            before_section = FileMenuSections.Restart
+
+        mainmenu.add_item_to_application_menu(
+            action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Switcher,
+            before=OutlineExplorerActions.SymbolFinderAction,
+            before_section=before_section,
+            render=not self.is_app_starting,
+        )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for switcher_action in [
-                SwitcherActions.FileSwitcherAction,
-                SwitcherActions.SymbolFinderAction]:
-            action = self.get_action(switcher_action)
-            mainmenu.remove_item_from_application_menu(
-                action,
-                menu_id=ApplicationMenus.File
-            )
+        action = self.get_action(SwitcherActions.FileSwitcherAction)
+        mainmenu.remove_item_from_application_menu(
+            action, menu_id=ApplicationMenus.File
+        )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -153,13 +151,19 @@ class Switcher(SpyderPluginV2):
         """Setup list widget content based on filtering."""
         self._switcher.setup()
 
-    def open_switcher(self, symbol=False):
-        """Open switcher dialog."""
-        self.get_container().open_switcher(symbol)
+    def open_switcher(self, mode: str = ""):
+        """
+        Open switcher.
 
-    def open_symbolfinder(self):
-        """Open symbol list management dialog."""
-        self.get_container().open_symbolfinder()
+        Parameters
+        ----------
+        mode: str
+            The mode in which the switcher will be open. Default is an empty
+            string, which allows to switch between files in the Editor. Another
+            mode is "@" (registerd by the Outline), which allows to find
+            symbols in the current file.
+        """
+        self.get_container().open_switcher(mode)
 
     # --- QDialog methods
     def show(self):

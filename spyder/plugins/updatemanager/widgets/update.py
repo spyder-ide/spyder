@@ -7,6 +7,7 @@
 """Update Manager widgets."""
 
 # Standard library imports
+from enum import StrEnum
 import errno
 import json
 import logging
@@ -55,14 +56,6 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 # Logger setup
 logger = logging.getLogger(__name__)
 
-# Update manager process statuses
-NO_STATUS = __version__
-UPDATING_UPDATER = _("Installing Spyder's updater")
-DOWNLOADING_INSTALLER = _("Downloading update")
-DOWNLOAD_FINISHED = _("Download finished")
-PENDING = _("Update available")
-CHECKING = _("Checking for updates")
-INSTALL_ON_CLOSE = _("Install on close")
 
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
 URL_I = 'https://docs.spyder-ide.org/current/installation.html'
@@ -75,6 +68,18 @@ SKIP_CHECK_UPDATE = (
     )
     or sys.platform not in ('linux', 'darwin', 'win32')  # Supported platforms
 )
+
+
+class UpdateStatus(StrEnum):
+    """Update statuses."""
+
+    NoStatus = __version__
+    InstallingUpdater = _("Installing Spyder's updater")
+    DownloadingInstaller = _("Downloading update")
+    DownloadFinished = _("Download finished")
+    Pending = _("Update available")
+    Checking = _("Checking for updates")
+    InstallOnClose = _("Install on close")
 
 
 class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
@@ -113,14 +118,14 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
         Percent of the data downloaded until now.
     """
 
-    sig_set_status = Signal(str, str)
+    sig_set_status = Signal(object, str)
     """
     Signal to set the status of update manager.
 
     Parameters
     ----------
-    status: str
-        Status string.
+    status: object
+        Member of UpdateStatus.
     latest_release: str
         Latest release version detected.
     """
@@ -167,7 +172,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
 
     # ---- General
 
-    def set_status(self, status=NO_STATUS):
+    def set_status(self, status=UpdateStatus.NoStatus):
         """Set the update manager status."""
         version = None
         if self.asset_info is not None:
@@ -193,9 +198,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
             self.progress_dialog = None
 
         self.cleanup_threads()
-
-        self.set_status(NO_STATUS)
-
+        self.set_status(UpdateStatus.NoStatus)
         self.sig_exception_occurred.emit(exc)
 
     # ---- Check Update
@@ -238,7 +241,9 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
             lambda: self.sig_disable_actions.emit(False)
         )
         self.update_worker.moveToThread(self.update_thread)
-        self.update_thread.started.connect(lambda: self.set_status(CHECKING))
+        self.update_thread.started.connect(
+            lambda: self.set_status(UpdateStatus.Checking)
+        )
         self.update_thread.started.connect(self.update_worker.start)
 
         # Delay starting this check to avoid blocking the main window
@@ -266,7 +271,9 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
         checkbox = self.update_worker.checkbox
 
         # Always set status, regardless of error, DEV, or startup
-        self.set_status(PENDING if update_available else NO_STATUS)
+        self.set_status(
+            UpdateStatus.Pending if update_available else UpdateStatus.NoStatus
+        )
 
         # self.startup = True is used on startup, so only positive feedback is
         # given. self.startup = False is used after startup when using the menu
@@ -344,7 +351,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
             if self._validate_download():
                 if self.asset_info["update_type"] == UpdateType.Major:
                     # Major updates don't need Updater, start install
-                    self.set_status(DOWNLOAD_FINISHED)
+                    self.set_status(UpdateStatus.DownloadFinished)
                     self._confirm_install()
                 else:
                     # Minor/micro updates need the Updater
@@ -371,7 +378,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
     def _start_update_updater(self):
         """Check for and install updates for Spyder-updater."""
         self.sig_disable_actions.emit(True)
-        self.set_status(UPDATING_UPDATER)
+        self.set_status(UpdateStatus.InstallingUpdater)
 
         self.progress_dialog = ProgressDialog(
             self, _("Installing Spyder's updater..."), cancel_btn=False
@@ -409,7 +416,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
             self._start_download()
             return
 
-        self.set_status(PENDING)
+        self.set_status(UpdateStatus.Pending)
         if self.progress_dialog is not None:
             self.progress_dialog.accept()
             self.progress_dialog = None
@@ -448,7 +455,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
         )
 
         self.sig_disable_actions.emit(True)
-        self.set_status(DOWNLOADING_INSTALLER)
+        self.set_status(UpdateStatus.DownloadingInstaller)
 
         # Only show progress bar for installers
         if not self.installer_path.endswith('zip'):
@@ -504,7 +511,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
         if box.result() == QMessageBox.Yes:
             self.cancelled = True
             self.cleanup_threads()
-            self.set_status(PENDING)
+            self.set_status(UpdateStatus.Pending)
         else:
             self.progress_dialog.show()
             self.download_worker.paused = False
@@ -524,12 +531,12 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
             # If download error, do not proceed with install
             if self.progress_dialog is not None:
                 self.progress_dialog.reject()
-            self.set_status(PENDING)
+            self.set_status(UpdateStatus.Pending)
             error_messagebox(self, self.download_worker.error)
             return
 
         if self.download_worker:
-            self.set_status(DOWNLOAD_FINISHED)
+            self.set_status(UpdateStatus.DownloadFinished)
 
         msg = _("Would you like to install it?")
         box = confirm_messagebox(
@@ -549,7 +556,7 @@ class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
             self.restart_spyder = False
             self.set_conf("update_performed", True)
             self.sig_install_on_close.emit(True)
-            self.set_status(INSTALL_ON_CLOSE)
+            self.set_status(UpdateStatus.InstallOnClose)
 
     def start_install(self):
         """Install from downloaded installer or update through conda."""
