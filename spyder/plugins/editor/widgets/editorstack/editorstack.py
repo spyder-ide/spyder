@@ -145,7 +145,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
-    sig_perform_completion_request = Signal(str, str, dict)
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
@@ -355,6 +354,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.tabmode_enabled = False
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
+        self.language_services = None
         self.automatic_completions_enabled = True
         self.automatic_completion_chars = 3
         self.automatic_completion_ms = 300
@@ -809,8 +809,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     # ---- Editor Widget Settings
     @on_conf_change(
-        option=("provider_configuration", "lsp", "values", "pyflakes"),
-        section='completions',
+        option=("providers", "pylsp", "values", "pyflakes"),
+        section='language_services',
     )
     def on_pyflakes_enabled_change(self, value):
         if self.data:
@@ -896,9 +896,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 finfo.editor.edge_line.set_enabled(state)
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values',
+        option=('providers', 'pylsp', 'values',
                 'flake8/max_line_length'),
-        section='completions'
+        section='language_services'
     )
     def set_edgeline_columns(self, columns):
         logger.debug(f"Set edge line columns to {columns}")
@@ -1016,7 +1016,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
-    @on_conf_change(option='enable_code_snippets', section='completions')
+    @on_conf_change(option='enable_code_snippets', section='language_services')
     def set_code_snippets_enabled(self, state):
         logger.debug(f"Set code snippets to {state}")
         self.code_snippets_enabled = state
@@ -1064,9 +1064,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 finfo.editor.set_completions_hint_after_ms(ms)
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values',
+        option=('providers', 'pylsp', 'values',
                 'enable_hover_hints'),
-        section='completions'
+        section='language_services'
     )
     def set_hover_hints_enabled(self, state):
         logger.debug(f"Set hover hints to {state}")
@@ -1076,8 +1076,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 finfo.editor.toggle_hover_hints(state)
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
-        section='completions'
+        option=('providers', 'pylsp', 'values', 'format_on_save'),
+        section='language_services'
     )
     def set_format_on_save(self, state):
         logger.debug(f"Set format on save to {state}")
@@ -1299,7 +1299,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             # need to emit sig_open_file to see if we can start a
             # language server for it.
             options = {
-                'language': language,
+                'language': finfo.editor.language,
                 'filename': new_filename,
                 'codeeditor': finfo.editor
             }
@@ -1718,37 +1718,49 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.__modify_stack_title()
         return is_ok
 
-    def register_completion_capabilities(self, capabilities, language):
-        """
-        Register completion server capabilities across all editors.
+    def set_language_services(self, plugin):
+        """Set the LanguageServices plugin used by the editors."""
+        self.language_services = plugin
+        for finfo in self.data:
+            finfo.editor.language_services = plugin
+
+    def editors_for_language(self, language):
+        """Editors whose language is ``language``.
 
         Parameters
         ----------
-        capabilities: dict
-            Capabilities supported by a language server.
-        language: str
-            Programming language for the language server (it has to be
-            in small caps).
+        language: spyder.plugins.languageservices.api.languages.Language
         """
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.register_completion_capabilities(capabilities)
+        name = language.name.lower()
+        return [
+            self.tabs.widget(index)
+            for index in range(self.get_stack_count())
+            if self.tabs.widget(index).language.lower() == name
+        ]
+
+    def register_completion_capabilities(self, language, capabilities):
+        """
+        Register language server capabilities across all editors.
+
+        Parameters
+        ----------
+        language: spyder.plugins.languageservices.api.languages.Language
+        capabilities: lsprotocol.types.ServerCapabilities | None
+            Merged capabilities of the providers serving ``language``.
+        """
+        for editor in self.editors_for_language(language):
+            editor.register_completion_capabilities(capabilities)
 
     def start_completion_services(self, language):
         """Notify language server availability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.start_completion_services()
+        for editor in self.editors_for_language(language):
+            editor.start_completion_services()
 
     def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""
         try:
-            for index in range(self.get_stack_count()):
-                editor = self.tabs.widget(index)
-                if editor.language.lower() == language:
-                    editor.stop_completion_services()
+            for editor in self.editors_for_language(language):
+                editor.stop_completion_services()
         except RuntimeError:
             pass
 
@@ -2778,9 +2790,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
-        editor.sig_perform_completion_request.connect(
-            self.sig_perform_completion_request
-        )
+        editor.language_services = self.language_services
         editor.sig_start_operation_in_progress.connect(self.spinner.start)
         editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(

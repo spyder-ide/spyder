@@ -16,6 +16,7 @@ import logging
 import os.path as osp
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import Signal
 
 # Local imports
@@ -23,7 +24,6 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import _
-from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.projects.widgets.main_widget import (
@@ -43,9 +43,9 @@ class Projects(SpyderDockablePlugin):
     CONF_FILE = False
     REQUIRES = [Plugins.Application, Plugins.MainMenu]
     OPTIONAL = [
-        Plugins.Completions,
         Plugins.Editor,
         Plugins.IPythonConsole,
+        Plugins.LanguageServices,
         Plugins.Switcher,
     ]
     WIDGET_CLASS = ProjectExplorerWidget
@@ -105,7 +105,7 @@ class Projects(SpyderDockablePlugin):
         """Register plugin in Spyder's main window"""
         widget = self.get_widget()
         treewidget = widget.treewidget
-        self._completions = None
+        self._language_services = None
         self._switcher = None
 
         # Emit public signals so that other plugins can connect to them
@@ -148,22 +148,17 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_loaded.connect(self._set_path_in_editor)
         widget.sig_project_closed.connect(self._unset_path_in_editor)
 
-    @on_plugin_available(plugin=Plugins.Completions)
-    def on_completions_available(self):
-        self._completions = self.get_plugin(Plugins.Completions)
+    @on_plugin_available(plugin=Plugins.LanguageServices)
+    def on_language_services_available(self):
+        self._language_services = self.get_plugin(Plugins.LanguageServices)
         widget = self.get_widget()
 
-        # TODO: This is not necessary anymore due to us starting workspace
-        # services in the editor. However, we could restore it in the future.
-        # completions.sig_language_completions_available.connect(
-        #     lambda settings, language:
-        #         self.start_workspace_services())
-        self._completions.sig_stop_completions.connect(
-            self.stop_workspace_services)
+        self._language_services.sig_language_stopped.connect(
+            self._on_language_stopped)
         widget.sig_project_loaded.connect(self._add_path_to_completions)
         widget.sig_project_closed.connect(self._remove_path_from_completions)
-        widget.sig_broadcast_notification_requested.connect(
-            self._broadcast_notification)
+        widget.sig_workspace_notification_requested.connect(
+            self._send_workspace_notification)
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipython_console_available(self):
@@ -240,21 +235,20 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
 
-    @on_plugin_teardown(plugin=Plugins.Completions)
-    def on_completions_teardown(self):
-        self._completions = self.get_plugin(Plugins.Completions)
+    @on_plugin_teardown(plugin=Plugins.LanguageServices)
+    def on_language_services_teardown(self):
         widget = self.get_widget()
 
-        self._completions.sig_stop_completions.disconnect(
-            self.stop_workspace_services)
+        self._language_services.sig_language_stopped.disconnect(
+            self._on_language_stopped)
 
         widget.sig_project_loaded.disconnect(self._add_path_to_completions)
         widget.sig_project_closed.disconnect(
             self._remove_path_from_completions)
-        widget.sig_broadcast_notification_requested.disconnect(
-            self._broadcast_notification)
+        widget.sig_workspace_notification_requested.disconnect(
+            self._send_workspace_notification)
 
-        self._completions = None
+        self._language_services = None
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
@@ -472,18 +466,17 @@ class Projects(SpyderDockablePlugin):
         editor.set_current_project_path()
 
     def _add_path_to_completions(self, path):
-        self._completions.project_path_update(
-            path,
-            update_kind=WorkspaceUpdateKind.ADDITION,
-            instance=self.get_widget()
+        self._language_services.notify_workspace_folders(
+            self.get_widget()._workspace_folders_params(added=[path])
         )
 
     def _remove_path_from_completions(self, path):
-        self._completions.project_path_update(
-            path,
-            update_kind=WorkspaceUpdateKind.DELETION,
-            instance=self.get_widget()
+        self._language_services.notify_workspace_folders(
+            self.get_widget()._workspace_folders_params(removed=[path])
         )
+
+    def _on_language_stopped(self, language):
+        self.stop_workspace_services(language)
 
     def _run_file_in_ipyconsole(self, fname):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
@@ -509,8 +502,13 @@ class Projects(SpyderDockablePlugin):
         """Handle an invalid active project."""
         self.get_widget().is_invalid_active_project()
 
-    def _broadcast_notification(self, method, params):
-        self._completions.broadcast_notification(method, params)
+    def _send_workspace_notification(self, method, params):
+        if method == lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS:
+            self._language_services.notify_workspace_folders(params)
+        elif method == lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES:
+            self._language_services.notify_watched_files(params)
+        else:
+            raise ValueError(f"Unsupported workspace notification {method}")
 
     def _handle_switcher_modes(self, mode):
         """

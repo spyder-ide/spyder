@@ -364,6 +364,7 @@ spyder_plugins_entry_points = [
     'external_terminal = spyder.plugins.externalterminal.plugin:ExternalTerminal',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
+    'language_services = spyder.plugins.languageservices.plugin:LanguageServices',
     'historylog = spyder.plugins.history.plugin:HistoryLog',
     'internal_console = spyder.plugins.console.plugin:Console',
     'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
@@ -390,13 +391,18 @@ spyder_plugins_entry_points = [
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
 
-spyder_completions_entry_points = [
-    ('fallback = spyder.plugins.completion.providers.fallback.provider:'
+# Third-party providers only. Spyder's own live in spyder.language_services
+spyder_completions_entry_points = []
+
+spyder_language_services_entry_points = [
+    ('lsp = spyder.plugins.languageservices.providers.lsp.provider:'
+     'LanguageServerClientProvider'),
+    ('pylsp = spyder.plugins.languageservices.providers.pylsp.provider:'
+     'PylspProvider'),
+    ('fallback = spyder.plugins.languageservices.providers.fallback.provider:'
      'FallbackProvider'),
-    ('snippets = spyder.plugins.completion.providers.snippets.provider:'
+    ('snippets = spyder.plugins.languageservices.providers.snippets.provider:'
      'SnippetsProvider'),
-    ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
-     'LanguageServerProvider'),
 ]
 
 
@@ -407,7 +413,8 @@ setup_args['entry_points'] = {
             'spyder = spyder.app.start:main'
     ],
     'spyder.plugins': spyder_plugins_entry_points,
-    'spyder.completions': spyder_completions_entry_points
+    'spyder.completions': spyder_completions_entry_points,
+    'spyder.language_services': spyder_language_services_entry_points,
 }
 setup_args.pop('scripts', None)
 
