@@ -18,6 +18,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
+from spyder.utils.conda import find_local_venv_interpreter, has_spyder_kernels
 
 
 @pytest.fixture
@@ -77,3 +78,72 @@ def test_internal_interpreter(maininterpreter, qtbot, mocker):
     container.envs = {name: (interpreter, version)}
     container.path_to_env = {interpreter: name}
     assert 'system: (Python 3.6.6)' == container._get_env_info(interpreter)
+
+
+def test_find_local_venv_interpreter_found(tmp_path):
+    """Test detection when a valid .venv exists in the project."""
+    venv_dir = tmp_path / '.venv'
+    bin_dir = venv_dir / ('Scripts' if os.name == 'nt' else 'bin')
+    bin_dir.mkdir(parents=True)
+    python_name = 'python.exe' if os.name == 'nt' else 'python'
+    python_path = bin_dir / python_name
+    python_path.touch()
+
+    result = find_local_venv_interpreter(str(tmp_path))
+    assert result == str(python_path)
+
+
+def test_find_local_venv_interpreter_no_venv(tmp_path):
+    """Test that None is returned when there's no .venv folder."""
+    result = find_local_venv_interpreter(str(tmp_path))
+    assert result is None
+
+
+def test_find_local_venv_interpreter_broken_venv(tmp_path):
+    """Test that None is returned when .venv exists but has no binary."""
+    venv_dir = tmp_path / '.venv'
+    venv_dir.mkdir()
+
+    result = find_local_venv_interpreter(str(tmp_path))
+    assert result is None
+
+
+def test_has_spyder_kernels_true(mocker):
+    """Test detection when spyder-kernels is importable."""
+    mock_result = mocker.Mock()
+    mock_result.returncode = 0
+    mocker.patch('subprocess.run', return_value=mock_result)
+
+    assert has_spyder_kernels('/fake/path/python') is True
+
+
+def test_has_spyder_kernels_false(mocker):
+    """Test detection when spyder-kernels is not importable."""
+    mock_result = mocker.Mock()
+    mock_result.returncode = 1
+    mocker.patch('subprocess.run', return_value=mock_result)
+
+    assert has_spyder_kernels('/fake/path/python') is False
+
+
+def test_auto_detect_venv_switches_interpreter(
+    maininterpreter, qtbot, mocker, tmp_path
+):
+    """Test that a found .venv with spyder-kernels gets auto-selected."""
+    venv_dir = tmp_path / '.venv'
+    bin_dir = venv_dir / ('Scripts' if os.name == 'nt' else 'bin')
+    bin_dir.mkdir(parents=True)
+    python_name = 'python.exe' if os.name == 'nt' else 'python'
+    python_path = bin_dir / python_name
+    python_path.touch()
+
+    mocker.patch(
+        'spyder.plugins.maininterpreter.plugin.has_spyder_kernels',
+        return_value=True
+    )
+    mocker.patch.object(maininterpreter, 'get_plugin', return_value=None)
+    mock_switch = mocker.patch.object(maininterpreter, 'set_custom_interpreter')
+
+    maininterpreter._auto_detect_venv(str(tmp_path))
+
+    mock_switch.assert_called_once_with(str(python_path), manual=False)
