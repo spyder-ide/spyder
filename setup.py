@@ -188,9 +188,29 @@ if os.name == 'nt':
 # =============================================================================
 # Files added to the package
 # =============================================================================
-EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
-           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh', '.md']
+EXTLIST = [
+    ".pot",
+    ".po",
+    ".mo",
+    ".svg",
+    ".png",
+    ".css",
+    ".html",
+    ".js",
+    ".ini",
+    ".txt",
+    ".qss",
+    ".json",
+    ".rst",
+    ".bloom",
+    ".ico",
+    ".gif",
+    ".mp3",
+    ".ogg",
+    ".bat",
+    ".sh",
+    ".md",
+]
 
 
 # =============================================================================
@@ -282,7 +302,7 @@ install_requires += [
     # Note that on IPython 9.0.0 Python 3.10 support was dropped
     'ipython>=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0',
     'ipython_pygments_lexers>=1.0',
-    'jedi>=0.17.2,<0.21.0',
+    'jedi>=0.17.3,<0.21.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',
