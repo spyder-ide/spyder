@@ -14,6 +14,7 @@ import os.path as osp
 
 # Third-party import
 from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
@@ -23,6 +24,7 @@ from spyder.api.translations import _
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
 from spyder.utils.misc import get_python_executable
+from spyder.utils.conda import find_local_venv_interpreter, has_spyder_kernels
 
 
 class MainInterpreter(SpyderPluginV2):
@@ -32,6 +34,7 @@ class MainInterpreter(SpyderPluginV2):
 
     NAME = "main_interpreter"
     REQUIRES = [Plugins.Preferences]
+    OPTIONAL = [Plugins.Projects]#Added Optional
     CONTAINER_CLASS = MainInterpreterContainer
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
@@ -97,11 +100,19 @@ class MainInterpreter(SpyderPluginV2):
                 self.set_conf('default', True)
                 self.set_conf('executable', get_python_executable())
 
+
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        #Auto Detect the venv and loads it
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(self._auto_detect_venv)
+
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         # Register conf page
         preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
+        preferences.register_plugin_preferences(self) 
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -111,10 +122,51 @@ class MainInterpreter(SpyderPluginV2):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def set_custom_interpreter(self, interpreter):
+    def set_custom_interpreter(self, interpreter,manual=True):
         """Set given interpreter as the current selected one."""
         self.get_container().add_to_custom_interpreters(interpreter)
         self.set_conf("default", False)
         self.set_conf("custom", True)
         self.set_conf("custom_interpreter", interpreter)
         self.set_conf("executable", interpreter)
+        if manual:
+            projects = self.get_plugin(Plugins.Projects)
+            project = projects.get_active_project() if projects else None
+            if project is not None:
+                project.set_option('interpreter_manually_set', True)
+
+
+    def _auto_detect_venv(self, project_path):
+        """Auto-detect and switch to a local .venv interpreter, if found."""
+        projects = self.get_plugin(Plugins.Projects)
+        project = projects.get_active_project() if projects else None
+
+        if project is not None:
+            if project.get_option(
+                'interpreter_manually_set', default=False
+            ):
+                return
+
+        interpreter = find_local_venv_interpreter(project_path)
+        if interpreter is None:
+            return
+
+        if not has_spyder_kernels(interpreter):
+            QMessageBox.information(
+                None,
+                "Local environment detected",
+                f"Found a local .venv at:\n{interpreter}\n\n"
+                "spyder-kernels is not installed there, so Spyder could not "
+                "switch to it automatically. Install it with:\n\n"
+                f"  {interpreter} -m pip install spyder-kernels"
+            )
+
+        old_interpreter = self.get_conf('executable', default=None)
+        self.set_custom_interpreter(interpreter, manual=False)
+
+        if old_interpreter and old_interpreter != interpreter:
+            print(
+                f"Interpreter switched to {interpreter}. "
+                "Restart the console (Consoles > Restart kernel) "
+                "for this to take effect in your current session."
+            )
