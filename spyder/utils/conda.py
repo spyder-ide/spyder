@@ -13,6 +13,8 @@ import json
 import os
 import os.path as osp
 import sys
+import subprocess
+
 
 # Third-party imports
 from packaging.version import parse
@@ -298,3 +300,46 @@ def validate_conda(conda_executable):
     except Exception:
         return False
     return valid
+
+
+def find_local_venv_interpreter(project_path):
+    """
+    Look for a local virtual environment interpreter inside a project.
+
+    Checks for a ``.venv`` folder at the root of ``project_path`` and
+    returns the path to its Python interpreter if it exists and is a
+    valid executable. Works regardless of which tool created the venv
+    (``venv``, ``virtualenv``, ``uv``, ``poetry``, etc.), since they all
+    produce the same standard folder layout.
+    """
+    if not project_path or not osp.isdir(project_path):
+        return None
+
+    venv_dir = osp.join(project_path, '.venv')
+    if not osp.isdir(venv_dir):
+        return None
+
+    if os.name == 'nt':
+        interpreter = osp.join(venv_dir, 'Scripts', 'python.exe')
+    else:
+        interpreter = osp.join(venv_dir, 'bin', 'python')
+
+    if osp.isfile(interpreter):
+        return interpreter
+
+    return None
+
+
+def has_spyder_kernels(interpreter_path):
+    """
+    Check if spyder-kernels is installed in the given interpreter.
+    """
+    try:
+        result = subprocess.run(
+            [interpreter_path, '-c', 'import spyder_kernels'],
+            capture_output=True,
+            timeout=5,
+        )
+        return result.returncode == 0
+    except (subprocess.SubprocessError, OSError):
+        return FalseCurrently 

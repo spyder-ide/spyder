@@ -42,6 +42,12 @@
 * Add `add_extension`, `add_panel` and `add_shortcut` methods to register
   extensions, panels and shortcuts.
 
+#### Main interpreter
+
+* Add `manual` keyword argument to `set_custom_interpreter` to distinguish
+  automatic interpreter switches (e.g. detecting a local `.venv`) from
+  manual user selections.
+
 ----
 
 ## Version 6.2.0a3 (2026-09-22)
