@@ -223,6 +223,16 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
+    sig_move_to_editorstack_requested = Signal(str)
+    """
+    Request to move to another editorstack
+    
+    Parameters
+    ----------
+    direction: str
+        This can only have four values: "left", "right", "up" and "down".
+    """
+
     def __init__(self, parent, actions, use_switcher=True):
         QWidget.__init__(self, parent)
         SpyderWidgetMixin.__init__(self, class_parent=parent)
@@ -2723,6 +2733,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             self.sig_update_code_analysis_actions)
         editor.sig_refresh_formatting.connect(self.refresh_formatting)
         editor.sig_save_requested.connect(self.save)
+        editor.sig_move_to_editorstack_requested.connect(
+            self.sig_move_to_editorstack_requested
+        )
         language = get_file_language(fname, txt)
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,
