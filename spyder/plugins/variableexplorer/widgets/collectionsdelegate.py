@@ -10,6 +10,7 @@
 # Standard library imports
 import ast
 import copy
+from dataclasses import is_dataclass
 import datetime
 import functools
 import math
@@ -217,7 +218,11 @@ class CollectionsDelegate(
 
         key = index.model().get_key(index)
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
-                    or not is_known_type(value))
+                    or not is_known_type(value)) or is_dataclass(value)
+        collection = (
+            isinstance(value, (list, set, frozenset, tuple, dict))
+            or is_dataclass(value)
+        )
 
         # We can't edit Numpy void objects because they could be anything, so
         # this might cause a crash.
@@ -226,10 +231,7 @@ class CollectionsDelegate(
             self.sig_editor_shown.emit()
             return None
         # CollectionsEditor for a list, tuple, dict, etc.
-        elif (
-            isinstance(value, (list, set, frozenset, tuple, dict))
-            and not object_explorer
-        ):
+        elif collection and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
                 parent=parent,
