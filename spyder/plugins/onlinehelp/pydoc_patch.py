@@ -21,6 +21,7 @@ from pydoc import (
 import re
 import sys
 import tokenize
+from urllib.request import url2pathname
 import warnings
 
 # Local imports
@@ -767,7 +768,7 @@ def _url_handler(url, content_type="text/html"):
 
     def html_getfile(path):
         """Get and display a source file listing safely."""
-        path = path.replace('%20', ' ')
+        path = url2pathname(path)
         with tokenize.open(path) as fp:
             lines = html.escape(fp.read())
         body = '<pre>%s</pre>' % lines
