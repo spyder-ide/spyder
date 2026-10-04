@@ -208,7 +208,7 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
             _time += 1
 
         if info is None:
-            self.logger.error("Faield to get server info")
+            self.logger.error("Failed to get server info")
             self._emit_connection_status(
                 ConnectionStatus.Error,
                 _(
