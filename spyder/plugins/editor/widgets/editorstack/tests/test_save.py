@@ -28,7 +28,6 @@ from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
-
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -433,6 +432,7 @@ def test_save_all(editor_bot, mocker):
     editor_stack, qtbot = editor_bot
     save_all = editor_stack.save_all
     mocker.patch.object(editor_stack, 'save')
+
     # Save return value isn't used in save_all.
     editor_stack.save.return_value = False
 
@@ -441,8 +441,66 @@ def test_save_all(editor_bot, mocker):
     editor_stack.save.assert_any_call(0, save_new_files=True)
     editor_stack.save.assert_any_call(1, save_new_files=True)
     editor_stack.save.assert_any_call(2, save_new_files=True)
+
     with pytest.raises(AssertionError):
         editor_stack.save.assert_any_call(3, save_new_files=True)
+
+
+def test_save_all_when_overwriting(base_editor_bot, mocker, tmp_path):
+    """
+    Test EditorStack.save_all() when new files are saved with the same name
+    of open ones.
+
+    This is a regression test for spyder-ide/spytder#26382
+    """
+    editor_stack, qtbot = base_editor_bot
+    mocker.patch.object(editor, 'getsavefilename')
+
+    # Auxiliary function
+    def create_pair_saved_new(index, index_name):
+        file_to_save = tmp_path / f"saved-file-{index_name}.py"
+        editor.getsavefilename.side_effect = [(file_to_save, "")]
+
+        # Save file
+        editor_stack.new(
+            str(file_to_save), "utf-8", f"# Saved file {index_name}"
+        )
+        editor_stack.save(index=index)
+
+        editor_stack.new(
+            str(tmp_path / f"new-file-{index_name}.py"),
+            "utf-8",
+            f"# New file {index_name}",
+        )
+
+    # Create saved and new files
+    for index, index_name in [(0, "one"), (2, "two")]:
+        create_pair_saved_new(index, index_name)
+
+    editor_stack.show()
+
+    assert editor_stack.get_stack_count() == 4
+
+    # Save all files. The new ones should overwrite to the saved ones due to
+    # the mocking done below
+    editor.getsavefilename.side_effect = [
+        (tmp_path / "saved-file-one.py", ""),
+        (tmp_path / "saved-file-two.py", "")
+    ]
+    editor_stack.save_all(save_new_files=True)
+    assert editor_stack.get_stack_count() == 2
+
+    # Check that the filename and text for the saved files are the expected
+    # ones
+    for index in range(2):
+        editor_stack.set_stack_index(index)
+        codeeditor = editor_stack.get_current_editor()
+
+        index_name = "one" if index == 0 else "two"
+        assert codeeditor.filename == str(
+            tmp_path / f"saved-file-{index_name}.py"
+        )
+        assert codeeditor.toPlainText() == f"# New file {index_name}\n"
 
 
 @pytest.mark.show_save_dialog
