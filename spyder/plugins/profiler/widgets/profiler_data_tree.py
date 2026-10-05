@@ -649,6 +649,8 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             return True
         if path.startswith("<"):
             return True
+        if path == "shibokensupport/signature/loader.py":
+            return True
 
         path = os.path.normcase(os.path.normpath(path))
         if self.lib_pathlist is not None:
