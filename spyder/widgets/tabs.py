@@ -16,12 +16,24 @@ import os.path as osp
 
 # Third party imports
 import qstylizer.style
+from qtpy import QT6
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
-from qtpy.QtGui import QFontMetrics
+from qtpy.QtGui import QFontMetrics, QPainter, QPen
 from qtpy.QtWidgets import (
-    QHBoxLayout, QLineEdit, QTabBar, QTabWidget, QToolButton, QWidget)
+    QApplication,
+    QCommonStyle,
+    QHBoxLayout,
+    QLineEdit,
+    QStyle,
+    QTabBar,
+    QTabWidget,
+    QToolButton,
+    QToolTip,
+    QWidget
+)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
@@ -146,6 +158,39 @@ class EditTabNamePopup(QLineEdit):
             self.main.sig_name_changed.emit(tab_text)
 
 
+class CloseButtonTabBarStyle(QCommonStyle, SpyderConfigurationAccessor):
+    """
+    Style for QTabBar instances which should pull
+    QStyle.SH_TabBar_CloseButtonPosition from a CONF entry.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        position = self.get_conf("tab_close_position", section="main")
+
+        if position == "left":
+            self.close_btn_side = QTabBar.ButtonPosition.LeftSide
+        elif position == "right":
+            self.close_btn_side = QTabBar.ButtonPosition.RightSide
+        else:
+            if MAC:
+                self.close_btn_side = QTabBar.ButtonPosition.LeftSide
+            else:
+                self.close_btn_side = QTabBar.ButtonPosition.RightSide
+
+    def styleHint(self, hint, options=None, widget=None, returnData=None):
+        if hint == QStyle.SH_TabBar_CloseButtonPosition:
+            if QT6:  # PySide6/PyQt6
+                return self.close_btn_side.value
+            else:  # PySide2/PyQt5
+                return int(self.close_btn_side)
+        else:
+            return super().styleHint(hint, options, widget, returnData)
+
+
+CLOSE_BUTTON_TABBAR_STYLE = CloseButtonTabBarStyle()
+
+
 class CloseTabButton(QToolButton):
     """Close button for our tabs."""
 
@@ -178,13 +223,19 @@ class CloseTabButton(QToolButton):
         # To keep track of the tab's current color
         self._tab_color = self._selected_tab_color
 
+        # Get if the close tabs button is to the left from Preferences
+        close_btn_left = (
+            CLOSE_BUTTON_TABBAR_STYLE.close_btn_side
+            == QTabBar.ButtonPosition.LeftSide
+        )
+
         # Stylesheet
         self.css = qstylizer.style.StyleSheet()
         self.css.QToolButton.setValues(
             marginTop='9px',
             marginBottom='-7px',
-            marginLeft='3px' if MAC else '2px',
-            marginRight='-7px' if MAC else '-6px',
+            marginLeft='3px' if close_btn_left else '2px',
+            marginRight='-7px' if close_btn_left else '-6px',
             padding='0px',
             paddingTop='-5px' if (MAC or WIN) else '-8px',
             borderRadius='3px'
@@ -274,7 +325,8 @@ class TabBar(QTabBar):
         else:
             self.tab_name_editor = None
 
-        self.close_btn_side = QTabBar.LeftSide if MAC else QTabBar.RightSide
+        self.setStyle(CLOSE_BUTTON_TABBAR_STYLE)
+        self.close_btn_side = CLOSE_BUTTON_TABBAR_STYLE.close_btn_side
 
         # Signals
         self.currentChanged.connect(self._on_tab_changed)
@@ -414,6 +466,137 @@ class TabBar(QTabBar):
                 close_btn.index = i
 
 
+class BrowseTabsMenu(SpyderMenu):
+    """Native browse-tabs menu with Shift-drag reordering."""
+
+    sig_tab_moved = Signal(int, int)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.drag_action = None
+        self.drag_start = QPoint()
+        self.drop_action = None
+        self.drop_after = False
+
+    def event(self, event):
+        """Show full paths only for entries with shortened text."""
+        if event.type() == QEvent.ToolTip:
+            action = self.actionAt(event.pos())
+            tooltip = (
+                action.property("full_path_tooltip")
+                if action is not None else ""
+            )
+            if tooltip:
+                QToolTip.showText(
+                    event.globalPos(),
+                    tooltip,
+                    self,
+                    self.actionGeometry(action),
+                )
+            else:
+                QToolTip.hideText()
+            return True
+        return super().event(event)
+
+    def mousePressEvent(self, event):
+        """Start reordering only for Shift and the left mouse button."""
+        action = self.actionAt(event.pos())
+        if (
+            event.button() == Qt.LeftButton
+            and event.modifiers() & Qt.ShiftModifier
+            and action is not None
+        ):
+            self.drag_action = action
+            self.drag_start = event.pos()
+            self.drop_action = None
+            self.setActiveAction(action)
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """Update the insertion position while reordering."""
+        if self.drag_action is not None:
+            self.set_drop_position(event.pos())
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Reorder the actions and keep the menu open after a drag."""
+        if self.drag_action is None:
+            super().mouseReleaseEvent(event)
+            return
+
+        source = self.drag_action
+        self.drag_action = None
+        distance = (event.pos() - self.drag_start).manhattanLength()
+        if distance >= QApplication.startDragDistance():
+            self.set_drop_position(event.pos())
+        target = self.drop_action
+        if target is not None and distance >= QApplication.startDragDistance():
+            index_from = source.property("tab_index")
+            insertion_index = target.property("tab_index") + self.drop_after
+            index_to = insertion_index - (index_from < insertion_index)
+            if index_from != index_to:
+                self.removeAction(source)
+                actions = self.actions()
+                if index_to == len(actions):
+                    self.addAction(source)
+                else:
+                    self.insertAction(actions[index_to], source)
+                for index, action in enumerate(self.actions()):
+                    action.setProperty("tab_index", index)
+                self.setActiveAction(source)
+                self.sig_tab_moved.emit(index_from, index_to)
+        self.drop_action = None
+        self.update()
+        event.accept()
+
+    def set_drop_position(self, position):
+        """Set the action and edge used as the insertion position."""
+        action = self.actionAt(position)
+        if action is None:
+            self.drop_action = None
+        else:
+            rect = self.actionGeometry(action)
+            self.drop_action = action
+            self.drop_after = position.y() > rect.center().y()
+        self.setActiveAction(None)
+        self.update()
+
+    def paintEvent(self, event):
+        """Draw drag-source feedback and the insertion line."""
+        super().paintEvent(event)
+        if self.drag_action is None and self.drop_action is None:
+            return
+
+        painter = QPainter(self)
+        if self.drag_action is not None:
+            source_rect = self.actionGeometry(
+                self.drag_action
+            ).adjusted(3, 2, -3, -2)
+            shadow_color = self.palette().shadow().color()
+            shadow_color.setAlpha(70)
+            painter.fillRect(source_rect.translated(2, 2), shadow_color)
+            source_color = self.palette().highlight().color()
+            source_color.setAlpha(55)
+            painter.fillRect(source_rect, source_color)
+            painter.setPen(QPen(self.palette().highlight().color(), 1))
+            painter.drawRect(source_rect)
+
+        if self.drop_action is not None:
+            rect = self.actionGeometry(self.drop_action)
+            y_position = rect.bottom() if self.drop_after else rect.top()
+            painter.setPen(QPen(self.palette().highlight().color(), 2))
+            painter.drawLine(
+                rect.left() + 4,
+                y_position,
+                rect.right() - 4,
+                y_position,
+            )
+
+
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
     sig_close_tab = Signal(int)
@@ -450,13 +633,21 @@ class BaseTabs(QTabWidget):
             self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
         self.browse_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
-        self.browse_tabs_menu = SpyderMenu(self)
+        self.browse_tabs_menu = BrowseTabsMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(QToolButton.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
+        self.browse_tabs_menu.sig_tab_moved.connect(
+            self._move_tab_from_browse_menu
+        )
         corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
 
         self.set_corner_widgets(corner_widgets)
+
+    @Slot(int, int)
+    def _move_tab_from_browse_menu(self, index_from, index_to):
+        """Move a tab using the tab bar currently owned by this widget."""
+        self.tabBar().moveTab(index_from, index_to)
 
     def update_browse_tabs_menu(self):
         """Update browse tabs menu"""
@@ -485,14 +676,39 @@ class BaseTabs(QTabWidget):
                     # Common path is not a path but a drive letter...
                     offset = None
 
+        screen = self.browse_tabs_menu.screen() or QApplication.primaryScreen()
+        available_width = screen.availableGeometry().width()
+        metrics = QFontMetrics(self.browse_tabs_menu.font())
+        # Keep each native menu column within a third of the screen,
+        # reserving 48 px for the check indicator and menu margins.
+        text_width = min(
+            50 * metrics.width('W'),
+            available_width // 3 - 48,
+        )
         for index, text in enumerate(names):
-            tab_action = create_action(self, text[offset:],
-                                       icon=self.tabIcon(index),
-                                       toggled=lambda state, index=index:
-                                               self.setCurrentIndex(index),
-                                       tip=self.tabToolTip(index))
+            visible_text = text[offset:]
+            display_text = metrics.elidedText(
+                visible_text, Qt.ElideMiddle, text_width
+            )
+            full_path_tooltip = self.tabToolTip(index)
+            if self.menu_use_tooltips and display_text == text:
+                full_path_tooltip = ""
+            tab_action = create_action(
+                self,
+                display_text,
+                icon=self.tabIcon(index),
+                triggered=self._set_current_from_browse_action,
+                tip=self.tabToolTip(index),
+            )
+            tab_action.setCheckable(True)
+            tab_action.setProperty("tab_index", index)
+            tab_action.setProperty("full_path_tooltip", full_path_tooltip)
             tab_action.setChecked(index == self.currentIndex())
             self.browse_tabs_menu.addAction(tab_action)
+
+    def _set_current_from_browse_action(self, _checked=False):
+        """Select the tab using its current position in the menu."""
+        self.setCurrentIndex(self.sender().property("tab_index"))
 
     def set_corner_widgets(self, corner_widgets):
         """

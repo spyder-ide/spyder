@@ -39,20 +39,23 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
 
     # No completion for 'something' as already complete
     qtbot.keyClicks(code_editor, 'thing', delay=delay)
-    qtbot.wait(500)
+    # Minimum average wait time for completion to show up during the test
+    # this value was determined by running the test multiple times and
+    # measuring the time it took for the completion to show up.
+    qtbot.wait(1255)
     assert completion.isHidden()
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
 
     # Hide even within a function
     qtbot.keyClicks(code_editor, 'print(something', delay=delay)
-    qtbot.wait(500)
+    qtbot.wait(1255)
     assert completion.isHidden()
     qtbot.keyClicks(code_editor, ')', delay=delay)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
 
     # Hide even inside comprehension
     qtbot.keyClicks(code_editor, 'a = {something', delay=delay)
-    qtbot.wait(500)
+    qtbot.wait(1255)
     assert completion.isHidden()
 
     # Hide if removing spaces before a word

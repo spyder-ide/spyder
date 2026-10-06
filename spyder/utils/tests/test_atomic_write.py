@@ -74,6 +74,37 @@ def test_open_reraise(tmp_path):
             assert False, "Intentional failure for testing purposes"
 
 
+def test_tempfile_is_created_next_to_dest(tmp_path):
+    """
+    When no directory is given, the temporary file must be created in the
+    destination's own directory.
+
+    Creating it anywhere else (e.g. in the system temporary directory, which is
+    what `tempfile.mkstemp(dir=None)` does) makes the final rename hand the
+    destination the temporary file's permissions instead of the ones the
+    destination inherits from the directory it lives in. On Windows that
+    silently strips every inherited NTFS ACE from the saved file.
+
+    See spyder-ide/spyder#26315.
+    """
+    dest_dir = tmp_path / 'dest'
+    dest_dir.mkdir()
+    fname = dest_dir / 'ha'
+
+    with atomic_write(str(fname), overwrite=True, dir=None, mode='w') as f:
+        f.write('hoho')
+
+        # The temporary file is next to the destination, and only it is there
+        # (the destination does not exist yet).
+        entries = list(dest_dir.iterdir())
+        assert len(entries) == 1
+        assert entries[0] != fname
+        assert entries[0].name.startswith('ha')
+
+    assert fname.read_text() == 'hoho'
+    assert len(list(dest_dir.iterdir())) == 1
+
+
 def test_atomic_write_in_pwd(tmp_path):
     orig_curdir = os.getcwd()
     try:
