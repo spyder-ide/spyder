@@ -22,6 +22,7 @@ from qtpy.QtWidgets import QApplication
 from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 
@@ -74,6 +75,7 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
     assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
     assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
+    assert CONF.get_shortcut('editor', 'wrap lines') == 'Alt+Z'
     assert CONF.get_shortcut('main', 'new file') == 'Ctrl+N'
     assert CONF.get_shortcut('main', 'open file') == 'Ctrl+O'
     assert CONF.get_shortcut('main', 'open last closed') == 'Ctrl+Shift+T'
@@ -399,6 +401,20 @@ def test_file_shortcut(editorstack, qtbot, key, modifier, action):
     with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
         qtbot.keyClick(editor, key, modifier=modifier)
     assert blocker.args == [action, Plugins.Application]
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and running_in_ci(),
+    reason="It fails on Linux due to the lack of a proper X server."
+)
+def test_wrap_lines_shortcut(editorstack, qtbot):
+    """
+    Test that the wrap lines shortcut raises the signal to trigger its action.
+    """
+    editor = editorstack.get_current_editor()
+    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
+        qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
+    assert blocker.args == [EditorWidgetActions.WrapLines, Plugins.Editor]
 
 
 if __name__ == "__main__":

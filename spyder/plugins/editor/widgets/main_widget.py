@@ -425,7 +425,8 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetActions.WrapLines,
             _("Wrap lines"),
             'wrap',
-            method='set_wrap_enabled'
+            method='set_wrap_enabled',
+            register_shortcut=True
         )
         self.showindentguides_action = self._create_checkable_action(
             EditorWidgetActions.ShowIndentGuides,
@@ -1164,7 +1165,8 @@ class EditorMainWidget(PluginMainWidget):
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
 
-    def _create_checkable_action(self, name, text, conf_name, method=''):
+    def _create_checkable_action(self, name, text, conf_name, method='',
+                                 register_shortcut=False):
         """
         Helper function to create a checkable action.
 
@@ -1179,12 +1181,28 @@ class EditorMainWidget(PluginMainWidget):
         method: str, optional
             Name of EditorStack class that will be used to update the changes
             in each editorstack.
+        register_shortcut: bool, optional
+            Whether to register a configurable shortcut for the action. Its
+            default value is taken from the `shortcuts` section of the
+            configuration. Default is False.
+
+        Notes
+        -----
+        The shortcut is only displayed in menus by the action. For it to work
+        when the editor has focus, it also needs to be registered in
+        `EditorStack.register_shortcuts`.
         """
         def toggle(checked):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
 
-        action = self.create_action(name, text=text, toggled=toggle)
+        action = self.create_action(
+            name,
+            text=text,
+            toggled=toggle,
+            context=Qt.WidgetShortcut,
+            register_shortcut=register_shortcut
+        )
         action.blockSignals(True)
 
         if conf_name not in ['pydocstyle']:
