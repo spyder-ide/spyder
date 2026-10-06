@@ -19,8 +19,9 @@ import sys
 from unittest.mock import MagicMock
 
 # Third party imports
-import pytest
 from flaky import flaky
+import pytest
+from qtpy import PYSIDE6
 
 # Local imports
 from spyder.app.cli_options import get_options
@@ -362,6 +363,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(PYSIDE6, reason="Segfaults with PySide6")
 def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     Test that filesystem notifications are emitted when creating,

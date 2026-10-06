@@ -2235,9 +2235,29 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         Iterate through self.data and call save() on any modified files.
         """
         all_saved = True
-        for index in range(self.get_stack_count()):
+        n_files_changed = False
+
+        n_files = self.get_stack_count()
+        for index in range(n_files):
+            # If the initial number of files changes while trying to save them
+            # all (e.g. when saving a new file with the same name of another
+            # one that is already open), we must end this `for` cycle. That's
+            # because the length of the `data` list changed, so we'd get an
+            # IndexError if we don't it.
+            # Fixes spyder-ide/spyder#26382
+            if n_files != self.get_stack_count():
+                n_files_changed = True
+                break
+
             if self.data[index].editor.document().isModified():
                 all_saved &= self.save(index, save_new_files=save_new_files)
+
+        # Call this method recursively because the current number of files
+        # changed.
+        # Fixes spyder-ide/spyder#26382
+        if n_files_changed:
+            all_saved &= self.save_all(save_new_files=save_new_files)
+
         return all_saved
 
     def export_with_formatting(self, suffix):
