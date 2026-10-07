@@ -590,7 +590,7 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
                 # Update index list
                 self.recalculate_index()
                 # To sort by index
-                self.df.sort_index(inplace=True, ascending=ascending)
+                self.df.sort_index(key=self.natural_order, inplace=True, ascending=ascending)
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
@@ -598,6 +598,13 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
 
         self.reset()
         return True
+    
+    def natural_order(self, index):
+        """ Returns a tuple: (Number or NaN, original_text)
+            If numbers and string in index, it orders correctly.
+        """
+        numeric = pd.to_numeric(index, errors='coerce')
+        return list(zip(numeric, index))
 
     def flags(self, index):
         """Set flags"""
@@ -1620,7 +1627,7 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
             """
             def plot_function(figure: Figure) -> None:
                 ax = figure.subplots()
-                model.df.plot.line(ax=ax, y=col_labels)
+                model.df.plot.line(ax=ax, y=col_labels, marker='o')
     
             cols = list(index.column() for index in self.selectedIndexes())
             cols = list(set(cols))  # Remove duplicates
@@ -1633,7 +1640,7 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
                     from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
                         NamespaceBrowser
                     )
-                    NamespaceBrowser.plot_in_window(plot_function)
+                    NamespaceBrowser.plot_in_window(plot_function, parent=self)
                 else:
                     self.namespacebrowser.plot(plot_function)
 
