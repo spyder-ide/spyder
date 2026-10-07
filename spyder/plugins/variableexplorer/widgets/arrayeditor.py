@@ -559,7 +559,9 @@ class ArrayView(SpyderWidgetMixin, QTableView):
                     part = QItemSelectionRange(top_left, bottom_right)
                     new_selection.append(part)
                 self.selectionModel().select(
-                    new_selection, self.selectionModel().ClearAndSelect)
+                    new_selection,
+                    QItemSelectionModel.SelectionFlag.ClearAndSelect,
+                )
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
