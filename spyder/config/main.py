@@ -442,7 +442,7 @@ DEFAULTS = [
               'main/open file': "Ctrl+O",
               'main/open last closed': "Ctrl+Shift+T",
               'main/save file': "Ctrl+S",
-              'main/save all': "Ctrl+Alt+S",
+              'main/save all': "Ctrl+Shift+A",
               'main/save as': 'Ctrl+Shift+S',
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",
@@ -757,4 +757,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '89.0.0'
+CONF_VERSION = '89.1.0'
