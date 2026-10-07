@@ -19,7 +19,9 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
@@ -34,7 +36,7 @@ class MainInterpreter(SpyderPluginV2):
 
     NAME = "main_interpreter"
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.Projects]#Added Optional
+    OPTIONAL = [Plugins.Projects]  # Added Optional
     CONTAINER_CLASS = MainInterpreterContainer
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
@@ -80,7 +82,7 @@ class MainInterpreter(SpyderPluginV2):
 
     @classmethod
     def get_icon(cls):
-        return cls.create_icon('python')
+        return cls.create_icon("python")
 
     def on_initialize(self):
         container = self.get_container()
@@ -93,26 +95,24 @@ class MainInterpreter(SpyderPluginV2):
 
         # Validate that the custom interpreter from the previous session
         # still exists
-        if self.get_conf('custom'):
-            interpreter = self.get_conf('custom_interpreter')
+        if self.get_conf("custom"):
+            interpreter = self.get_conf("custom_interpreter")
             if not osp.isfile(interpreter):
-                self.set_conf('custom', False)
-                self.set_conf('default', True)
-                self.set_conf('executable', get_python_executable())
-
+                self.set_conf("custom", False)
+                self.set_conf("default", True)
+                self.set_conf("executable", get_python_executable())
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
-        #Auto Detect the venv and loads it
+        # Auto Detect the venv and loads it
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.connect(self._auto_detect_venv)
-
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         # Register conf page
         preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self) 
+        preferences.register_plugin_preferences(self)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -122,7 +122,7 @@ class MainInterpreter(SpyderPluginV2):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def set_custom_interpreter(self, interpreter,manual=True):
+    def set_custom_interpreter(self, interpreter, manual=True):
         """Set given interpreter as the current selected one."""
         self.get_container().add_to_custom_interpreters(interpreter)
         self.set_conf("default", False)
@@ -133,8 +133,7 @@ class MainInterpreter(SpyderPluginV2):
             projects = self.get_plugin(Plugins.Projects)
             project = projects.get_active_project() if projects else None
             if project is not None:
-                project.set_option('interpreter_manually_set', True)
-
+                project.set_option("interpreter_manually_set", True)
 
     def _auto_detect_venv(self, project_path):
         """Auto-detect and switch to a local .venv interpreter, if found."""
@@ -142,9 +141,7 @@ class MainInterpreter(SpyderPluginV2):
         project = projects.get_active_project() if projects else None
 
         if project is not None:
-            if project.get_option(
-                'interpreter_manually_set', default=False
-            ):
+            if project.get_option("interpreter_manually_set", default=False):
                 return
 
         interpreter = find_local_venv_interpreter(project_path)
@@ -158,10 +155,10 @@ class MainInterpreter(SpyderPluginV2):
                 f"Found a local .venv at:\n{interpreter}\n\n"
                 "spyder-kernels is not installed there, so Spyder could not "
                 "switch to it automatically. Install it with:\n\n"
-                f"  {interpreter} -m pip install spyder-kernels"
+                f"  {interpreter} -m pip install spyder-kernels",
             )
 
-        old_interpreter = self.get_conf('executable', default=None)
+        old_interpreter = self.get_conf("executable", default=None)
         self.set_custom_interpreter(interpreter, manual=False)
 
         if old_interpreter and old_interpreter != interpreter:
