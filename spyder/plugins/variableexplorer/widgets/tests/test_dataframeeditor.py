@@ -1163,7 +1163,7 @@ def test_dataframeeditor_plot():
     plot_function = mock_namespacebrowser.plot.call_args.args[0]
     with patch.object(test_df, 'plot') as mock_scatter:
         plot_function(mock_figure)
-    mock_scatter.line.assert_called_once_with(ax=axis, y=['first'])
+    mock_scatter.line.assert_called_once_with(ax=axis, y=['first'], marker="o")
 
     # Select the (0,0) and (0,1) items
     top_left = view.model().index(0, 0)
@@ -1180,7 +1180,7 @@ def test_dataframeeditor_plot():
     plot_function = mock_namespacebrowser.plot.call_args.args[0]
     with patch.object(test_df, 'plot') as mock_scatter:
         plot_function(mock_figure)
-    mock_scatter.line.assert_called_once_with(ax=axis, y=['first', 'second'])
+    mock_scatter.line.assert_called_once_with(ax=axis, y=['first', 'second'], marker="o")
 
 def test_dataframeeditor_readonly(qtbot):
     """
