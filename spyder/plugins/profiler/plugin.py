@@ -13,6 +13,7 @@ from typing import List
 
 # Third party imports
 from packaging.version import parse
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -168,7 +169,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.ShortcutContext.ApplicationShortcut,
         )
 
         run.create_run_in_executor_button(

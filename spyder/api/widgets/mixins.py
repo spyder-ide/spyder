@@ -1143,7 +1143,7 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
             scale_factors = self.get_conf(
                 "high_dpi_custom_scale_factors", section="main"
             )
-            scale_factor = float(scale_factors.split(":")[0])
+            scale_factor = float(scale_factors.split(";")[0])
         else:
             scale_factor = 1
 

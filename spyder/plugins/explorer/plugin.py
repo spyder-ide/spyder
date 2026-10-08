@@ -201,7 +201,6 @@ class Explorer(SpyderDockablePlugin):
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
 
-        editor.sig_dir_opened.connect(self.chdir)
         editor.sig_editor_focus_changed.connect(
             self._update_current_editor_file
         )
@@ -254,7 +253,6 @@ class Explorer(SpyderDockablePlugin):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
 
-        editor.sig_dir_opened.disconnect(self.chdir)
         editor.sig_editor_focus_changed.disconnect(
             self._update_current_editor_file
         )

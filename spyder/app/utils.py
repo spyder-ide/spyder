@@ -243,7 +243,7 @@ def create_splash_screen(use_previous_factor=False):
         if CONF.get('main', 'high_dpi_custom_scale_factor'):
             if not use_previous_factor:
                 factors = CONF.get('main', 'high_dpi_custom_scale_factors')
-                factor = float(factors.split(":")[0])
+                factor = float(factors.split(";")[0])
             else:
                 factor = previous_factor
         else:
