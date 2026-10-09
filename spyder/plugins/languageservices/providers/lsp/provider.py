@@ -315,9 +315,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         state.restart_attempts = 0
         self._set_status(state, ProviderStatus.READY)
         for language in self._server_languages(state):
-            self.sig_capabilities_changed.emit(
-                language, self.capabilities(language)
-            )
+            self.sig_capabilities_changed.emit(language)
 
     async def _stop_server(self, name: str) -> None:
         state = self._servers[name]
@@ -337,9 +335,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         state.documents.clear()
         self._set_status(state, ProviderStatus.STOPPED)
         for language in languages:
-            self.sig_capabilities_changed.emit(
-                language, self.capabilities(language)
-            )
+            self.sig_capabilities_changed.emit(language)
 
     async def _heartbeat_loop(self) -> None:
         while True:
@@ -648,6 +644,4 @@ class LanguageServerClientProvider(LanguageServicesProvider):
                 # so languages the server no longer serves need the update
                 # too.
                 for language in Language:
-                    self.sig_capabilities_changed.emit(
-                        language, self.capabilities(language)
-                    )
+                    self.sig_capabilities_changed.emit(language)
