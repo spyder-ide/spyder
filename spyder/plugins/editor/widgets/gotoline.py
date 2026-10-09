@@ -70,11 +70,14 @@ class GoToLineDialog(QDialog):
 
     def text_has_changed(self, text):
         """Line edit's text has changed."""
-        acceptable = self.validator.validate(text, 0)[0] == QValidator.State.Acceptable
+        acceptable = (
+            self.validator.validate(text, 0)[0] == QValidator.State.Acceptable
+        )
         self.ok_button.setEnabled(acceptable)
 
-        # 'acceptable' should imply 'ok', however, use 'ok' just to be safe. Note: 'ok'
-        # does not imply 'acceptable' due to validator's range check.
+        # 'acceptable' should imply 'ok', however, use 'ok' just to be safe.
+        # Note: 'ok' does not imply 'acceptable' due to validator's range
+        # check.
         value, ok = self.validator.locale().toInt(text)
         if ok:
             self.lineno = value
