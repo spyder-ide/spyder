@@ -256,14 +256,12 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
     params: lsprotocol.types.LogMessageParams
     """
 
-    sig_capabilities_changed = Signal(object, object)
-    """Capabilities of the provider for a language changed.
+    sig_capabilities_changed = Signal(object)
+    """Signal that the capabilities of the provider for a language changed.
 
     Parameters
     ----------
     language: Language
-    capabilities: lsprotocol.types.ServerCapabilities | None
-        ``None`` when the provider stopped serving ``language``.
     """
 
     sig_status_changed = Signal(object, str)
