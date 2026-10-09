@@ -7,7 +7,10 @@
 """Tests for the request fan-out and merge of LanguageServicesAPI."""
 
 import asyncio
+import itertools
+from unittest import mock
 
+import attrs
 from lsprotocol import types as lsp
 import pytest
 
@@ -58,12 +61,14 @@ class FakeProvider(LanguageServicesProvider):
         self.opened = []
         self.closed = []
         self.started = False
+        self.capability_queries = 0
         super().__init__(None, ProviderConfigAccessor(name))
 
     def supported_languages(self):
         return self._languages
 
     def capabilities(self, language):
+        self.capability_queries += 1
         return self._capabilities
 
     async def start(self):
@@ -435,6 +440,277 @@ def test_capabilities_and_language_lifecycle(api):
     assert stopped.calls == [(Language.PYTHON,)]
     assert changed.calls[-1] == (Language.PYTHON, None)
     assert not api.is_language_supported(Language.PYTHON)
+
+
+def test_start_language_already_served_is_quiet(api):
+    asyncio.run(setup_api(api, FakeProvider("a"), open_doc=False))
+    changed = Recorder(api.sig_capabilities_changed)
+    asyncio.run(api.start_language(Language.PYTHON))
+    assert changed.calls == []
+
+
+def test_reported_capabilities_are_merged_into_current(api):
+    other = FakeProvider(
+        "other",
+        priority=1,
+        capabilities=lsp.ServerCapabilities(hover_provider=True),
+    )
+    p = FakeProvider(
+        "p",
+        priority=2,
+        capabilities=lsp.ServerCapabilities(document_formatting_provider=True),
+    )
+    asyncio.run(setup_api(api, other, p, open_doc=False))
+    queries = other.capability_queries
+    changed = Recorder(api.sig_capabilities_changed)
+
+    extended = lsp.ServerCapabilities(
+        document_formatting_provider=True, rename_provider=True
+    )
+    p._capabilities = extended
+    p.sig_capabilities_changed.emit(Language.PYTHON)
+
+    merged = api.capabilities(Language.PYTHON)
+    assert merged.hover_provider is True
+    assert merged.document_formatting_provider is True
+    assert merged.rename_provider is True
+    assert changed.calls == [(Language.PYTHON, merged)]
+    assert other.capability_queries == queries
+
+    p.sig_capabilities_changed.emit(Language.PYTHON)
+    assert len(changed.calls) == 1
+
+
+def test_narrowed_capabilities_are_merged_again(api):
+    other = FakeProvider(
+        "other",
+        priority=1,
+        capabilities=lsp.ServerCapabilities(hover_provider=True),
+    )
+    p = FakeProvider(
+        "p",
+        priority=2,
+        capabilities=lsp.ServerCapabilities(
+            document_formatting_provider=True, rename_provider=True
+        ),
+    )
+    asyncio.run(setup_api(api, other, p, open_doc=False))
+    changed = Recorder(api.sig_capabilities_changed)
+
+    narrowed = lsp.ServerCapabilities(rename_provider=True)
+    p._capabilities = narrowed
+    p.sig_capabilities_changed.emit(Language.PYTHON)
+
+    merged = api.capabilities(Language.PYTHON)
+    assert merged.hover_provider is True
+    assert merged.rename_provider is True
+    assert merged.document_formatting_provider is None
+    assert changed.calls == [(Language.PYTHON, merged)]
+
+
+def priority_providers():
+    """Providers whose option objects make the merge order visible."""
+    return [
+        FakeProvider(
+            name,
+            priority=priority,
+            capabilities=lsp.ServerCapabilities(
+                completion_provider=lsp.CompletionOptions(
+                    trigger_characters=[trigger]
+                ),
+                execute_command_provider=lsp.ExecuteCommandOptions(
+                    commands=[name]
+                ),
+            ),
+        )
+        for name, priority, trigger in (
+            ("high", 1, "."), ("mid", 2, "("), ("low", 3, ",")
+        )
+    ]
+
+
+@pytest.mark.parametrize("order", list(itertools.permutations(range(3))))
+def test_merged_capabilities_follow_priority_for_any_start_order(api, order):
+    providers = priority_providers()
+    started = [providers[index] for index in order]
+    for provider in started:
+        others = [p for p in providers if p is not provider]
+        queries = [p.capability_queries for p in others]
+        api.register_provider(provider)
+        asyncio.run(api.start_provider(provider.NAME))
+        assert [p.capability_queries for p in others] == queries
+    assert api.capabilities(Language.PYTHON) == merge_capabilities(
+        [p._capabilities for p in providers]
+    )
+
+    asyncio.run(api.stop_provider(started[0].NAME))
+    assert api.capabilities(Language.PYTHON) == merge_capabilities(
+        [p._capabilities for p in providers if p is not started[0]]
+    )
+
+
+def test_only_a_provider_between_others_merges_them_all_again(api):
+    high, mid, low = priority_providers()
+
+    def extend(provider):
+        provider._capabilities = attrs.evolve(
+            provider._capabilities, hover_provider=True
+        )
+        provider.sig_capabilities_changed.emit(Language.PYTHON)
+
+    with mock.patch.object(
+        api, "_merge_contributions", wraps=api._merge_contributions
+    ) as merge_contributions:
+        asyncio.run(setup_api(api, low, high, open_doc=False))
+        extend(high)
+        extend(low)
+        merge_contributions.assert_not_called()
+
+        api.register_provider(mid)
+        asyncio.run(api.start_provider("mid"))
+        merge_contributions.assert_called_once_with(Language.PYTHON)
+
+    assert api.capabilities(Language.PYTHON) == merge_capabilities(
+        [p._capabilities for p in (high, mid, low)]
+    )
+
+
+def test_option_changed_in_place_is_merged_again(api):
+    triggers = ["."]
+    p = FakeProvider(
+        "p",
+        capabilities=lsp.ServerCapabilities(
+            completion_provider=lsp.CompletionOptions(
+                trigger_characters=triggers
+            )
+        ),
+    )
+    asyncio.run(setup_api(api, p, open_doc=False))
+    changed = Recorder(api.sig_capabilities_changed)
+
+    triggers.append("(")
+    p._capabilities = attrs.evolve(p._capabilities)
+    p.sig_capabilities_changed.emit(Language.PYTHON)
+
+    merged = api.capabilities(Language.PYTHON)
+    assert merged.completion_provider.trigger_characters == [".", "("]
+    assert changed.calls == [(Language.PYTHON, merged)]
+
+
+def test_language_served_by_an_unannounced_provider_is_not_stopped(api):
+    a = FakeProvider(
+        "a", capabilities=lsp.ServerCapabilities(hover_provider=True)
+    )
+    b = FakeProvider(
+        "b",
+        languages=(),
+        capabilities=lsp.ServerCapabilities(rename_provider=True),
+    )
+    asyncio.run(setup_api(api, a, b, open_doc=False))
+    changed = Recorder(api.sig_capabilities_changed)
+    stopped = Recorder(api.sig_language_stopped)
+
+    b._languages = frozenset({Language.PYTHON})
+    a._languages = frozenset()
+    a.sig_capabilities_changed.emit(Language.PYTHON)
+
+    assert stopped.calls == []
+    assert changed.calls == [
+        (Language.PYTHON, merge_capabilities([b._capabilities]))
+    ]
+
+
+def test_stopping_provider_is_left_out_of_merged_capabilities(api):
+    class SlowToStop(FakeProvider):
+        async def stop(self):
+            self.merged_while_stopping = api.capabilities(Language.PYTHON)
+
+    a = SlowToStop(
+        "a", capabilities=lsp.ServerCapabilities(hover_provider=True)
+    )
+    b = FakeProvider(
+        "b", capabilities=lsp.ServerCapabilities(rename_provider=True)
+    )
+    asyncio.run(setup_api(api, a, b, open_doc=False))
+
+    asyncio.run(api.stop_provider("a"))
+    assert a.merged_while_stopping == merge_capabilities([b._capabilities])
+
+
+def test_report_made_from_a_slot_is_not_overwritten(api):
+    class PerLanguage(FakeProvider):
+        def capabilities(self, language):
+            return self.by_language[language]
+
+    p = PerLanguage("p", languages=(Language.PYTHON, Language.RUST))
+    p.by_language = {
+        language: lsp.ServerCapabilities(hover_provider=True)
+        for language in p.supported_languages()
+    }
+    api.register_provider(p)
+    last = {}
+
+    def report_other_language(language, merged):
+        first = not last
+        last[language] = merged
+        if first:
+            (other,) = p.supported_languages() - {language}
+            p.by_language[other] = lsp.ServerCapabilities(rename_provider=True)
+            p.sig_capabilities_changed.emit(other)
+
+    api.sig_capabilities_changed.connect(report_other_language)
+    asyncio.run(api.start_provider("p"))
+
+    for language in p.supported_languages():
+        assert last[language] == api.capabilities(language)
+        assert last[language] == merge_capabilities([p.by_language[language]])
+
+
+def test_dropping_a_language_never_announced_leaves_nothing_behind(api):
+    p = FakeProvider(
+        "p", capabilities=lsp.ServerCapabilities(hover_provider=True)
+    )
+    asyncio.run(setup_api(api, p, open_doc=False))
+
+    p._languages = frozenset({Language.PYTHON, Language.RUST})
+    assert api.capabilities(Language.RUST) is not None
+    p._languages = frozenset({Language.PYTHON})
+    p.sig_capabilities_changed.emit(Language.RUST)
+    assert api.capabilities(Language.RUST) is None
+
+
+def test_failed_announce_keeps_announced_languages_tracked(api):
+    class Flaky(FakeProvider):
+        gained = 0
+
+        def capabilities(self, language):
+            if language is not Language.PYTHON:
+                self.gained += 1
+                if self.gained == 2:
+                    raise RuntimeError("no capabilities")
+            return super().capabilities(language)
+
+        async def start_language(self, language):
+            self._languages = frozenset(
+                {Language.PYTHON, Language.RUST, Language.JAVASCRIPT}
+            )
+
+        async def stop_language(self, language):
+            self._languages = frozenset({Language.PYTHON})
+
+    p = Flaky("p", capabilities=lsp.ServerCapabilities(hover_provider=True))
+    asyncio.run(setup_api(api, p, open_doc=False))
+    changed = Recorder(api.sig_capabilities_changed)
+    stopped = Recorder(api.sig_language_stopped)
+
+    with pytest.raises(RuntimeError, match="no capabilities"):
+        asyncio.run(api.start_language(Language.RUST))
+    announced = [language for language, merged in changed.calls if merged]
+    assert len(announced) == 1
+
+    asyncio.run(api.stop_language(Language.RUST))
+    assert stopped.calls == [(announced[0],)]
+    assert changed.calls[-1] == (announced[0], None)
 
 
 def test_start_failure_is_reported(api):

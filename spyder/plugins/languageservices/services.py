@@ -18,11 +18,12 @@ from __future__ import annotations
 
 # Standard library imports
 import asyncio
+import copy
 import logging
 import threading
 import traceback
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 # Third party imports
@@ -180,13 +181,33 @@ def merge_capabilities(
     )
 
 
+def _merge_served(
+    capabilities: list[lsp.ServerCapabilities | None],
+) -> lsp.ServerCapabilities:
+    """Merged capabilities of a served language. Empty when its providers
+    report none."""
+    merged = merge_capabilities(capabilities)
+    if merged is None:
+        merged = lsp.ServerCapabilities(
+            position_encoding=lsp.PositionEncodingKind.Utf16
+        )
+    return merged
+
+
 # ---- Registry --------------------------------------------------------------
 @dataclass
 class _ProviderState:
     provider: LanguageServicesProvider
     started: bool = False
-    languages: frozenset[Language] = frozenset()
-    """Languages announced to consumers (capabilities emitted)."""
+    capabilities: dict[Language, lsp.ServerCapabilities | None] = field(
+        default_factory=dict
+    )
+    """Capabilities the provider last announced, by language. The merged
+    capabilities are built from these."""
+
+
+def _merge_order(state: _ProviderState) -> tuple[int, str]:
+    return state.provider.PRIORITY, state.provider.NAME
 
 
 class LanguageServicesAPI(QObject):
@@ -235,7 +256,7 @@ class LanguageServicesAPI(QObject):
         self._providers: dict[str, _ProviderState] = {}
         self.documents = DocumentRegistry()
         self._lock = threading.RLock()
-        self._capabilities_cache: dict[Language, lsp.ServerCapabilities | None] = {}
+        self._merged_capabilities: dict[Language, lsp.ServerCapabilities] = {}
         self._loop: asyncio.AbstractEventLoop | None = None
 
     # ---- Providers -------------------------------------------------------
@@ -254,11 +275,12 @@ class LanguageServicesAPI(QObject):
             provider = provider(
                 self.plugin, ProviderConfigAccessor(provider.NAME)
             )
-        if provider.NAME in self._providers:
-            raise ProviderAlreadyRegisteredError(
-                f"Provider {provider.NAME!r} is already registered"
-            )
-        self._providers[provider.NAME] = _ProviderState(provider)
+        with self._lock:
+            if provider.NAME in self._providers:
+                raise ProviderAlreadyRegisteredError(
+                    f"Provider {provider.NAME!r} is already registered"
+                )
+            self._providers[provider.NAME] = _ProviderState(provider)
         self._connect_provider(provider)
         return provider
 
@@ -270,7 +292,8 @@ class LanguageServicesAPI(QObject):
                 f"Provider {name!r} must be stopped before unregistering"
             )
         self._disconnect_provider(state.provider)
-        del self._providers[name]
+        with self._lock:
+            del self._providers[name]
         return state.provider
 
     def get_provider(self, name: str) -> LanguageServicesProvider:
@@ -292,10 +315,7 @@ class LanguageServicesAPI(QObject):
             ) from exc
 
     def _sorted_states(self) -> list[_ProviderState]:
-        return sorted(
-            self._providers.values(),
-            key=lambda state: (state.provider.PRIORITY, state.provider.NAME),
-        )
+        return sorted(self._providers.values(), key=_merge_order)
 
     def _connect_provider(self, provider: LanguageServicesProvider) -> None:
         # These are direct connections. Handlers run on the emitting thread
@@ -378,11 +398,11 @@ class LanguageServicesAPI(QObject):
             return
         provider = state.provider
         state.started = False
+        self._announce_languages(state)
         try:
             await provider.stop()
         finally:
             self._clear_provider_diagnostics(provider.NAME, None)
-            self._announce_languages(state)
 
     async def start_language(self, language: Language) -> None:
         """Ask every started provider of ``language`` to serve it."""
@@ -401,33 +421,121 @@ class LanguageServicesAPI(QObject):
             self._clear_provider_diagnostics(state.provider.NAME, {language})
             self._announce_languages(state)
 
-    def _announce_languages(self, state: _ProviderState) -> frozenset[Language]:
-        """Refresh merged capabilities of the languages ``state`` gained or
-        lost, emit the corresponding signals and return those languages.
+    def _announce_languages(
+        self, state: _ProviderState, language: Language | None = None
+    ) -> None:
+        """Bring the merged capabilities in line with what ``state`` serves.
 
-        A newly served language emits ``sig_capabilities_changed`` even when
-        the merged capabilities are unchanged, so document owners re-send
-        ``didOpen`` to the provider that just started serving it.
+        ``language`` is one the provider just reported capabilities for.
+        Other languages it keeps serving are left as they are.
         """
+        provider = state.provider
         with self._lock:
-            previous = state.languages
-            current = (
-                frozenset(state.provider.supported_languages())
+            served = (
+                frozenset(provider.supported_languages())
                 if state.started
                 else frozenset()
             )
-            gained = current - previous
-            lost = previous - current
-            state.languages = current
-        try:
-            for language in gained | lost:
-                self._refresh_capabilities(language, force=language in gained)
-        except BaseException:
-            # Languages left unrefreshed would otherwise never be diffed again
-            with self._lock:
-                state.languages = previous
-            raise
-        return gained | lost
+            changed = state.capabilities.keys() ^ served
+        if language is not None:
+            # First, so a failure in another language cannot drop the report.
+            changed.discard(language)
+            self._announce_language(state, language)
+        for changed_language in changed:
+            self._announce_language(state, changed_language)
+
+    def _announce_language(
+        self, state: _ProviderState, language: Language
+    ) -> None:
+        """Merge what ``state`` provides for ``language`` now and emit the
+        change.
+
+        A language the provider starts serving emits
+        ``sig_capabilities_changed`` even when the merged capabilities are
+        unchanged, so document owners re-send ``didOpen`` to it.
+        """
+        provider = state.provider
+        with self._lock:
+            if state.started and language in provider.supported_languages():
+                changed = self._contribute(
+                    state, language, provider.capabilities(language)
+                )
+            elif language in state.capabilities:
+                changed = self._withdraw(state, language)
+            else:
+                return
+            merged = self.capabilities(language)
+        if changed:
+            self.sig_capabilities_changed.emit(language, merged)
+            if merged is None:
+                self.sig_language_stopped.emit(language)
+
+    def _contribute(
+        self,
+        state: _ProviderState,
+        language: Language,
+        new: lsp.ServerCapabilities | None,
+    ) -> bool:
+        """Record ``new`` as the capabilities of ``state`` for ``language``
+        and update the merged ones. Returns whether to announce them.
+
+        The caller holds ``self._lock``.
+        """
+        gained = language not in state.capabilities
+        old = state.capabilities.get(language)
+        if not gained and new == old:
+            return False
+        # The provider may change its object in place later.
+        new = copy.deepcopy(new)
+        alone = merge_capabilities([new])
+        current = self._merged_capabilities.get(language)
+        order = _merge_order(state)
+        others = [
+            _merge_order(other)
+            for other in self._providers.values()
+            if other is not state and language in other.capabilities
+        ]
+        first = all(order < other for other in others)
+        last = all(order > other for other in others)
+        state.capabilities[language] = new
+        # Merging into the current capabilities equals merging everything
+        # again when no provider sits on both sides of this one and ``new``
+        # keeps all it announced before.
+        if (first or last) and merge_capabilities([old, new]) == alone:
+            merged = _merge_served([new, current] if first else [current, new])
+        else:
+            merged = self._merge_contributions(language)
+        self._merged_capabilities[language] = merged
+        return gained or merged != current
+
+    def _withdraw(self, state: _ProviderState, language: Language) -> bool:
+        """Drop the capabilities of ``state`` for ``language`` and merge
+        those of the remaining providers again. Returns whether the merged
+        capabilities changed.
+
+        The caller holds ``self._lock``.
+        """
+        del state.capabilities[language]
+        current = self._merged_capabilities.pop(language)
+        if not any(
+            language in other.capabilities
+            for other in self._providers.values()
+        ):
+            return True
+        merged = self._merge_contributions(language)
+        self._merged_capabilities[language] = merged
+        return merged != current
+
+    def _merge_contributions(self, language: Language) -> lsp.ServerCapabilities:
+        """Announced capabilities of every provider of ``language``, merged
+        in priority order."""
+        return _merge_served(
+            [
+                state.capabilities[language]
+                for state in self._sorted_states()
+                if language in state.capabilities
+            ]
+        )
 
     # ---- Queries ---------------------------------------------------------
     def supported_languages(self) -> frozenset[Language]:
@@ -470,32 +578,12 @@ class LanguageServicesAPI(QObject):
         languages whose providers report nothing get empty capabilities.
         """
         with self._lock:
-            if language not in self._capabilities_cache:
-                providers = self.providers_for(language)
-                merged = merge_capabilities(
-                    [p.capabilities(language) for p in providers]
-                )
-                if merged is None and providers:
-                    merged = lsp.ServerCapabilities(
-                        position_encoding=lsp.PositionEncodingKind.Utf16
-                    )
-                self._capabilities_cache[language] = merged
-            return self._capabilities_cache[language]
-
-    def _refresh_capabilities(
-        self, language: Language, force: bool = False
-    ) -> None:
-        with self._lock:
-            served = self.is_language_supported(language)
-            was_cached = language in self._capabilities_cache
-            previous = self._capabilities_cache.pop(language, None)
-            current = self.capabilities(language) if served else None
-        if served:
-            if force or not was_cached or current != previous:
-                self.sig_capabilities_changed.emit(language, current)
-        else:
-            self.sig_capabilities_changed.emit(language, None)
-            self.sig_language_stopped.emit(language)
+            if language in self._merged_capabilities:
+                return self._merged_capabilities[language]
+            providers = self.providers_for(language)
+            if not providers:
+                return None
+            return _merge_served([p.capabilities(language) for p in providers])
 
     # ---- Policies --------------------------------------------------------
     def request_timeout(self) -> float:
@@ -782,5 +870,4 @@ class LanguageServicesAPI(QObject):
         state = self._state(provider.NAME)
         if not state.started:
             return
-        self._announce_languages(state)
-        self._refresh_capabilities(language)
+        self._announce_languages(state, language)
