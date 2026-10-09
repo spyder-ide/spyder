@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QIntValidator
+from qtpy.QtGui import QIntValidator, QValidator
 from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
                             QDialogButtonBox, QVBoxLayout, QHBoxLayout)
 
@@ -32,9 +32,9 @@ class GoToLineDialog(QDialog):
 
         label = QLabel(_("Go to line:"))
         self.lineedit = QLineEdit()
-        validator = QIntValidator(self.lineedit)
-        validator.setRange(1, editor.get_line_count())
-        self.lineedit.setValidator(validator)
+        self.validator = QIntValidator(self.lineedit)
+        self.validator.setRange(1, editor.get_line_count())
+        self.lineedit.setValidator(self.validator)
         self.lineedit.textChanged.connect(self.text_has_changed)
         cl_label = QLabel(_("Current line:"))
         cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
@@ -58,12 +58,8 @@ class GoToLineDialog(QDialog):
         btnlayout.addWidget(bbox)
         btnlayout.addStretch(1)
 
-        ok_button = bbox.button(QDialogButtonBox.Ok)
-        ok_button.setEnabled(False)
-        # QIntValidator does not handle '+' sign
-        # See spyder-ide/spyder#20070
-        self.lineedit.textChanged.connect(
-                     lambda text: ok_button.setEnabled(len(text) > 0 and text != '+'))
+        self.ok_button = bbox.button(QDialogButtonBox.Ok)
+        self.ok_button.setEnabled(False)
 
         layout = QHBoxLayout()
         layout.addLayout(glayout)
@@ -74,15 +70,19 @@ class GoToLineDialog(QDialog):
 
     def text_has_changed(self, text):
         """Line edit's text has changed."""
-        text = str(text)
+        acceptable = (
+            self.validator.validate(text, 0)[0] == QValidator.State.Acceptable
+        )
+        self.ok_button.setEnabled(acceptable)
 
-        # QIntValidator does not handle '+' sign
-        # See spyder-ide/spyder#12693
-        if text and text != '+':
-            self.lineno = int(text)
+        # 'acceptable' should imply 'ok', however, use 'ok' just to be safe.
+        # Note: 'ok' does not imply 'acceptable' due to validator's range
+        # check.
+        value, ok = self.validator.locale().toInt(text)
+        if ok:
+            self.lineno = value
         else:
             self.lineno = None
-            self.lineedit.clear()
 
     def get_line_number(self):
         """Return line number."""
