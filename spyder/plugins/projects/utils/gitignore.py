@@ -316,7 +316,8 @@ class GitignoreRules:
         if match is None:
             return False
 
-        assert match.lastindex is not None
+        if match.lastindex is None:
+            return False
 
         return not negate[match.lastindex]
 
