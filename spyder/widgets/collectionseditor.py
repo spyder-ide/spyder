@@ -19,6 +19,13 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # pylint: disable=R0201
 
 # Standard library imports
+from collections import namedtuple
+from dataclasses import (
+    is_dataclass,
+    replace as dataclass_replace,
+    fields as dataclass_fields,
+    make_dataclass
+)
 import datetime
 from functools import lru_cache
 import io
@@ -60,7 +67,7 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import (
     display_to_value, get_human_readable_type, get_numeric_numpy_types,
     get_numpy_type_string, get_object_attrs, get_size, get_type_string,
-    sort_against, try_to_eval, unsorted_unique, value_to_display
+    sort_against, try_to_eval, unsorted_unique, value_to_display, is_namedtuple
 )
 
 # Local imports
@@ -163,13 +170,30 @@ def natsort(s):
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
 
-    def __init__(self, obj):
+    def __init__(self, obj, valid_keys=None):
         """Constructor."""
         self.__obj__ = obj
+        # Valid keys are those that will be visible to the user to be retrieved
+        # and/or set.
+        # Store as dict for fast membership testing, and to preserve the order
+        # of valid_keys while removing duplicates.
+        self.__validkeys = (
+            dict.fromkeys(valid_keys) if valid_keys is not None else None
+        )
+
 
     def __len__(self):
         """Get len according to detected attributes."""
-        return len(get_object_attrs(self.__obj__))
+        return len(self.keys())
+    
+    def keys(self):
+        """ Get available attributes (keys). """
+        if self.__validkeys is None:
+            return dict.fromkeys(get_object_attrs(self.__obj__)).keys()
+        else:
+            return dict.fromkeys(
+                key for key in self.__validkeys if hasattr(self.__obj__, key)
+            )
 
     def __getitem__(self, key):
         """Get the attribute corresponding to the given key."""
@@ -182,6 +206,8 @@ class ProxyObject(object):
         # Catch ValueError to allow viewing and editing of pandas offsets.
         # Fix spyder-ide/spyder#6728-
         try:
+            if (self.__validkeys is not None) and (key not in self.keys()):
+                raise AttributeError
             attribute_toreturn = getattr(self.__obj__, key)
         except (NotImplementedError, AttributeError, TypeError, ValueError):
             attribute_toreturn = None
@@ -194,6 +220,8 @@ class ProxyObject(object):
         # Fix spyder-ide/spyder#6728.
         # Also, catch NotImplementedError for safety.
         try:
+            if (self.__validkeys is not None) and (key not in self.keys()):
+                raise AttributeError
             setattr(self.__obj__, key, value)
         except (TypeError, AttributeError, NotImplementedError):
             pass
@@ -252,7 +280,11 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
         self.header0 = _("Index")
         if self.names:
             self.header0 = _("Name")
-        if isinstance(data, tuple):
+        if is_namedtuple(data):
+            self.keys = list(data._fields)
+            self._data = self.showndata = ProxyObject(data, self.keys)
+            self.header0 = _("Field")
+        elif isinstance(data, tuple):
             self.keys = list(range(len(data)))
             self.title += _("Tuple")
         elif isinstance(data, list):
@@ -271,6 +303,10 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
+        elif is_dataclass(data):
+            self.keys  = list(field.name for field in dataclass_fields(data))
+            self._data = self.showndata = ProxyObject(data, self.keys)
+            self.header0 = _("Field")
         else:
             self.keys = get_object_attrs(data)
             self._data = data = self.showndata = ProxyObject(data)
@@ -390,7 +426,7 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
             and order == Qt.AscendingOrder
             and column != -1
             and self.previous_sort == column
-            and isinstance(self._data, dict)
+            and isinstance(self._data, (dict, ProxyObject))
         ):
             header.setSortIndicator(-1, Qt.AscendingOrder)
             return
@@ -1678,8 +1714,8 @@ class CollectionsEditorTableView(BaseTableView):
         self.setup_table()
         self.menu = self.setup_menu()
 
-        # Leave unsorted if dict, sort by column 0 otherwise
-        if isinstance(data, dict):
+        # Leave unsorted if dict or ProxyObject, sort by column 0 otherwise
+        if isinstance(self.source_model.get_data(), (dict, ProxyObject)):
             self.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
         else:
             self.horizontalHeader().setSortIndicator(0, Qt.AscendingOrder)
@@ -1994,9 +2030,14 @@ class CollectionsEditor(BaseDialog):
         if isinstance(data, (dict, set, frozenset)):
             # dictionary, set
             self.data_copy = data.copy()
+        elif is_namedtuple(data):
+            # copy namedtuple with another instance of the same type
+            self.data_copy = data.__class__(**data._asdict())
         elif isinstance(data, (tuple, list)):
             # list, tuple
             self.data_copy = data[:]
+        elif is_dataclass(data):
+            self.data_copy = dataclass_replace(data)
         else:
             # unknown object
             import copy
@@ -2456,6 +2497,11 @@ def get_test_data():
     testdate = datetime.date(1945, 5, 8)
     test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
 
+    test_namedtuple = namedtuple('NamedTuple', ('a','b','c','d'))
+    test_dataclass = make_dataclass(
+        'DataClass',['first',('second',int),('third',float),('fourth',list)]
+    )
+
     try:
         import pandas as pd
     except (ModuleNotFoundError, ImportError):
@@ -2524,6 +2570,8 @@ def get_test_data():
             # Test for spyder-ide/spyder#3518.
             'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
                                                       ('param1', 'f8', 5000)]),
+            'namedtuple' : test_namedtuple(1,2.0,'three',[4]*4),
+            'dataclass': test_dataclass(True,2,3.0,['four']*4)
             }
 
 
