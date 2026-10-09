@@ -583,12 +583,13 @@ def test_recreate_project_config(projects, tmpdir):
     ],
 )
 def test_watcher_options(
-    projects, tmpdir, global_option, project_option, expected
+    projects, tmp_path, global_option, project_option, expected
 ):
     """
     Test that the project's watcher options take precedence over Spyder's.
     """
-    project_root = tmpdir.mkdir('project0')
+    project_root = tmp_path / 'project0'
+    project_root.mkdir()
     project = EmptyProject(str(project_root))
     project.set_option('folders_to_ignore', ['vendor'])
     if project_option is not None:
@@ -604,12 +605,13 @@ def test_watcher_options(
         projects.set_conf('follow_gitignore', True)
 
 
-def test_watcher_filter_reuse(projects, tmpdir):
+def test_watcher_filter_reuse(projects, tmp_path):
     """
     Test that the watcher keeps its filter when reopening the project and
     replaces it when Spyder's option changes, unless the project overrides it.
     """
-    project_root = tmpdir.mkdir('project0')
+    project_root = tmp_path / 'project0'
+    project_root.mkdir()
     path = str(project_root)
     projects.set_conf('follow_gitignore', True)
     projects.open_project(path=path)
@@ -634,15 +636,18 @@ def test_watcher_filter_reuse(projects, tmpdir):
         projects.set_conf('follow_gitignore', True)
 
 
-def test_watcher_ignored_files(projects, tmpdir, qtbot):
+def test_watcher_ignored_files(projects, tmp_path, qtbot):
     """
     Test that the watcher emits no events for gitignored files and for the
     folders the project adds to the ignored ones.
     """
-    project_root = tmpdir.mkdir('project0')
-    gitignored = project_root.mkdir('gitignored')
-    vendor = project_root.mkdir('vendor')
-    project_root.join('.gitignore').write('gitignored/\n')
+    project_root = tmp_path / 'project0'
+    project_root.mkdir()
+    gitignored = project_root / 'gitignored'
+    gitignored.mkdir()
+    vendor = project_root / 'vendor'
+    vendor.mkdir()
+    (project_root / '.gitignore').write_text('gitignored/\n')
     project = EmptyProject(str(project_root))
     project.set_option('folders_to_ignore', ['vendor'])
 
@@ -653,9 +658,9 @@ def test_watcher_ignored_files(projects, tmpdir, qtbot):
         lambda path, is_dir: created.append(path)
     )
 
-    gitignored_file = str(gitignored.join('a.py'))
-    vendor_file = str(vendor.join('b.py'))
-    tracked_file = str(project_root.join('c.py'))
+    gitignored_file = str(gitignored / 'a.py')
+    vendor_file = str(vendor / 'b.py')
+    tracked_file = str(project_root / 'c.py')
     with qtbot.waitSignal(
         fs_handler.sig_file_created,
         check_params_cb=lambda path, is_dir: path == tracked_file,
@@ -672,12 +677,13 @@ def test_watcher_ignored_files(projects, tmpdir, qtbot):
     assert vendor_file not in created
 
 
-def test_watcher_invalid_option(projects, tmpdir, mocker):
+def test_watcher_invalid_option(projects, tmp_path, mocker):
     """
     Test that an invalid project option for the watcher is reported and the
     project is not opened.
     """
-    project_root = tmpdir.mkdir('project0')
+    project_root = tmp_path / 'project0'
+    project_root.mkdir()
     project = EmptyProject(str(project_root))
     project.set_option('follow_gitignore', 'yes')
     critical = mocker.patch.object(QMessageBox, 'critical')
