@@ -33,6 +33,7 @@ from spyder.plugins.editor.api.run import (
 )
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.widgets.main_widget import EditorMainWidget
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.editor.widgets.status import (
     CursorPositionStatus,
     EncodingStatus,
@@ -66,9 +67,9 @@ class Editor(SpyderDockablePlugin):
     NAME = 'editor'
     REQUIRES = [Plugins.Console, Plugins.Application, Plugins.Preferences]
     OPTIONAL = [
-        Plugins.Completions,
         Plugins.Debugger,
         Plugins.IPythonConsole,
+        Plugins.LanguageServices,
         Plugins.MainMenu,
         Plugins.Projects,
         Plugins.OutlineExplorer,
@@ -662,41 +663,38 @@ class Editor(SpyderDockablePlugin):
             toolbar_id=ApplicationToolbars.File,
         )
 
-    @on_plugin_available(plugin=Plugins.Completions)
-    def on_completions_available(self):
+    @on_plugin_available(plugin=Plugins.LanguageServices)
+    def on_language_services_available(self):
         widget = self.get_widget()
-        completions = self.get_plugin(Plugins.Completions)
+        language_services = self.get_plugin(Plugins.LanguageServices)
 
-        widget.sig_after_configuration_update_requested.connect(
-            completions.after_configuration_update
-        )
+        widget.set_language_services(language_services)
         self.sig_file_opened_closed_or_updated.connect(
-            completions.file_opened_closed_or_updated
+            self._notify_current_language
         )
 
-        completions.sig_language_completions_available.connect(
+        language_services.sig_capabilities_changed.connect(
             widget.register_completion_capabilities)
-        completions.sig_open_file.connect(widget.load)
-        completions.sig_stop_completions.connect(
+        language_services.sig_language_stopped.connect(
             widget.stop_completion_services)
+        language_services.sig_diagnostics.connect(widget.on_diagnostics)
+        language_services.sig_open_file_requested.connect(widget.load)
 
-    @on_plugin_teardown(plugin=Plugins.Completions)
-    def on_completions_teardown(self):
+    @on_plugin_teardown(plugin=Plugins.LanguageServices)
+    def on_language_services_teardown(self):
         widget = self.get_widget()
-        completions = self.get_plugin(Plugins.Completions)
+        language_services = self.get_plugin(Plugins.LanguageServices)
 
-        widget.sig_after_configuration_update_requested.disconnect(
-            completions.after_configuration_update
-        )
         self.sig_file_opened_closed_or_updated.disconnect(
-            completions.file_opened_closed_or_updated
+            self._notify_current_language
         )
-
-        completions.sig_language_completions_available.disconnect(
+        language_services.sig_capabilities_changed.disconnect(
             widget.register_completion_capabilities)
-        completions.sig_open_file.disconnect(widget.load)
-        completions.sig_stop_completions.disconnect(
+        language_services.sig_language_stopped.disconnect(
             widget.stop_completion_services)
+        language_services.sig_diagnostics.disconnect(widget.on_diagnostics)
+        language_services.sig_open_file_requested.disconnect(widget.load)
+        widget.set_language_services(None)
 
     @on_plugin_available(plugin=Plugins.OutlineExplorer)
     def on_outlineexplorer_available(self):
@@ -1379,32 +1377,15 @@ class Editor(SpyderDockablePlugin):
         if run is not None:
             run.switch_focused_run_configuration(file_id)
 
-    # ---- Completions related methods
-    def _register_file_completions(self, language, filename, codeeditor):
-        completions = self.get_plugin(Plugins.Completions, error=False)
-        status = None
-        fallback_only = False
-        if completions is not None:
-            status = (
-                completions.start_completion_services_for_language(
-                    language.lower()
-                )
+    # ---- Language services related methods
+    def _notify_current_language(self, filename, language):
+        language_services = self.get_plugin(
+            Plugins.LanguageServices, error=False
+        )
+        if language_services is not None:
+            language_services.set_current_language(
+                Language.find(name=language) if language else None
             )
-            completions.register_file(
-                language.lower(), filename, codeeditor
-            )
-            fallback_only = completions.is_fallback_only(language.lower())
-        return (status, fallback_only)
-
-    def _send_completions_request(self, language, request, params):
-        completions = self.get_plugin(Plugins.Completions, error=False)
-        if completions is not None:
-            completions.send_request(language, request, params)
-
-    def _after_configuration_update(self, config):
-        completions = self.get_plugin(Plugins.Completions, error=False)
-        if completions is not None:
-            completions.after_configuration_update(config)
 
     # ---- Projects related methods
     def _start_project_workspace_services(self):

@@ -41,6 +41,8 @@ from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from lsprotocol import types as lsp
+
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
@@ -58,6 +60,8 @@ from spyder.plugins.editor.widgets.codeeditor import (
 )
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.languageservices.api.uri import uri_as_path
 from spyder.plugins.editor.widgets.window import EditorMainWindow
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    update_bookmarks)
@@ -297,8 +301,8 @@ class EditorMainWidget(PluginMainWidget):
         self.cursor_redo_history = []
         self.__ignore_cursor_history = True
 
-        # Completions setup
-        self.completion_capabilities = {}
+        # Language services setup
+        self.language_services = None
 
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -594,9 +598,9 @@ class EditorMainWidget(PluginMainWidget):
 
         # Autofix actions
         formatter = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            ('providers', 'pylsp', 'values', 'formatting'),
             default='',
-            section='completions'
+            section='language_services'
         )
         self.formatting_action = self.create_action(
             EditorWidgetActions.FormatCode,
@@ -1025,43 +1029,47 @@ class EditorMainWidget(PluginMainWidget):
         if not able_to_run_file:
             self.pending_run_files |= {(filename, filename_ext)}
 
-        status, fallback_only = self._plugin._register_file_completions(
-            language.lower(), filename, codeeditor
-        )
+        plugin = self.language_services
+        codeeditor.language_services = plugin
+        spyder_language = Language.find(name=language)
+        if plugin is None or spyder_language is None:
+            logger.debug('Setting {0} completions off'.format(filename))
+            codeeditor.completions_available = False
+            return
 
-        if status:
-            if language.lower() in self.completion_capabilities:
-                # When this condition is True, it means there's a server
-                # that can provide completion services for this file.
-                codeeditor.register_completion_capabilities(
-                    self.completion_capabilities[language.lower()])
-                codeeditor.start_completion_services()
-            elif fallback_only:
-                # This is required to use fallback completions for files
-                # without a language server.
-                codeeditor.start_completion_services()
-        else:
-            if codeeditor.language == language.lower():
-                logger.debug('Setting {0} completions off'.format(filename))
-                codeeditor.completions_available = False
+        # Providers that already serve the language answer right away. The
+        # others report through sig_capabilities_changed once started.
+        plugin.start_language(spyder_language)
+        if plugin.is_language_supported(spyder_language):
+            codeeditor.register_completion_capabilities(
+                plugin.capabilities(spyder_language)
+            )
+            codeeditor.start_completion_services()
 
-    @Slot(object, str)
-    def register_completion_capabilities(self, capabilities, language):
+    def set_language_services(self, plugin):
+        """Set the LanguageServices plugin answering editor requests."""
+        self.language_services = plugin
+        for editorstack in self.editorstacks:
+            editorstack.set_language_services(plugin)
+
+    @Slot(object, object)
+    def register_completion_capabilities(self, language, capabilities):
         """
-        Register completion server capabilities in all editorstacks.
+        Register language server capabilities in all editorstacks.
 
         Parameters
         ----------
-        capabilities: lsp.ServerCapabilities
-            Server capabilities reported during LSP initialization.
-        language: str
-            Programming language for the language server (it has to be
-            in small caps).
+        language: spyder.plugins.languageservices.api.languages.Language
+        capabilities: lsp.ServerCapabilities | None
+            Merged capabilities of the providers serving ``language``;
+            ``None`` when no provider serves it any more.
         """
         logger.debug(
-            'Completion server capabilities for {!s} are: {!r}'.format(
+            'Language services capabilities for {!s} are: {!r}'.format(
                 language, capabilities)
         )
+        if capabilities is None:
+            return
 
         # This is required to start workspace before completion
         # services when Spyder starts with an open project.
@@ -1069,10 +1077,9 @@ class EditorMainWidget(PluginMainWidget):
         # TODO: main_widget calling logic for the projects plugin
         self._plugin._start_project_workspace_services()
 
-        self.completion_capabilities[language] = capabilities
         for editorstack in self.editorstacks:
             editorstack.register_completion_capabilities(
-                capabilities, language)
+                language, capabilities)
 
         self.start_completion_services(language)
 
@@ -1081,18 +1088,29 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks:
             editorstack.start_completion_services(language)
 
+    @Slot(object)
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
         for editorstack in self.editorstacks:
             editorstack.stop_completion_services(language)
 
-    def send_completion_request(self, language, request, params):
-        logger.debug("Perform request {0} for: {1}".format(
-            request, params['file']))
-        # TODO: main_widget calling logic from the completions plugin
-        self._plugin._send_completions_request(
-            language, request, params
-        )
+    @Slot(object)
+    def on_diagnostics(self, params):
+        """Forward merged diagnostics to the editors showing the document.
+
+        Parameters
+        ----------
+        params: lsp.PublishDiagnosticsParams
+        """
+        filename = uri_as_path(params.uri)
+        for editorstack in self.editorstacks:
+            index = editorstack.has_filename(filename)
+            if index is None:
+                continue
+            editor = editorstack.tabs.widget(index)
+            editor.handle_response(
+                lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, params.diagnostics
+            )
 
     def refresh(self):
         """Refresh editor widgets"""
@@ -1191,9 +1209,9 @@ class EditorMainWidget(PluginMainWidget):
             action.setChecked(self.get_conf(conf_name))
         else:
             opt = self.get_conf(
-                ('provider_configuration', 'lsp', 'values', conf_name),
+                ('providers', 'pylsp', 'values', conf_name),
                 default=False,
-                section='completions'
+                section='language_services'
             )
             action.setChecked(opt)
 
@@ -1227,9 +1245,9 @@ class EditorMainWidget(PluginMainWidget):
         else:
             if conf_name in ('pydocstyle'):
                 self.set_conf(
-                    ('provider_configuration', 'lsp', 'values', conf_name),
+                    ('providers', 'pylsp', 'values', conf_name),
                     checked,
-                    section='completions'
+                    section='language_services'
                 )
             self.sig_after_configuration_update_requested.emit([])
 
@@ -1331,6 +1349,7 @@ class EditorMainWidget(PluginMainWidget):
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
+        editorstack.set_language_services(self.language_services)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1406,22 +1425,22 @@ class EditorMainWidget(PluginMainWidget):
         )
 
         hover_hints = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'enable_hover_hints'),
+            ('providers', 'pylsp', 'values', 'enable_hover_hints'),
             default=True,
-            section='completions'
+            section='language_services'
         )
 
         format_on_save = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            ('providers', 'pylsp', 'values', 'format_on_save'),
             default=False,
-            section='completions'
+            section='language_services'
         )
 
         edge_line_columns = self.get_conf(
-            ('provider_configuration', 'lsp', 'values',
+            ('providers', 'pylsp', 'values',
              'flake8/max_line_length'),
             default=79,
-            section='completions'
+            section='language_services'
         )
 
         editorstack.set_hover_hints_enabled(hover_hints)
@@ -1457,8 +1476,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_go_to_definition.connect(
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
-        editorstack.sig_perform_completion_request.connect(
-            self.send_completion_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.sig_update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
@@ -1733,8 +1750,8 @@ class EditorMainWidget(PluginMainWidget):
         self.__set_eol_chars = True
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values', 'formatting'),
-        section='completions',
+        option=('providers', 'pylsp', 'values', 'formatting'),
+        section='language_services',
     )
     def refresh_formatter_name(self, value):
         self.formatting_action.setText(
@@ -3069,8 +3086,8 @@ class EditorMainWidget(PluginMainWidget):
         # See: spyder-ide/spyder#9915
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values', 'pydocstyle'),
-        section='completions'
+        option=('providers', 'pylsp', 'values', 'pydocstyle'),
+        section='language_services'
     )
     def on_completions_checkable_action_change(self, value):
         self._on_checkable_action_change('pydocstyle', value)

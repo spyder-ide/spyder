@@ -126,7 +126,7 @@ def get_options(argv=None):
         default='',
         help="Comma-separated module name hierarchies whose log "
              "messages should be shown. e.g., "
-             "spyder.plugins.completion,spyder.plugins.editor"
+             "spyder.plugins.languageservices,spyder.plugins.editor"
     )
     parser.add_argument(
         '--safe-mode',
