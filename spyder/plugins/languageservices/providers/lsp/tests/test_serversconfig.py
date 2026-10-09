@@ -7,7 +7,7 @@
 """Tests for the LSP servers table and editor dialog."""
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QPushButton, QWidget
 
 from spyder.plugins.languageservices.providers.lsp.config import (
     AUTO_LANGUAGES,
@@ -15,6 +15,7 @@ from spyder.plugins.languageservices.providers.lsp.config import (
 )
 from spyder.plugins.languageservices.providers.lsp.widgets.serversconfig import (
     LSPServerEditor,
+    LSPServerTable,
 )
 
 
@@ -28,6 +29,21 @@ class EditorHost(QWidget):
 def get_option(option, default=None, section=None):
     assert (section, option) == ("appearance", "selected")
     return "spyder/dark"
+
+
+class TableHost(QWidget):
+    """Stand-in for the config page the servers table takes as parent."""
+
+    def __init__(self, servers):
+        super().__init__()
+        self.servers = servers
+        self.delete_btn = QPushButton(self)
+        self.delete_btn.setEnabled(False)
+
+    def get_option(self, option, default=None, section=None):
+        if option == "servers":
+            return self.servers
+        return get_option(option, default, section)
 
 
 def language_items(editor):
@@ -151,3 +167,17 @@ def test_editor_keeps_unknown_configured_language(qtbot):
     items = language_items(editor)
     assert items["zig"].text() == "zig"
     assert set(editor.selected_languages()) == {"rust", "zig"}
+
+
+def test_table_selection_enables_delete(qtbot):
+    servers = {
+        "rust": ServerConfig(
+            name="rust", cmd="rust-analyzer", languages=("rust",), stdio=True
+        ).to_conf()
+    }
+    host = TableHost(servers)
+    qtbot.addWidget(host)
+    table = LSPServerTable(host)
+
+    table.selectRow(0)
+    assert host.delete_btn.isEnabled()
