@@ -915,13 +915,16 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _get_watcher_options(self, project):
         """Get the watcher options, with the project's taking precedence."""
         config_file = pathlib.Path(
-            project.root_path, get_project_config_folder(), "config",
-            f"{WORKSPACE}.ini"
+            project.root_path,
+            get_project_config_folder(),
+            "config",
+            f"{WORKSPACE}.ini",
         )
 
         follow_gitignore = project.get_option("follow_gitignore", default=None)
         if follow_gitignore is None:
             follow_gitignore = self.get_conf("follow_gitignore")
+
         if not isinstance(follow_gitignore, bool):
             raise ValueError(
                 f"follow_gitignore must be True, False or None in "
@@ -938,8 +941,10 @@ class ProjectExplorerWidget(PluginMainWidget):
                 f"{config_file}, not {folders_to_ignore!r}"
             )
 
-        return dict(follow_gitignore=follow_gitignore,
-                    folders_to_ignore=folders_to_ignore)
+        return dict(
+            follow_gitignore=follow_gitignore,
+            folders_to_ignore=folders_to_ignore,
+        )
 
     @on_conf_change(option="follow_gitignore")
     def _on_follow_gitignore_changed(self, value):

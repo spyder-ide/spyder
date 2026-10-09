@@ -18,6 +18,7 @@ import re
 import sys
 from typing import Literal, NamedTuple
 
+
 logger = logging.getLogger(__name__)
 
 # Git matches case-insensitively by default on these systems (core.ignorecase)
@@ -48,9 +49,11 @@ def _translate_bracket(glob: str, i: int) -> tuple[str, int]:
     while True:
         if i == n:
             raise ValueError("unclosed [")
+
         c = glob[i]
         if c == "]" and chars:
             break
+
         if c == "\\":
             i += 1
             if i == n:
@@ -60,6 +63,7 @@ def _translate_bracket(glob: str, i: int) -> tuple[str, int]:
             chars.append("-")
         else:
             chars.append(re.escape(c))
+
         i += 1
 
     body = "".join(chars)
@@ -76,6 +80,7 @@ def _strip_trailing_spaces(line: str) -> str:
             i += 1
             if line[i - 1] != " ":
                 end = i
+
     return line[:end]
 
 
@@ -96,6 +101,7 @@ def _split_components(glob: str) -> list[_Component]:
     """
     tokens: list[_Token] = []
     components: list[_Component] = [tokens]
+
     i, n = 0, len(glob)
     while i < n:
         c = glob[i]
@@ -107,6 +113,7 @@ def _split_components(glob: str) -> list[_Component]:
             start = i - 1
             while glob[i:i + 1] == "*":
                 i += 1
+
             if (
                 i - start == 2
                 and not tokens
@@ -147,6 +154,7 @@ def _translate_component(tokens: Iterable[_Token]) -> str:
         for chunk in chunks[1:-1]:
             regex += f"(?>[^/]*?{''.join(chunk)})"
         regex += "[^/]*" + "".join(chunks[-1])
+
     return regex
 
 
@@ -177,6 +185,7 @@ def translate_glob(glob: str) -> str:
         group_regex = "(?:[^/]*/)*?" + "/".join(group)
         if k < last:
             group_regex = f"(?>{group_regex}(?=/))"
+
         regex += ("/" if regex else "") + group_regex
 
     return regex
@@ -220,6 +229,7 @@ def parse_gitignore(
         anchored = "/" in line
         if line.startswith("/"):
             line = line[1:]
+
         if not line:
             continue
 
@@ -231,6 +241,7 @@ def parse_gitignore(
                 )
             else:
                 regex = translate_glob(line) + r"\0.*"
+
             re.compile(regex, _FLAGS)
         except (ValueError, re.error) as error:
             logger.warning(f"Skipping gitignore pattern {line!r}: {error}")
@@ -304,7 +315,9 @@ class GitignoreRules:
         match = regex.fullmatch(f"{name}\0{path}")
         if match is None:
             return False
+
         assert match.lastindex is not None
+
         return not negate[match.lastindex]
 
 
@@ -314,4 +327,5 @@ def find_repository_root(path: str | os.PathLike[str]) -> Path | None:
     for folder in (path, *path.parents):
         if (folder / ".git").exists():
             return folder
+
     return None

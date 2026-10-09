@@ -20,7 +20,9 @@ from watchdog.utils.dirsnapshot import DirectorySnapshot
 
 # Local imports
 from spyder.plugins.projects.utils.gitignore import (
-    GitignoreRules, parse_gitignore)
+    GitignoreRules,
+    parse_gitignore,
+)
 from spyder.plugins.projects.utils.watcher import ScandirFilter
 
 
@@ -49,26 +51,71 @@ PKG_GITIGNORE = """
 """
 
 FILES = [
-    "main.py", "a.gen.py", "pkg/b.gen.py", "pkg/keep.gen.py",
-    "top_only.py", "pkg/top_only.py",
-    "out/c.py", "pkg/out/d.py", "pkg/out.py",
-    "docs/draft.py", "docs/x/draft.py", "docs/x/y/draft.py", "docs/final.py",
-    "cache/e.py", "pkg/cache/f.py", "pkg/deep/cache/g.py",
-    "lib/h.py", "lib/keep.py", "lib/sub/i.py",
-    "sub/nested.py", "pkg/sub/nested.py",
-    "ax.py", "dx.py", "ay.py", "dy.py", "q1.py", "q12.py",
-    "#hash.py", "!bang.py", "trailing.py",
-    "pkg/j.tmp.py", "pkg/local.py", "pkg/inner/local.py",
+    "main.py",
+    "a.gen.py",
+    "pkg/b.gen.py",
+    "pkg/keep.gen.py",
+    "top_only.py",
+    "pkg/top_only.py",
+    "out/c.py",
+    "pkg/out/d.py",
+    "pkg/out.py",
+    "docs/draft.py",
+    "docs/x/draft.py",
+    "docs/x/y/draft.py",
+    "docs/final.py",
+    "cache/e.py",
+    "pkg/cache/f.py",
+    "pkg/deep/cache/g.py",
+    "lib/h.py",
+    "lib/keep.py",
+    "lib/sub/i.py",
+    "sub/nested.py",
+    "pkg/sub/nested.py",
+    "ax.py",
+    "dx.py",
+    "ay.py",
+    "dy.py",
+    "q1.py",
+    "q12.py",
+    "#hash.py",
+    "!bang.py",
+    "trailing.py",
+    "pkg/j.tmp.py",
+    "pkg/local.py",
+    "pkg/inner/local.py",
 ]
 
 
 GIT_IGNORED = {
-    "!bang.py", "#hash.py", "a.gen.py", "ax.py", "cache", "cache/e.py",
-    "docs/draft.py", "docs/x/draft.py", "docs/x/y/draft.py", "dy.py",
-    "lib/h.py", "lib/sub", "lib/sub/i.py", "out", "out/c.py",
-    "pkg/b.gen.py", "pkg/cache", "pkg/cache/f.py", "pkg/deep/cache",
-    "pkg/deep/cache/g.py", "pkg/j.tmp.py", "pkg/local.py", "pkg/out",
-    "pkg/out/d.py", "q1.py", "sub/nested.py", "top_only.py", "trailing.py",
+    "!bang.py",
+    "#hash.py",
+    "a.gen.py",
+    "ax.py",
+    "cache",
+    "cache/e.py",
+    "docs/draft.py",
+    "docs/x/draft.py",
+    "docs/x/y/draft.py",
+    "dy.py",
+    "lib/h.py",
+    "lib/sub",
+    "lib/sub/i.py",
+    "out",
+    "out/c.py",
+    "pkg/b.gen.py",
+    "pkg/cache",
+    "pkg/cache/f.py",
+    "pkg/deep/cache",
+    "pkg/deep/cache/g.py",
+    "pkg/j.tmp.py",
+    "pkg/local.py",
+    "pkg/out",
+    "pkg/out/d.py",
+    "q1.py",
+    "sub/nested.py",
+    "top_only.py",
+    "trailing.py",
 }
 
 
@@ -93,8 +140,7 @@ def all_paths(root):
 
 def relative_paths(root, paths):
     return {
-        str(type(root)(p).relative_to(root)).replace("\\", "/")
-        for p in paths
+        str(type(root)(p).relative_to(root)).replace("\\", "/") for p in paths
     } - {"."}
 
 
@@ -120,8 +166,11 @@ def test_matches_git_in_repository_subfolder(tmp_path):
     """
     repo = tmp_path / "repo"
     root = repo / "sub" / "project"
-    make_tree(root, ["main.py", "a.skip.py", "b.excluded.py", "c.mid.py",
-                     "d/e.py"], {})
+    make_tree(
+        root,
+        ["main.py", "a.skip.py", "b.excluded.py", "c.mid.py", "d/e.py"],
+        {},
+    )
     (repo / ".git" / "info").mkdir(parents=True)
     (repo / ".gitignore").write_text("*.skip.py\n/sub/project/d/\n")
     (repo / "sub" / ".gitignore").write_text("*.mid.py\n")
@@ -143,6 +192,7 @@ def test_gitignore_edits_apply_on_next_snapshot(tmp_path):
 
     with open(root / ".gitignore", "a") as f:
         f.write("pkg/\n")
+
     assert str(root / "pkg") not in paths()
 
 
@@ -157,13 +207,15 @@ def test_follow_gitignore_disabled(tmp_path):
 
 @pytest.mark.parametrize(
     "pattern, path, is_dir, ignored",
-    [("foo/", "foo", True, True),
-     ("foo/", "foo", False, False),
-     ("*.py", "a/b.py", False, True),
-     ("a/*.py", "a/b/c.py", False, False),
-     ("a/**/c.py", "a/c.py", False, True),
-     ("a/**/c.py", "a/b/d/c.py", False, True),
-     ("**", "a/b", False, True)]
+    [
+        ("foo/", "foo", True, True),
+        ("foo/", "foo", False, False),
+        ("*.py", "a/b.py", False, True),
+        ("a/*.py", "a/b/c.py", False, False),
+        ("a/**/c.py", "a/c.py", False, True),
+        ("a/**/c.py", "a/b/d/c.py", False, True),
+        ("**", "a/b", False, True),
+    ],
 )
 def test_rules(pattern, path, is_dir, ignored):
     rules = GitignoreRules(parse_gitignore([pattern]))
@@ -181,15 +233,17 @@ def test_rules_last_pattern_wins():
 
 @pytest.mark.parametrize(
     "pattern, path, ignored",
-    [("x[!-a]", "x5", True),
-     ("x[!-a]", "x-", False),
-     (r"x[a\]b]", "x]", True),
-     (r"x[a\]b]", "xb", True),
-     (r"x[a\]b]", "xab]", False),
-     ("foo\\\\ ", "foo\\", True),
-     ("foo\\ ", "foo ", True),
-     ("x[a", "x[a", False),
-     ("a\\", "a\\", False)]
+    [
+        ("x[!-a]", "x5", True),
+        ("x[!-a]", "x-", False),
+        (r"x[a\]b]", "x]", True),
+        (r"x[a\]b]", "xb", True),
+        (r"x[a\]b]", "xab]", False),
+        ("foo\\\\ ", "foo\\", True),
+        ("foo\\ ", "foo ", True),
+        ("x[a", "x[a", False),
+        ("a\\", "a\\", False),
+    ],
 )
 def test_rules_edge_cases(pattern, path, ignored):
     """Results checked with git check-ignore."""
@@ -217,8 +271,10 @@ def test_symlink_to_folder_is_not_a_folder(tmp_path):
 
 @pytest.mark.parametrize(
     "pattern, path",
-    [("*a*a*a*a*a*b", "a" * 60),
-     ("x/" + "**/" * 8 + "b", "x/" + "a/" * 40 + "c")]
+    [
+        ("*a*a*a*a*a*b", "a" * 60),
+        ("x/" + "**/" * 8 + "b", "x/" + "a/" * 40 + "c"),
+    ],
 )
 def test_rules_match_in_polynomial_time(pattern, path):
     rules = GitignoreRules(parse_gitignore([pattern]))
@@ -230,14 +286,16 @@ def test_rules_match_in_polynomial_time(pattern, path):
 
 @pytest.mark.parametrize(
     "pattern, path, ignored",
-    [("a*b*c", "abxbc", True),
-     ("a*b*c", "abcx", False),
-     ("*x*", "axbxc", True),
-     ("a/**/b/**/c", "a/b/x/b/c", True),
-     ("a/**/b/**/c", "a/b/c/b", False),
-     ("a/**/b*/c", "a/x/b1/y/b2/c", True),
-     ("**/a/**", "x/a/y", True),
-     ("a/**/**/b", "a/b", True)]
+    [
+        ("a*b*c", "abxbc", True),
+        ("a*b*c", "abcx", False),
+        ("*x*", "axbxc", True),
+        ("a/**/b/**/c", "a/b/x/b/c", True),
+        ("a/**/b/**/c", "a/b/c/b", False),
+        ("a/**/b*/c", "a/x/b1/y/b2/c", True),
+        ("**/a/**", "x/a/y", True),
+        ("a/**/**/b", "a/b", True),
+    ],
 )
 def test_rules_with_several_stars(pattern, path, ignored):
     """Results checked with git check-ignore."""
@@ -280,4 +338,5 @@ def test_decisions_are_cached_until_gitignore_changes(tmp_path, mocker):
 
     with open(root / ".gitignore", "a") as f:
         f.write("pkg/\n")
+
     assert paths() == {"main.py"}
