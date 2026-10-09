@@ -503,6 +503,14 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 "show in external file explorer",
                 self.show_in_external_file_explorer,
             ),
+            (
+                "wrap lines",
+                functools.partial(
+                    self.sig_trigger_action.emit,
+                    EditorWidgetActions.WrapLines,
+                    Plugins.Editor,
+                ),
+            ),
         )
 
         for name, callback in shortcuts:
