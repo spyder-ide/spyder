@@ -575,13 +575,16 @@ def test_recreate_project_config(projects, tmpdir):
 
 @pytest.mark.parametrize(
     "global_option, project_option, expected",
-    [(True, None, True),
-     (False, None, False),
-     (True, False, False),
-     (False, True, True)]
+    [
+        (True, None, True),
+        (False, None, False),
+        (True, False, False),
+        (False, True, True),
+    ],
 )
-def test_watcher_options(projects, tmpdir, global_option, project_option,
-                         expected):
+def test_watcher_options(
+    projects, tmpdir, global_option, project_option, expected
+):
     """
     Test that the project's watcher options take precedence over Spyder's.
     """

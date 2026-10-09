@@ -21,7 +21,10 @@ from watchdog.observers.polling import PollingObserverVFS
 # Local imports
 from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.plugins.projects.utils.gitignore import (
-    GitignoreRules, find_repository_root, read_gitignore)
+    GitignoreRules,
+    find_repository_root,
+    read_gitignore,
+)
 
 
 # ---- Constants
@@ -68,8 +71,8 @@ def ignore_entry(
     entry: os.DirEntry, folders_to_ignore=FOLDERS_TO_IGNORE
 ) -> bool:
     """Check if an entry should be ignored."""
-    # ignore any file/folder starting with a
-    #  dot or in the folders_to_ignore set
+    # Ignore any file/folder starting with a dot or in the folders_to_ignore
+    # set
     name = entry.name
     return name.startswith(".") or name in folders_to_ignore
 
@@ -131,15 +134,23 @@ class ScandirFilter:
                 prefix += name + "/"
 
         # Keyed by chain: ((path, mtime_ns, size, prefix), ...)
-        self._rules: dict[tuple[tuple[str, int, int, str], ...], GitignoreRules] = {(): GitignoreRules()}
-        self._previous_rules: dict[tuple[tuple[str, int, int, str], ...], GitignoreRules] = {}
+        self._rules: dict[
+            tuple[tuple[str, int, int, str], ...], GitignoreRules
+        ] = {(): GitignoreRules()}
+        self._previous_rules: dict[
+            tuple[tuple[str, int, int, str], ...], GitignoreRules
+        ] = {}
 
         # Chain and prefix of the folders to list in the current snapshot
-        self._folders: dict[str, tuple[tuple[tuple[str, int, int, str], ...], str]] = {}
+        self._folders: dict[
+            str, tuple[tuple[tuple[str, int, int, str], ...], str]
+        ] = {}
 
         # Keyed by path: (rules, is_dir, ignored)
         self._decisions: dict[str, tuple[GitignoreRules, bool, bool]] = {}
-        self._previous_decisions: dict[str, tuple[GitignoreRules, bool, bool]] = {}
+        self._previous_decisions: dict[
+            str, tuple[GitignoreRules, bool, bool]
+        ] = {}
         self._warned_root_ignored = False
 
     def __call__(self, path: str) -> list[os.DirEntry]:
@@ -158,8 +169,10 @@ class ScandirFilter:
 
             if self.follow_gitignore:
                 relative_path = prefix + entry.name  # type: ignore[assignment]
+
                 # Git doesn't treat symlinks to folders as folders
                 is_dir = entry.is_dir(follow_symlinks=False)
+
                 decision = self._previous_decisions.get(entry.path)
                 if (
                     decision is None
@@ -169,9 +182,12 @@ class ScandirFilter:
                     decision = (
                         rules, is_dir, rules.ignores(relative_path, is_dir)
                     )
+
                 self._decisions[entry.path] = decision
+
                 if decision[2]:
                     continue
+
                 # Files too, because one could be replaced by a folder before
                 # the observer checks its type.
                 self._folders[entry.path] = (chain, relative_path + "/")
@@ -196,7 +212,9 @@ class ScandirFilter:
 
         return kept
 
-    def _get_chain(self, path: str, entries: list[os.DirEntry]) -> tuple[tuple[tuple[str, int, int, str], ...], str]:
+    def _get_chain(
+        self, path: str, entries: list[os.DirEntry]
+    ) -> tuple[tuple[tuple[str, int, int, str], ...], str]:
         """Get the gitignore files that apply to `path` and its prefix."""
         # The observer starts every snapshot by listing the root
         if path == self.root:
@@ -212,11 +230,13 @@ class ScandirFilter:
                     st = os.stat(gitignore)
                 except OSError:
                     continue
+
                 # Reading a FIFO would block
                 if stat.S_ISREG(st.st_mode):
                     chain += (
                         (gitignore, st.st_mtime_ns, st.st_size, prefix),
                     )
+
             prefix = self._root_prefix
         else:
             chain, prefix = self._folders[path]
@@ -232,7 +252,9 @@ class ScandirFilter:
 
         return chain, prefix
 
-    def _get_rules(self, chain: tuple[tuple[str, int, int, str], ...]) -> GitignoreRules:
+    def _get_rules(
+        self, chain: tuple[tuple[str, int, int, str], ...]
+    ) -> GitignoreRules:
         rules = self._rules.get(chain)
         if rules is None:
             rules = self._previous_rules.get(chain)
@@ -241,6 +263,7 @@ class ScandirFilter:
                 rules = self._get_rules(chain[:-1]).extended(
                     read_gitignore(gitignore, prefix)
                 )
+
             self._rules[chain] = rules
 
         return rules
@@ -349,8 +372,9 @@ class WorkspaceWatcher(QObject):
         self.sig_file_deleted.connect(project.file_deleted)
         self.sig_file_modified.connect(project.file_modified)
 
-    def start(self, workspace_folder, follow_gitignore=True,
-              folders_to_ignore=()):
+    def start(
+        self, workspace_folder, follow_gitignore=True, folders_to_ignore=()
+    ):
         settings = (
             workspace_folder, follow_gitignore, frozenset(folders_to_ignore)
         )

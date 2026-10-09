@@ -40,6 +40,7 @@ def test_filter_ignores_names_only_inside_project(tmp_path, parent):
     (project / "pkg").mkdir(parents=True)
     (project / "pkg" / "module.py").touch()
     (project / "pkg" / "data.bin").touch()
+
     for ignored in [".git", "build", "__pycache__"]:
         (project / ignored).mkdir()
         (project / ignored / "ignored.py").touch()
@@ -76,8 +77,10 @@ def test_filter_symlinked_project_uses_target_repository(tmp_path):
     (repo / ".git").mkdir(parents=True)
     (repo / ".gitignore").write_text("ignored.py\n")
     (repo / "sub").mkdir()
+
     for name in ["kept.py", "ignored.py"]:
         (repo / "sub" / name).touch()
+
     project = tmp_path / "link"
     project.symlink_to(repo / "sub")
 
@@ -98,8 +101,10 @@ def test_filter_project_under_symlinked_folder(tmp_path):
     (repo / ".git" / "info" / "exclude").write_text("/sub/ignored.py\n")
     (tmp_path / ".gitignore").write_text("kept.py\n")
     (repo / "sub").mkdir()
+
     for name in ["kept.py", "ignored.py"]:
         (repo / "sub" / name).touch()
+
     (tmp_path / "link").symlink_to(tmp_path / "real")
     project = tmp_path / "link" / "repo" / "sub"
 
