@@ -586,9 +586,6 @@ class LSPServerTable(QTableView):
         self.selectRow(self.currentIndex().row())
 
     def selection(self, index):
-        """Update selected row."""
-        self.update()
-        self.isActiveWindow()
         self._parent.delete_btn.setEnabled(True)
 
     def adjust_cells(self):
