@@ -531,11 +531,13 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
                 self.setup_default_layouts(index_or_layout_id, settings)
             else:
                 self.set_window_settings(*settings)
+                self.set_conf('current_layout', index_or_layout_id)
         except cp.NoOptionError:
             try:
                 layout = self.get_layout(index_or_layout_id)
                 layout.set_main_window_layout(
                     self.main, self.get_dockable_plugins())
+                self.set_conf('current_layout', layout.ID)
                 self.main.sig_layout_setup_ready.emit(layout)
             except SpyderAPIError:
                 container.critical_message(

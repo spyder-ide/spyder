@@ -126,6 +126,7 @@ DEFAULTS = [
               }),
             ('quick_layouts',
              {
+              'current_layout': 'Spyder Default Layout',
               'place_holder': '',
               'names': [],
               'order': [],
