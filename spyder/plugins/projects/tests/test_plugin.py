@@ -679,26 +679,5 @@ def test_watcher_ignored_files(projects, tmp_path, qtbot):
     assert vendor_file not in created
 
 
-def test_watcher_invalid_option(projects, tmp_path, mocker):
-    """
-    Test that an invalid project option for the watcher is reported and the
-    project is not opened.
-    """
-    project_root = tmp_path / 'project0'
-    project_root.mkdir()
-    project = EmptyProject(str(project_root))
-    project.set_option('follow_gitignore', 'yes')
-    critical = mocker.patch.object(QMessageBox, 'critical')
-
-    projects.open_project(path=str(project_root))
-
-    critical.assert_called_once()
-    assert (
-        "follow_gitignore must be True, False or None"
-        in critical.call_args.args[2]
-    )
-    assert projects.get_active_project() is None
-
-
 if __name__ == "__main__":
     pytest.main()

@@ -408,11 +408,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 parent_plugin=project_type_class._PARENT_PLUGIN,
             )
 
-        try:
-            watcher_options = self._get_watcher_options(project_type)
-        except ValueError as error:
-            QMessageBox.critical(self, _("Project open"), str(error))
-            return
+        watcher_options = self._get_watcher_options(project_type)
 
         if self.current_active_project is None:
             # A project was not open before
@@ -914,32 +910,11 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def _get_watcher_options(self, project):
         """Get the watcher options, with the project's taking precedence."""
-        config_file = pathlib.Path(
-            project.root_path,
-            get_project_config_folder(),
-            "config",
-            f"{WORKSPACE}.ini",
-        )
-
         follow_gitignore = project.get_option("follow_gitignore", default=None)
         if follow_gitignore is None:
             follow_gitignore = self.get_conf("follow_gitignore")
 
-        if not isinstance(follow_gitignore, bool):
-            raise ValueError(
-                f"follow_gitignore must be True, False or None in "
-                f"{config_file}, not {follow_gitignore!r}"
-            )
-
         folders_to_ignore = project.get_option("folders_to_ignore", default=[])
-        if not (
-            isinstance(folders_to_ignore, (list, tuple))
-            and all(isinstance(name, str) for name in folders_to_ignore)
-        ):
-            raise ValueError(
-                f"folders_to_ignore must be a list of folder names in "
-                f"{config_file}, not {folders_to_ignore!r}"
-            )
 
         return dict(
             follow_gitignore=follow_gitignore,
