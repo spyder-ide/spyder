@@ -229,7 +229,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
             return
         self._capabilities[language] = capabilities
         self._languages.add(language)
-        self.sig_capabilities_changed.emit(language, capabilities)
+        self.sig_capabilities_changed.emit(language)
 
     @Slot(str)
     def _on_language_stopped(self, name: str):
@@ -239,9 +239,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         self._capabilities.pop(language, None)
         if self.completion_plugin.is_fallback_only(name):
             self._languages.discard(language)
-        self.sig_capabilities_changed.emit(
-            language, self._capabilities.get(language)
-        )
+        self.sig_capabilities_changed.emit(language)
 
     def _running_capabilities(self, name: str):
         """Capabilities of a legacy language server already running for
@@ -269,9 +267,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
                     capabilities = self._running_capabilities(name)
                     if capabilities is not None:
                         self._capabilities[language] = capabilities
-                        self.sig_capabilities_changed.emit(
-                            language, capabilities
-                        )
+                        self.sig_capabilities_changed.emit(language)
             return started
 
         await run_in_main_thread(start)

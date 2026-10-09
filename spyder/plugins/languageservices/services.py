@@ -307,8 +307,8 @@ class LanguageServicesAPI(QObject):
             direct,
         )
         provider.sig_capabilities_changed.connect(
-            lambda language, caps, p=provider: (
-                self._on_provider_capabilities(p, language, caps)
+            lambda language, p=provider: (
+                self._on_provider_capabilities(p, language)
             ),
             direct,
         )
@@ -778,7 +778,6 @@ class LanguageServicesAPI(QObject):
         self,
         provider: LanguageServicesProvider,
         language: Language,
-        capabilities: lsp.ServerCapabilities | None,
     ) -> None:
         state = self._state(provider.NAME)
         if not state.started:
