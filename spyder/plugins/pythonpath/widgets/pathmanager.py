@@ -119,7 +119,7 @@ class PathManager(SpyderWidgetMixin, QDialog):
 
         # Widget setup
         self.setWindowTitle(_("PYTHONPATH manager"))
-        self.setWindowIcon(self.create_icon('pythonpath'))
+        self.setWindowIcon(self.create_icon('python'))
         self.resize(500, 400)
         self.export_button.setVisible(os.name == 'nt' and sync)
 
