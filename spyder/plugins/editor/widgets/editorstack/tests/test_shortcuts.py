@@ -16,7 +16,7 @@ from unittest.mock import Mock
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QPlainTextEdit
 
 # Local imports
 from spyder.api.plugins import Plugins
@@ -409,12 +409,13 @@ def test_file_shortcut(editorstack, qtbot, key, modifier, action):
 )
 def test_wrap_lines_shortcut(editorstack, qtbot):
     """
-    Test that the wrap lines shortcut raises the signal to trigger its action.
+    Test that the wrap lines shortcut works as expected.
     """
     editor = editorstack.get_current_editor()
     with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
         qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
     assert blocker.args == [EditorWidgetActions.WrapLines, Plugins.Editor]
+    assert editor.lineWrapMode() == QPlainTextEdit.WidgetWidth
 
 
 if __name__ == "__main__":

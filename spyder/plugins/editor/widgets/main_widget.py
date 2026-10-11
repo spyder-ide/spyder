@@ -1165,8 +1165,14 @@ class EditorMainWidget(PluginMainWidget):
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
 
-    def _create_checkable_action(self, name, text, conf_name, method='',
-                                 register_shortcut=False):
+    def _create_checkable_action(
+        self,
+        name,
+        text,
+        conf_name,
+        method='',
+        register_shortcut=False
+    ):
         """
         Helper function to create a checkable action.
 
