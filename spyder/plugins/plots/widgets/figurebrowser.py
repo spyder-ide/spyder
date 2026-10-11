@@ -907,7 +907,8 @@ class ThumbnailScrollBar(QFrame):
         """Save all the figures to a file."""
         self.sig_redirect_stdio_requested.emit(False)
         dirname = getexistingdirectory(self, 'Save all figures',
-                                       self.save_dir)
+                                       self.save_dir,
+                                       accept_label=_("Select"))
         self.sig_redirect_stdio_requested.emit(True)
 
         if dirname:

@@ -162,11 +162,17 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     assert fignames is None
 
     # Save all figures.
-    mocker.patch(
+    mock_getexistingdirectory = mocker.patch(
         'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
         return_value=str(tmpdir.mkdir('all_saved_figures')))
     fignames = figbrowser.save_all_figures()
     assert len(fignames) == len(figs)
+
+    # Check the directory dialog uses "Select" as its accept button label.
+    mock_getexistingdirectory.assert_called_once()
+    assert (
+        mock_getexistingdirectory.call_args.kwargs['accept_label'] =='Select'
+    )
     for fig, figname in zip(figs, fignames):
         expected_qpix = QPixmap()
         expected_qpix.loadFromData(fig, fmt.upper())
