@@ -558,6 +558,7 @@ DEFAULTS = [
               'editor/fold or unfold current region': 'Ctrl+H',
               'editor/fold all regions': 'Ctrl+J',
               'editor/unfold all regions': 'Ctrl+K',
+              'editor/wrap lines': "Alt+Z",
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",

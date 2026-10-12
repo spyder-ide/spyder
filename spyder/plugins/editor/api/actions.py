@@ -36,7 +36,7 @@ class EditorWidgetActions:
 
     # Checkable operations
     ShowBlanks = "blank_spaces_action"
-    WrapLines = "wrap_lines_action"
+    WrapLines = "wrap lines"
     ShowIndentGuides = "show_indent_guides_action"
     ShowCodeFolding = "show_code_folding_action"
     ShowClassFuncDropdown = "show_class_func_dropdown_action"
