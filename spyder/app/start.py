@@ -169,7 +169,7 @@ def show_message(text):
         The message to show.
     """
     if sys.stdout is not None:
-        print(text)
+        print(text)  # spyder: test-skip
         return
 
     # Show the dialog with Qt's default scaling, so it can be read even if a
@@ -222,9 +222,8 @@ def reset_hdpi_settings():
         pass
 
     show_message(
-        "High DPI settings were reset to their defaults in "
-        f"{get_conf_path()}. If Spyder is open, please close all its windows "
-        "and start it again."
+        "High DPI settings were reset to their defaults. If Spyder is open, "
+        "please close all its windows and start it again."
     )
     return 0
 

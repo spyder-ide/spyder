@@ -55,6 +55,15 @@ def no_spyder(monkeypatch):
     monkeypatch.setattr('spyder.app.mainwindow.main', start_spyder)
 
 
+@pytest.fixture
+def restore_environ():
+    """Restore the environment variables that start.main changes."""
+    environ = dict(os.environ)
+    yield
+    os.environ.clear()
+    os.environ.update(environ)
+
+
 def assert_hdpi_defaults():
     for option in start.HDPI_OPTIONS:
         assert CONF.get('main', option) == CONF.get_default('main', option)
@@ -103,8 +112,9 @@ def test_apply_pending_hdpi_reset(bad_hdpi_settings):
         (['--reset-hdpi-settings', '--safe-mode'], 1, False),
     ]
 )
-def test_main_reset_hdpi_settings(bad_hdpi_settings, no_spyder, monkeypatch,
-                                  argv, exit_code, is_reset):
+def test_main_reset_hdpi_settings(
+    bad_hdpi_settings, no_spyder, monkeypatch, argv, exit_code, is_reset
+):
     """
     Check that main resets the high DPI settings and exits without starting
     Spyder, unless safe mode is used.
@@ -115,17 +125,9 @@ def test_main_reset_hdpi_settings(bad_hdpi_settings, no_spyder, monkeypatch,
     assert CONF.get('main', 'high_dpi_custom_scale_factor') is not is_reset
 
 
-@pytest.fixture
-def restore_environ():
-    """Restore the environment variables that start.main changes."""
-    environ = dict(os.environ)
-    yield
-    os.environ.clear()
-    os.environ.update(environ)
-
-
-def test_main_applies_pending_hdpi_reset(bad_hdpi_settings, restore_environ,
-                                         monkeypatch):
+def test_main_applies_pending_hdpi_reset(
+    bad_hdpi_settings, restore_environ, monkeypatch
+):
     """
     Check that a pending reset is applied before the scale factor is set when
     Spyder starts, even if the wrong one was passed by a restart.
