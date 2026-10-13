@@ -12,6 +12,7 @@ For historical reasons (dating back to Spyder 2) the main class here is called
 `main`.
 """
 
+import html
 import traceback
 import sys
 
@@ -32,6 +33,7 @@ from qtpy.QtWidgets import (
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
+from spyder.app.utils import get_spyder_command
 from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 is_conda_based_app, save_lang_conf)
 
@@ -245,12 +247,20 @@ class ApplicationConfigPage(PluginConfigPage):
             restart=True
         )
 
+        # Tell users how to recover if a custom scale factor makes Spyder
+        # unusable, with the command that works for their installation.
+        # See spyder-ide/spyder#5396
+        reset_hdpi_command = get_spyder_command(['--reset-hdpi-settings'])
         self.custom_scaling_radio = self.create_radiobutton(
             _("Set a custom high DPI scaling"),
             'high_dpi_custom_scale_factor',
             button_group=screen_resolution_bg,
-            tip=_("Set this for high DPI displays when auto scaling does not "
-                  "work"),
+            tip=(
+                _("Set this for high DPI displays when auto scaling does not "
+                  "work. If Spyder becomes unusable, run this in a terminal "
+                  "(the Command Prompt on Windows):")
+                + f"\n<tt>{html.escape(reset_hdpi_command)}</tt>"
+            ),
             restart=True
         )
 

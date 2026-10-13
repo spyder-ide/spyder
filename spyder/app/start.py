@@ -22,6 +22,7 @@ if os.environ.get('PYTHONPATH'):
 os.environ.pop("PYTHONEXECUTABLE", None)
 
 # Standard library imports
+import contextlib
 import ctypes
 import logging
 import os.path as osp
@@ -100,6 +101,22 @@ if CLI_OPTIONS.conf_dir:
 warnings.filterwarnings("ignore", message="ARC4 has been moved")
 warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
+# Options that control high DPI scaling. A wrong custom scale factor can make
+# Spyder's interface too big or broken to change it back from Preferences, so
+# these are reset by the --reset-hdpi-settings command line option.
+# See spyder-ide/spyder#5396
+HDPI_OPTIONS = [
+    'normal_screen_resolution',
+    'high_dpi_scaling',
+    'high_dpi_custom_scale_factor',
+    'high_dpi_custom_scale_factors',
+]
+
+# File created in the configuration directory by --reset-hdpi-settings to
+# apply the reset again the next time Spyder starts. That's necessary because
+# a running Spyder instance restores its own settings when it saves them.
+HDPI_RESET_FILE = 'reset_hdpi_settings'
+
 
 def send_args_to_spyder(args):
     """
@@ -138,6 +155,96 @@ def send_args_to_spyder(args):
         break
 
 
+def show_message(text):
+    """
+    Print a message to the terminal or show it in a dialog.
+
+    The dialog is used when there is no console to print to, e.g. when Spyder
+    is started on Windows through a launcher or shortcut without a console.
+    That way users can know if the command line option they used worked.
+
+    Parameters
+    ----------
+    text : str
+        The message to show.
+    """
+    if sys.stdout is not None:
+        print(text)
+        return
+
+    # Show the dialog with Qt's default scaling, so it can be read even if a
+    # wrong scale factor was set in the environment.
+    os.environ.pop('QT_SCALE_FACTOR', None)
+    os.environ.pop('QT_SCREEN_SCALE_FACTORS', None)
+
+    from qtpy.QtWidgets import QApplication, QMessageBox
+
+    app = QApplication.instance() or QApplication(['Spyder'])  # noqa
+    QMessageBox.information(None, "Spyder", text)
+
+
+def set_hdpi_defaults():
+    """Set the high DPI scaling settings to their default values."""
+    from spyder.config.manager import CONF
+
+    for option in HDPI_OPTIONS:
+        CONF.set('main', option, CONF.get_default('main', option))
+
+
+def reset_hdpi_settings():
+    """
+    Reset the high DPI scaling settings to their default values.
+
+    This allows users to recover from a scale factor that makes Spyder
+    unusable without having to reset all their preferences with ``--reset``.
+    Spyder is not started afterwards, so this is not done again when Spyder
+    restarts itself with its initial command line options.
+
+    Returns
+    -------
+    int
+        Exit code, which is always 0.
+
+    Notes
+    -----
+    Spyder could be running with the wrong scale factor while this is done,
+    and it would restore that value when it saves its configuration (e.g. when
+    it's closed). That's why the reset is also requested for the next time
+    Spyder starts, which is handled by ``apply_pending_hdpi_reset``.
+
+    If another Spyder instance is started before the one with the wrong scale
+    factor is closed, the reset is applied by that new instance instead. In
+    that case, it needs to be done again after closing all Spyder windows.
+    """
+    set_hdpi_defaults()
+
+    with open(get_conf_path(HDPI_RESET_FILE), 'w'):
+        pass
+
+    show_message(
+        "High DPI settings were reset to their defaults in "
+        f"{get_conf_path()}. If Spyder is open, please close all its windows "
+        "and start it again."
+    )
+    return 0
+
+
+def apply_pending_hdpi_reset():
+    """
+    Apply a high DPI settings reset requested with ``--reset-hdpi-settings``.
+
+    The reset is applied if it was requested since Spyder was last started.
+    This needs to be called before the scale factor is applied at startup.
+    """
+    reset_file = get_conf_path(HDPI_RESET_FILE)
+    if osp.isfile(reset_file):
+        set_hdpi_defaults()
+
+        # Another instance started at the same time could have removed it
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(reset_file)
+
+
 def main():
     """
     Start Spyder application.
@@ -155,8 +262,25 @@ def main():
         reset_config_files()
         return
 
+    # Reset high DPI settings and exit. This needs to be done before the args
+    # are saved for restarts and the scale factor is set below.
+    # See spyder-ide/spyder#5396
+    if options.reset_hdpi_settings:
+        if options.safe_mode:
+            show_message(
+                "--reset-hdpi-settings has no effect with --safe-mode "
+                "because it uses a temporary configuration directory."
+            )
+            return 1
+        return reset_hdpi_settings()
+
     from spyder.config.manager import CONF
     from spyder.utils.theme_manager import THEME_MANAGER
+
+    # Apply a high DPI settings reset requested while Spyder was open. This
+    # needs to be done before the scale factor is set below.
+    # See spyder-ide/spyder#5396
+    apply_pending_hdpi_reset()
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
@@ -324,4 +448,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -12,7 +12,10 @@ import logging
 import os
 import os.path as osp
 import re
+import shlex
+import subprocess
 import sys
+import sysconfig
 
 # Third-party imports
 import psutil
@@ -22,6 +25,7 @@ from qtpy.QtWidgets import QSplashScreen
 from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
+from spyder.app import SHORTCUT_EXE
 from spyder.config.base import (
     get_conf_path,
     get_debug_level,
@@ -88,6 +92,56 @@ def get_python_doc_path():
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return file_uri(python_doc)
+
+
+def get_spyder_command(options):
+    """
+    Get the command to start this Spyder installation from a terminal.
+
+    This is used to tell users the exact command to run for their
+    installation, e.g. to recover from a wrong high DPI scale factor, because
+    the macOS and Windows standalone installers don't add ``spyder`` to the
+    PATH.
+
+    Parameters
+    ----------
+    options : list of str
+        Command line options to add to the command.
+
+    Returns
+    -------
+    str
+        The command, quoted for the Command Prompt on Windows and for POSIX
+        shells on other systems.
+
+    Notes
+    -----
+    The ``spyder`` launcher of the current environment is used if it exists.
+    Otherwise, ``start.py`` is run with the Python interpreter, as done when
+    restarting Spyder.
+    """
+    launcher = osp.join(
+        sysconfig.get_path('scripts'),
+        'spyder.exe' if os.name == 'nt' else 'spyder'
+    )
+
+    if osp.isfile(launcher):
+        command = [launcher]
+    else:
+        python = SHORTCUT_EXE or sys.executable
+
+        # pythonw.exe doesn't have a console to show output
+        if osp.basename(python).lower() == 'pythonw.exe':
+            python = osp.join(osp.dirname(python), 'python.exe')
+
+        start_script = osp.join(osp.dirname(osp.abspath(__file__)), 'start.py')
+        command = [python, start_script]
+
+    command += options
+    if os.name == 'nt':
+        return subprocess.list2cmdline(command)
+    else:
+        return shlex.join(command)
 
 
 def set_opengl_implementation(option):
