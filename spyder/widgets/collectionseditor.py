@@ -194,7 +194,7 @@ class ProxyObject(object):
         else:
             return dict.fromkeys(
                 key for key in self.__validkeys if hasattr(self.__obj__, key)
-            )
+            ).keys()
 
     def __getitem__(self, key):
         """Get the attribute corresponding to the given key."""
