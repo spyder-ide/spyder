@@ -177,7 +177,8 @@ class SVGColorize:
                     ...
                 ]
             }
-            Returns None if there was an error
+            Returns None if there was an error, or if the SVG has no
+            theme-classed paths (so callers can render the original file).
         """
         if self.root is None:
             log.warning("No SVG data to extract paths from.")
@@ -204,33 +205,27 @@ class SVGColorize:
             # Find all path elements
             paths = self.root.xpath("//svg:path", namespaces=self.SVG_NAMESPACE)
 
-            # Default color if no match
-            default_color = theme_colors.get('ICON_1', '#FAFAFA')
-
-            # Process each path
+            # Process each path. Only theme-classed paths are colorized; if any
+            # path lacks a theme class, return None so the icon is rendered as-is.
             for path in paths:
-                # Get path data
                 path_data = path.get('d', '')
                 if not path_data:
                     continue
 
-                # Extract class to determine color
                 class_attr = path.get('class')
+                if not (class_attr and class_attr in theme_colors):
+                    return None
 
-                # Determine color based on class
-                color = default_color
-                if class_attr and class_attr in theme_colors:
-                    color = theme_colors[class_attr]
-
-                # Get all attributes except class
+                color = theme_colors[class_attr]
                 attrs = {k: v for k, v in path.items() if k != 'class'}
-
-                # Add to result
                 result['paths'].append({
                     'path_data': path_data,
                     'color': color,
                     'attrs': attrs
                 })
+
+            if not result['paths']:
+                return None
 
             return result
         except Exception as e:

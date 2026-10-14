@@ -188,9 +188,29 @@ if os.name == 'nt':
 # =============================================================================
 # Files added to the package
 # =============================================================================
-EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
-           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh', '.md']
+EXTLIST = [
+    ".pot",
+    ".po",
+    ".mo",
+    ".svg",
+    ".png",
+    ".css",
+    ".html",
+    ".js",
+    ".ini",
+    ".txt",
+    ".qss",
+    ".json",
+    ".rst",
+    ".bloom",
+    ".ico",
+    ".gif",
+    ".mp3",
+    ".ogg",
+    ".bat",
+    ".sh",
+    ".md",
+]
 
 
 # =============================================================================
@@ -273,7 +293,6 @@ install_requires += [
     'chardet>=5.2.0,<8.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
-    'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
     'ipython>=9.15.0,<10.0.0',
     'ipython_pygments_lexers>=1.0',
@@ -306,10 +325,11 @@ install_requires += [
     'qstylizer>=0.2.2',
     'qtawesome>=1.4.1,<1.5.0',
     'qtpy>=2.4.0',
+    'rtfunicode>=2.2,<3',
     'rtree>=0.9.7',
     'sphinx>=7.2.0',
-    'spyder-kernels>=3.2.0a1,<3.2.0a2',
-    'spyder-themes>=1.0.5,<2.0.0',
+    'spyder-kernels>=3.2.0a2,<3.2.0a3',
+    'spyder-themes>=1.0.16,<1.1.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',

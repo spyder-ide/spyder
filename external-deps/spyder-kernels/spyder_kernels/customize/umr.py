@@ -5,10 +5,14 @@
 
 """User module reloader."""
 
-import os
 import sys
+from typing import Optional, TYPE_CHECKING
 
 from spyder_kernels.customize.utils import path_is_library
+
+
+if TYPE_CHECKING:
+    from spyder_kernels.console.shell import SpyderShell
 
 
 class UserModuleReloader:
@@ -20,46 +24,54 @@ class UserModuleReloader:
     namelist [list]: blacklist in terms of module name
     """
 
-    def __init__(self, namelist=None, pathlist=None, shell=None):
-        if namelist is None:
-            namelist = []
-        else:
-            try:
-                namelist = namelist.split(',')
-            except Exception:
-                namelist = []
-
-        # Spyder modules
-        spy_modules = ['spyder_kernels']
-
-        # Matplotlib modules
-        mpl_modules = ['matplotlib', 'tkinter', 'Tkinter']
-
-        # Add other, necessary modules to the UMR blacklist
-        # astropy: See spyder-ide/spyder#6962
-        # pytorch: See spyder-ide/spyder#7041
-        # fastmat: See spyder-ide/spyder#7190
-        # pythoncom: See spyder-ide/spyder#7190
-        # tensorflow: See spyder-ide/spyder#8697
-        other_modules = ['pytorch', 'pythoncom', 'tensorflow']
-        self.namelist = namelist + spy_modules + mpl_modules + other_modules
-
+    def __init__(
+        self,
+        pathlist: list[str] | None = None,
+        shell: Optional["SpyderShell"] = None,
+    ):
         self.pathlist = pathlist
         self._shell = shell
+
+        # Add necessary modules to the UMR blacklist
+        # Spyder modules
+        self._spy_modules = ['spyder_kernels']
+
+        # Matplotlib modules
+        self._mpl_modules = ['matplotlib', 'tkinter', 'Tkinter']
+
+        # Other modules
+        # pytorch: See spyder-ide/spyder#7041
+        # pythoncom: See spyder-ide/spyder#7190
+        # tensorflow: See spyder-ide/spyder#8697
+        self._other_modules = ['pytorch', 'pythoncom', 'tensorflow']
 
         # List of previously loaded modules
         self.previous_modules = list(sys.modules.keys())
 
-        # Check if the UMR is enabled or not
-        enabled = os.environ.get("SPY_UMR_ENABLED", "")
-        self.enabled = enabled.lower() == "true"
+    @property
+    def enabled(self) -> bool:
+        """Check if the UMR is enabled."""
+        return self._shell.umr_enabled if self._shell else True
 
-        # Check if the UMR should print the list of reloaded modules or not
-        verbose = os.environ.get("SPY_UMR_VERBOSE", "")
-        self.verbose = verbose.lower() == "true"
+    @property
+    def verbose(self) -> bool:
+        """Check if the UMR should print the list of reloaded modules."""
+        return self._shell.umr_verbose if self._shell else True
+
+    @property
+    def namelist(self) -> list[str]:
+        """List of blacklisted modules."""
+        users_namelist = self._shell.umr_namelist if self._shell else []
+
+        return (
+            users_namelist
+            + self._spy_modules
+            + self._mpl_modules
+            + self._other_modules
+        )
 
     def is_module_reloadable(self, module, modname):
-        """Decide if a module is reloadable or not."""
+        """Decide if a module is reloadable."""
         if (
             path_is_library(getattr(module, '__file__', None), self.pathlist)
             or self.is_module_in_namelist(modname)
