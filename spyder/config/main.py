@@ -577,8 +577,8 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              'ipython_console/switch to next console': "Shift+Alt+Right",
-              'ipython_console/switch to previous console': "Shift+Alt+Left",
+              'ipython_console/switch to next console': "Ctrl+Alt+Right",
+              'ipython_console/switch to previous console': "Ctrl+Alt+Left",
               # -- Variable explorer --
               'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',
@@ -725,4 +725,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.1.0'
+CONF_VERSION = '88.2.0'
