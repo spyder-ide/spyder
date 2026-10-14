@@ -294,7 +294,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         self.menu_actions = None
         self.master_clients = 0
-        self.clients = []
+        self.clients: list[ClientWidget] = []
         self.filenames = []
         self.mainwindow_close = False
         self.active_project_path = None
@@ -584,6 +584,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             text=_("Select all"),
             icon=self.create_icon("selectall"),
             triggered=self.current_client_select_all
+        )
+
+        self.move_to_previous_prompt_action = self.create_action(
+            ClientContextMenuActions.MoveToPreviousPrompt,
+            text=_("Move to previous prompt"),
+            triggered=self._current_client_jump_to_previous_prompt,
+            register_shortcut=True
+        )
+
+        self.move_to_next_prompt_action = self.create_action(
+            ClientContextMenuActions.MoveToNextPrompt,
+            text=_("Move to next prompt"),
+            triggered=self._current_client_jump_to_next_prompt,
+            register_shortcut=True
         )
 
         self.inspect_object_action = self.create_action(
@@ -956,6 +970,33 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 client,
                 client.shellwidget.set_autocall,
                 value)
+
+    @on_conf_change(option="umr/enabled", section="main_interpreter")
+    def change_clients_umr_enabled(self, value: bool):
+        for client in self.clients:
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_umr_enabled,
+                value
+            )
+
+    @on_conf_change(option="umr/verbose", section="main_interpreter")
+    def change_clients_umr_verbose(self, value: bool):
+        for client in self.clients:
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_umr_verbose,
+                value
+            )
+
+    @on_conf_change(option="umr/namelist", section="main_interpreter")
+    def change_clients_umr_namelist(self, value: list[str]):
+        for client in self.clients:
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_umr_namelist,
+                value
+            )
 
     @on_conf_change(
         option=[
@@ -1726,12 +1767,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         """Add tab."""
         if not isinstance(client, ClientWidget):
             return
+
         self.clients.append(client)
         index = self.tabwidget.addTab(client, name)
         self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and give_focus:
             self.sig_switch_to_plugin_requested.emit()
+
         # Only give focus when necessary to prevent the main window from
         # stealing focus at startup.
         # Fixes spyder-ide/spyder#24231.
@@ -1900,7 +1943,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Merge QtConsole and Spyder configs. Spyder prefs will have
         # prevalence over QtConsole ones
-        cfg._merge(spy_cfg)
+        cfg.merge(spy_cfg)
         return cfg
 
     def additional_options(self, special=None):
@@ -2432,6 +2475,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         client = self.get_current_client()
         if client:
             client.shellwidget.select_all_smart()
+
+    def _current_client_jump_to_previous_prompt(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.jump_to_previous_prompt()
+
+    def _current_client_jump_to_next_prompt(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.jump_to_next_prompt()
 
     def _current_client_inspect_object(self):
         client = self.get_current_client()

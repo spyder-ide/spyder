@@ -23,7 +23,7 @@ from tokenize import generate_tokens, TokenError
 
 # Third party imports
 from packaging.version import parse
-from qtpy import QT_VERSION
+from qtpy import PYQT6, QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
@@ -39,11 +39,15 @@ from spyder.utils.palette import SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 
+if PYQT6:
+    from qtpy import sip
+    from qtpy.QtCore import QVariant
+
 # ---- Constants
 # -----------------------------------------------------------------------------
 
-# List of possible EOL symbols
-EOL_SYMBOLS = [
+# Tuple of possible EOL symbols
+EOL_SYMBOLS = (
     # Put first as it correspond to a single line return
     "\r\n",  # Carriage Return + Line Feed
     "\r",  # Carriage Return
@@ -58,7 +62,7 @@ EOL_SYMBOLS = [
     "\x85",   # Next Line (C1 Control Code)
     "\u2028",   # Line Separator
     "\u2029",   # Paragraph Separator
-]
+)
 
 # Tips style
 TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
@@ -299,6 +303,14 @@ class BaseEditMixin(object):
                     text = text + '\n...'
             else:
                 text = '\n'.join(lines)
+
+        # This is necessary to preserve indentation spaces in the final text
+        # Fixes spyder-ide/spyder#22055
+        text = re.sub(
+            r'(?m)^( +)',
+            lambda m: '&nbsp;' * len(m.group(1)),
+            text
+        )
 
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
@@ -777,13 +789,14 @@ class BaseEditMixin(object):
         else:
             return os.linesep
 
-    def get_text_with_eol(self):
+    def get_text_with_eol(self, linesep=None) -> str:
         """
         Same as 'toPlainText', replacing '\n' by correct end-of-line
         characters.
         """
         text = self.toPlainText()
-        linesep = self.get_line_separator()
+        if linesep is None:
+            linesep = self.get_line_separator()
         for symbol in EOL_SYMBOLS:
             text = text.replace(symbol, linesep)
         return text
@@ -870,6 +883,13 @@ class BaseEditMixin(object):
                             n=col + 1)
         return cursor.position()
 
+    def get_line_col_from_position(self, position):
+        """Get (line, column) coordinates from position offset."""
+        block = self.document().findBlock(position)
+        line = block.blockNumber()
+        column = position - block.position()
+        return line, column
+
     def set_cursor_position(self, position):
         """Set cursor position"""
         position = self.get_position(position)
@@ -945,6 +965,9 @@ class BaseEditMixin(object):
 
     # ---- Text: get, set, ...
     # -------------------------------------------------------------------------
+    def lines(self, keepends=False):
+        return self.toPlainText().splitlines(keepends=keepends)
+
     def _select_text(self, position_from, position_to):
         """Select text and return cursor."""
         position_from = self.get_position(position_from)
@@ -976,7 +999,7 @@ class BaseEditMixin(object):
             File lines.
         """
         if lines is None:
-            lines = self.toPlainText().splitlines()
+            lines = self.lines()
 
         lines_in_region = lines[start_line:end_line + 1]
         return self.get_line_separator().join(lines_in_region)
@@ -1264,17 +1287,20 @@ class BaseEditMixin(object):
         """Returns True if some text is selected."""
         return bool(str(self.textCursor().selectedText()))
 
-    def get_selected_text(self, cursor=None):
+    def get_selected_text(self, cursor=None, linesep=None):
         """
         Return text selected by current text cursor, converted in unicode.
 
         Replace the unicode line separator character \u2029 by
-        the line separator characters returned by get_line_separator
+        the given line separator if provided or use the current
+        line separator by default.
         """
         if cursor is None:
             cursor = self.textCursor()
+        if linesep is None:
+            linesep = self.get_line_separator()
         return str(cursor.selectedText()).replace(
-            u"\u2029", self.get_line_separator()
+            u"\u2029", linesep
         )
 
     def remove_selected_text(self):
@@ -1557,9 +1583,25 @@ class BaseEditMixin(object):
             )
             response = cursor_rect
         elif isinstance(self, QPlainTextEdit):
-            response = QPlainTextEdit.inputMethodQuery(self, query)
+            # Need to handle `QVariant` auto-conversion to prevent `TypeError`
+            # See spyder-ide/spyder#26309
+            # Based on https://github.com/saga-soft/novelWriter/issues/2622#issuecomment-3692890124
+            if PYQT6:
+                autoconversion = sip.enableautoconversion(QVariant, False)
+                response = QPlainTextEdit.inputMethodQuery(self, query)
+                sip.enableautoconversion(QVariant, autoconversion)
+            else:
+                response = QPlainTextEdit.inputMethodQuery(self, query)
         elif isinstance(self, QTextEdit):
-            response = QTextEdit.inputMethodQuery(self, query)
+            # Need to handle `QVariant` auto-conversion to prevent `TypeError`
+            # See spyder-ide/spyder#26309
+            # Based on https://github.com/saga-soft/novelWriter/issues/2622#issuecomment-3692890124
+            if PYQT6:
+                autoconversion = sip.enableautoconversion(QVariant, False)
+                response = QTextEdit.inputMethodQuery(self, query)
+                sip.enableautoconversion(QVariant, autoconversion)
+            else:
+                response = QTextEdit.inputMethodQuery(self, query)
 
         self.setCursorWidth(old_width)  # restore original cursor width
         return response
