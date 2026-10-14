@@ -155,23 +155,24 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
     # Save all figures, but cancel the dialog to get a directory.
-    mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=None)
+    mock_qfiledialog = mocker.patch(
+        'spyder.plugins.plots.widgets.figurebrowser.QFileDialog')
+    mock_dialog = mock_qfiledialog.return_value
+    mock_dialog.exec_.return_value = False
     fignames = figbrowser.save_all_figures()
     assert fignames is None
 
     # Save all figures.
-    mock_getexistingdirectory = mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=str(tmpdir.mkdir('all_saved_figures')))
+    mock_dialog.exec_.return_value = True
+    mock_dialog.selectedFiles.return_value=[
+        str(tmpdir.mkdir('all_saved_figures'))
+    ]
     fignames = figbrowser.save_all_figures()
     assert len(fignames) == len(figs)
 
-    # Check the directory dialog uses "Select" as its accept button label.
-    mock_getexistingdirectory.assert_called_once()
-    assert (
-        mock_getexistingdirectory.call_args.kwargs['accept_label'] =='Select'
+    # Check the directory dialog uses "Save in" as its accept button label.
+    mock_dialog.setLabelText.assert_called_with(
+        mock_qfiledialog.Accept, 'Save in'
     )
     for fig, figname in zip(figs, fignames):
         expected_qpix = QPixmap()
