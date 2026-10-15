@@ -280,3 +280,17 @@ def reset_conf_before_test(request):
 
     CONF.set('completions', 'provider_configuration', provider_configurations,
              notification=False)
+
+    # Restore language services clients default settings
+    from spyder.plugins.languageservices.api.provider import (
+        PROVIDERS_ENTRYPOINT,
+    )
+    from spyder.plugins.languageservices.plugin import LanguageServices
+
+    language_services_providers = {}
+    for entry_point in entry_points(group=PROVIDERS_ENTRYPOINT):
+        LanguageServices._merge_default_configurations(
+            entry_point.load(), language_services_providers
+        )
+    CONF.set('language_services', 'providers', language_services_providers,
+             notification=False)

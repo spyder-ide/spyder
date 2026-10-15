@@ -3314,13 +3314,13 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Reset config
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'pydocstyle'),
              False)
 
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
-                                                 'completions')
+                                                 'language_services')
     # Get the correct tab pages inside the Completion preferences page
     tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
 
@@ -3361,8 +3361,8 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     assert count == 1
 
     # Reset config
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'pydocstyle'),
              False)
 
 
@@ -3498,6 +3498,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 @pytest.mark.order(before="test_PYTHONPATH_in_consoles")
+@pytest.mark.use_introspection
 @pytest.mark.skipif(
     not is_conda_env(sys.prefix), reason='Only works with Anaconda'
 )
@@ -3519,9 +3520,14 @@ def test_change_lsp_interpreter(qtbot, main_window):
     )
 
     # Check original pylsp configuration
-    lsp = main_window.completions.get_provider('lsp')
-    config = lsp.generate_python_config()
-    jedi = config['configurations']['pylsp']['plugins']['jedi']
+    language_services = main_window.get_plugin(Plugins.LanguageServices)
+    pylsp = language_services.get_provider('pylsp')
+
+    def jedi_config():
+        config = pylsp.get_server_configs()[0]
+        return config.configurations['pylsp']['plugins']['jedi']
+
+    jedi = jedi_config()
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 
@@ -3540,8 +3546,7 @@ def test_change_lsp_interpreter(qtbot, main_window):
 
     # Check updated pylsp configuration
     qtbot.wait(1000)  # Account for debounced timeout when setting interpreter
-    config = lsp.generate_python_config()
-    jedi = config['configurations']['pylsp']['plugins']['jedi']
+    jedi = jedi_config()
     assert jedi['environment'] == new_interpreter
     assert jedi['extra_paths'] == []
 
@@ -4814,8 +4819,9 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000)
 
     # Wait until the initial requests are sent to the server.
-    lsp = main_window.completions.get_provider('lsp')
-    python_client = lsp.clients['python']
+    language_services = main_window.get_plugin(Plugins.LanguageServices)
+    pylsp = language_services.get_provider('pylsp')
+    connection = pylsp._servers['pylsp'].connection
 
     expected_requests = [
         'initialize',
@@ -4829,8 +4835,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         'initialized': {'workspace/didChangeConfiguration'}
     }
 
-    lsp_requests = python_client['instance']._requests
-    start_idx = lsp_requests.index((0, 'initialize'))
+    lsp_requests = list(connection.sent_methods)
+    start_idx = lsp_requests.index('initialize')
 
     request_order = []
     expected_iter = iter(expected_requests)
@@ -4839,7 +4845,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         if current_expected is None:
             break
 
-        _, req_type = lsp_requests[i]
+        req_type = lsp_requests[i]
         if req_type == current_expected:
             request_order.append(req_type)
             current_expected = next(expected_iter, None)

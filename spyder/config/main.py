@@ -392,6 +392,15 @@ DEFAULTS = [
                'request_priorities': {},
                'use_enter_for_completions': True
              }),
+            ('language_services',
+             {
+               'enable': True,
+               'enable_code_snippets': True,
+               'request_timeout_ms': 5000,
+               'providers': {},
+               'request_policies': {},
+               'use_enter_for_completions': True,
+             }),
             ('profiler',
              {
               'enable': True,
