@@ -707,6 +707,13 @@ class CodeEditor(
                 self.enter_array_table)),
             ('add cursor up', self.add_cursor_up),
             ('add cursor down', self.add_cursor_down),
+            ('go to previous occurrence', self.go_to_previous_occurrence),
+            ('go to next occurrence', self.go_to_next_occurrence),
+            (
+                'add cursor previous occurrence', 
+                self.add_cursor_previous_occurrence
+            ),
+            ('add cursor next occurrence', self.add_cursor_next_occurrence),
             (
                 'fold or unfold current region',
                 self.collapse_expand_current_region,
@@ -2237,6 +2244,83 @@ class CodeEditor(
         """QPlainTextEdit's "centerCursor" requires the widget to be visible"""
         self.centerCursor()
         self.focus_in.disconnect(self.center_cursor_on_next_focus)
+
+    def _get_current_occurrence(self, cursor: QTextCursor) -> None | int:
+        """Find the index of the occurrence which contains cursor"""
+        occurrences = self.get_extra_selections('occurrences')
+        if occurrences:
+            for i, text_decoration in enumerate(occurrences):
+                start = text_decoration.cursor.selectionStart()
+                end = text_decoration.cursor.selectionEnd()
+                if start <= cursor.position() <= end:
+                    return i
+            else:
+                return None  #not found
+
+    def _copy_occurrence_selection_position(self, cursor, src, dst):
+        """
+        Adjust position or selection direction of destination cursor based on 
+        relative position of cursor to src or selection direction of cursor.
+        """
+        #don't edit cursor owned by TextDecoration
+        new_cursor = QTextCursor(dst)
+        if cursor.hasSelection():
+            # dst should have same selection. check selection direction.
+            if cursor.position() < cursor.anchor():
+                start, end = new_cursor.position(), new_cursor.anchor()
+                new_cursor.setPosition(start)
+                new_cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)
+        else:
+            offset = cursor.position() - src.position()
+            new_pos = new_cursor.position() + offset
+            new_cursor.setPosition(new_pos)
+        return new_cursor
+    
+    def go_to_previous_occurrence(self):
+        """Go to the previous occurrence"""
+        cursor = self.textCursor()
+        occurrences = self.get_extra_selections('occurrences')
+        if len(occurrences) > 1:
+            current_occurrence = self._get_current_occurrence(cursor)
+            if current_occurrence is not None and current_occurrence > 0:
+                self.setTextCursor(
+                    self._copy_occurrence_selection_position(
+                        cursor,
+                        occurrences[current_occurrence].cursor,
+                        occurrences[current_occurrence - 1].cursor
+                    )
+                )
+                self.merge_extra_cursors(True)
+                self.ensureCursorVisible()
+                # return previous cursor to be used by multicursor 
+                # add_cursor_previous_occurrence
+                return cursor
+        # return None to be used by multicursor add_cursor_previous_occurrence
+        # to indicate cursor was not moved
+        return None
+    
+    def go_to_next_occurrence(self):
+        """Go to the next occurrence"""
+        cursor = self.textCursor()
+        occurrences = self.get_extra_selections('occurrences')
+        if len(occurrences) > 1:
+            current_occurrence = self._get_current_occurrence(cursor)
+            last_occurrence = len(occurrences) - 1
+            if (
+                    current_occurrence is not None 
+                    and current_occurrence < last_occurrence
+            ):
+                self.setTextCursor(
+                    self._copy_occurrence_selection_position(
+                        cursor,
+                        occurrences[current_occurrence].cursor,
+                        occurrences[current_occurrence + 1].cursor
+                    )
+                )
+                self.merge_extra_cursors(True)
+                self.ensureCursorVisible()
+                return cursor
+        return None
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
