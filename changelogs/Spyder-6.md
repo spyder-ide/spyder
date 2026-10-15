@@ -154,6 +154,21 @@ In this release 20 pull requests were closed.
 
 ----
 
+## Version 6.1.8 (unreleased)
+
+### Important fixes
+
+* Fix error that didn't allow Spyder to start on Windows environments that block
+  loading user fonts.
+* Restore preserving permissions when saving files on Windows (that was broken
+  since version 6.1.4).
+* Fix tabs to spaces conversion in the Editor.
+* Make drag and drop of files to the Variable Explorer work when it's empty.
+* Change shortcuts to switch between IPython consoles to `Ctrl/Cmd+Alt+Right/Left`
+  because the previous ones didn't work on macOS.
+
+----
+
 ## Version 6.1.7 (2026-08-27)
 
 ### New features
