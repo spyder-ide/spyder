@@ -20,8 +20,8 @@ from collections import OrderedDict
 from typing import TYPE_CHECKING
 
 # Third party imports
-from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QIcon
+from qtpy.QtCore import QByteArray, QSize, Qt, QUrl, Signal, Slot
+from qtpy.QtGui import QDesktopServices, QIcon
 from qtpy.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -221,6 +221,28 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
     Examples
     --------
     The :guilabel:`Plots` plugin is an example of a core plugin that uses this.
+    """
+
+    PANE_HELP_BASE_URL = "https://docs.spyder-ide.org/current/panes/"
+
+    PANE_HELP_PAGES = {
+        "debugger": "debugging",
+        "editor": "editor",
+        "explorer": "fileexplorer",
+        "find_in_files": "findinfiles",
+        "help": "help",
+        "historylog": "historylog",
+        "ipython_console": "ipythonconsole",
+        "onlinehelp": "onlinehelp",
+        "outline_explorer": "outline",
+        "plots": "plots",
+        "profiler": "profiler",
+        "project_explorer": "projects",
+        "pylint": "pylint",
+        "variable_explorer": "variableexplorer",
+    }
+    """
+    Dictionary mapping plugin names to their help page.
     """
 
     # ---- Signals
@@ -577,6 +599,16 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("close_pane"),
             triggered=self.close_dock,
         )
+        self.help_action = self.create_action(
+                name=PluginMainWidgetActions.HelpPane,
+                text=_("Help"),
+                tip=_("Show help for the pane"),
+                icon=self.create_icon("help"),
+                triggered=self.show_help,
+        )
+        self.help_action.setVisible(
+            self.get_plugin().NAME in self.PANE_HELP_PAGES
+        )
         # We use this instead of the QDockWidget.toggleViewAction
         self.toggle_view_action = self.create_action(
             name="switch to " + self._name,
@@ -591,6 +623,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             self.undock_action,
             self.dock_action,
             self.close_action,
+            self.help_action,
         ]:
             self.add_item_to_menu(
                 item,
@@ -1296,6 +1329,23 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             self.close_dock()
         else:
             self.dock_window()
+
+    @Slot()
+    def show_help(self) -> None:
+        """
+        Show help for this widget.
+
+        Returns
+        -------
+        None
+        """
+        plugin_name = self.get_plugin().NAME
+        page = self.PANE_HELP_PAGES.get(plugin_name)
+
+        if page is not None:
+            QDesktopServices.openUrl(
+                QUrl(f"{self.PANE_HELP_BASE_URL}{page}")
+            )
 
     def _close_window(
         self, save_undocked: bool = False, switch_to_plugin: bool = True
