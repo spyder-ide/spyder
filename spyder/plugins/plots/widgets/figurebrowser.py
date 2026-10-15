@@ -18,7 +18,7 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
-from qtpy.compat import getexistingdirectory, getsavefilename
+from qtpy.compat import getsavefilename
 from qtpy.QtCore import (
     QEvent,
     QMimeData,
@@ -31,7 +31,7 @@ from qtpy.QtCore import (
     Slot,
 )
 from qtpy.QtGui import QDrag, QPainter, QPixmap
-from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
+from qtpy.QtWidgets import (QApplication, QFileDialog, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
                             QVBoxLayout, QWidget)
 from superqt.utils import qdebounced
@@ -906,8 +906,16 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.sig_redirect_stdio_requested.emit(False)
-        dirname = getexistingdirectory(self, 'Save all figures',
-                                       self.save_dir)
+        dialog = QFileDialog(self, 'Save all figures', self.save_dir)
+        dialog.setFileMode(QFileDialog.Directory)
+        dialog.setOption(QFileDialog.ShowDirsOnly, True)
+        dialog.setLabelText(QFileDialog.Accept, _("Save in"))
+
+        dirname = None
+        if dialog.exec_():
+            selected = dialog.selectedFiles()
+            if selected:
+                dirname = selected[0]
         self.sig_redirect_stdio_requested.emit(True)
 
         if dirname:
