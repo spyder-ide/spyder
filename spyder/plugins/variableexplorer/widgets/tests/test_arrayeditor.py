@@ -233,6 +233,15 @@ def test_arrayeditor_with_3d_array(qtbot):
     arr[0,0,1]=2
     arr[0,0,2]=3
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
+    
+def test_arrayeditor_with_torch_array(qtbot):
+    """Test that the array editor can handle PyTorch tensors."""
+    try:
+        import torch
+    except ImportError:
+        pytest.skip("PyTorch is not installed")
+    arr = torch.rand((5, 5, 5))
+    assert_array_equal(arr, launch_arrayeditor(arr, "torch array"))
 
 
 def test_arrayeditor_with_empty_3d_array(qtbot):
