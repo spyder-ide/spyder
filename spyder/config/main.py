@@ -354,6 +354,7 @@ DEFAULTS = [
               'type_column': False,
               'date_column': False,
               'search_files_in_switcher': True,
+              'follow_gitignore': True,
               }),
             ('explorer',
              {
