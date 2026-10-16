@@ -207,7 +207,7 @@ class ProxyObject(object):
         # Catch ValueError to allow viewing and editing of pandas offsets.
         # Fix spyder-ide/spyder#6728-
         try:
-            if (self.__validkeys is not None) and (key not in self.keys()):
+            if (self.__validkeys is not None) and (key not in self.__validkeys):
                 raise AttributeError
             attribute_toreturn = getattr(self.__obj__, key)
         except (NotImplementedError, AttributeError, TypeError, ValueError):
@@ -221,7 +221,7 @@ class ProxyObject(object):
         # Fix spyder-ide/spyder#6728.
         # Also, catch NotImplementedError for safety.
         try:
-            if (self.__validkeys is not None) and (key not in self.keys()):
+            if (self.__validkeys is not None) and (key not in self.__validkeys):
                 raise AttributeError
             setattr(self.__obj__, key, value)
         except (TypeError, AttributeError, NotImplementedError):
