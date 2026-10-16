@@ -600,11 +600,28 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
         return True
     
     def natural_order(self, index):
-        """ Returns a tuple: (Number or NaN, original_text)
-            If numbers and string in index, it orders correctly.
+        """Key to sort an index with numbers and text in natural order.
+
+        Numbers come first, by value, then the other labels as text and the
+        missing labels last. Indexes of other dtypes (numbers, dates) are
+        returned unchanged, so they keep the default order.
         """
+        if not pd.api.types.is_object_dtype(index.dtype) and not pd.api.types.is_string_dtype(index.dtype):
+            return index
         numeric = pd.to_numeric(index, errors='coerce')
-        return list(zip(numeric, index))
+        keys = []
+        for number, label in zip(numeric, index):
+            if pd.api.types.is_scalar(label) and pd.isna(label):
+                keys.append((2, 0, ''))
+            elif pd.isna(number):
+                keys.append((1, 0, str(label)))
+            else:
+                keys.append((0, number, ''))
+        order = sorted(range(len(keys)), key=keys.__getitem__)
+        ranks = [0] * len(keys)
+        for rank, position in enumerate(order):
+            ranks[position] = rank
+        return pd.Index(ranks)
 
     def flags(self, index):
         """Set flags"""
