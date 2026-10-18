@@ -17,6 +17,8 @@ import traceback
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
+from spyder.utils.lazy import LAZY_IMPORTS as __lazy_modules__
+
 # Third-party imports
 import keyring
 from keyring.errors import NoKeyringError
