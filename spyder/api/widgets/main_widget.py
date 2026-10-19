@@ -223,26 +223,12 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
     The :guilabel:`Plots` plugin is an example of a core plugin that uses this.
     """
 
-    PANE_HELP_BASE_URL = "https://docs.spyder-ide.org/current/panes/"
-
-    PANE_HELP_PAGES = {
-        "debugger": "debugging",
-        "editor": "editor",
-        "explorer": "fileexplorer",
-        "find_in_files": "findinfiles",
-        "help": "help",
-        "historylog": "historylog",
-        "ipython_console": "ipythonconsole",
-        "onlinehelp": "onlinehelp",
-        "outline_explorer": "outline",
-        "plots": "plots",
-        "profiler": "profiler",
-        "project_explorer": "projects",
-        "pylint": "pylint",
-        "variable_explorer": "variableexplorer",
-    }
+    HELP_URL: str = ""
     """
-    Dictionary mapping plugin names to their help page.
+    URL to a webpage that has documentation for the plugin.
+
+    If this is provided, a :guilabel:`Help` action will be shown in the
+    plugin's options menu.
     """
 
     # ---- Signals
@@ -606,9 +592,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
                 icon=self.create_icon("help"),
                 triggered=self.show_help,
         )
-        self.help_action.setVisible(
-            self.get_plugin().NAME in self.PANE_HELP_PAGES
-        )
+        self.help_action.setVisible(self.HELP_URL != "")
         # We use this instead of the QDockWidget.toggleViewAction
         self.toggle_view_action = self.create_action(
             name="switch to " + self._name,
@@ -619,11 +603,11 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         )
 
         for item in [
+            self.help_action,
             self.lock_unlock_action,
             self.undock_action,
             self.dock_action,
             self.close_action,
-            self.help_action,
         ]:
             self.add_item_to_menu(
                 item,
@@ -1330,22 +1314,16 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         else:
             self.dock_window()
 
-    @Slot()
-    def show_help(self) -> None:
+    def _show_help_page(self) -> None:
         """
-        Show help for this widget.
+        Show help webpage for this plugin.
 
         Returns
         -------
         None
         """
-        plugin_name = self.get_plugin().NAME
-        page = self.PANE_HELP_PAGES.get(plugin_name)
-
-        if page is not None:
-            QDesktopServices.openUrl(
-                QUrl(f"{self.PANE_HELP_BASE_URL}{page}")
-            )
+        if self.HELP_URL:
+            QDesktopServices.openUrl(QUrl(self.HELP_URL)
 
     def _close_window(
         self, save_undocked: bool = False, switch_to_plugin: bool = True

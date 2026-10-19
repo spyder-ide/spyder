@@ -35,8 +35,8 @@ class PluginMainWidgetActions:
     DockPane: str = "dock_pane"
     """Re-dock a popped-out pane to the Spyder main window."""
 
-    HelpPane: str = "help_page"
-    """Open the plugin's help page in the default web browser."""
+    HelpPage: str = "help_page"
+    """Open the plugin's help webpage in the default web browser."""
 
     UndockPane: str = "undock_pane"
     """Pop out a plugin's pane into a separate floating window."""
