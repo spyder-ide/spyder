@@ -114,6 +114,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
     This is a widget with tabs where each one is a ClientWidget.
     """
 
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/ipythonconsole"
+
     # Signals
     sig_open_preferences_requested = Signal()
     """

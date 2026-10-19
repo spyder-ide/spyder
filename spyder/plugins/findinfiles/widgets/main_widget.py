@@ -103,6 +103,7 @@ class FindInFilesWidget(PluginMainWidget):
         "Search the content of text files in any directory using the search "
         "box."
     )
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/findinfiles"
 
     # Other constants
     REGEX_ERROR = _("Regular expression error")
