@@ -76,6 +76,7 @@ logger = logging.getLogger(__name__)
 
 class EditorWidgetMenus:
 
+    ExportMenu = "Export Menu"
     TodoList = "todo_list_menu"
     WarningErrorList = "warning_error_list_menu"
     EOL = "eol_menu"
@@ -371,6 +372,33 @@ class EditorMainWidget(PluginMainWidget):
                 register_shortcut=True
             )
 
+        # Export menu
+        self.export_action = self.create_action(
+            EditorWidgetMenus.ExportMenu,
+            text=_("Export"),
+            tip=_("Export the current file with syntax highlighting"),
+            triggered=lambda: None
+        )
+        self.export_menu = self.create_menu(EditorWidgetMenus.ExportMenu)
+        self.export_action.setMenu(self.export_menu)
+
+        self.export_html_action = self.create_action(
+            EditorWidgetActions.ExportHtml,
+            text=_("Export as HTML"),
+            icon=self.create_icon("CodeFileIcon"),
+            triggered=lambda: self.get_current_editorstack().export_html(),
+            register_shortcut=True
+        )
+        self.export_rtf_action = self.create_action(
+            EditorWidgetActions.ExportRtf,
+            text=_("Export as RTF"),
+            icon=self.create_icon("WordFileIcon"),
+            triggered=lambda: self.get_current_editorstack().export_rtf(),
+            register_shortcut=True
+        )
+        self.export_menu.addAction(self.export_html_action)
+        self.export_menu.addAction(self.export_rtf_action)
+
         # ---- Find/Search operations
         self.gotoline_action = self.create_action(
             EditorWidgetActions.GoToLine,
@@ -397,7 +425,8 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetActions.WrapLines,
             _("Wrap lines"),
             'wrap',
-            method='set_wrap_enabled'
+            method='set_wrap_enabled',
+            register_shortcut=True
         )
         self.showindentguides_action = self._create_checkable_action(
             EditorWidgetActions.ShowIndentGuides,
@@ -1101,8 +1130,8 @@ class EditorMainWidget(PluginMainWidget):
                 not_readonly = not editor.isReadOnly()
 
                 # Undo, redo
-                undo_action_enabled = editor.document().isUndoAvailable()
-                redo_action_enabled = editor.document().isRedoAvailable()
+                undo_action_enabled = editor.undo_stack.can_undo()
+                redo_action_enabled = editor.undo_stack.can_redo()
 
         # Copy, cut, paste, select all
         copy_action_enabled = has_selection
@@ -1136,7 +1165,14 @@ class EditorMainWidget(PluginMainWidget):
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
 
-    def _create_checkable_action(self, name, text, conf_name, method=''):
+    def _create_checkable_action(
+        self,
+        name,
+        text,
+        conf_name,
+        method='',
+        register_shortcut=False
+    ):
         """
         Helper function to create a checkable action.
 
@@ -1151,12 +1187,28 @@ class EditorMainWidget(PluginMainWidget):
         method: str, optional
             Name of EditorStack class that will be used to update the changes
             in each editorstack.
+        register_shortcut: bool, optional
+            Whether to register a configurable shortcut for the action. Its
+            default value is taken from the `shortcuts` section of the
+            configuration. Default is False.
+
+        Notes
+        -----
+        The shortcut is only displayed in menus by the action. For it to work
+        when the editor has focus, it also needs to be registered in
+        `EditorStack.register_shortcuts`.
         """
         def toggle(checked):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
 
-        action = self.create_action(name, text=text, toggled=toggle)
+        action = self.create_action(
+            name,
+            text=text,
+            toggled=toggle,
+            context=Qt.WidgetShortcut,
+            register_shortcut=register_shortcut
+        )
         action.blockSignals(True)
 
         if conf_name not in ['pydocstyle']:

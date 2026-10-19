@@ -59,11 +59,7 @@ class DocumentProvider:
                 uri=path_as_uri(params['file']),
                 version=params['version'],
             ),
-            content_changes=[
-                lsp.TextDocumentContentChangeWholeDocument(
-                    text=params['text'],
-                )
-            ],
+            content_changes=params['content_changes'],
         )
 
     # ---- textDocument/didOpen

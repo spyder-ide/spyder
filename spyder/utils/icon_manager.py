@@ -16,7 +16,6 @@ from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
@@ -101,12 +100,6 @@ class IconManager():
             '.xml': 'CodeFileIcon'
         }
 
-        self._resource = {
-            'directory': osp.join(
-                osp.dirname(osp.realpath(__file__)), '../fonts'),
-            'loaded': False,
-        }
-
         self.ICON_COLORS = {
             'ICON_1':                 SpyderPalette.ICON_1,
             'ICON_2':                 SpyderPalette.ICON_2,
@@ -184,8 +177,6 @@ class IconManager():
             'hint':                    [('mdi.lightbulb',), {'color': SpyderPalette.GROUP_9}],
             'todo':                    [('mdi.check-bold',), {'color': SpyderPalette.GROUP_9}],
             'ipython_console':         [('mdi.console',), {'color': self.MAIN_FG_COLOR}],
-            'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
-            'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
             'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
@@ -204,7 +195,6 @@ class IconManager():
             'previous':                [('mdi.arrow-left-bold',), {'color': self.MAIN_FG_COLOR}],
             'next':                    [('mdi.arrow-right-bold',), {'color': self.MAIN_FG_COLOR}],
             'up':                      [('mdi.arrow-up-bold',), {'color': self.MAIN_FG_COLOR}],
-            'spyder':                  [('spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'),  {'options': [{'color': SpyderPalette.SPYDER_LOGO_BACKGROUND}, {'color': SpyderPalette.SPYDER_LOGO_WEB}, {'color': SpyderPalette.SPYDER_LOGO_SNAKE}]}],
             'find':                    [('mdi.magnify',), {'color': self.MAIN_FG_COLOR}],
             'replace':                 [('mdi.find-replace',), {'color': self.MAIN_FG_COLOR}],
             'number_matches':          [('mdi.pound-box-outline',), {'color': self.MAIN_FG_COLOR}],
@@ -606,23 +596,17 @@ class IconManager():
             return icon
 
     def icon(self, name, scale_factor=None, resample=False):
-        theme = CONF.get('appearance', 'icon_theme')
-        if theme == 'spyder 3':
-            try:
-                # Try to load the icons from QtAwesome
-                if not self._resource['loaded']:
-                    qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
-                                directory=self._resource['directory'])
-                    self._resource['loaded'] = True
-                args, kwargs = self._qtaargs[name]
-                if scale_factor is not None:
-                    kwargs['scale_factor'] = scale_factor
-                kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
-                return qta.icon(*args, **kwargs)
-            except KeyError:
-                # Load custom icons
-                icon = QIcon(self.get_icon(name))
-                return icon if icon is not None else QIcon()
+        try:
+            # Try to load the icons from QtAwesome
+            args, kwargs = self._qtaargs[name]
+            if scale_factor is not None:
+                kwargs['scale_factor'] = scale_factor
+            kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
+            return qta.icon(*args, **kwargs)
+        except KeyError:
+            # Load custom icons
+            icon = QIcon(self.get_icon(name))
+            return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
         """Return the icon depending on the file extension"""

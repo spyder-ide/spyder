@@ -69,7 +69,7 @@ class PythonpathContainer(PluginMainContainer):
         self.path_manager_action = self.create_action(
             PythonpathActions.Manager,
             _("PYTHONPATH manager"),
-            icon=self.create_icon('pythonpath'),
+            icon=self.create_icon('python'),
             triggered=self.show_path_manager
         )
 
