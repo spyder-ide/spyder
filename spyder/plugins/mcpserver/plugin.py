@@ -60,7 +60,7 @@ class MCPServer(SpyderPluginV2):
     """MCP server plugin."""
 
     NAME = "mcp_server"
-    OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    OPTIONAL = [Plugins.IPythonConsole, Plugins.MainMenu, Plugins.Projects]
     CONTAINER_CLASS = MCPServerContainer
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -103,6 +103,15 @@ class MCPServer(SpyderPluginV2):
         self._collected: dict[str, tuple[list[str], int]] = {}
 
         self._dispatcher = ToolDispatcher(self._get_available_tools)
+
+        # Clients that used each console (by id), to tell them when it
+        # restarts or closes
+        self._console_users: dict[str, set[str]] = {}
+        self._dispatcher.set_call_observer(self._on_tool_called)
+
+        # Console changes caused by opening a project aren't noted (the
+        # project's note covers them) until this time
+        self._quiet_consoles_until = 0.0
 
         # Port of the last server started, to restart it on the same one
         self._server_port: int | None = None
@@ -169,6 +178,20 @@ class MCPServer(SpyderPluginV2):
             main_menu.remove_item_from_application_menu(
                 action_id, menu_id=ApplicationMenus.Tools
             )
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_shellwidget_created.connect(self._on_console_created)
+        ipyconsole.sig_shellwidget_deleted.connect(self._on_console_closed)
+        for client in ipyconsole.get_clients():
+            self._on_console_created(client.shellwidget)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_shellwidget_created.disconnect(self._on_console_created)
+        ipyconsole.sig_shellwidget_deleted.disconnect(self._on_console_closed)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -519,6 +542,8 @@ class MCPServer(SpyderPluginV2):
             path = projects.get_active_project_path()
         who, client_id = self._describe_actor()
 
+        # Its consoles restart right after
+        self._quiet_consoles_until = time.monotonic() + 15
         self.notify_clients(
             f"{who} opened the project {path}. Opening a project restarts "
             f"Spyder's IPython consoles, so the variables, imports and "
@@ -533,9 +558,77 @@ class MCPServer(SpyderPluginV2):
             return
         who, client_id = self._describe_actor()
 
+        # Its consoles restart right after
+        self._quiet_consoles_until = time.monotonic() + 15
         self.notify_clients(
             f"{who} closed the project {path}. Closing a project restarts "
             f"Spyder's IPython consoles, so the variables, imports and "
             f"figures created in them before are probably gone.",
             exclude=client_id,
         )
+
+    def _on_tool_called(self, caller, tool: MCPTool, arguments: dict) -> None:
+        """Remember which consoles each client uses."""
+        if "console_id" not in tool.input_schema.get("properties", {}):
+            return
+        console_id = arguments.get("console_id")
+        if console_id is None:
+            # The console selected in Spyder
+            ipyconsole = self.get_plugin(Plugins.IPythonConsole, error=False)
+            console_id = ipyconsole.get_console_id() if ipyconsole else None
+        if console_id:
+            self._console_users.setdefault(console_id, set()).add(caller.id)
+
+    def _on_console_created(self, shellwidget) -> None:
+        shellwidget.sig_kernel_restarted.connect(
+            lambda died, shellwidget=shellwidget: self._on_kernel_restarted(
+                shellwidget, died
+            )
+        )
+
+    def _notify_console_users(self, shellwidget, message: str) -> str | None:
+        """
+        Tell the clients that used a console about something that happened
+        to it. ``message`` is formatted with the console's ``id``. Returns
+        the id.
+        """
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole, error=False)
+        if ipyconsole is None:
+            return None
+        console_id = ipyconsole.get_console_id(shellwidget)
+        if console_id is None or time.monotonic() < self._quiet_consoles_until:
+            return console_id
+
+        caller = current_caller()
+        for client_id in self._console_users.get(console_id, set()):
+            if caller is None or client_id != caller.id:
+                self._dispatcher.notify_client(
+                    client_id, message.format(id=console_id)
+                )
+        return console_id
+
+    def _on_kernel_restarted(self, shellwidget, died: bool) -> None:
+        if died:
+            message = (
+                "The kernel of console {id} died (e.g. it crashed or ran "
+                "out of memory) and was restarted, so the variables, imports "
+                "and figures created in it before are gone."
+            )
+        else:
+            # Agents can't restart consoles, and restarts caused by project
+            # changes aren't noted, so it was the user
+            message = (
+                "The user restarted console {id} in Spyder, so the "
+                "variables, imports and figures created in it before are "
+                "gone."
+            )
+        self._notify_console_users(shellwidget, message)
+
+    def _on_console_closed(self, shellwidget) -> None:
+        # Like restarts, it was the user
+        console_id = self._notify_console_users(
+            shellwidget,
+            "The user closed console {id}, which you used. Use list_consoles "
+            "to choose another console, or new_console to open one.",
+        )
+        self._console_users.pop(console_id, None)
