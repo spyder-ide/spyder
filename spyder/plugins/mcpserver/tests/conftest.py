@@ -23,6 +23,18 @@ from spyder.plugins.ipythonconsole.tests.conftest import (  # noqa: F401
 @pytest.fixture
 def main_window(qtbot):
     """Start a full Spyder window, with code analysis enabled."""
+    # Spyder's main window tests keep their window open between tests, and
+    # two windows can't be open at the same time
+    from spyder.app.tests import conftest as app_conftest
+    app_window = getattr(app_conftest.main_window, "window", None)
+    if app_window is not None:
+        app_conftest.main_window.window = None
+        app_window.closing(close_immediately=True)
+        app_window.close()
+        CONF.reset_to_defaults(notification=False)
+        CONF.reset_manager()
+        PLUGIN_REGISTRY.reset()
+
     CONF.set("tours", "show_tour_message", False)
     CONF.set("main", "single_instance", False)
     CONF.set("ipython_console", "pylab/backend", "inline")
