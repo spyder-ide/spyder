@@ -1323,7 +1323,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         None
         """
         if self.HELP_URL:
-            QDesktopServices.openUrl(QUrl(self.HELP_URL)
+            QDesktopServices.openUrl(QUrl(self.HELP_URL))
 
     def _close_window(
         self, save_undocked: bool = False, switch_to_plugin: bool = True

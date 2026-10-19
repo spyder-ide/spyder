@@ -138,6 +138,7 @@ class PydocBrowser(PluginMainWidget):
     """PyDoc browser widget."""
 
     ENABLE_SPINNER = True
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/onlinehelp"
 
     # --- Signals
     # ------------------------------------------------------------------------
