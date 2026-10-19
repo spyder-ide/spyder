@@ -29,8 +29,14 @@ from spyder.plugins.mcpserver.focus import call_tool_keeping_focus
 @pytest.fixture
 def tools(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # The prompt can appear before the kernel's comm is ready, and tools
+    # refuse to run until it is
     qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+        lambda: (
+            shell._prompt_html is not None and shell.spyder_kernel_ready
+        ),
+        timeout=SHELL_TIMEOUT,
     )
     mcp_server = main_window.get_plugin("mcp_server")
     return {tool.name: tool for tool in mcp_server.get_tools()}
