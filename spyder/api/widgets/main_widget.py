@@ -586,11 +586,11 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             triggered=self.close_dock,
         )
         self.help_action = self.create_action(
-                name=PluginMainWidgetActions.HelpPage,
-                text=_("Help"),
-                tip=_("Show help for the pane"),
-                icon=self.create_icon("help"),
-                triggered=self.show_help,
+            name=PluginMainWidgetActions.HelpPage,
+            text=_("Help"),
+            tip=_("Show help for the pane"),
+            icon=self.create_icon("help"),
+            triggered=self._show_help_page,
         )
         self.help_action.setVisible(self.HELP_URL != "")
         # We use this instead of the QDockWidget.toggleViewAction
