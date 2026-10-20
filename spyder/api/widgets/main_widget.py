@@ -586,7 +586,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             triggered=self.close_dock,
         )
         self.help_action = self.create_action(
-                name=PluginMainWidgetActions.HelpPane,
+                name=PluginMainWidgetActions.HelpPage,
                 text=_("Help"),
                 tip=_("Show help for the pane"),
                 icon=self.create_icon("help"),
