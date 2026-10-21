@@ -1,27 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.7 is released!
+**Subject**: [ANN] Spyder 6.1.8 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.7** has been released and is available for
+I'm pleased to announce that Spyder **6.1.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes four weeks after version 6.1.6 and with the following interesting new features and fixes:
-
-- New features
-    * Increase threshold to warn users when an array or dataframe is too big to be
-      viewed in the Variable Explorer. The new limit is 50 million elements.
+This release comes eight weeks after version 6.1.7 and with the following interesting fixes:
 
 - Important fixes
-    * Fix formatting and linting with Ruff.
-    * Fix warning to tell users that an array or dataframe is too big to be handled
-      by the Variable Explorer.
-    * Fix syntax highlighting of non-Python files in the Editor.
-    * Fix crash at startup when the in-app appeal page can't be read from disk.
-    * Make right-clicking on Files and Projects select the file where it's done.
+    * Fix error that didn't allow Spyder to start on Windows environments that block
+      loading user fonts.
+    * Restore preserving permissions when saving files on Windows (that was broken
+      since version 6.1.4).
+    * Fix tabs to spaces conversion in the Editor.
+    * Make drag and drop of files to the Variable Explorer work when it's empty.
+    * Change shortcuts to switch between IPython consoles to `Ctrl/Cmd+Alt+Right/Left`
+      because the previous ones didn't work on macOS.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
