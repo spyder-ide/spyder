@@ -693,7 +693,7 @@ SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'langconfig', 'spyder.lock',
                       'config{}spyder.ini'.format(os.sep),
                       'config{}transient.ini'.format(os.sep),
-                      'lsp_root_path', 'plugins')
+                      'lsp_root_path', 'plugins', 'reset_hdpi_settings')
 
 
 def reset_config_files():
