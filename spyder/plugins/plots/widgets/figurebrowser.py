@@ -906,7 +906,8 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.sig_redirect_stdio_requested.emit(False)
-        dialog = QFileDialog(self, 'Save all figures', self.save_dir)
+
+        dialog = QFileDialog(self, _("Save all figures"), self.save_dir)
         dialog.setFileMode(QFileDialog.Directory)
         dialog.setOption(QFileDialog.ShowDirsOnly, True)
         dialog.setLabelText(QFileDialog.Accept, _("Save in"))
@@ -916,6 +917,7 @@ class ThumbnailScrollBar(QFrame):
             selected = dialog.selectedFiles()
             if selected:
                 dirname = selected[0]
+
         self.sig_redirect_stdio_requested.emit(True)
 
         if dirname:

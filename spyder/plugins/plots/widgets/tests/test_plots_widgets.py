@@ -156,7 +156,9 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
 
     # Save all figures, but cancel the dialog to get a directory.
     mock_qfiledialog = mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.QFileDialog')
+        'spyder.plugins.plots.widgets.figurebrowser.QFileDialog'
+    )
+
     mock_dialog = mock_qfiledialog.return_value
     mock_dialog.exec_.return_value = False
     fignames = figbrowser.save_all_figures()
@@ -174,6 +176,7 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     mock_dialog.setLabelText.assert_called_with(
         mock_qfiledialog.Accept, 'Save in'
     )
+    
     for fig, figname in zip(figs, fignames):
         expected_qpix = QPixmap()
         expected_qpix.loadFromData(fig, fmt.upper())
