@@ -24,6 +24,8 @@ import sys
 import time
 import errno
 
+from spyder.utils.lazy import LAZY_IMPORTS as __lazy_modules__
+
 # Third-party imports
 import chardet
 
