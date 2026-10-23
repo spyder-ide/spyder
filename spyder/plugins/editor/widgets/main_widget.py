@@ -88,6 +88,7 @@ class EditorMainWidget(PluginMainWidget):
     """
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/editor"
 
     sig_dir_opened = Signal(str)
     """

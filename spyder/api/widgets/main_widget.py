@@ -20,8 +20,8 @@ from collections import OrderedDict
 from typing import TYPE_CHECKING
 
 # Third party imports
-from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QIcon
+from qtpy.QtCore import QByteArray, QSize, Qt, QUrl, Signal, Slot
+from qtpy.QtGui import QDesktopServices, QIcon
 from qtpy.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -221,6 +221,14 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
     Examples
     --------
     The :guilabel:`Plots` plugin is an example of a core plugin that uses this.
+    """
+
+    HELP_URL: str = ""
+    """
+    URL to a webpage that has documentation for the plugin.
+
+    If this is provided, a :guilabel:`Help` action will be shown in the
+    plugin's options menu.
     """
 
     # ---- Signals
@@ -577,6 +585,14 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("close_pane"),
             triggered=self.close_dock,
         )
+        self.help_action = self.create_action(
+            name=PluginMainWidgetActions.HelpPage,
+            text=_("Help"),
+            tip=_("Show help for the pane"),
+            icon=self.create_icon("help"),
+            triggered=self._show_help_page,
+        )
+        self.help_action.setVisible(self.HELP_URL != "")
         # We use this instead of the QDockWidget.toggleViewAction
         self.toggle_view_action = self.create_action(
             name="switch to " + self._name,
@@ -587,6 +603,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         )
 
         for item in [
+            self.help_action,
             self.lock_unlock_action,
             self.undock_action,
             self.dock_action,
@@ -1296,6 +1313,17 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             self.close_dock()
         else:
             self.dock_window()
+
+    def _show_help_page(self) -> None:
+        """
+        Show help webpage for this plugin.
+
+        Returns
+        -------
+        None
+        """
+        if self.HELP_URL:
+            QDesktopServices.openUrl(QUrl(self.HELP_URL))
 
     def _close_window(
         self, save_undocked: bool = False, switch_to_plugin: bool = True

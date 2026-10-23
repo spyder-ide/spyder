@@ -52,6 +52,8 @@ class HistoryWidget(PluginMainWidget):
     History plugin main widget.
     """
 
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/historylog"
+
     # Signals
     sig_focus_changed = Signal()
     """
