@@ -1837,9 +1837,11 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     CONF.set('run', 'run_cell_copy', False)
 
 
-@pytest.mark.parametrize('main_window',
-                         [{'spy_config': ('run', 'run_cell_copy', True)}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('run', 'run_cell_copy', True)}],
+    indirect=True
+)
 def test_debug_cell_copy_reports_file_location(main_window, qtbot):
     """
     Debugging a cell with run_cell_copy on reports the file path and line.
@@ -1850,7 +1852,8 @@ def test_debug_cell_copy_reports_file_location(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     # Load the test file
     test_file = osp.join(LOCATION, 'script.py')
