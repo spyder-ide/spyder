@@ -32,9 +32,8 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_home_dir, get_project_config_folder, running_under_pytest)
 from spyder.config.utils import EDIT_EXTENSIONS
-from spyder.plugins.completion.decorators import (
-    class_register, handles, request)
 from spyder.plugins.explorer.api import DirViewActions
+from spyder.plugins.languageservices.api.uri import path_as_uri
 from spyder.plugins.projects.api import (
     BaseProjectType, EmptyProject, WORKSPACE)
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
@@ -85,7 +84,6 @@ class ProjectsOptionsMenuActions:
 
 # ---- Main widget
 # -----------------------------------------------------------------------------
-@class_register
 class ProjectExplorerWidget(PluginMainWidget):
     """Project explorer main widget."""
 
@@ -159,16 +157,17 @@ class ProjectExplorerWidget(PluginMainWidget):
     sig_restart_console_requested = Signal()
     """This signal is emitted to request restarting the IPython console."""
 
-    sig_broadcast_notification_requested = Signal(str, dict)
+    sig_workspace_notification_requested = Signal(str, object)
     """
-    This signal is emitted to request that the Completions plugin broadcast
-    a notification.
+    This signal is emitted to request that the language services plugin
+    process a workspace notification.
 
     Parameters
     ----------
     method: str
-        Method name to broadcast.
-    params: dict
+        ``workspace/didChangeWorkspaceFolders`` or
+        ``workspace/didChangeWatchedFiles``.
+    params: DidChangeWorkspaceFoldersParams or DidChangeWatchedFilesParams
         Parameters of the notification.
     """
 
@@ -735,23 +734,23 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Disable LSP workspace functionality."""
         self.completions_available = False
 
-    def emit_request(self, method, params, requires_response):
-        """Send request/notification/response to all LSP servers."""
-        params['requires_response'] = requires_response
-        params['response_instance'] = self
-        self.sig_broadcast_notification_requested.emit(method, params)
+    def _notify_workspace(self, method, params):
+        """Emit a workspace notification while services are available."""
+        if self.completions_available:
+            self.sig_workspace_notification_requested.emit(method, params)
 
-    @Slot(str, dict)
-    def handle_response(self, method, params):
-        """Method dispatcher for LSP requests."""
-        if method in self.handler_registry:
-            handler_name = self.handler_registry[method]
-            handler = getattr(self, handler_name)
-            handler(params)
+    def _notify_watched_files(self, *changes):
+        """Send ``(path, FileChangeType)`` pairs as watched file changes."""
+        self._notify_workspace(
+            lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
+            lsp.DidChangeWatchedFilesParams(
+                changes=[
+                    lsp.FileEvent(uri=path_as_uri(path), type=kind)
+                    for path, kind in changes
+                ]
+            ),
+        )
 
-    @request(
-        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
-    )
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
         """Notify LSP server about file creation."""
@@ -760,45 +759,20 @@ class ProjectExplorerWidget(PluginMainWidget):
         # LSP specification only considers file updates
         if is_dir:
             return
-
-        params = {
-            'params': [{
-                'file': src_file,
-                'kind': lsp.FileChangeType.Created
-            }]
-        }
-        return params
+        self._notify_watched_files((src_file, lsp.FileChangeType.Created))
 
     @Slot(str, str, bool)
-    @request(
-        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
-    )
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
         self._update_default_switcher_paths()
 
         if is_dir:
             return
+        self._notify_watched_files(
+            (dest_file, lsp.FileChangeType.Created),
+            (src_file, lsp.FileChangeType.Deleted),
+        )
 
-        deletion_entry = {
-            'file': src_file,
-            'kind': lsp.FileChangeType.Deleted
-        }
-
-        addition_entry = {
-            'file': dest_file,
-            'kind': lsp.FileChangeType.Created
-        }
-
-        entries = [addition_entry, deletion_entry]
-        params = {
-            'params': entries
-        }
-        return params
-
-    @request(
-        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
-    )
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
         """Notify LSP server about file deletion."""
@@ -806,68 +780,40 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         if is_dir:
             return
+        self._notify_watched_files((src_file, lsp.FileChangeType.Deleted))
 
-        params = {
-            'params': [{
-                'file': src_file,
-                'kind': lsp.FileChangeType.Deleted
-            }]
-        }
-        return params
-
-    @request(
-        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
-    )
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
         """Notify LSP server about file modification."""
         if is_dir:
             return
+        self._notify_watched_files((src_file, lsp.FileChangeType.Changed))
 
-        params = {
-            'params': [{
-                'file': src_file,
-                'kind': lsp.FileChangeType.Changed
-            }]
-        }
-        return params
+    @staticmethod
+    def _workspace_folders_params(added=(), removed=()):
+        def folder(path):
+            return lsp.WorkspaceFolder(uri=path_as_uri(path), name=path)
 
-    @request(
-        method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
-        requires_response=False,
-    )
+        return lsp.DidChangeWorkspaceFoldersParams(
+            event=lsp.WorkspaceFoldersChangeEvent(
+                added=[folder(p) for p in added],
+                removed=[folder(p) for p in removed],
+            )
+        )
+
     def notify_project_open(self, path):
         """Notify LSP server about project path availability."""
-        params = {
-            'folder': path,
-            'instance': self,
-            'kind': 'addition'
-        }
-        return params
+        self._notify_workspace(
+            lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+            self._workspace_folders_params(added=[path]),
+        )
 
-    @request(
-        method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
-        requires_response=False,
-    )
     def notify_project_close(self, path):
         """Notify LSP server to unregister project path."""
-        params = {
-            'folder': path,
-            'instance': self,
-            'kind': 'deletion'
-        }
-        return params
-
-    @handles(lsp.WORKSPACE_APPLY_EDIT)
-    @request(method=lsp.WORKSPACE_APPLY_EDIT, requires_response=False)
-    def handle_workspace_edit(self, params):
-        """Apply edits to multiple files and notify server about success."""
-        response = {
-            'applied': False,
-            'error': 'Not implemented',
-            'language': params['language']
-        }
-        return response
+        self._notify_workspace(
+            lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+            self._workspace_folders_params(removed=[path]),
+        )
 
     # ---- Private API
     # -------------------------------------------------------------------------

@@ -24,6 +24,8 @@ from qtpy.QtCore import Qt
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
+from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.completion.tests.conftest import route_diagnostics
 
 
 # ---- Qt Test Fixtures
@@ -46,18 +48,18 @@ def editor_splitter_bot(qtbot):
 
 
 @pytest.fixture
-def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
+def editor_splitter_lsp(qtbot_module, language_services_all_started, request):
     text = """
     import sys
     """
-    completions, capabilities  = completion_plugin_all_started
+    language_services, completions, _ = language_services_all_started
+    capabilities = language_services.capabilities(Language.PYTHON)
+    slots = []
 
     def report_file_open(options):
-        filename = options['filename']
-        language = options['language']
         callback = options['codeeditor']
-        completions.register_file(
-            language.lower(), filename, callback)
+        callback.language_services = language_services
+        slots.append(route_diagnostics(language_services, callback))
         callback.register_completion_capabilities(capabilities)
 
         with qtbot_module.waitSignal(
@@ -65,10 +67,11 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
             callback.start_completion_services()
 
     def register_editorstack(editorstack):
-        editorstack.sig_perform_completion_request.connect(
-            completions.send_request)
+        editorstack.set_language_services(language_services)
         editorstack.sig_open_file.connect(report_file_open)
-        editorstack.register_completion_capabilities(capabilities, 'python')
+        editorstack.register_completion_capabilities(
+            Language.PYTHON, capabilities
+        )
 
     def unregister_editorstack(editorstack):
         pass
@@ -99,10 +102,11 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     def teardown():
         editorsplitter.hide()
         editorsplitter.close()
+        for slot in slots:
+            language_services.sig_diagnostics.disconnect(slot)
 
     request.addfinalizer(teardown)
-    lsp = completions.get_provider('lsp')
-    return editorsplitter, lsp
+    return editorsplitter, language_services.get_provider('pylsp')
 
 
 @pytest.fixture
@@ -406,18 +410,22 @@ def test_lsp_splitter_close(editor_splitter_lsp):
     editorsplitter, lsp_manager = editor_splitter_lsp
 
     editorsplitter.split()
-    lsp_files = lsp_manager.clients['python']['instance'].watched_files
     editor = editorsplitter.editorstack.get_current_editor()
     path = pathlib.Path(osp.abspath(editor.filename)).as_uri()
-    assert len(lsp_files[path]) == 2
+
+    # The document is open once in the server no matter how many
+    # editorstacks show it.
+    def open_documents():
+        return lsp_manager._servers['pylsp'].documents
+
+    assert path in open_documents()
 
     editorstacks = editorsplitter.iter_editorstacks()
     assert len(editorstacks) == 2
 
     last_editorstack = editorstacks[0][0]
     last_editorstack.close()
-    lsp_files = lsp_manager.clients['python']['instance'].watched_files
-    assert len(lsp_files[path]) == 1
+    assert path in open_documents()
 
 
 if __name__ == "__main__":

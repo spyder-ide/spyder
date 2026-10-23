@@ -24,6 +24,9 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import get_conf_path, running_in_ci
+from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
+    record_requests,
+)
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
@@ -937,21 +940,24 @@ def test_ipython_files(base_editor_bot, qtbot):
 
     # Assert we transform IPython cells to valid Python code when opening
     # the file
-    with qtbot.waitSignal(editor.sig_perform_completion_request) as blocker:
+    with record_requests(editor) as requests:
         editor.document_did_open()
 
-    request_params = blocker.args[2]
-    assert 'get_ipython' in request_params['text']
+    request_params = requests[0][1]
+    assert 'get_ipython' in request_params.text_document.text
 
     # Assert we transform IPython cells to valid Python code when modifying
     # the file
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.End)
-    with qtbot.waitSignal(editor.sig_perform_completion_request) as blocker:
+    with record_requests(editor) as requests:
         cursor.insertText('\n# %%\n%%timeit 1+1\n')
+        editor._commit_pending_edit()
+        editor._server_requests_timer.stop()
+        editor._process_server_requests()
 
-    params = blocker.args[2]
-    assert 'get_ipython' in params['content_changes'][0].text
+    params = requests[0][1]
+    assert 'get_ipython' in params.content_changes[0].text
 
     # Mock linting results for this file. This is actually what's returned by
     # Pyflakes.
