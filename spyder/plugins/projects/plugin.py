@@ -12,6 +12,7 @@ updating the file tree explorer associated with a project.
 """
 
 # Standard library imports
+from concurrent.futures import Future
 import logging
 import os.path as osp
 
@@ -21,7 +22,15 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugins import (
+    ExposedCallError,
+    Plugins,
+    SpyderDockablePlugin,
+    current_call_context,
+    current_caller,
+    expose,
+)
+from spyder.api.plugins.exposed import calling_as
 from spyder.api.translations import _
 from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
@@ -399,9 +408,127 @@ class Projects(SpyderDockablePlugin):
         """
         self.get_widget().set_project_filenames(filenames)
 
+    @expose(
+        name="get_active_project",
+        read_only=True,
+        description=(
+            "Get the root directory of the project open in Spyder, or null "
+            "if there's none."
+        ),
+    )
     def get_active_project_path(self):
         """Get path of the active project."""
         return self.get_widget().get_active_project_path()
+
+    @expose(name="open_project", destructive=True)
+    def open_project_with_confirmation(self, path: str) -> Future:
+        """
+        Open a folder as the project in Spyder, after the user confirms it.
+        If it isn't a Spyder project yet, it becomes one.
+
+        Opening a project restarts all of Spyder's IPython consoles (yours
+        too), so the variables, imports and figures in them are lost, and
+        closes the agent sessions of the project that was open (not yours).
+        Ask the user before if it's not clear they want it.
+
+        Parameters
+        ----------
+        path : str
+            Absolute path of the folder.
+
+        Returns
+        -------
+        Future
+            Resolved with the ``project`` that is open now and whether it was
+            ``created``.
+        """
+        path = osp.abspath(path)
+        if not osp.isdir(path):
+            raise ExposedCallError(f"{path} isn't a folder.")
+
+        is_project = self.is_valid_project(path)
+        message = _(
+            "{} wants to open {} as the project in Spyder{}. This restarts "
+            "all IPython consoles, so their variables are lost."
+        ).format(
+            current_caller().name if current_caller() else _("An agent"),
+            path,
+            "" if is_project else _(" (it will become a Spyder project)"),
+        )
+
+        def open_project():
+            self.open_project(path=path)
+            return {
+                "project": self.get_active_project_path(),
+                "created": not is_project,
+            }
+
+        return self._run_after_confirmation(
+            message, _("Open the project"), _("Don't open it"), open_project
+        )
+
+    @expose(name="close_project", destructive=True)
+    def close_project_with_confirmation(self) -> Future:
+        """
+        Close the project open in Spyder, after the user confirms it. The
+        agent sessions of the project (not yours) are closed too.
+
+        Returns
+        -------
+        Future
+            Resolved with the ``project`` that was closed.
+        """
+        path = self.get_active_project_path()
+        if not path:
+            raise ExposedCallError("There's no project open in Spyder.")
+
+        message = _("{} wants to close the project {} in Spyder.").format(
+            current_caller().name if current_caller() else _("An agent"),
+            path,
+        )
+
+        def close_project():
+            self.close_project()
+            return {"project": path}
+
+        return self._run_after_confirmation(
+            message, _("Close the project"), _("Keep it open"), close_project
+        )
+
+    def _run_after_confirmation(self, message, yes, no, action) -> Future:
+        """
+        Ask the caller's user to confirm ``action`` in the caller's own
+        interface, and run it if they do.
+        """
+        context = current_call_context()
+        caller = current_caller()
+        if not context.can_ask_user:
+            raise ExposedCallError(
+                "This needs the user's confirmation, and they can't be asked "
+                "from here. Ask them to do it in Spyder's Projects menu."
+            )
+
+        result: Future = Future()
+
+        def on_answer(future):
+            if future.result() != yes:
+                result.set_exception(
+                    ExposedCallError("The user chose not to do it.")
+                )
+                return
+            try:
+                # As the caller, so other plugins know who did it
+                with calling_as(caller, context):
+                    result.set_result(action())
+            except Exception as error:
+                result.set_exception(
+                    ExposedCallError(f"It couldn't be done: {error}")
+                )
+
+        context.ask_user(message, [yes, no], _("Confirm")).add_done_callback(
+            on_answer
+        )
+        return result
 
     def get_last_working_dir(self):
         """Get the path of the last working directory."""
