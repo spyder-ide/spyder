@@ -145,7 +145,6 @@ class NamespaceBrowser(
             self.finder.setVisible(False)
 
             # Signals
-            self.editor.sig_files_dropped.connect(self.import_data)
             self.editor.sig_free_memory_requested.connect(
                 self.sig_free_memory_requested)
             self.editor.sig_editor_creation_started.connect(
