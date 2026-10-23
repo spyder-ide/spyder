@@ -45,6 +45,8 @@ def windows_memory_usage():
 
 def memory_usage():
     """Return physical memory usage (float)."""
+    if os.name == 'nt':
+        return windows_memory_usage()
     # This is needed to avoid a deprecation warning error with
     # newer psutil versions
     try:
