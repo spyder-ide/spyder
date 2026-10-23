@@ -1,19 +1,16 @@
-# Changes in version 6.1.7 (2026-08-27)
-
-## New features
-
-* Increase threshold to warn users when an array or dataframe is too big to be
-  viewed in the Variable Explorer. The new limit is 50 million elements.
+# Changes in version 6.1.8 (2026-10-21)
 
 ## Important fixes
 
-* Fix formatting and linting with Ruff.
-* Fix warning to tell users that an array or dataframe is too big to be handled
-  by the Variable Explorer.
-* Fix syntax highlighting of non-Python files in the Editor.
-* Fix crash at startup when the in-app appeal page can't be read from disk.
-* Make right-clicking on Files and Projects select the file where it's done.
+* Fix error that didn't allow Spyder to start on Windows environments that block
+  loading user fonts.
+* Restore preserving permissions when saving files on Windows (that was broken
+  since version 6.1.4).
+* Fix tabs to spaces conversion in the Editor.
+* Make drag and drop of files to the Variable Explorer work when it's empty.
+* Change shortcuts to switch between IPython consoles to `Ctrl/Cmd+Alt+Right/Left`
+  because the previous ones didn't work on macOS.
 
 ## Full changelog
 
-* View the complete changelog [on GitHub](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md#version-617-2026-08-27).
+* View the complete changelog [on GitHub](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md#version-618-2026-10-21).
