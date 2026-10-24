@@ -201,6 +201,11 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
             register_editorstack_cb=self.register_editorstack,
             unregister_editorstack_cb=self.unregister_editorstack
         )
+
+        self.editorsplitter.sig_move_to_editorstack_requested.connect(
+            self.editorsplitter.move_to_editorstack
+        )
+
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
