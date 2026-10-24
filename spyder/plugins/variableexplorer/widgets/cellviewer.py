@@ -344,7 +344,6 @@ class CellViewer(BaseDialog, SpyderFontsMixin):
             action_layout.addWidget(self.collapse_button)
             action_layout.addWidget(self.expand_button)
             self.load_all_button = QPushButton(_('Load all'))
-            self.load_all_button.setMinimumWidth(self.load_all_button.sizeHint().width())
             self.load_all_button.setToolTip(_('Load all immediate items of the selected container; nested containers stay collapsed.'))
             self.load_all_button.clicked.connect(self._load_all_tree)
             action_layout.addWidget(self.load_all_button)
@@ -370,6 +369,9 @@ class CellViewer(BaseDialog, SpyderFontsMixin):
         self.copy_timer.setInterval(1500)
         self.copy_timer.timeout.connect(self._reset_copy_feedback)
         self.tabs.setCornerWidget(actions, Qt.TopRightCorner)
+        if self.tree is not None:
+            self.load_all_button.ensurePolished()
+            self.load_all_button.setMinimumWidth(self.load_all_button.sizeHint().width())
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
         buttons.rejected.connect(self.reject)
         footer = QHBoxLayout()
