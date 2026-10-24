@@ -643,14 +643,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         if console is None:
             return
 
-        run_input: CellRun = input['run_input']
-        if run_input['copy']:
-            code = run_input['cell']
-            if not code.strip():
-                # Empty cell
-                return
-            console.run_selection("%%debug\n" + code)
-            return
+        # Not supported while debugging because it loses file path and line
+        # number information that the editor needs to draw debugging info.
+        input['run_input']['copy'] = False
 
         exec_params = conf['params']
         params: IPythonConsolePyConfiguration = exec_params['executor_params']
