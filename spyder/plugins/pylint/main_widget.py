@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import json
 import os
 import os.path as osp
 import pickle
@@ -912,9 +913,10 @@ class PylintWidget(PluginMainWidget):
             command_args = [
                 "-m",
                 "pylint",
-                "--output-format=text",
-                "--msg-template="
-                '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
+                "--output-format=json2",
+                # "--output-format=text",
+                # "--msg-template="
+                # '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
             ]
 
         path_of_custom_interpreter = self.test_for_custom_interpreter()
@@ -962,12 +964,53 @@ class PylintWidget(PluginMainWidget):
 
         return process_environment
 
-    def parse_output(self, output):
+    def parse_output(self, output: str) -> tuple[str, str, dict]:
         """
-        Parse output and return current revious rate and results.
+        Parse Pylint output, handling Pylint's json2 format or the previous
+        Spyder text format, and return the current score, previous score and
+        results.
+        """
+        return self.parse_json_output(output)
+        if output.startswith("{"):
+            return self.parse_json_output(output)
+        else:
+            return self.parse_text_output(output)
+
+
+    def parse_json_output(self, output: str) -> tuple[str, str, dict]:
+        """
+        Parse Pylint output following its json2 format, and return the current
+        score, previous score and results.
+
+        The json2 format does not provide the previous score, so it is always
+        set as an empty string.
+        """
+        parsed = json.loads(output)
+        results: dict = {"C:": [], "R:": [], "W:": [], "E:": []}
+
+        for message in parsed["messages"]:
+            message_type = message["messageId"][0]
+
+            pylint_item = (
+                message["module"],
+                message["line"],
+                message["message"],
+                message["messageId"],
+                message["symbol"],
+            )
+
+            results[message_type + ":"].append(pylint_item)
+
+        return str(parsed["statistics"]["score"]), "", results
+
+
+    def parse_text_output(self, output: str) -> tuple[str, str, dict]:
+        """
+        Parse Pylint output following the format defined in get_command and
+        return the current score, previous score and results.
         """
         # Convention, Refactor, Warning, Error
-        results = {"C:": [], "R:": [], "W:": [], "E:": []}
+        results: dict = {"C:": [], "R:": [], "W:": [], "E:": []}
         txt_module = "************* Module "
 
         module = ""  # Should not be needed - just in case something goes wrong
