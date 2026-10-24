@@ -5,26 +5,27 @@
 # (see spyder/__init__.py for details)
 
 """
-Toolbar Plugin.
+Toolbar plugin.
 """
-
-# Standard library imports
-from typing import Union, Optional
 
 # Third-party imports
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, WindowMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import (
-    ToolbarContainer, ToolbarMenus, ToolbarActions)
-from spyder.utils.qthelpers import SpyderAction
+    ToolbarActions,
+    ToolbarContainer,
+    ToolbarItem,
+    ToolbarMenus,
+)
 
 
 class Toolbar(SpyderPluginV2):
@@ -32,7 +33,7 @@ class Toolbar(SpyderPluginV2):
     Docstrings viewer widget.
     """
     NAME = 'toolbar'
-    REQUIRES = [Plugins.MainMenu]
+    REQUIRES = [Plugins.Layout, Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer
@@ -123,7 +124,8 @@ class Toolbar(SpyderPluginV2):
             The created application toolbar.
         """
         toolbar = self.get_container().create_application_toolbar(
-            toolbar_id, title)
+            toolbar_id, title
+        )
         self.add_application_toolbar(toolbar)
         return toolbar
 
@@ -139,7 +141,7 @@ class Toolbar(SpyderPluginV2):
         toolbar: spyder.api.widgets.toolbars.ApplicationToolbar
             The application toolbar to add to the main window.
         """
-        self.get_container().add_application_toolbar(toolbar, self._main)
+        self.get_container().add_application_toolbar(toolbar)
 
     def remove_application_toolbar(self, toolbar_id: str):
         """
@@ -153,15 +155,18 @@ class Toolbar(SpyderPluginV2):
         toolbar: str
             The application toolbar to remove from the main window.
         """
-        self.get_container().remove_application_toolbar(toolbar_id, self._main)
+        self.get_container().remove_application_toolbar(toolbar_id)
 
-    def add_item_to_application_toolbar(self,
-                                        item: Union[SpyderAction, QWidget],
-                                        toolbar_id: Optional[str] = None,
-                                        section: Optional[str] = None,
-                                        before: Optional[str] = None,
-                                        before_section: Optional[str] = None,
-                                        omit_id: bool = False):
+    def add_item_to_application_toolbar(
+        self,
+        item: ToolbarItem,
+        toolbar_id: str | None = None,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
+        omit_id: bool = False,
+        render: bool = False,
+    ):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -182,22 +187,26 @@ class Toolbar(SpyderPluginV2):
             If True, then the toolbar will check if the item to add declares an
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
+        render: bool
+            If True, then the toolbar will be rendered after the item is added.
         """
         if before is not None:
             if not isinstance(before, str):
                 raise ValueError('before argument must be a str')
 
         return self.get_container().add_item_to_application_toolbar(
-                item,
-                toolbar_id=toolbar_id,
-                section=section,
-                before=before,
-                before_section=before_section,
-                omit_id=omit_id
-            )
+            item,
+            toolbar_id=toolbar_id,
+            section=section,
+            before=before,
+            before_section=before_section,
+            omit_id=omit_id,
+            render=render,
+        )
 
-    def remove_item_from_application_toolbar(self, item_id: str,
-                                             toolbar_id: Optional[str] = None):
+    def remove_item_from_application_toolbar(
+        self, item_id: str, toolbar_id: str | None = None
+    ):
         """
         Remove action or widget `item` from given application menu by id.
 

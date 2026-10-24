@@ -19,17 +19,21 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown
 )
 from spyder.config.base import is_conda_based_app
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
     UpdateManagerContainer
 )
-from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
+from spyder.plugins.updatemanager.widgets.status import (
+    UpdateManagerStatus,
+    UpdateStatus,
+)
 
 
 class UpdateManager(SpyderPluginV2):
     NAME = 'update_manager'
-    REQUIRES = [Plugins.Application, Plugins.MainMenu, Plugins.Preferences]
+    REQUIRES = [Plugins.MainMenu, Plugins.Preferences]
     OPTIONAL = [Plugins.StatusBar]
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
@@ -59,7 +63,7 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Plugin initialization
     def on_initialize(self):
-        self.update_manager_status = None
+        self.update_manager_status = UpdateManagerStatus | None
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -67,18 +71,15 @@ class UpdateManager(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    @on_plugin_available(plugin=Plugins.Application)
-    def on_application_available(self):
-        if self.is_plugin_available(Plugins.MainMenu):
-            self._populate_help_menu()
-
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        if self.is_plugin_enabled(Plugins.Application):
-            if self.is_plugin_available(Plugins.Application):
-                self._populate_help_menu()
-        else:
-            self._populate_help_menu()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            self.get_container().check_update_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.About,
+            before=ApplicationActions.HelpSpyderAction,
+        )
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -88,14 +89,25 @@ class UpdateManager(SpyderPluginV2):
 
         self.update_manager_status = UpdateManagerStatus(parent=container)
         container.update_manager_status = self.update_manager_status
+        container.connect_status_signals()
         statusbar.add_status_widget(self.update_manager_status)
+
+        # Set the current status after statusbar is reenabled
+        if not self.is_app_starting:
+            self.update_manager_status.set_status(self.update_status)
 
     # ---- Plugin teardown
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         # Remove status widget if created
         statusbar = self.get_plugin(Plugins.StatusBar)
+        container = self.get_container()
+
+        container.disconnect_status_signals()
         statusbar.remove_status_widget(self.update_manager_status.ID)
+
+        self.update_manager_status = None
+        container.update_manager_status = None
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -104,18 +116,18 @@ class UpdateManager(SpyderPluginV2):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        self._depopulate_help_menu()
-
-    def on_close(self, _unused=True):
-        # The container is closed directly in the plugin registry
-        pass
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            UpdateManagerActions.SpyderCheckUpdateAction,
+            menu_id=ApplicationMenus.Help
+        )
 
     def on_mainwindow_visible(self):
-        """Actions after the mainwindow in visible."""
+        """Actions after the mainwindow is visible."""
         container = self.get_container()
 
         # Initialize status.
-        # Note that NO_STATUS also hides the statusbar widget.
+        # Note that NoStatus also hides the statusbar widget.
         if self.update_manager_status is not None:
             self.update_manager_status.set_no_status()
 
@@ -148,33 +160,22 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Private API
     # ------------------------------------------------------------------------
-    def _populate_help_menu(self):
-        """Add update action and menu to the Help menu."""
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        from spyder.plugins.application.api import ApplicationActions
-        help_spyder_action = ApplicationActions.HelpSpyderAction
-
-        mainmenu.add_item_to_application_menu(
-            self.check_update_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.About,
-            before=help_spyder_action,
-        )
-
     @property
     def _window(self):
         return self.main.window()
 
-    def _depopulate_help_menu(self):
-        """Remove update action from the Help main menu."""
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.remove_item_from_application_menu(
-            UpdateManagerActions.SpyderCheckUpdateAction,
-            menu_id=ApplicationMenus.Help)
-
     # ---- Public API
     # ------------------------------------------------------------------------
     @property
-    def check_update_action(self):
-        """Check if a new version of Spyder is available."""
-        return self.get_container().check_update_action
+    def update_status(self) -> UpdateStatus:
+        """Current update status."""
+        return self.get_container().update_status
+
+    def set_status(self, status: UpdateStatus):
+        """
+        Set the update status.
+
+        Use this only when it's absolutely necessary to not mess with the
+        update process.
+        """
+        self.get_container().update_manager.set_status(status)

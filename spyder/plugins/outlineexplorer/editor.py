@@ -43,6 +43,9 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def emit_request_in_progress(self):
         self.sig_start_outline_spinner.emit()
 
+    def get_codeeditor(self):
+        return self._editor
+
     def is_python(self):
         return self._editor.is_python()
 

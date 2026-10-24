@@ -36,7 +36,7 @@ class FindInFiles(SpyderDockablePlugin):
     NAME = 'find_in_files'
     REQUIRES = [Plugins.MainMenu, Plugins.WorkingDirectory]
     OPTIONAL = [Plugins.Editor, Plugins.Projects]
-    TABIFY = [Plugins.VariableExplorer]
+    TABIFY = [Plugins.VariableExplorer, Plugins.Explorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -135,7 +135,6 @@ class FindInFiles(SpyderDockablePlugin):
         self.get_widget()._update_options()
         if self.get_widget().running:
             self.get_widget()._stop_and_reset_thread(ignore_results=True)
-        return True
 
     # --- Public API
     # ------------------------------------------------------------------------
