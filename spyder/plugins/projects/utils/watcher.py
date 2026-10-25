@@ -9,7 +9,6 @@
 # Standard lib imports
 import os
 import logging
-from pathlib import Path
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal
@@ -26,10 +25,10 @@ from spyder.config.utils import EDIT_EXTENSIONS
 # -----------------------------------------------------------------------------
 logger = logging.getLogger(__name__)
 
-FOLDERS_TO_IGNORE = [
+FOLDERS_TO_IGNORE = {
     "__pycache__",
     "build",
-]
+}
 
 
 # ---- Monkey patches
@@ -63,17 +62,21 @@ watchdog.utils.BaseThread = BaseThreadWrapper
 # ---- Auxiliary functions
 # -----------------------------------------------------------------------------
 def ignore_entry(entry: os.DirEntry) -> bool:
-    """Check if an entry should be ignored."""
-    parts = Path(entry.path).parts
+    """
+    Check if an entry should be ignored.
 
-    # Ignore files in hidden directories (e.g. .git)
-    if any([p.startswith(".") for p in parts]):
+    Only the name is checked because the observer doesn't descend into
+    ignored directories, so ancestors already passed this check.
+    """
+    name = entry.name
+
+    # Ignore hidden files and directories (e.g. .git)
+    if name.startswith("."):
         return True
 
     # Ignore specific folders
-    for folder in FOLDERS_TO_IGNORE:
-        if folder in parts:
-            return True
+    if name in FOLDERS_TO_IGNORE:
+        return True
 
     return False
 
@@ -81,7 +84,7 @@ def ignore_entry(entry: os.DirEntry) -> bool:
 def editable_file(entry: os.DirEntry) -> bool:
     """Check if an entry file is editable."""
     if entry.is_file():
-        return (os.path.splitext(entry.path)[1] in EDIT_EXTENSIONS)
+        return (os.path.splitext(entry.name)[1] in EDIT_EXTENSIONS)
     return True
 
 
