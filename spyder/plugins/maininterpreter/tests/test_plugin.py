@@ -17,9 +17,11 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
-from spyder.plugins.maininterpreter.plugin import MainInterpreter
-from spyder.utils.conda import find_local_venv_interpreter, has_spyder_kernels
-
+from spyder.utils.conda import find_local_venv_interpreter
+from spyder.plugins.maininterpreter.plugin import (
+    MainInterpreter,
+    PROJECT_INTERPRETER_OPTION,
+)
 
 @pytest.fixture
 def maininterpreter(qtbot):
@@ -36,22 +38,22 @@ def maininterpreter(qtbot):
 def test_conda_interpreters(maininterpreter, qtbot):
     """Test info from conda interpreters."""
     container = maininterpreter.get_container()
-    container._interpreter = ""
+    container._interpreter = ''
 
-    name_base = "Conda: base"
-    name_test = "Conda: jedi-test-env"
+    name_base = 'Conda: base'
+    name_test = 'Conda: jedi-test-env'
 
     # Wait until envs are computed
     qtbot.wait(4000)
 
     # Update to the base conda environment
     path_base, version = container.envs[name_base]
-    expected = "Conda: base ({})".format(version)
+    expected = 'Conda: base ({})'.format(version)
     assert expected == container._get_env_info(path_base)
 
     # Update to the foo conda environment
     path_foo, version = container.envs[name_test]
-    expected = "Conda: jedi-test-env ({})".format(version)
+    expected = 'Conda: jedi-test-env ({})'.format(version)
     assert expected == container._get_env_info(path_foo)
 
 
@@ -59,93 +61,188 @@ def test_pyenv_interpreters(maininterpreter, qtbot):
     """Test info from pyenv interpreters."""
     container = maininterpreter.get_container()
 
-    version = "Python 3.6.6"
-    name = "pyenv: test"
-    interpreter = os.sep.join(["some-other", "bin", "python"])
+    version = 'Python 3.6.6'
+    name = 'pyenv: test'
+    interpreter = os.sep.join(['some-other', 'bin', 'python'])
     container.envs = {name: (interpreter, version)}
     container.path_to_env = {interpreter: name}
-    assert "pyenv: test (Python 3.6.6)" == container._get_env_info(interpreter)
+    assert 'pyenv: test (Python 3.6.6)' == container._get_env_info(interpreter)
 
 
-@pytest.mark.skipif(sys.platform != "darwin", reason="Only valid on Mac")
+@pytest.mark.skipif(sys.platform != 'darwin', reason="Only valid on Mac")
 def test_internal_interpreter(maininterpreter, qtbot, mocker):
     """Test info from internal interpreter."""
     container = maininterpreter.get_container()
 
-    interpreter = os.sep.join(["Spyder.app", "Contents", "MacOS", "Python"])
-    name = "system:"
-    version = "Python 3.6.6"
+    interpreter = os.sep.join(['Spyder.app', 'Contents', 'MacOS', 'Python'])
+    name = 'system:'
+    version = 'Python 3.6.6'
     container.envs = {name: (interpreter, version)}
     container.path_to_env = {interpreter: name}
-    assert "system: (Python 3.6.6)" == container._get_env_info(interpreter)
+    assert 'system: (Python 3.6.6)' == container._get_env_info(interpreter)
 
 
-def test_find_local_venv_interpreter_found(tmp_path):
-    """Test detection when a valid .venv exists in the project."""
-    venv_dir = tmp_path / ".venv"
-    bin_dir = venv_dir / ("Scripts" if os.name == "nt" else "bin")
+@pytest.mark.parametrize(
+    "folder",
+    [".venv", "venv", "env", os.path.join(".pixi", "envs", "default")],
+)
+def test_find_local_venv_interpreter_folders(tmp_path, folder):
+    bin_dir = tmp_path / folder / ("Scripts" if os.name == "nt" else "bin")
     bin_dir.mkdir(parents=True)
-    python_name = "python.exe" if os.name == "nt" else "python"
-    python_path = bin_dir / python_name
-    python_path.touch()
+    interpreter = bin_dir / ("python.exe" if os.name == "nt" else "python")
+    interpreter.touch()
 
-    result = find_local_venv_interpreter(str(tmp_path))
-    assert result == str(python_path)
+    assert find_local_venv_interpreter(str(tmp_path)) == str(interpreter)
 
 
-def test_find_local_venv_interpreter_no_venv(tmp_path):
-    """Test that None is returned when there's no .venv folder."""
-    result = find_local_venv_interpreter(str(tmp_path))
-    assert result is None
+def test_find_local_venv_interpreter_not_found(tmp_path):
+    # No environment folder at all
+    assert find_local_venv_interpreter(str(tmp_path)) is None
+
+    # Folder exists but has no interpreter inside
+    (tmp_path / ".venv").mkdir()
+    assert find_local_venv_interpreter(str(tmp_path)) is None
 
 
-def test_find_local_venv_interpreter_broken_venv(tmp_path):
-    """Test that None is returned when .venv exists but has no binary."""
-    venv_dir = tmp_path / ".venv"
-    venv_dir.mkdir()
-
-    result = find_local_venv_interpreter(str(tmp_path))
-    assert result is None
-
-
-def test_has_spyder_kernels_true(mocker):
-    """Test detection when spyder-kernels is importable."""
-    mock_result = mocker.Mock()
-    mock_result.returncode = 0
-    mocker.patch("subprocess.run", return_value=mock_result)
-
-    assert has_spyder_kernels("/fake/path/python") is True
+# ---- Project interpreter
+# -----------------------------------------------------------------------------
+def _make_venv(path):
+    """Create a fake .venv in path and return the path to its interpreter."""
+    bin_dir = path / ".venv" / ("Scripts" if os.name == "nt" else "bin")
+    bin_dir.mkdir(parents=True)
+    interpreter = bin_dir / ("python.exe" if os.name == "nt" else "python")
+    interpreter.touch()
+    return str(interpreter)
 
 
-def test_has_spyder_kernels_false(mocker):
-    """Test detection when spyder-kernels is not importable."""
-    mock_result = mocker.Mock()
-    mock_result.returncode = 1
-    mocker.patch("subprocess.run", return_value=mock_result)
+class FakeProject:
+    """Minimal stand-in for a Spyder project."""
 
-    assert has_spyder_kernels("/fake/path/python") is False
+    def __init__(self, root_path, interpreter=""):
+        self.root_path = str(root_path)
+        self.options = {PROJECT_INTERPRETER_OPTION: interpreter}
+
+    def get_option(self, option, **kwargs):
+        return self.options.get(option)
+
+    def set_option(self, option, value, **kwargs):
+        self.options[option] = value
 
 
-def test_auto_detect_venv_switches_interpreter(
-    maininterpreter, qtbot, mocker, tmp_path
+@pytest.fixture
+def maininterpreter_conf(qtbot):
+    """Plugin that is connected to Spyder's configuration."""
+    from spyder.config.manager import CONF
+
+    plugin = MainInterpreter(None, CONF)
+    qtbot.addWidget(plugin.get_container())
+    return plugin
+
+
+@pytest.fixture
+def projects(maininterpreter_conf, mocker):
+    """Make the plugin see a fake Projects plugin with an active project."""
+    plugin = mocker.Mock()
+    mocker.patch.object(
+        maininterpreter_conf, "get_plugin", return_value=plugin
+    )
+    return plugin
+
+
+def test_project_interpreter_is_used_and_restored(
+    maininterpreter_conf, projects, tmp_path
 ):
-    """Test that a found .venv with spyder-kernels gets auto-selected."""
-    venv_dir = tmp_path / ".venv"
-    bin_dir = venv_dir / ("Scripts" if os.name == "nt" else "bin")
-    bin_dir.mkdir(parents=True)
-    python_name = "python.exe" if os.name == "nt" else "python"
-    python_path = bin_dir / python_name
-    python_path.touch()
+    """The project interpreter replaces the global one until the project is
+    closed."""
+    interpreter = _make_venv(tmp_path)
+    projects.get_active_project.return_value = FakeProject(
+        tmp_path, interpreter
+    )
+    maininterpreter_conf.set_conf("default", True)
+    maininterpreter_conf.set_conf("custom", False)
 
+    maininterpreter_conf._on_project_loaded(str(tmp_path))
+    assert maininterpreter_conf.get_conf("executable") == interpreter
+    assert maininterpreter_conf.get_conf("custom") is True
+    assert maininterpreter_conf.get_conf("custom_interpreter") == interpreter
+
+    maininterpreter_conf._on_project_closed(str(tmp_path))
+    assert maininterpreter_conf.get_conf("default") is True
+    assert maininterpreter_conf.get_conf("custom") is False
+    assert maininterpreter_conf.get_conf("executable") != interpreter
+
+
+def test_project_without_interpreter_uses_global_one(
+    maininterpreter_conf, projects, tmp_path, mocker
+):
+    """Switching to a project with no interpreter falls back to the global
+    interpreter."""
+    interpreter = _make_venv(tmp_path / "with_env")
     mocker.patch(
-        "spyder.plugins.maininterpreter.plugin.has_spyder_kernels",
+        "spyder.plugins.maininterpreter.plugin.find_local_venv_interpreter",
+        return_value=None,
+    )
+    maininterpreter_conf.set_conf("default", True)
+    maininterpreter_conf.set_conf("custom", False)
+
+    # Project A has an interpreter
+    projects.get_active_project.return_value = FakeProject(
+        tmp_path / "with_env", interpreter
+    )
+    maininterpreter_conf._on_project_loaded(str(tmp_path / "with_env"))
+    assert maininterpreter_conf.get_conf("executable") == interpreter
+
+    # Project B doesn't (switching projects closes the previous one first)
+    maininterpreter_conf._on_project_closed(str(tmp_path / "with_env"))
+    projects.get_active_project.return_value = FakeProject(tmp_path / "other")
+    maininterpreter_conf._on_project_loaded(str(tmp_path / "other"))
+    assert maininterpreter_conf.get_conf("default") is True
+    assert maininterpreter_conf.get_conf("executable") != interpreter
+
+
+def test_missing_project_interpreter_is_ignored(
+    maininterpreter_conf, projects, tmp_path
+):
+    """A project interpreter that doesn't exist anymore is not applied."""
+    gone = str(tmp_path / "gone" / "python")
+    projects.get_active_project.return_value = FakeProject(tmp_path, gone)
+    maininterpreter_conf.set_conf("default", True)
+
+    maininterpreter_conf._on_project_loaded(str(tmp_path))
+    assert maininterpreter_conf.get_conf("default") is True
+    assert maininterpreter_conf.get_conf("executable") != gone
+
+
+def test_detected_interpreter_is_saved_in_project(
+    maininterpreter_conf, projects, tmp_path, mocker
+):
+    """A .venv found in a project without interpreter is saved and used."""
+    interpreter = _make_venv(tmp_path)
+    project = FakeProject(tmp_path)
+    projects.get_active_project.return_value = project
+    mocker.patch(
+        "spyder.plugins.maininterpreter.plugin.is_module_installed",
         return_value=True,
     )
-    mocker.patch.object(maininterpreter, "get_plugin", return_value=None)
-    mock_switch = mocker.patch.object(
-        maininterpreter, "set_custom_interpreter"
+
+    maininterpreter_conf._on_project_loaded(str(tmp_path))
+    assert project.options[PROJECT_INTERPRETER_OPTION] == interpreter
+    assert maininterpreter_conf.get_conf("executable") == interpreter
+
+
+def test_detected_interpreter_needs_spyder_kernels(
+    maininterpreter_conf, projects, tmp_path, mocker
+):
+    """A detected .venv without spyder-kernels is not used."""
+    _make_venv(tmp_path)
+    project = FakeProject(tmp_path)
+    projects.get_active_project.return_value = project
+    mocker.patch(
+        "spyder.plugins.maininterpreter.plugin.is_module_installed",
+        return_value=False,
     )
+    maininterpreter_conf.set_conf("default", True)
 
-    maininterpreter._auto_detect_venv(str(tmp_path))
-
-    mock_switch.assert_called_once_with(str(python_path), manual=False)
+    maininterpreter_conf._on_project_loaded(str(tmp_path))
+    assert not project.options[PROJECT_INTERPRETER_OPTION]
+    assert maininterpreter_conf.get_conf("default") is True

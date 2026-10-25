@@ -13,7 +13,6 @@ import json
 import os
 import os.path as osp
 import sys
-import subprocess
 
 # Third-party imports
 from packaging.version import parse
@@ -27,7 +26,7 @@ from spyder_kernels.utils.pythonenv import (
 from spyder.utils.programs import find_program, run_program, run_shell_command
 from spyder.config.base import is_conda_based_app
 
-WINDOWS = os.name == "nt"
+WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
 
 
@@ -40,7 +39,7 @@ def _env_for_conda():
     This is needed on Windows since Conda 23.9.0
     """
     env = {}
-    if os.name == "nt":
+    if os.name == 'nt':
         env_vars = [("HOMEDRIVE", "C:"), ("HOMEPATH", "\\Users\\xxxxx")]
         for var, default in env_vars:
             value = os.environ.get(var, default)
@@ -60,8 +59,8 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     else:
         conda_env_prefix = get_conda_env_path(pyexec)
 
-    conda_env_prefix = conda_env_prefix.replace("\\", "/")
-    env_key = "/envs/"
+    conda_env_prefix = conda_env_prefix.replace('\\', '/')
+    env_key = '/envs/'
 
     if conda_env_prefix.rfind(env_key) != -1:
         root_prefix = conda_env_prefix.split(env_key)[0]
@@ -85,18 +84,18 @@ def find_conda(pyexec=None):
 
     # First try Spyder's conda executable
     if is_conda_based_app():
-        root = osp.dirname(os.environ["CONDA_EXE"])
-        conda = osp.join(root, "conda.exe" if WINDOWS else "conda")
+        root = osp.dirname(os.environ['CONDA_EXE'])
+        conda = osp.join(root, 'conda.exe' if WINDOWS else 'conda')
 
     # Next try the environment variables
     if conda is None:
-        conda = os.environ.get("CONDA_EXE") or os.environ.get("MAMBA_EXE")
+        conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
 
     # Next try searching for the executable
     if conda is None:
-        conda_exec = "conda.bat" if WINDOWS else "conda"
+        conda_exec = 'conda.bat' if WINDOWS else 'conda'
         extra_paths = [
-            osp.join(get_conda_root_prefix(_pyexec), "condabin")
+            osp.join(get_conda_root_prefix(_pyexec), 'condabin')
             for _pyexec in [sys.executable, pyexec]
         ]
         conda = find_program(conda_exec, extra_paths)
@@ -111,8 +110,8 @@ def find_pixi(pyexec=None):
     `pyexec` is a python executable, the relative location from which to
     attempt to locate a pixi executable.
     """
-    pixi_home = os.environ.get("PIXI_HOME", None)
-    pixi_exec = "pixi.exe" if WINDOWS else "pixi"
+    pixi_home = os.environ.get('PIXI_HOME', None)
+    pixi_exec = 'pixi.exe' if WINDOWS else 'pixi'
 
     if pixi_home is None:
         pixi = find_program(pixi_exec)
@@ -131,23 +130,20 @@ def get_list_conda_envs():
     if conda is None:
         return env_list
 
-    cmdstr = " ".join([conda, "env", "list", "--json"])
+    cmdstr = ' '.join([conda, 'env', 'list', '--json'])
 
     try:
         out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
         out = out.decode()
         out = json.loads(out)
     except Exception:
-        out = {"envs": []}
+        out = {'envs': []}
 
-    for env in out["envs"]:
+    for env in out['envs']:
         data = env.split(osp.sep)
         name = data[-1]
-        path = (
-            osp.join(env, "python.exe")
-            if WINDOWS
-            else osp.join(env, "bin", "python")
-        )
+        path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
+            env, 'bin', 'python')
 
         if (
             # In case the environment doesn't have Python
@@ -158,18 +154,14 @@ def get_list_conda_envs():
             continue
 
         try:
-            version, __ = run_program(path, ["--version"]).communicate()
+            version, __ = run_program(path, ['--version']).communicate()
             version = version.decode()
         except Exception:
-            version = ""
+            version = ''
 
-        name = (
-            "base"
-            if name.lower().startswith("anaconda")
-            or name.lower().startswith("miniconda")
-            else name
-        )
-        name = "Conda: {}".format(name)
+        name = ('base' if name.lower().startswith('anaconda') or
+                name.lower().startswith('miniconda') else name)
+        name = 'Conda: {}'.format(name)
 
         if name in env_list:
             if not (path, version.strip()) == env_list[name]:
@@ -189,7 +181,10 @@ def get_list_conda_envs():
                 path_part = prev_data[
                     -index_common_folder - end_path : -end_path
                 ]
-                prev_name = f"Conda: " f'{"/".join(path_part)}'
+                prev_name = (
+                    f'Conda: '
+                    f'{"/".join(path_part)}'
+                )
                 env_list[prev_name] = prev_info
                 name = f'Conda: {"/".join(data[-index_common_folder:])}'
 
@@ -222,7 +217,7 @@ def get_spyder_conda_channel():
         return None, None
 
     env = get_conda_env_path(sys.executable)
-    cmdstr = " ".join([conda, "list", "spyder", "--json", "--prefix", env])
+    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
 
     try:
         out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
@@ -232,7 +227,7 @@ def get_spyder_conda_channel():
         return None, None
 
     # Avoids iterating over non-dict objects
-    if "error" in out or not isinstance(out, list):
+    if 'error' in out or not isinstance(out, list):
         return None, None
 
     # These variables can be unassigned after the next for, so we need to give
@@ -244,7 +239,7 @@ def get_spyder_conda_channel():
         if not isinstance(package_info, dict):
             continue
 
-        if package_info["name"] == "spyder":
+        if package_info["name"] == 'spyder':
             channel = package_info["channel"]
             channel_url = package_info["base_url"]
 
@@ -263,15 +258,13 @@ def conda_version(conda_executable=None):
     like mamba, micromamba or pixi, as well as any executable that provides a
     `--version` CLI argument.
     """
-    version = parse("0")
+    version = parse('0')
     if not conda_executable:
         conda_executable = find_conda()
     if not conda_executable:
         return version
     try:
-        version, __ = run_program(
-            conda_executable, ["--version"]
-        ).communicate()
+        version, __ = run_program(conda_executable, ['--version']).communicate()
         version = parse(version.decode().split()[-1].strip())
     except Exception:
         pass
@@ -297,11 +290,10 @@ def validate_conda(conda_executable):
         return False
 
     try:
-        out, __ = run_program(conda_executable, ["--version"]).communicate()
+        out, __ = run_program(conda_executable, ['--version']).communicate()
         if any(
             tool in out.decode().lower()
-            for tool in ["micromamba", "mamba", "conda"]
-        ):
+                for tool in ["micromamba", "mamba", "conda"]):
             valid = True
     except Exception:
         return False
@@ -310,42 +302,33 @@ def validate_conda(conda_executable):
 
 def find_local_venv_interpreter(project_path):
     """
-    Look for a local virtual environment interpreter inside a project.
+    Look for a Python interpreter in an environment inside a project.
 
-    Checks for a ``.venv`` folder at the root of ``project_path`` and
-    returns the path to its Python interpreter if it exists and is a
-    valid executable. Works regardless of which tool created the venv
-    (``venv``, ``virtualenv``, ``uv``, ``poetry``, etc.), since they all
-    produce the same standard folder layout.
+    Checks common folders (``.venv``, ``venv``, ``env`` and the default pixi
+    environment) and returns the path to the first interpreter found.
     """
     if not project_path or not osp.isdir(project_path):
         return None
 
-    venv_dir = osp.join(project_path, ".venv")
-    if not osp.isdir(venv_dir):
-        return None
+    # Common locations of environments in a project, in priority order
+    env_folders = [
+        '.venv',
+        'venv',
+        'env',
+        osp.join('.pixi', 'envs', 'default'),
+    ]
 
-    if os.name == "nt":
-        interpreter = osp.join(venv_dir, "Scripts", "python.exe")
+    if WINDOWS:
+        # venv-style layout first, then the conda/pixi one
+        candidates = [('Scripts', 'python.exe'), ('python.exe',)]
     else:
-        interpreter = osp.join(venv_dir, "bin", "python")
+        candidates = [('bin', 'python')]
 
-    if osp.isfile(interpreter):
-        return interpreter
+    for env_folder in env_folders:
+        env_dir = osp.join(project_path, env_folder)
+        for parts in candidates:
+            interpreter = osp.join(env_dir, *parts)
+            if osp.isfile(interpreter):
+                return interpreter
 
     return None
-
-
-def has_spyder_kernels(interpreter_path):
-    """
-    Check if spyder-kernels is installed in the given interpreter.
-    """
-    try:
-        result = subprocess.run(
-            [interpreter_path, "-c", "import spyder_kernels"],
-            capture_output=True,
-            timeout=5,
-        )
-        return result.returncode == 0
-    except (subprocess.SubprocessError, OSError):
-        return False
