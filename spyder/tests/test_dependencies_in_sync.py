@@ -101,10 +101,6 @@ def parse_setup_install_requires(fpath):
     for dep in deps_list:
         req = Requirement(dep)
 
-        # Transform pypi to conda name
-        if req.name == 'pyqt5':
-            req.name = 'pyqt'
-
         if req.specifier:
             deps[req.name] = str(req.specifier)
         else:
@@ -137,10 +133,6 @@ def parse_setup_extra_requires(fpath):
     dep_list = [item for item in dep_list if item[0] != '#']
     for dep in dep_list:
         req = Requirement(dep)
-
-        # Transform pypi to conda name
-        if req.name == 'pyqt5':
-            req.name = 'pyqt'
 
         if req.marker:
             # Skip dependencies with environment markers (e.g.
@@ -191,7 +183,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     full_reqs.update(linux_reqs)
 
     # These packages are not declared in our dependencies dialog
-    for dep in ['pyqt', 'pyqtwebengine', 'python.app', 'fzf', 'fcitx-qt5']:
+    for dep in ['pyqt6', 'pyqt6-webengine', 'python.app', 'fzf', 'fcitx-qt5']:
         full_reqs.pop(dep)
 
     assert spyder_deps == full_reqs
