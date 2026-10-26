@@ -112,11 +112,11 @@ def get_packages():
     return packages
 
 
-def get_qt_requirements(qt_requirements, default='pyqt5'):
+def get_qt_requirements(qt_requirements, default='pyqt6'):
     """
     Return a list of requirements for the Qt binding according to the
     environment variable SPYDER_QT_BINDING. If this variable is not set
-    or has an unsupported value it defaults to 'pyqt5'.
+    or has an unsupported value it defaults to 'pyqt6'.
 
     Parameters
     ----------
@@ -125,7 +125,7 @@ def get_qt_requirements(qt_requirements, default='pyqt5'):
         lists of required packages to install for each binding.
     default : str
         Default Qt binding to use if the environment variable is not set.
-        Defaults to 'pyqt5'.
+        Defaults to 'pyqt6'.
 
     Raises
     ------
@@ -234,7 +234,7 @@ setup_args = dict(
     author_email="spyder.python@gmail.com",
     url=__website_url__,
     license='MIT',
-    keywords='PyQt5 editor console widgets IDE science data analysis IPython',
+    keywords='PyQt6 editor console widgets IDE science data analysis IPython',
     platforms=["Windows", "Linux", "Mac OS-X"],
     packages=get_packages(),
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
@@ -283,7 +283,7 @@ qt_requirements = {
 }
 
 # Get the proper requirements for the selected Qt binding
-install_requires = get_qt_requirements(qt_requirements, default='pyqt5')
+install_requires = get_qt_requirements(qt_requirements, default='pyqt6')
 
 install_requires += [
     'aiohttp>=3.11.2',
