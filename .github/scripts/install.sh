@@ -23,12 +23,6 @@ fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
-    if [ -n "$SPYDER_QT_BINDING" ]; then
-        # conda has no PyQt6 package
-        echo "Cannot use Qt 6 with Conda" 1>&2
-        exit 1
-    fi
-
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
         micromamba install --file requirements/windows.yml
