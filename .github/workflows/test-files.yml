@@ -89,7 +89,8 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 libxcb-cursor0 xterm --fix-missing
+          sudo apt install --only-upgrade libexpat1
       - name: Cache pip
         uses: actions/cache@v5
         with:

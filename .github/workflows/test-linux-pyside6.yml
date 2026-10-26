@@ -1,4 +1,4 @@
-name: Linux tests with PyQt6
+name: Linux tests with PySide6
 
 on:
   push:
@@ -23,7 +23,7 @@ on:
     paths:
       - '.github/scripts/install.sh'
       - '.github/scripts/run_tests.sh'
-      - '.github/workflows/test-linux-qt6.yml'
+      - '.github/workflows/test-linux-pyside6.yml'
       - 'requirements/*.yml'
       - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - 'MANIFEST.in'
@@ -43,7 +43,7 @@ on:
         type: boolean
 
 concurrency:
-  group: test-linux-qt6-${{ github.ref }}
+  group: test-linux-pyside6-${{ github.ref }}
   cancel-in-progress: true
 
 env:
