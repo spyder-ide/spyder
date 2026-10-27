@@ -25,7 +25,6 @@ from spyder.api.translations import _
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
 from spyder.utils.misc import get_python_executable
-from spyder.utils.programs import is_module_installed
 from spyder.utils.conda import find_local_venv_interpreter
 
 
@@ -130,7 +129,6 @@ class MainInterpreter(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Deregister conf page
@@ -146,7 +144,6 @@ class MainInterpreter(SpyderPluginV2):
         self.set_conf("custom", True)
         self.set_conf("custom_interpreter", interpreter)
         self.set_conf("executable", interpreter)
-
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -181,13 +178,6 @@ class MainInterpreter(SpyderPluginV2):
         """
         interpreter = find_local_venv_interpreter(project.root_path)
         if interpreter is None:
-            return None
-
-        if not is_module_installed("spyder_kernels", interpreter=interpreter):
-            logger.debug(
-                "Ignoring %s because it doesn't have spyder-kernels installed",
-                interpreter,
-            )
             return None
 
         project.set_option(PROJECT_INTERPRETER_OPTION, interpreter)

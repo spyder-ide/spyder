@@ -23,6 +23,7 @@ from spyder.plugins.maininterpreter.plugin import (
     PROJECT_INTERPRETER_OPTION,
 )
 
+
 @pytest.fixture
 def maininterpreter(qtbot):
     """Set up PathManager."""
@@ -214,35 +215,13 @@ def test_missing_project_interpreter_is_ignored(
 
 
 def test_detected_interpreter_is_saved_in_project(
-    maininterpreter_conf, projects, tmp_path, mocker
+    maininterpreter_conf, projects, tmp_path
 ):
     """A .venv found in a project without interpreter is saved and used."""
     interpreter = _make_venv(tmp_path)
     project = FakeProject(tmp_path)
     projects.get_active_project.return_value = project
-    mocker.patch(
-        "spyder.plugins.maininterpreter.plugin.is_module_installed",
-        return_value=True,
-    )
 
     maininterpreter_conf._on_project_loaded(str(tmp_path))
     assert project.options[PROJECT_INTERPRETER_OPTION] == interpreter
     assert maininterpreter_conf.get_conf("executable") == interpreter
-
-
-def test_detected_interpreter_needs_spyder_kernels(
-    maininterpreter_conf, projects, tmp_path, mocker
-):
-    """A detected .venv without spyder-kernels is not used."""
-    _make_venv(tmp_path)
-    project = FakeProject(tmp_path)
-    projects.get_active_project.return_value = project
-    mocker.patch(
-        "spyder.plugins.maininterpreter.plugin.is_module_installed",
-        return_value=False,
-    )
-    maininterpreter_conf.set_conf("default", True)
-
-    maininterpreter_conf._on_project_loaded(str(tmp_path))
-    assert not project.options[PROJECT_INTERPRETER_OPTION]
-    assert maininterpreter_conf.get_conf("default") is True
