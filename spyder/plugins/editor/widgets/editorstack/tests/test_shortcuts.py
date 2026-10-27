@@ -16,12 +16,13 @@ from unittest.mock import Mock
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QPlainTextEdit
 
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 
@@ -74,11 +75,12 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
     assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
     assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
+    assert CONF.get_shortcut('editor', 'wrap lines') == 'Alt+Z'
     assert CONF.get_shortcut('main', 'new file') == 'Ctrl+N'
     assert CONF.get_shortcut('main', 'open file') == 'Ctrl+O'
     assert CONF.get_shortcut('main', 'open last closed') == 'Ctrl+Shift+T'
     assert CONF.get_shortcut('main', 'save file') == 'Ctrl+S'
-    assert CONF.get_shortcut('main', 'save all') == 'Ctrl+Alt+S'
+    assert CONF.get_shortcut('main', 'save all') == 'Ctrl+Shift+A'
     assert CONF.get_shortcut('main', 'save as') == 'Ctrl+Shift+S'
     assert CONF.get_shortcut('main', 'close file 1') == 'Ctrl+W'
     assert CONF.get_shortcut('main', 'close file 2') == 'Ctrl+F4'
@@ -385,7 +387,7 @@ def test_shortcuts_for_new_editors(editorstack, qtbot):
         (Qt.Key_O, Qt.ControlModifier, 'Open file'),
         (Qt.Key_T, Qt.ControlModifier | Qt.ShiftModifier, 'Open last closed'),
         (Qt.Key_S, Qt.ControlModifier, 'Save file'),
-        (Qt.Key_S, Qt.ControlModifier | Qt.AltModifier, 'Save all'),
+        (Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, 'Save all'),
         (Qt.Key_S, Qt.ControlModifier | Qt.ShiftModifier, 'Save as'),
         (Qt.Key_W, Qt.ControlModifier, 'Close file'),
         (Qt.Key_F4, Qt.ControlModifier, 'Close file'),
@@ -399,6 +401,21 @@ def test_file_shortcut(editorstack, qtbot, key, modifier, action):
     with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
         qtbot.keyClick(editor, key, modifier=modifier)
     assert blocker.args == [action, Plugins.Application]
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and running_in_ci(),
+    reason="It fails on Linux due to the lack of a proper X server."
+)
+def test_wrap_lines_shortcut(editorstack, qtbot):
+    """
+    Test that the wrap lines shortcut works as expected.
+    """
+    editor = editorstack.get_current_editor()
+    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
+        qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
+    assert blocker.args == [EditorWidgetActions.WrapLines, Plugins.Editor]
+    assert editor.lineWrapMode() == QPlainTextEdit.WidgetWidth
 
 
 if __name__ == "__main__":

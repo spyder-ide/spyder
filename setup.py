@@ -188,9 +188,29 @@ if os.name == 'nt':
 # =============================================================================
 # Files added to the package
 # =============================================================================
-EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
-           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh', '.md']
+EXTLIST = [
+    ".pot",
+    ".po",
+    ".mo",
+    ".svg",
+    ".png",
+    ".css",
+    ".html",
+    ".js",
+    ".ini",
+    ".txt",
+    ".qss",
+    ".json",
+    ".rst",
+    ".bloom",
+    ".ico",
+    ".gif",
+    ".mp3",
+    ".ogg",
+    ".bat",
+    ".sh",
+    ".md",
+]
 
 
 # =============================================================================
@@ -308,8 +328,8 @@ install_requires += [
     'rtfunicode>=2.2,<3',
     'rtree>=0.9.7',
     'sphinx>=7.2.0',
-    'spyder-kernels>=3.2.0a1,<3.2.0a2',
-    'spyder-themes>=1.0.13,<1.1.0',
+    'spyder-kernels>=3.2.0a2,<3.2.0a3',
+    'spyder-themes>=1.0.16,<1.1.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',

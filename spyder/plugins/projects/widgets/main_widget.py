@@ -408,6 +408,8 @@ class ProjectExplorerWidget(PluginMainWidget):
                 parent_plugin=project_type_class._PARENT_PLUGIN,
             )
 
+        watcher_options = self._get_watcher_options(project_type)
+
         if self.current_active_project is None:
             # A project was not open before
             if save_previous_files:
@@ -442,7 +444,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             else:
                 self.sig_project_loaded.emit(path)
 
-        self.watcher.start(path)
+        self.watcher.start(path, **watcher_options)
 
         if restart_console:
             self.sig_restart_console_requested.emit()
@@ -904,6 +906,26 @@ class ProjectExplorerWidget(PluginMainWidget):
         if self.get_plugin().main:
             self.sig_unmaximize_plugin_requested[object].emit(
                 self.get_plugin()
+            )
+
+    def _get_watcher_options(self, project):
+        """Get the watcher options, with the project's taking precedence."""
+        follow_gitignore = project.get_option("follow_gitignore", default=None)
+        if follow_gitignore is None:
+            follow_gitignore = self.get_conf("follow_gitignore")
+
+        folders_to_ignore = project.get_option("folders_to_ignore", default=[])
+
+        return dict(
+            follow_gitignore=follow_gitignore,
+            folders_to_ignore=folders_to_ignore,
+        )
+
+    @on_conf_change(option="follow_gitignore")
+    def _on_follow_gitignore_changed(self, value):
+        if self.current_active_project is not None:
+            self.watcher.update_options(
+                **self._get_watcher_options(self.current_active_project)
             )
 
     def _load_project_type_class(self, path):

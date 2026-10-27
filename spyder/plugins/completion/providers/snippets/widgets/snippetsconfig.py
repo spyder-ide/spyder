@@ -680,8 +680,6 @@ class SnippetTable(QTableView):
         self.selectRow(self.currentIndex().row())
 
     def selection(self, index):
-        self.update()
-        self.isActiveWindow()
         self._parent.delete_snippet_btn.setEnabled(True)
 
     def adjust_cells(self):

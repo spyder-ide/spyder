@@ -696,16 +696,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             line, echo_stack_entry=echo_stack_entry)
 
     # --- Private API (overrode by us) ----------------------------------------
-    def _show_prompt(self, prompt=None, html=False, newline=True,
-                     separator=True):
-        """
-        Writes a new prompt at the end of the buffer.
-        """
-        if prompt == self._pdb_prompt:
-            html = True
-            prompt = '<span class="in-prompt">%s</span>' % prompt
-        super()._show_prompt(prompt, html, newline, separator)
-
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
         if self.is_waiting_pdb_input():
