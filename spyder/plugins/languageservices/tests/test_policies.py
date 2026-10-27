@@ -42,6 +42,7 @@ def test_every_feature_has_a_default_policy():
 def test_feature_name_roundtrip():
     assert feature_name(lsp.TEXT_DOCUMENT_COMPLETION) == "completion"
     assert feature_method("completion") == lsp.TEXT_DOCUMENT_COMPLETION
+
     with pytest.raises(KeyError):
         feature_name("textDocument/nope")
 
@@ -49,6 +50,7 @@ def test_feature_name_roundtrip():
 def test_policy_from_conf_fills_gaps():
     default = RequestPolicy(mode=RequestMode.MERGE)
     assert RequestPolicy.from_conf(None, default) is default
+
     policy = RequestPolicy.from_conf(
         {"enabled": False, "providers": ["lsp", "fallback"]}, default
     )

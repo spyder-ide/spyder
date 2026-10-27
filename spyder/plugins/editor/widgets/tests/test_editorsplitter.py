@@ -21,11 +21,11 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
+from spyder.plugins.completion.tests.conftest import route_diagnostics
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 from spyder.plugins.languageservices.api.languages import Language
-from spyder.plugins.completion.tests.conftest import route_diagnostics
 
 
 # ---- Qt Test Fixtures

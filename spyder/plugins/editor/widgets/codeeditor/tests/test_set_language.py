@@ -17,13 +17,17 @@ def restore_language_registry():
     """Undo any ``Language.register`` done during the test."""
     before = set(Language._member_map_)
     yield
-    added = [name for name in list(Language._member_map_)
-             if name not in before]
+
+    added = [
+        name for name in list(Language._member_map_) if name not in before
+    ]
+
     for name in added:
         member = Language._member_map_.pop(name)
         Language._member_names_.remove(name)
         Language._value2member_map_.pop(member.value, None)
         type.__delattr__(Language, name)
+
     if added:
         try:
             type.__delattr__(Language, "_Language__index_cache")

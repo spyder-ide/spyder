@@ -688,12 +688,14 @@ class Editor(SpyderDockablePlugin):
         self.sig_file_opened_closed_or_updated.disconnect(
             self._notify_current_language
         )
+
         language_services.sig_capabilities_changed.disconnect(
             widget.register_completion_capabilities)
         language_services.sig_language_stopped.disconnect(
             widget.stop_completion_services)
         language_services.sig_diagnostics.disconnect(widget.on_diagnostics)
         language_services.sig_open_file_requested.disconnect(widget.load)
+
         widget.set_language_services(None)
 
     @on_plugin_available(plugin=Plugins.OutlineExplorer)

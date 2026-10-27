@@ -7,7 +7,7 @@
 """
 Generic language server client provider.
 
-Manages any number of language servers described by
+It manages any number of language servers described by
 :class:`~spyder.plugins.languageservices.providers.lsp.config.ServerConfig`
 objects and knows nothing about particular languages or servers. The
 servers come from the provider configuration (``("servers", <name>)``) or,
@@ -38,7 +38,6 @@ from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.languageservices.api.policies import merge_strategy
 from spyder.plugins.languageservices.api.provider import (
-    FEATURE_METHODS,
     LanguageServicesProvider,
     ProviderStatus,
     supports_method,
@@ -47,12 +46,12 @@ from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
 from spyder.plugins.languageservices.providers.lsp.conftabs import TABS
 from spyder.plugins.languageservices.providers.lsp.connection import (
     LanguageServerConnection,
-    ServerDownError,
 )
 from spyder.plugins.languageservices.providers.lsp.widgets.status import (
     LSPStatusWidget,
 )
 from spyder.utils.misc import check_connection_port
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,11 +59,16 @@ logger = logging.getLogger(__name__)
 @dataclass
 class _ServerState:
     config: ServerConfig
+
     connection: LanguageServerConnection | None = None
+
     status: ProviderStatus = ProviderStatus.STOPPED
+
     restart_attempts: int = 0
+
     documents: dict[str, str] = field(default_factory=dict)
     """Documents opened in this server (uri -> language_id)."""
+
     task: asyncio.Task | None = None
     """Start or restart task in progress."""
 
@@ -84,9 +88,10 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     configured with ``languages="auto"`` serves every language, until it
     registers document selectors naming languages (through
     ``client/registerCapability``), which narrow its set to those.
+
     Documents are sent to every ready server of their language. Requests
-    fan out to every server holding the document and the answers are
-    merged with the same strategies the plugin uses across providers.
+    fan out to every server holding the document and the answers are merged
+    with the same strategies the plugin uses across providers.
 
     A server that goes down is restarted up to :attr:`MAX_RESTART_ATTEMPTS`
     times, :attr:`RESTART_DELAY` seconds apart.
@@ -144,17 +149,21 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         """Restart, reconfigure or stop servers to match configuration edits."""
         if not self._started:
             return
+
         from spyder.plugins.languageservices.plugin import dispatch
 
         dispatch(self.apply_server_configs)(self.get_server_configs())
 
-    async def apply_server_configs(self, configs: Iterable[ServerConfig]) -> None:
+    async def apply_server_configs(
+        self, configs: Iterable[ServerConfig]
+    ) -> None:
         """Reconcile the running servers with ``configs``."""
         wanted = {config.name: config for config in configs}
         for name in list(self._servers):
             if name not in wanted:
                 await self._stop_server(name)
                 del self._servers[name]
+
         for name, config in wanted.items():
             state = self._servers.get(name)
             if state is None:
@@ -162,6 +171,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
                 if config.auto_languages:
                     await self._start_server(name)
                 continue
+
             if state.config.needs_restart(config):
                 logger.debug("Restart required for server %r", name)
                 running = state.status is not ProviderStatus.STOPPED
@@ -177,14 +187,17 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     # ---- Lifecycle -------------------------------------------------------
     async def start(self) -> None:
         self._started = True
+
         for config in self.get_server_configs():
             self._servers[config.name] = _ServerState(config)
+
         # Servers with explicit languages start when a document of one of
         # them is opened. Auto ones serve any document, so they run from
         # the start.
         for name, state in self._servers.items():
             if state.config.auto_languages:
                 await self._start_server(name)
+
         self._heartbeat = asyncio.ensure_future(self._heartbeat_loop())
 
     async def stop(self) -> None:
@@ -192,6 +205,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         if self._heartbeat is not None:
             self._heartbeat.cancel()
             self._heartbeat = None
+
         for name in list(self._servers):
             await self._stop_server(name)
 
@@ -207,6 +221,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         for name, state in self._servers.items():
             if state.config.auto_languages:
                 continue
+
             if state.status is not ProviderStatus.STOPPED and (
                 language in self._server_languages(state)
             ):
@@ -246,6 +261,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     def _configured_languages(config: ServerConfig) -> frozenset[Language]:
         if config.auto_languages:
             return frozenset()
+
         languages: set[Language] = set()
         for language_id in config.languages:
             try:
@@ -256,16 +272,19 @@ class LanguageServerClientProvider(LanguageServicesProvider):
                     config.name,
                     language_id,
                 )
+
         return frozenset(languages)
 
     def _server_languages(self, state: _ServerState) -> frozenset[Language]:
         if state.connection is None or not state.connection.initialized:
             return frozenset()
+
         return state.connection.languages()
 
     def _set_status(self, state: _ServerState, status: ProviderStatus) -> None:
         state.status = status
         self.sig_server_status_changed.emit(state.config.name, status)
+
         languages = self._server_languages(state) | self._configured_languages(
             state.config
         )
@@ -276,8 +295,11 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         state = self._servers[name]
         if state.status in (ProviderStatus.STARTING, ProviderStatus.READY):
             return
+
         config = state.config
-        if config.external and not check_connection_port(config.host, config.port):
+        if config.external and not check_connection_port(
+            config.host, config.port
+        ):
             self._report_no_external_server(config)
             self._set_status(state, ProviderStatus.DOWN)
             return
@@ -291,6 +313,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         )
         connection.workspace_folders = dict(self._workspace_folders)
         state.connection = connection
+
         try:
             await connection.start()
         except Exception as exc:  # noqa: BLE001
@@ -319,21 +342,26 @@ class LanguageServerClientProvider(LanguageServicesProvider):
 
     async def _stop_server(self, name: str) -> None:
         state = self._servers[name]
+
         # Prevent cancelling the caller, _restart_after_failure runs
         # as state.task and calls this method
         if state.task is not None and state.task is not asyncio.current_task():
             state.task.cancel()
             state.task = None
+
         languages = self._server_languages(state)
         connection, state.connection = state.connection, None
         if connection is not None:
             await connection.stop()
+
         for uri in list(state.documents):
             self.sig_diagnostics.emit(
                 lsp.PublishDiagnosticsParams(uri=uri, diagnostics=[])
             )
+
         state.documents.clear()
         self._set_status(state, ProviderStatus.STOPPED)
+
         for language in languages:
             self.sig_capabilities_changed.emit(language)
 
@@ -349,25 +377,34 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     def _handle_server_down(self, name: str) -> None:
         state = self._servers[name]
         logger.warning("Server %r went down", name)
+
         if state.task is not None and not state.task.done():
             return
+
         state.task = asyncio.ensure_future(self._restart_after_failure(name))
 
     async def _restart_after_failure(self, name: str) -> None:
         state = self._servers[name]
         await self._stop_server(name)
+
         if running_under_pytest():
             self._set_status(state, ProviderStatus.DOWN)
             return
+
         while state.restart_attempts < self.MAX_RESTART_ATTEMPTS:
             state.restart_attempts += 1
             logger.info(
-                "Restart attempt %d for server %r", state.restart_attempts, name
+                "Restart attempt %d for server %r",
+                state.restart_attempts,
+                name,
             )
+
             await self._start_server(name)
             if state.status is ProviderStatus.READY:
                 return
+
             await asyncio.sleep(self.RESTART_DELAY)
+
         self._set_status(state, ProviderStatus.DOWN)
         self._report_server_down(name)
 
@@ -387,6 +424,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     def _report_server_down(self, name: str) -> None:
         if not self.get_conf("show_lsp_down_warning", True):
             return
+
         self.sig_show_message.emit(
             lsp.ShowMessageParams(
                 type=lsp.MessageType.Warning,
@@ -404,14 +442,18 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         for state in self._servers.values():
             if state.ready:
                 languages |= self._server_languages(state)
+
         return frozenset(languages)
 
-    def capabilities(self, language: Language) -> lsp.ServerCapabilities | None:
+    def capabilities(
+        self, language: Language
+    ) -> lsp.ServerCapabilities | None:
         from spyder.plugins.languageservices.services import merge_capabilities
 
         connections = self._ready_connections(language)
         if not connections:
             return None
+
         return merge_capabilities([c.capabilities for c in connections])
 
     def _ready_connections(
@@ -419,13 +461,18 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     ) -> list[LanguageServerConnection]:
         connections = []
         for state in self._servers.values():
-            if not state.ready or language not in self._server_languages(state):
+            if not state.ready or language not in self._server_languages(
+                state
+            ):
                 continue
+
             if method is not None and not supports_method(
                 state.connection.capabilities, method
             ):
                 continue
+
             connections.append(state.connection)
+
         return connections
 
     def _states_with_document(self, uri: str) -> list[_ServerState]:
@@ -442,12 +489,16 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             for state in self._servers.values():
                 if not state.ready or item.uri in state.documents:
                     continue
+
                 if language not in self._server_languages(state):
                     continue
+
                 state.documents[item.uri] = item.language_id
                 state.connection.notify(lsp.TEXT_DOCUMENT_DID_OPEN, params)
 
-    async def did_change(self, params: lsp.DidChangeTextDocumentParams) -> None:
+    async def did_change(
+        self, params: lsp.DidChangeTextDocumentParams
+    ) -> None:
         uri = params.text_document.uri
         for state in self._states_with_document(uri):
             state.connection.notify(lsp.TEXT_DOCUMENT_DID_CHANGE, params)
@@ -472,10 +523,14 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             ]
         else:
             connections = [
-                state.connection for state in self._servers.values() if state.ready
+                state.connection
+                for state in self._servers.values()
+                if state.ready
             ]
+
         if not connections:
             return None
+
         results = await asyncio.gather(
             *(
                 self._call(connection, method, params)
@@ -484,9 +539,11 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             return_exceptions=True,
         )
         good = []
+
         for connection, result in zip(connections, results):
             if isinstance(result, asyncio.CancelledError):
                 raise result
+
             if isinstance(result, BaseException):
                 logger.warning(
                     "Server %r failed answering %s",
@@ -496,6 +553,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
                 )
             elif result is not None:
                 good.append((connection.name, result))
+
         return merge_strategy(method)(good) if good else None
 
     async def _call(self, connection, method, params):
@@ -511,6 +569,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         uri = data.get("uri")
         if uri is None:
             return None
+
         return await self._fan_out(lsp.COMPLETION_ITEM_RESOLVE, item, uri)
 
     async def hover(self, params):
@@ -575,19 +634,26 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     ) -> None:
         for folder in params.event.added:
             self._workspace_folders[folder.uri] = folder
+
         for folder in params.event.removed:
             self._workspace_folders.pop(folder.uri, None)
+
         for state in self._servers.values():
             if not state.ready:
                 continue
+
             connection = state.connection
+
             # The folders are re-broadcast after every capabilities change;
             # acting on them again would restart such servers in a loop.
             if connection.workspace_folders == self._workspace_folders:
                 continue
+
             connection.workspace_folders = dict(self._workspace_folders)
             if connection.supports_workspace_folder_changes:
-                connection.notify(lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS, params)
+                connection.notify(
+                    lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS, params
+                )
             else:
                 logger.debug(
                     "Server %r does not support workspace folder changes. "
@@ -601,14 +667,18 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     ) -> None:
         for state in self._servers.values():
             if state.ready:
-                state.connection.notify(lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, params)
+                state.connection.notify(
+                    lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, params
+                )
 
     async def did_change_configuration(
         self, params: lsp.DidChangeConfigurationParams
     ) -> None:
         for state in self._servers.values():
             if state.ready:
-                state.connection.notify(lsp.WORKSPACE_DID_CHANGE_CONFIGURATION, params)
+                state.connection.notify(
+                    lsp.WORKSPACE_DID_CHANGE_CONFIGURATION, params
+                )
 
     async def on_interpreter_changed(self, interpreter: str) -> None:
         self._interpreter = interpreter
@@ -620,17 +690,24 @@ class LanguageServerClientProvider(LanguageServicesProvider):
 
         return handler
 
-    def _on_server_notification(self, name: str, method: str, params: Any) -> None:
+    def _on_server_notification(
+        self, name: str, method: str, params: Any
+    ) -> None:
         state = self._servers.get(name)
         if state is None or state.connection is None:
             return
+
         if method == lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS:
             if params.uri not in state.documents:
-                logger.debug("Diagnostics for a document not open: %s", params.uri)
+                logger.debug(
+                    "Diagnostics for a document not open: %s", params.uri
+                )
                 return
+
             for diagnostic in params.diagnostics:
                 if not diagnostic.source:
                     diagnostic.source = name
+
             self.sig_diagnostics.emit(params)
         elif method == lsp.WINDOW_SHOW_MESSAGE:
             self.sig_show_message.emit(params)

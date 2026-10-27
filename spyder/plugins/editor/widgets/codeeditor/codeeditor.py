@@ -1188,6 +1188,7 @@ class CodeEditor(
         self.tab_indents = False
         sh_class = sh.TextSH
         spyder_language = None
+
         if language is not None:
             spyder_language = (
                 Language.find(name=language)
@@ -1199,19 +1200,23 @@ class CodeEditor(
                     if spyder_language is Language.IPYTHON
                     else spyder_language.name
                 )
+
                 if spyder_language.name in self.LANGUAGES:
                     self.supported_language = True
                     sh_class, self.comment_string = self.LANGUAGES[
                         spyder_language.name
                     ]
+
                     if spyder_language in self.CELL_LANGUAGES:
                         self.supported_cell_language = True
                         self.has_cell_separators = True
+
             self.tab_indents = spyder_language in self.TAB_ALWAYS_INDENTS
 
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
+
             # Language services look languages up by the registry name, so
             # it must win over Pygments lexer names ("TSX", "JSX", ...).
             if spyder_language is None:

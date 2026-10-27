@@ -758,7 +758,8 @@ def run_coroutine_threadsafe(
 
 
 class AsyncDebounce:
-    """Rate-limit an async function so repeated calls collapse onto shared tasks.
+    """
+    Rate-limit an async function so repeated calls collapse onto shared tasks.
 
     Each unique call (see ``consider_args``) has a debounce window of ``time``
     seconds, starting when its function begins executing. Subsequent calls 
@@ -779,24 +780,25 @@ class AsyncDebounce:
 
     Parameters
     ----------
-        time : float
-            The debounce interval in seconds.
-        leading : bool, optional
-            Run on the first call instead of after ``time``. Defaults to False.
-        enqueue : bool, optional
-            Serialize in-window calls, each spaced by ``time``. Defaults to
-            False.
-        replace : bool, optional
-            Let a newer call replace the current unfinished execution. Ignored
-            when ``enqueue`` is True. Defaults to False.
-        consider_args : bool, optional
-            If True, different arguments will be treated as different calls.
-            Defaults to False.
-        typed_args : bool, optional
-            If True, arguments of different types will be treated as different
-            calls. Defaults to False. Ex: fnc(1) and fnc(1.0).
-        ignore_type : tuple[type] | None, optional
-            A tuple of types to ignore when creating the cache key. Defaults to None.
+    time : float
+        The debounce interval in seconds.
+    leading : bool, optional
+        Run on the first call instead of after ``time``. Defaults to False.
+    enqueue : bool, optional
+        Serialize in-window calls, each spaced by ``time``. Defaults to
+        False.
+    replace : bool, optional
+        Let a newer call replace the current unfinished execution. Ignored
+        when ``enqueue`` is True. Defaults to False.
+    consider_args : bool, optional
+        If True, different arguments will be treated as different calls.
+        Defaults to False.
+    typed_args : bool, optional
+        If True, arguments of different types will be treated as different
+        calls. Defaults to False. Ex: fnc(1) and fnc(1.0).
+    ignore_type : tuple[type] | None, optional
+        A tuple of types to ignore when creating the cache key. Defaults to
+        None.
 
     Examples
     --------
@@ -866,16 +868,31 @@ class AsyncDebounce:
         self.__waiters: dict[collections.abc.Hashable, _Debounced] = {}
         self.__locks: dict[collections.abc.Hashable, asyncio.Lock] = {}
 
-    def _make_key(self, args: tuple[typing.Any, ...], kwargs: dict[str, typing.Any]) -> collections.abc.Hashable:
+    def _make_key(
+        self, args: tuple[typing.Any, ...], kwargs: dict[str, typing.Any]
+    ) -> collections.abc.Hashable:
         if not self.consider_args:
             return None
+
         return functools._make_key(
-            tuple(arg for arg in args if not isinstance(arg, self.ignore_type))
-            if self.ignore_type
-            else args,
-            {k: v for k, v in kwargs.items() if not isinstance(v, self.ignore_type)}
-            if self.ignore_type
-            else kwargs,
+            (
+                tuple(
+                    arg
+                    for arg in args
+                    if not isinstance(arg, self.ignore_type)
+                )
+                if self.ignore_type
+                else args
+            ),
+            (
+                {
+                    k: v
+                    for k, v in kwargs.items()
+                    if not isinstance(v, self.ignore_type)
+                }
+                if self.ignore_type
+                else kwargs
+            ),
             typed=self.typed_args,
         )
 
@@ -890,6 +907,7 @@ class AsyncDebounce:
     ) -> _Debounced:
         if key not in self.__waiters and len(self.__waiters) >= self.MAX_SIZE:
             self._evict_one()
+
         delay = 0.0 if immediate or self.leading else self.time
         self.__waiters[key] = waiter = _Debounced(delay, func, args, kwargs)
         return waiter
@@ -899,6 +917,7 @@ class AsyncDebounce:
             if waiter.elapsed_time >= self.time:
                 del self.__waiters[key]
                 return
+
         del self.__waiters[next(iter(self.__waiters))]
 
     def _get_waiter(self, key: collections.abc.Hashable) -> _Debounced | None:
@@ -908,9 +927,12 @@ class AsyncDebounce:
         lock = self.__locks.get(key)
         if lock is None:
             if len(self.__locks) >= self.MAX_SIZE:
-                for stale in [k for k, lk in self.__locks.items() if not lk.locked()]:
+                for stale in [
+                    k for k, lk in self.__locks.items() if not lk.locked()
+                ]:
                     del self.__locks[stale]
             lock = self.__locks[key] = asyncio.Lock()
+
         return lock
 
     def _clear_waiter(self, key: collections.abc.Hashable) -> None:
@@ -920,8 +942,13 @@ class AsyncDebounce:
         self.__waiters.clear()
 
     def __call__(
-        self, func: collections.abc.Callable[_P, collections.abc.Coroutine[typing.Any, typing.Any, _RT]]
-    ) -> collections.abc.Callable[_P, collections.abc.Coroutine[typing.Any, typing.Any, _RT]]:
+        self,
+        func: collections.abc.Callable[
+            _P, collections.abc.Coroutine[typing.Any, typing.Any, _RT]
+        ],
+    ) -> collections.abc.Callable[
+        _P, collections.abc.Coroutine[typing.Any, typing.Any, _RT]
+    ]:
         @functools.wraps(func)
         async def debouncer(
             *args: _P.args,
@@ -939,7 +966,10 @@ class AsyncDebounce:
                         if not waiter.done():
                             await waiter
                         await asyncio.sleep(max(0, self.time - waiter.elapsed_time))
-                    return await self._create_waiter(key, func, args, kwargs, immediate=True)
+
+                    return await self._create_waiter(
+                        key, func, args, kwargs, immediate=True
+                    )
 
             waiter = self._get_waiter(key)
             if waiter is None:
@@ -953,6 +983,7 @@ class AsyncDebounce:
             return await self._create_waiter(key, func, args, kwargs)
 
         return debouncer
+
 
 class _Debounced(collections.abc.Awaitable[_RT]):
     """A debounce cycle: run ``func`` after ``delay`` and deliver its result.
@@ -1014,7 +1045,10 @@ class _Debounced(collections.abc.Awaitable[_RT]):
         self._task = self._loop.create_task(self._run(0))
         self._task.add_done_callback(self._on_task_done)
 
-    def add_done_callback(self, callback: collections.abc.Callable[[asyncio.Future[_RT]], typing.Any]):
+    def add_done_callback(
+        self,
+        callback: collections.abc.Callable[[asyncio.Future[_RT]], typing.Any],
+    ):
         self._future.add_done_callback(callback)
 
     def _on_task_done(self, task: asyncio.Task[_RT]):

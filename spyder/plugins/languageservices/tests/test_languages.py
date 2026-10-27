@@ -58,8 +58,10 @@ def test_find():
     assert Language.find(language_id="python") is Language.PYTHON
     assert Language.find(language_id="rust") is Language.RUST
     assert Language.find(name="klingon") is None
+
     with pytest.raises(TypeError):
         Language.find()
+
     with pytest.raises(TypeError):
         Language.find(name="Python", extension="py")
 
@@ -67,6 +69,7 @@ def test_find():
 def test_register_adds_member():
     before = Language.all()
     member = Language.register("Test Lang", (".tlang", "tl2"), "testlang")
+
     assert isinstance(member, Language)
     assert member is Language.TEST_LANG
     assert member is Language["TEST_LANG"]
@@ -82,8 +85,10 @@ def test_register_adds_member():
 def test_register_rejects_clashes():
     with pytest.raises(LanguageAlreadyRegisteredError):
         Language.register("python", ("zzz",), "zzz")
+
     with pytest.raises(LanguageAlreadyRegisteredError):
         Language.register("Zzz", ("py",), "zzz")
+
     with pytest.raises(UnknownLanguageError):
         Language.from_extension("zzz")
 
@@ -91,10 +96,13 @@ def test_register_rejects_clashes():
 def test_spec_validation():
     with pytest.raises(ValueError):
         LanguageSpec("", ("x",), "x")
+
     with pytest.raises(ValueError):
         LanguageSpec("X", ("x", "x"), "x")
+
     with pytest.raises(ValueError):
         LanguageSpec("X", ("",), "x")
+
     with pytest.raises(ValueError):
         LanguageSpec("X", ("x",), "")
 
@@ -102,8 +110,10 @@ def test_spec_validation():
 def test_supported_languages_is_derived():
     assert "Python" not in SUPPORTED_LANGUAGES
     assert "IPython" not in SUPPORTED_LANGUAGES
+
     for name in ("Bash", "Cpp", "Fortran", "Html", "Rust", "TypeScript"):
         assert name in SUPPORTED_LANGUAGES
+
     assert SUPPORTED_LANGUAGES == sorted(SUPPORTED_LANGUAGES, key=str.lower)
 
 
@@ -115,4 +125,5 @@ def test_language_name_uniqueness():
                 f"Language name {language.name!r} is not unique: "
                 f"{language} and {seen_names[language.name]} both have it"
             )
+
         seen_names[language.name] = language

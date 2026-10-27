@@ -42,16 +42,13 @@ from spyder.plugins.languageservices.api.provider import (
     LanguageServicesProvider,
     ProviderConfigAccessor,
 )
-from spyder.plugins.languageservices.confpage import (
-    LanguageServicesConfigPage,
-)
-from spyder.plugins.languageservices.container import (
-    LanguageServicesContainer,
-)
+from spyder.plugins.languageservices.confpage import LanguageServicesConfigPage
+from spyder.plugins.languageservices.container import LanguageServicesContainer
 from spyder.plugins.languageservices.services import (
     LANGUAGE_SERVICES_LOOP,
     LanguageServicesAPI,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,20 +71,25 @@ def wait_for(future: DispatcherFuture, timeout: float = 10.0):
         If the future is not done after ``timeout`` seconds.
     """
     deadline = time.monotonic() + timeout
+
     while not future.done():
         if time.monotonic() > deadline:
             future.cancel()
             raise TimeoutError(
                 f"Language services call did not finish in {timeout} s"
             )
+
         QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
         time.sleep(0.005)
+
     return future.result()
 
 
 class LanguageServices(SpyderPluginV2):
-    """Typed language services (completion, hover, diagnostics, ...) merged
-    from several providers."""
+    """
+    Typed language services (completion, hover, diagnostics, ...) merged
+    from several providers.
+    """
 
     NAME = "language_services"
     CONF_SECTION = "language_services"
@@ -163,6 +165,7 @@ class LanguageServices(SpyderPluginV2):
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
+
         self.services_api = LanguageServicesAPI(self._api_conf, self)
         self.statusbar = None
         self.current_language: Language | None = None
@@ -193,7 +196,8 @@ class LanguageServices(SpyderPluginV2):
     @staticmethod
     def get_description() -> str:
         return _(
-            "Provides language services (completion, hover, diagnostics, ...) to other plugins."
+            "Provide language services (completion, linting, hover, "
+            "diagnostics, etc) to other plugins."
         )
 
     @classmethod
@@ -265,11 +269,13 @@ class LanguageServices(SpyderPluginV2):
     def on_statusbar_teardown(self):
         for widget in self.get_container().all_statusbar_widgets():
             self.statusbar.remove_status_widget(widget.ID)
+
         self.statusbar = None
 
     def on_close(self, cancelable=False) -> bool:
         for future in self._start_futures.values():
             future.cancel()
+
         wait_for(dispatch(self.services_api.stop_all)())
         return True
 
@@ -277,11 +283,14 @@ class LanguageServices(SpyderPluginV2):
         for option in options:
             if not isinstance(option, tuple) or len(option) < 2:
                 continue
+
             if option[0] != "providers":
                 continue
+
             name = option[1]
             if name not in self.services_api.provider_names():
                 continue
+
             if len(option) == 2 or option[2] == "enable":
                 if self.is_provider_enabled(name):
                     self.start_provider(name)
@@ -301,17 +310,21 @@ class LanguageServices(SpyderPluginV2):
         """
         Provider = provider if isinstance(provider, type) else type(provider)
         self._merge_provider_configuration(Provider)
+
         if isinstance(provider, type):
             provider = provider(self, ProviderConfigAccessor(provider.NAME))
+
         instance = self.services_api.register_provider(provider)
         if self._is_initialized() and self.is_provider_enabled(instance.NAME):
             self.start_provider(instance.NAME)
+
         return instance
 
     def unregister_provider(self, name: str) -> LanguageServicesProvider:
         """Stop (if needed) and remove a provider."""
         if self.services_api.is_started(name):
             wait_for(dispatch(self.services_api.stop_provider)(name))
+
         self._unregister_statusbar_widgets(name)
         return self.services_api.unregister_provider(name)
 
@@ -330,22 +343,29 @@ class LanguageServices(SpyderPluginV2):
 
     def start_provider(self, name: str) -> DispatcherFuture:
         """Start a provider on the services loop."""
-        if name in self._start_futures and not self._start_futures[name].done():
+        if (
+            name in self._start_futures
+            and not self._start_futures[name].done()
+        ):
             return self._start_futures[name]
+
         future = dispatch(self.services_api.start_provider)(name)
         self._start_futures[name] = future
         future.connect(self._on_provider_started)
+
         return future
 
     @AsyncDispatcher.QtSlot
     def _on_provider_started(self, future: DispatcherFuture):
         if future.cancelled():
             return
+
         exc = future.exception()
         if exc is not None:
             # Already reported through sig_exception_occurred by the API.
             logger.debug("Provider start failed: %r", exc)
             return
+
         for name, pending in list(self._start_futures.items()):
             if pending is future:
                 self._register_statusbar_widgets(name)
@@ -369,14 +389,21 @@ class LanguageServices(SpyderPluginV2):
         self, language: Language, method: str | None = None
     ) -> list[str]:
         """Names of the started providers serving ``language``."""
-        return [p.NAME for p in self.services_api.providers_for(language, method)]
+        return [
+            p.NAME for p in self.services_api.providers_for(language, method)
+        ]
 
-    def capabilities(self, language: Language) -> lsp.ServerCapabilities | None:
+    def capabilities(
+        self, language: Language
+    ) -> lsp.ServerCapabilities | None:
         return self.services_api.capabilities(language)
 
     def set_current_language(self, language: Language | None) -> None:
-        """Record the language of the document focused in the editor (shown
-        by status bar widgets)."""
+        """
+        Record the language of the document focused in the editor
+
+        That's shown by status bar widgets.
+        """
         if language != self.current_language:
             self.current_language = language
             self.sig_current_language_changed.emit(language)
@@ -419,7 +446,9 @@ class LanguageServices(SpyderPluginV2):
         return await self.services_api.formatting(params)
 
     @dispatch
-    async def range_formatting(self, params: lsp.DocumentRangeFormattingParams):
+    async def range_formatting(
+        self, params: lsp.DocumentRangeFormattingParams
+    ):
         return await self.services_api.range_formatting(params)
 
     @dispatch
@@ -490,7 +519,9 @@ class LanguageServices(SpyderPluginV2):
 
     @Slot(object, bool)
     def _on_pythonpath_changed(self, paths, prioritize):
-        dispatch(self.services_api.notify_pythonpath_changed)(list(paths), prioritize)
+        dispatch(self.services_api.notify_pythonpath_changed)(
+            list(paths), prioritize
+        )
 
     @Slot(object)
     def _on_show_message(self, params: lsp.ShowMessageParams):
@@ -499,24 +530,30 @@ class LanguageServices(SpyderPluginV2):
     @Slot(object)
     def _on_log_message(self, params: lsp.LogMessageParams):
         level = {
-            lsp.MessageType.Error: logging.WARNING,  # Spyder raises any error messages, so use warning
+            # Spyder raises any error messages, so use warning
+            lsp.MessageType.Error: logging.WARNING,
             lsp.MessageType.Warning: logging.WARNING,
             lsp.MessageType.Info: logging.INFO,
         }.get(params.type, logging.DEBUG)
+
         logger.log(level, "%s", params.message)
 
     def _register_statusbar_widgets(self, name: str):
         if self.statusbar is None:
             return
+
         container = self.get_container()
         if container.get_provider_statusbar_keys(name):
             return
+
         provider = self.get_provider(name)
         for id_ in container.register_statusbar_widgets(
             provider.STATUS_BAR_CLASSES, provider
         ):
             if id_ not in self.statusbar.get_status_widgets():
-                self.statusbar.add_status_widget(container.statusbar_widgets[id_])
+                self.statusbar.add_status_widget(
+                    container.statusbar_widgets[id_]
+                )
 
     def _unregister_statusbar_widgets(self, name: str):
         container = self.get_container()
@@ -524,6 +561,7 @@ class LanguageServices(SpyderPluginV2):
             container.remove_statusbar_widget(id_)
             if self.statusbar is not None:
                 self.statusbar.remove_status_widget(id_)
+
         container.provider_statusbars.pop(name, None)
 
     # ---- Configuration merge ---------------------------------------------
@@ -565,10 +603,12 @@ class LanguageServices(SpyderPluginV2):
                 if current_defaults[key] != defaults[key]:
                     current_defaults[key] = defaults[key]
                     values[key] = defaults[key]
+
             if new_version.major != current_version.major:
                 for key in current_defaults.keys() - defaults.keys():
                     current_defaults.pop(key)
                     values.pop(key, None)
+
         entry["version"] = str(new_version)
         return entry
 

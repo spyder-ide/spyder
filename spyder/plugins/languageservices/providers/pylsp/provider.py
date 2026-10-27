@@ -27,6 +27,7 @@ from spyder.plugins.languageservices.providers.pylsp.config import (
 )
 from spyder.plugins.languageservices.providers.pylsp.conftabs import TABS
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -85,10 +86,13 @@ class PylspProvider(LanguageServerClientProvider):
     def running_server_address(self) -> tuple[str, int] | None:
         """``(host, port)`` of the pylsp server Spyder started, if any."""
         state = self._servers.get(PYLSP_SERVER_NAME)
+
         if state is None or state.connection is None or state.config.external:
             return None
+
         if state.status is not ProviderStatus.READY:
             return None
+
         return (state.config.host, state.connection.port)
 
     # ---- Configuration updates -------------------------------------------
@@ -102,7 +106,9 @@ class PylspProvider(LanguageServerClientProvider):
     def _on_options_changed(self, options):
         self._reconfigure()
 
-    @on_conf_change(section="outline_explorer", option=["group_cells", "show_comments"])
+    @on_conf_change(
+        section="outline_explorer", option=["group_cells", "show_comments"]
+    )
     def _on_outline_options_changed(self, option, value):
         self._reconfigure()
 
@@ -111,7 +117,8 @@ class PylspProvider(LanguageServerClientProvider):
         self._reconfigure()
 
     @on_conf_change(
-        section="pythonpath_manager", option=["spyder_pythonpath", "prioritize"]
+        section="pythonpath_manager",
+        option=["spyder_pythonpath", "prioritize"],
     )
     def _on_pythonpath_options_changed(self, option, value):
         # The plugin forwards the change through on_pythonpath_changed. The
@@ -125,12 +132,16 @@ class PylspProvider(LanguageServerClientProvider):
     async def on_interpreter_changed(self, interpreter: str) -> None:
         if interpreter == self._interpreter:
             return
+
         logger.debug("pylsp interpreter changed to %s", interpreter)
+
         self._interpreter = interpreter
         await self._debounced_reconfigure()
 
     @AsyncDebounce(time=0.6, replace=True)
     async def _debounced_reconfigure(self):
-        """Switching consoles of different environments in quick succession
-        would otherwise restart the server for each of them."""
+        """
+        Switching consoles of different environments in quick succession
+        would otherwise restart the server for each of them.
+        """
         await self.apply_server_configs(self.get_server_configs())

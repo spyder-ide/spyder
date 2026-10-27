@@ -23,14 +23,23 @@ from spyder.plugins.languageservices.providers.fallback.tokenizer import (
 )
 from spyder.plugins.languageservices.services import LanguageServicesAPI
 
+
 DATA_PATH = osp.join(osp.dirname(osp.abspath(__file__)), "data")
 TOKENS_FILE = osp.join(DATA_PATH, "tokens.json")
 
 # Extension -> Pygments lexer name of the sample files
 EXTENSION_MAP = {
-    "c": "C", "cpp": "C++", "css": "CSS", "erl": "Erlang", "ex": "Elixir",
-    "html": "HTML", "java": "Java", "jl": "Julia", "md": "Markdown",
-    "py": "Python", "R": "R",
+    "c": "C",
+    "cpp": "C++",
+    "css": "CSS",
+    "erl": "Erlang",
+    "ex": "Elixir",
+    "html": "HTML",
+    "java": "Java",
+    "jl": "Julia",
+    "md": "Markdown",
+    "py": "Python",
+    "R": "R",
 }
 
 TEST_FILE = """
@@ -56,7 +65,9 @@ def test_tokenize(expected_tokens, ext):
     with open(osp.join(DATA_PATH, filename)) as f:
         contents = f.read()
     index = TokenIndex(contents, EXTENSION_MAP[ext])
-    tokens = {item.insert_text for item in index.completions(len(contents), "")}
+    tokens = {
+        item.insert_text for item in index.completions(len(contents), "")
+    }
     assert set(expected_tokens[filename]) <= tokens
 
 
@@ -100,12 +111,15 @@ def test_provider_tracks_documents():
                 ),
                 content_changes=[
                     lsp.TextDocumentContentChangePartial(
-                        range=lsp.Range(lsp.Position(3, 0), lsp.Position(3, 0)),
+                        range=lsp.Range(
+                            lsp.Position(3, 0), lsp.Position(3, 0)
+                        ),
                         text=new_text,
                     )
                 ],
             )
         )
+
         items = await api.completion(completion_at(uri, 6, 0))
         assert "args" in {item.label for item in items}
         assert all(item.data["provider"] == "fallback" for item in items)

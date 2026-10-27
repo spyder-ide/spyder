@@ -30,6 +30,7 @@ from spyder.plugins.languageservices.providers.snippets.conftabs import (
 )
 from spyder.plugins.languageservices.providers.snippets.trie import Trie
 
+
 logger = logging.getLogger(__name__)
 
 SNIPPETS_COMPLETION = "Snippets"
@@ -47,12 +48,14 @@ def build_trie(snippets: dict) -> Trie:
     trie = Trie()
     for trigger, descriptions in snippets.items():
         trie[trigger] = (trigger, descriptions)
+
     return trie
 
 
 def snippet_items(trie: Trie, prefix: str) -> list[lsp.CompletionItem]:
-    """Completion items of every snippet whose trigger starts with
-    ``prefix``."""
+    """
+    Completion items of every snippet whose trigger starts with ``prefix``.
+    """
     items = []
     node = trie[prefix] if prefix else None
     for entry in node or ():
@@ -72,6 +75,7 @@ def snippet_items(trie: Trie, prefix: str) -> list[lsp.CompletionItem]:
                     },
                 )
             )
+
     return items
 
 
@@ -93,7 +97,9 @@ class SnippetsProvider(LanguageServicesProvider):
         return Language.all()
 
     def capabilities(self, language: Language) -> lsp.ServerCapabilities:
-        return lsp.ServerCapabilities(completion_provider=lsp.CompletionOptions())
+        return lsp.ServerCapabilities(
+            completion_provider=lsp.CompletionOptions()
+        )
 
     async def start(self) -> None:
         self.reload_snippets()
@@ -116,7 +122,9 @@ class SnippetsProvider(LanguageServicesProvider):
         item = params.text_document
         self._documents[item.uri] = _Document(item.language_id, item.text)
 
-    async def did_change(self, params: lsp.DidChangeTextDocumentParams) -> None:
+    async def did_change(
+        self, params: lsp.DidChangeTextDocumentParams
+    ) -> None:
         document = self._documents.get(params.text_document.uri)
         if document is None:
             return
@@ -131,21 +139,32 @@ class SnippetsProvider(LanguageServicesProvider):
         document = self._documents.get(params.text_document.uri)
         if document is None:
             return None
+
         language_id = document.language_id
         lines = document.text.splitlines()
-        line = lines[params.position.line] if params.position.line < len(lines) else ""
+        line = (
+            lines[params.position.line]
+            if params.position.line < len(lines)
+            else ""
+        )
         prefix = line[: params.position.character]
         end = len(prefix)
         start = end
+
         # Dots belong to the word, as in the editor's completion prefix
-        while start > 0 and (prefix[start - 1].isalnum() or prefix[start - 1] in "_."):
+        while start > 0 and (
+            prefix[start - 1].isalnum() or prefix[start - 1] in "_."
+        ):
             start -= 1
+
         word = prefix[start:end]
         if not word:
             return None
+
         items = []
         for language in Language.from_language_id(language_id):
             trie = self._tries.get(language.name.lower())
             if trie is not None:
                 items.extend(snippet_items(trie, word))
+
         return items or None

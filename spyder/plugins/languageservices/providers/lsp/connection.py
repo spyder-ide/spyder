@@ -38,6 +38,7 @@ from spyder.plugins.languageservices.providers.lsp.pygls_client import (
 )
 from spyder.utils.misc import select_port
 
+
 logger = logging.getLogger(__name__)
 
 TRACE = lsp.TraceValue.Verbose if DEV else lsp.TraceValue.Messages
@@ -74,6 +75,7 @@ class LanguageServerConnection:
         self.config = config
         self.root_path = root_path
         self.interpreter = interpreter
+
         self._on_notification = on_notification
         self.configurations: dict[str, Any] = dict(config.configurations)
         self.workspace_folders: dict[str, lsp.WorkspaceFolder] = {}
@@ -81,14 +83,19 @@ class LanguageServerConnection:
         self.initialized = False
         self.capabilities: lsp.ServerCapabilities | None = None
         self.registered_languages: set[str] = set()
-        """``languageId``\\s of the document selectors the server registered
-        with ``client/registerCapability``."""
+        """
+        ``languageId``\\s of the document selectors the server registered
+        with ``client/registerCapability``.
+        """
 
         self.port = (
             config.port if config.external else select_port(config.port)
         )
-        self.sent_methods: collections.deque[str] = collections.deque(maxlen=200)
+        self.sent_methods: collections.deque[str] = collections.deque(
+            maxlen=200
+        )
         """Methods of the last messages sent, in order (for diagnosis)."""
+
         self._process: asyncio.subprocess.Process | None = None
         self._client = SpyderPyglsClient(self, f"spyder-{config.name}")
 
@@ -101,6 +108,7 @@ class LanguageServerConnection:
     def log_file(self) -> str | None:
         if get_debug_level() == 0:
             return None
+
         directory = get_conf_path("lsp_logs")
         os.makedirs(directory, exist_ok=True)
         return osp.join(directory, f"server_{self.name}_{os.getpid()}.log")
@@ -108,10 +116,16 @@ class LanguageServerConnection:
     def command(self) -> list[str]:
         """Command line starting the server."""
         config = self.config
-        args = [self.interpreter, "-m", config.cmd] if config.python_module else [config.cmd]
+        args = (
+            [self.interpreter, "-m", config.cmd]
+            if config.python_module
+            else [config.cmd]
+        )
+
         extra = config.args.format(host=config.host, port=self.port)
         if extra:
             args += extra.split()
+
         return args
 
     def _environment(self) -> dict[str, str]:
@@ -120,6 +134,7 @@ class LanguageServerConnection:
             # pylsp picks up random user files named like stdlib modules
             # when started from the user's cwd. Use an empty directory.
             env.setdefault("PYTHONIOENCODING", "utf-8")
+
         return env
 
     def _working_directory(self) -> str | None:
@@ -127,14 +142,18 @@ class LanguageServerConnection:
             cwd = osp.join(get_conf_path(), "lsp_paths", "cwd")
             os.makedirs(cwd, exist_ok=True)
             return cwd
+
         return None
 
     async def _start_process(self) -> None:
         command = self.command()
         logger.info("Starting server %r: %s", self.name, " ".join(command))
         stdout = (
-            open(self.log_file, "ab") if self.log_file else asyncio.subprocess.DEVNULL
+            open(self.log_file, "ab")
+            if self.log_file
+            else asyncio.subprocess.DEVNULL
         )
+
         self._process = await asyncio.create_subprocess_exec(
             *command,
             cwd=self._working_directory(),
@@ -148,14 +167,17 @@ class LanguageServerConnection:
         if self.config.stdio:
             server = getattr(self._client, "_server", None)
             return server is not None and server.returncode is None
+
         if self.config.external:
             return True
+
         return self._process is not None and self._process.returncode is None
 
     def is_down(self) -> bool:
         """Whether the server or its connection stopped."""
         if self._client.stopped:
             return True
+
         return self.initialized and not self.process_alive
 
     # ---- Lifecycle -------------------------------------------------------
@@ -168,6 +190,7 @@ class LanguageServerConnection:
             if not self.config.external:
                 await self._start_process()
             await self._connect_tcp()
+
         return await self._initialize()
 
     async def _connect_tcp(self) -> None:
@@ -176,6 +199,7 @@ class LanguageServerConnection:
                 raise ServerDownError(
                     f"Server {self.name!r} exited before accepting connections"
                 )
+
             try:
                 await self._client.start_tcp(self.config.host, self.port)
                 return
@@ -186,19 +210,22 @@ class LanguageServerConnection:
 
     async def _initialize(self) -> lsp.ServerCapabilities:
         self.sent_methods.append(lsp.INITIALIZE)
-        result: lsp.InitializeResult = await self._client.protocol.send_request_async(
-            lsp.INITIALIZE,
-            lsp.InitializeParams(
-                process_id=os.getpid(),
-                root_uri=path_as_uri(self.root_path),
-                capabilities=self.client_capabilities(),
-                trace=TRACE,
-                initialization_options=self.config.initialization_options,
-                workspace_folders=(
-                    list(self.workspace_folders.values()) or None
+        result: lsp.InitializeResult = (
+            await self._client.protocol.send_request_async(
+                lsp.INITIALIZE,
+                lsp.InitializeParams(
+                    process_id=os.getpid(),
+                    root_uri=path_as_uri(self.root_path),
+                    capabilities=self.client_capabilities(),
+                    trace=TRACE,
+                    initialization_options=self.config.initialization_options,
+                    workspace_folders=(
+                        list(self.workspace_folders.values()) or None
+                    ),
                 ),
-            ),
+            )
         )
+
         self.capabilities = result.capabilities
         encoding = self.capabilities.position_encoding
         if encoding is not None and encoding != lsp.PositionEncodingKind.Utf16:
@@ -206,6 +233,7 @@ class LanguageServerConnection:
                 f"Server {self.name!r} selected position encoding "
                 f"{encoding.value!r}; only UTF-16 is supported"
             )
+
         self.sent_methods.append(lsp.INITIALIZED)
         self._client.protocol.notify(lsp.INITIALIZED, lsp.InitializedParams())
         self.initialized = True
@@ -213,6 +241,7 @@ class LanguageServerConnection:
             lsp.WORKSPACE_DID_CHANGE_CONFIGURATION,
             lsp.DidChangeConfigurationParams(settings=self.configurations),
         )
+
         return self.capabilities
 
     async def stop(self) -> None:
@@ -220,23 +249,28 @@ class LanguageServerConnection:
         if self.initialized and not self._client.stopped:
             try:
                 await asyncio.wait_for(
-                    self._client.protocol.send_request_async(lsp.SHUTDOWN, None),
+                    self._client.protocol.send_request_async(
+                        lsp.SHUTDOWN, None
+                    ),
                     3,
                 )
                 self._client.protocol.notify(lsp.EXIT, None)
             except Exception:  # noqa: BLE001
                 logger.debug("Server %r did not shut down cleanly", self.name)
+
         self.initialized = False
         try:
             await asyncio.wait_for(self._client.stop(), 3)
         except Exception:  # noqa: BLE001
             logger.debug("pygls client of %r did not stop cleanly", self.name)
+
         if self._process is not None and self._process.returncode is None:
             self._process.terminate()
             try:
                 await asyncio.wait_for(self._process.wait(), 3)
             except asyncio.TimeoutError:
                 self._process.kill()
+
         self._process = None
 
     # ---- Messages --------------------------------------------------------
@@ -247,25 +281,30 @@ class LanguageServerConnection:
         """
         if not self.initialized:
             raise ServerDownError(f"Server {self.name!r} is not initialized")
+
         protocol = self._client.protocol
         msg_id = str(uuid.uuid4())
         self.sent_methods.append(method)
         future = protocol.send_request(method, params, msg_id=msg_id)
+
         try:
             return await asyncio.wrap_future(future)
         except asyncio.CancelledError:
             # pygls resolves this future without checking for cancellation, so
-            # a response arriving after the cancel would raise InvalidStateError
-            # on the cancelled future. Drop the pending entry to ignore it.
+            # a response arriving after the cancel would raise
+            # InvalidStateError on the cancelled future. Drop the pending entry
+            # to ignore it.
             protocol._request_futures.pop(msg_id, None)
             protocol._result_types.pop(msg_id, None)
             if not self._client.stopped:
                 protocol.notify(lsp.CANCEL_REQUEST, lsp.CancelParams(id=msg_id))
+
             raise
 
     def notify(self, method: str, params: Any) -> None:
         if not self.initialized:
             raise ServerDownError(f"Server {self.name!r} is not initialized")
+
         self.sent_methods.append(method)
         self._client.protocol.notify(method, params)
 
@@ -293,9 +332,9 @@ class LanguageServerConnection:
     def languages(self) -> frozenset[Language]:
         """Languages served by language server.
          
-        if ``auto`` is set, all languages are supported by default,
-        unless the servers registers document selectors. Otherwise,
-        the configured languages are used.
+        if ``auto`` is set, all languages are supported by default, unless the
+        servers register document selectors. Otherwise, the configured
+        languages are used.
 
         The result is a frozenset of :class:`Language` objects.
         """
@@ -305,6 +344,7 @@ class LanguageServerConnection:
             ids = self.registered_languages
         else:
             ids = set(self.config.languages)
+
         languages: set[Language] = set()
         for language_id in ids:
             try:
@@ -315,6 +355,7 @@ class LanguageServerConnection:
                     self.name,
                     language_id,
                 )
+
         return frozenset(languages)
 
     # ---- Server -> client ------------------------------------------------
@@ -329,6 +370,7 @@ class LanguageServerConnection:
                 if isinstance(options, dict)
                 else getattr(options, "document_selector", None)
             )
+
             for entry in selector or ():
                 language = (
                     entry.get("language")
@@ -337,9 +379,12 @@ class LanguageServerConnection:
                 )
                 if language:
                     self.registered_languages.add(language)
+
         self._on_notification(lsp.CLIENT_REGISTER_CAPABILITY, params)
 
-    def on_unregister_capability(self, params: lsp.UnregistrationParams) -> None:
+    def on_unregister_capability(
+        self, params: lsp.UnregistrationParams
+    ) -> None:
         self._on_notification(lsp.CLIENT_UNREGISTER_CAPABILITY, params)
 
     # ---- Client capabilities ---------------------------------------------
@@ -448,4 +493,3 @@ class LanguageServerConnection:
                 position_encodings=[lsp.PositionEncodingKind.Utf16]
             ),
         )
-

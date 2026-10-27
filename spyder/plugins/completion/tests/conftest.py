@@ -145,6 +145,7 @@ def language_services_all_started(
 
     completion_plugin, _ = completion_plugin_all_started
     language_services = LanguageServices(completion_plugin.main, CONF)
+
     # The built-in providers come from the spyder.language_services entry
     # points loaded by the plugin. The legacy adapter wraps third-party ones.
     legacy = LegacyCompletionsProvider(language_services, completion_plugin)
@@ -155,6 +156,7 @@ def language_services_all_started(
     ]
     for provider in providers:
         wait_for(language_services.start_provider(provider.NAME), 30)
+
     wait_for(language_services.start_language(Language.PYTHON), 60)
     qtbot_module.waitUntil(
         lambda: "pylsp" in language_services.providers_for(Language.PYTHON),

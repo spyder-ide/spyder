@@ -12,6 +12,7 @@ through the ``spyder.completions`` entry point and exposes them to the
 LanguageServices plugin as a single provider named ``"completions"``.
 
 .. deprecated::
+
     New providers must implement
     :class:`spyder.plugins.languageservices.api.provider.LanguageServicesProvider`
     and register through the ``spyder.language_services`` entry point.
@@ -35,7 +36,6 @@ from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
-from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (
     COMPLETION_ENTRYPOINT,
     DOCUMENT_CURSOR_EVENT,
@@ -101,10 +101,10 @@ class CompletionPlugin(SpyderPluginV2):
     """
     Legacy completion plugin (deprecated).
 
-    Forwards completion/linting requests to the third-party
+    It forwards completion/linting requests to the third-party
     :class:`SpyderCompletionProvider` instances discovered through the
     ``spyder.completions`` entry point. Spyder's own providers live in the
-    LanguageServices plugin, which also consumes this plugin's providers
+    LanguageServices plugin, which also consume this plugin's providers
     through :class:`~spyder.plugins.completion.adapter.LegacyCompletionsProvider`.
     """
 
@@ -296,11 +296,12 @@ class CompletionPlugin(SpyderPluginV2):
                 "SpyderCompletionProvider are deprecated. Implement "
                 "spyder.plugins.languageservices.api.LanguageServicesProvider "
                 "and register it through the spyder.language_services entry "
-                f"point instead. Loaded legacy providers: "
+                "point instead. Loaded legacy providers: "
                 f"{sorted(self.providers)}",
                 DeprecationWarning,
                 stacklevel=2,
             )
+
         self.start_all_providers()
 
     @on_plugin_available(plugin=Plugins.MainInterpreter)

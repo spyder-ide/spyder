@@ -70,11 +70,15 @@ def test_late_response_after_cancel_is_ignored():
         task = asyncio.create_task(
             connection.request(lsp.TEXT_DOCUMENT_DEFINITION, None)
         )
+
         await asyncio.sleep(0)
+
         (msg_id,) = protocol._request_futures
         task.cancel()
+
         with pytest.raises(asyncio.CancelledError):
             await task
+
         return msg_id
 
     msg_id = asyncio.run(cancel_pending_request())

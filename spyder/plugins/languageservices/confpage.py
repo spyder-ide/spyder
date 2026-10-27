@@ -62,9 +62,11 @@ class ProviderTabHost(QWidget):
         target = getattr(self.page, name)
         if not name.startswith("create_") or not callable(target):
             return target
+
         parameters = inspect.signature(target).parameters
         if "option" not in parameters:
             return target
+
         position = list(parameters).index("option")
 
         @functools.wraps(target)
@@ -75,9 +77,11 @@ class ProviderTabHost(QWidget):
                 elif len(args) > position:
                     args = list(args)
                     args[position] = self.config.wrap_option(args[position])
+
             widget = target(*args, **kwargs)
             if isinstance(widget, QWidget):
                 widget.setParent(self)
+
             return widget
 
         return wrapper
@@ -99,36 +103,69 @@ class LanguageServicesConfigPage(PluginConfigPage):
         completions_group = QGroupBox(_("Completions"))
         completions_layout = QGridLayout()
         completions_layout.addWidget(
-            newcb(_("Show completion details"), "completions_hint",
-                  section="editor"), 0, 0)
+            newcb(
+                _("Show completion details"),
+                "completions_hint",
+                section="editor",
+            ),
+            0,
+            0,
+        )
         completions_layout.addWidget(
-            newcb(_("Enable code snippets"), "enable_code_snippets"), 1, 0)
-        automatic = newcb(_("Show completions on the fly"),
-                          "automatic_completions", section="editor")
+            newcb(_("Enable code snippets"), "enable_code_snippets"), 1, 0
+        )
+        automatic = newcb(
+            _("Show completions on the fly"),
+            "automatic_completions",
+            section="editor",
+        )
         completions_layout.addWidget(automatic, 2, 0)
         completions_layout.addWidget(
-            newcb(_("Use Enter to accept code completions"),
-                  "use_enter_for_completions",
-                  tip=_("If this option is disabled, completions will be "
-                        "accepted with the Tab key only.")), 3, 0)
+            newcb(
+                _("Use Enter to accept code completions"),
+                "use_enter_for_completions",
+                tip=_(
+                    "If this option is disabled, completions will be accepted "
+                    "with the Tab key only."
+                ),
+            ),
+            3,
+            0,
+        )
         after_chars = self.create_spinbox(
-            _("Show automatic completions after characters entered:"), None,
-            "automatic_completions_after_chars", min_=1, step=1,
-            tip=_("Default is 1"), section="editor")
+            _("Show automatic completions after characters entered:"),
+            None,
+            "automatic_completions_after_chars",
+            min_=1,
+            step=1,
+            tip=_("Default is 1"),
+            section="editor",
+        )
         completions_layout.addWidget(after_chars.plabel, 4, 0)
         completions_layout.addWidget(after_chars.spinbox, 4, 1)
         completions_layout.addWidget(after_chars.help_label, 4, 2)
         hint_idle = self.create_spinbox(
-            _("Show completion details after keyboard idle (ms):"), None,
-            "completions_hint_after_ms", min_=0, max_=10000, step=10,
-            tip=_("Default is 500 milliseconds"), section="editor")
+            _("Show completion details after keyboard idle (ms):"),
+            None,
+            "completions_hint_after_ms",
+            min_=0,
+            max_=10000,
+            step=10,
+            tip=_("Default is 500 milliseconds"),
+            section="editor",
+        )
         completions_layout.addWidget(hint_idle.plabel, 5, 0)
         completions_layout.addWidget(hint_idle.spinbox, 5, 1)
         completions_layout.addWidget(hint_idle.help_label, 5, 2)
         timeout = self.create_spinbox(
-            _("Time to wait for a provider to answer (ms):"), None,
-            "request_timeout_ms", min_=100, max_=60000, step=100,
-            tip=_("Answers arriving after this timeout are discarded"))
+            _("Time to wait for a provider to answer (ms):"),
+            None,
+            "request_timeout_ms",
+            min_=100,
+            max_=60000,
+            step=100,
+            tip=_("Answers arriving after this timeout are discarded"),
+        )
         completions_layout.addWidget(timeout.plabel, 6, 0)
         completions_layout.addWidget(timeout.spinbox, 6, 1)
         completions_layout.addWidget(timeout.help_label, 6, 2)
@@ -142,19 +179,29 @@ class LanguageServicesConfigPage(PluginConfigPage):
         self.providers_group = QGroupBox(_("Providers"))
         providers_layout = QGridLayout()
         self.provider_names = plugin.provider_names()
+
         for row, name in enumerate(self.provider_names):
             providers_layout.addWidget(
-                newcb(_("Enable {0} provider").format(name),
-                      ("providers", name, "enable"), default=True),
-                row, 0)
+                newcb(
+                    _("Enable {0} provider").format(name),
+                    ("providers", name, "enable"),
+                    default=True,
+                ),
+                row,
+                0,
+            )
+
         self.providers_group.setLayout(providers_layout)
 
         # ---- Request policies
         policies_group = QGroupBox(_("Requests"))
         policies_layout = QVBoxLayout()
-        label = QLabel(_(
-            "Choose how the answers of several providers are combined for "
-            "each feature, or which provider answers it alone."))
+        label = QLabel(
+            _(
+                "Choose how the answers of several providers are combined for "
+                "each feature, or which provider answers it alone."
+            )
+        )
         label.setWordWrap(True)
         policies_layout.addWidget(label)
         self.policies_table = RequestPolicyTable(self, self.provider_names)
@@ -182,6 +229,7 @@ class LanguageServicesConfigPage(PluginConfigPage):
             provider = plugin.get_provider(name)
             for Tab in provider.CONF_TABS:
                 self._add_provider_tab(Tab, provider.config)
+
         self.create_tab(_("Advanced"), advanced_widget)
 
     def _add_provider_tab(self, Tab, config):
@@ -196,6 +244,7 @@ class LanguageServicesConfigPage(PluginConfigPage):
         if policies != self.get_option("request_policies", {}):
             self.set_option("request_policies", policies)
             options |= {"request_policies"}
+
         return options
 
     def _apply_settings_tabs(self, options):
@@ -206,11 +255,14 @@ class LanguageServicesConfigPage(PluginConfigPage):
                 widget = layout.itemAt(j).widget()
                 if not isinstance(widget, BaseConfigTab):
                     continue
+
                 applied = widget.apply_settings() or set()
                 host = self.provider_tabs.get(widget)
                 if host is not None:
                     applied = host.wrap_options(applied)
+
                 options |= applied
+
         self.apply_settings(options)
 
     def enable_disable_plugin(self, state):

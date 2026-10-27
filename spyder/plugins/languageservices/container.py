@@ -36,6 +36,7 @@ class LanguageServicesContainer(PluginMainContainer):
         if isinstance(widget, QMessageBox):
             if hasattr(widget, "sig_restart_spyder"):
                 widget.sig_restart_spyder.connect(self.sig_restart_requested)
+
             widget.exec_()
 
     def show_message(self, params: lsp.ShowMessageParams):
@@ -45,6 +46,7 @@ class LanguageServicesContainer(PluginMainContainer):
             lsp.MessageType.Warning: QMessageBox.Warning,
             lsp.MessageType.Info: QMessageBox.Information,
         }
+
         box = QMessageBox(self)
         box.setIcon(icons.get(params.type, QMessageBox.NoIcon))
         box.setWindowTitle("Spyder")
@@ -52,14 +54,17 @@ class LanguageServicesContainer(PluginMainContainer):
         box.exec_()
 
     def register_statusbar_widgets(self, statusbar_classes, provider):
-        """Instantiate ``statusbar_classes`` for ``provider`` and return
-        their ids."""
+        """
+        Instantiate ``statusbar_classes`` for ``provider`` and return their ids
+        """
         ids = []
         for StatusBar in statusbar_classes:
             statusbar = StatusBar(self, provider)
             self.statusbar_widgets[statusbar.ID] = statusbar
             ids.append(statusbar.ID)
+
         self.provider_statusbars[provider.NAME] = ids
+
         return ids
 
     def all_statusbar_widgets(self):

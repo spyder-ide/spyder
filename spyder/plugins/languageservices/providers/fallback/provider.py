@@ -7,8 +7,8 @@
 """
 Fallback completion provider.
 
-Completes with the words already written in the document and the keywords
-Pygments knows for its language. Serves every language.
+It completes with the words already written in the document and the keywords
+Pygments knows for its language. And it serves every language.
 """
 
 from __future__ import annotations
@@ -35,6 +35,7 @@ from spyder.plugins.languageservices.providers.fallback.tokenizer import (
     get_words,
     is_prefix_valid,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +76,7 @@ class TokenIndex:
         def add(token: str, kind: lsp.CompletionItemKind):
             if token in seen:
                 return
+
             seen.add(token)
             items.append(
                 lsp.CompletionItem(
@@ -89,12 +91,14 @@ class TokenIndex:
 
         for keyword in self.keywords():
             add(keyword, lsp.CompletionItemKind.Keyword)
+
         for token in get_words(self.text, offset, self.language_id):
             add(token, lsp.CompletionItemKind.Text)
 
         if current_word:
             needle = current_word.lower()
             items = [item for item in items if needle in item.label.lower()]
+
         return items
 
 
@@ -112,7 +116,9 @@ class FallbackProvider(LanguageServicesProvider):
         return Language.all()
 
     def capabilities(self, language: Language) -> lsp.ServerCapabilities:
-        return lsp.ServerCapabilities(completion_provider=lsp.CompletionOptions())
+        return lsp.ServerCapabilities(
+            completion_provider=lsp.CompletionOptions()
+        )
 
     async def stop(self) -> None:
         self._documents.clear()
@@ -122,13 +128,17 @@ class FallbackProvider(LanguageServicesProvider):
         item = params.text_document
         self._documents[item.uri] = TokenIndex(item.text, item.language_id)
 
-    async def did_change(self, params: lsp.DidChangeTextDocumentParams) -> None:
+    async def did_change(
+        self, params: lsp.DidChangeTextDocumentParams
+    ) -> None:
         index = self._documents.get(params.text_document.uri)
         if index is None:
             return
+
         text = index.text
         for change in params.content_changes:
             text = apply_content_change(text, change)
+
         index.text = text
 
     async def did_close(self, params: lsp.DidCloseTextDocumentParams) -> None:
@@ -139,8 +149,10 @@ class FallbackProvider(LanguageServicesProvider):
         index = self._documents.get(params.text_document.uri)
         if index is None:
             return None
+
         offset = _offset_in_utf16(index.text, params.position)
         current_word = _word_before(index.text, params.position)
+
         return await asyncio.to_thread(index.completions, offset, current_word)
 
 
@@ -150,8 +162,12 @@ def _word_before(text: str, position: lsp.Position) -> str:
     prefix = line[: position.character]
     end = len(prefix)
     start = end
+
     # Like the editor's "current word" for completions, dots are part of
     # the word: "math.hy" only matches tokens containing that text.
-    while start > 0 and (prefix[start - 1].isalnum() or prefix[start - 1] in "_."):
+    while start > 0 and (
+        prefix[start - 1].isalnum() or prefix[start - 1] in "_."
+    ):
         start -= 1
+
     return prefix[start:end]

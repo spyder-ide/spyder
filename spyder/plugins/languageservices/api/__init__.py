@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Public API of the language services plugin."""
+"""Public API of the Language services plugin."""
 
 from spyder.plugins.languageservices.api.errors import (
     DocumentNotOpenError,

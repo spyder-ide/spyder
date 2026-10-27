@@ -22,6 +22,7 @@ from spyder.plugins.languageservices.providers.snippets.provider import (
 )
 from spyder.plugins.languageservices.services import LanguageServicesAPI
 
+
 PY_SNIPPETS = SNIPPETS["python"]
 
 
@@ -29,13 +30,19 @@ PY_SNIPPETS = SNIPPETS["python"]
 def test_snippet_items(trigger):
     trie = build_trie(PY_SNIPPETS)
     prefix = trigger[: random.randrange(1, len(trigger))]
-    items = [i for i in snippet_items(trie, prefix) if i.filter_text == trigger]
+    items = [
+        i for i in snippet_items(trie, prefix) if i.filter_text == trigger
+    ]
+
     expected = sorted(
         (f"{trigger} ({description})", info["text"])
         for description, info in PY_SNIPPETS[trigger].items()
     )
+
     assert sorted((i.label, i.insert_text) for i in items) == expected
-    assert all(i.insert_text_format is lsp.InsertTextFormat.Snippet for i in items)
+    assert all(
+        i.insert_text_format is lsp.InsertTextFormat.Snippet for i in items
+    )
 
 
 def test_provider_completion():
@@ -57,6 +64,7 @@ def test_provider_completion():
                 )
             )
         )
+
         items = await api.completion(
             lsp.CompletionParams(
                 text_document=lsp.TextDocumentIdentifier(uri),

@@ -44,27 +44,34 @@ def language_names(config: ServerConfig) -> str:
     """Display text of the languages a server is configured for."""
     if config.auto_languages:
         return _("auto")
+
     names = []
     for language_id in config.languages:
         language = Language.find(language_id=language_id)
         names.append(language.name if language else language_id)
+
     return ", ".join(names)
 
 
 def language_choices(selected=()) -> list[tuple[str, str, tuple[str, ...]]]:
-    """``(language_id, display name, extensions)`` of every LSP language id
-    known to Spyder and of each id in ``selected``, sorted by name."""
+    """
+    ``(language_id, display name, extensions)`` of every LSP language id
+    known to Spyder and of each id in ``selected``, sorted by name.
+    """
     extensions: dict[str, list[str]] = {}
     for language in Language:
         extensions.setdefault(language.language_id, []).extend(
             language.extensions)
+
     for language_id in selected:
         extensions.setdefault(language_id, [])
+
     choices = []
     for language_id, exts in extensions.items():
         language = Language.find(language_id=language_id)
         name = language.name if language else language_id
         choices.append((language_id, name, tuple(exts)))
+
     return sorted(choices, key=lambda choice: choice[1].lower())
 
 
@@ -82,8 +89,10 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
     def __init__(self, parent, config: ServerConfig | None, get_option):
         super().__init__(parent)
         new_server = config is None
+
         if new_server:
             config = ServerConfig(name="untitled")
+
         self.existing_names = {
             name for name in parent.server_names()
             if new_server or name != config.name
@@ -109,7 +118,8 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         # Widgets
         self.server_settings_description = QLabel(description)
         self.auto_languages_cb = QCheckBox(
-            _('Auto (detect from the server)'), self)
+            _('Auto (detect from the server)'), self
+        )
         self.languages_filter = QLineEdit(self)
         self.languages_list = QListWidget(self)
         self.external_cb = QCheckBox(_('External server'), self)
@@ -140,30 +150,42 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         self.server_settings_description.setWordWrap(True)
 
         self.auto_languages_cb.setToolTip(
-            _('Start the server with Spyder and use it for the languages '
-              'it registers'))
+            _(
+                "Start the server with Spyder and use it for the languages it "
+                "registers"
+            )
+        )
         self.auto_languages_cb.setChecked(config.auto_languages)
         self.languages_filter.setPlaceholderText(_('Filter languages'))
         self.languages_filter.setClearButtonEnabled(True)
         self.languages_list.setToolTip(
-            _('Programming languages provided by the LSP server'))
+            _('Programming languages provided by the LSP server')
+        )
         self.languages_list.setMinimumHeight(
-            6 * self.languages_list.fontMetrics().height())
+            6 * self.languages_list.fontMetrics().height()
+        )
+
         selected = () if config.auto_languages else config.languages
-        choices = sorted(language_choices(selected),
-                         key=lambda choice: choice[0] not in selected)
+        choices = sorted(
+            language_choices(selected),
+            key=lambda choice: choice[0] not in selected
+        )
         for language_id, name, extensions in choices:
             item = QListWidgetItem(name, self.languages_list)
             item.setData(Qt.UserRole, language_id)
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
             item.setCheckState(
-                Qt.Checked if language_id in selected else Qt.Unchecked)
+                Qt.Checked if language_id in selected else Qt.Unchecked
+            )
             if extensions:
                 item.setToolTip(
-                    ', '.join('.' + extension for extension in extensions))
+                    ', '.join('.' + extension for extension in extensions)
+                )
+
         self.update_languages_state()
         self.auto_languages_cb.toggled.connect(
-            lambda _: self.update_languages_state())
+            lambda _: self.update_languages_state()
+        )
         self.auto_languages_cb.toggled.connect(lambda _: self.validate())
         self.languages_filter.textChanged.connect(self.filter_languages)
         self.languages_list.itemChanged.connect(lambda _: self.validate())
@@ -203,7 +225,8 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
                                      'set at runtime. JSON required'))
         try:
             conf_text = json.dumps(
-                config.configurations, indent=4, sort_keys=True)
+                config.configurations, indent=4, sort_keys=True
+            )
         except Exception:
             conf_text = '{}'
         self.conf_input.set_text(conf_text)
@@ -289,8 +312,10 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
 
         # Final setup
         self.validate()
+
         if config.stdio:
             self.set_stdio_options(True)
+
         if config.external:
             self.set_local_options(True)
 
@@ -301,8 +326,10 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         name_text = self.name_input.text().strip()
 
         names_valid = True
-        if (not self.NAME_REGEX.match(name_text)
-                or name_text in self.existing_names):
+        if (
+            not self.NAME_REGEX.match(name_text)
+            or name_text in self.existing_names
+        ):
             names_valid = False
             self.name_input.setStyleSheet(self.INVALID_CSS)
             self.name_input.setToolTip(_('Name must be unique and non empty'))
@@ -310,8 +337,10 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
             self.name_input.setStyleSheet(self.VALID_CSS)
             self.name_input.setToolTip('')
 
-        if (not self.auto_languages_cb.isChecked()
-                and not self.selected_languages()):
+        if (
+            not self.auto_languages_cb.isChecked()
+            and not self.selected_languages()
+        ):
             names_valid = False
             self.languages_list.setStyleSheet(self.INVALID_LIST_CSS)
         else:
@@ -428,10 +457,16 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
 
     def selected_languages(self) -> tuple[str, ...]:
         """Language ids checked in the list."""
-        items = (self.languages_list.item(row)
-                 for row in range(self.languages_list.count()))
-        return tuple(item.data(Qt.UserRole) for item in items
-                     if item.checkState() == Qt.Checked)
+        items = (
+            self.languages_list.item(row)
+            for row in range(self.languages_list.count())
+        )
+
+        return tuple(
+            item.data(Qt.UserRole)
+            for item in items
+            if item.checkState() == Qt.Checked
+        )
 
     @Slot()
     def update_languages_state(self):
@@ -444,15 +479,19 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         text = text.strip().lower()
         for row in range(self.languages_list.count()):
             item = self.languages_list.item(row)
-            haystack = ' '.join((item.text(), item.data(Qt.UserRole),
-                                 item.toolTip())).lower()
+            haystack = " ".join(
+                (item.text(), item.data(Qt.UserRole), item.toolTip())
+            ).lower()
             item.setHidden(text not in haystack)
 
     def get_options(self):
         return self.config.with_changes(
             name=self.name_input.text().strip(),
-            languages=(AUTO_LANGUAGES if self.auto_languages_cb.isChecked()
-                       else self.selected_languages()),
+            languages=(
+                AUTO_LANGUAGES
+                if self.auto_languages_cb.isChecked()
+                else self.selected_languages()
+            ),
             cmd=self.cmd_input.text(),
             args=self.args_input.text(),
             host=self.host_input.text(),
@@ -615,10 +654,14 @@ class LSPServerTable(QTableView):
 
     def save_servers(self):
         self._parent.set_option(
-            'servers',
-            {server.name: server.to_conf()
-             for server in self.source_model.servers})
-        return {'servers'}
+            "servers",
+            {
+                server.name: server.to_conf()
+                for server in self.source_model.servers
+            },
+        )
+
+        return {"servers"}
 
     def delete_server(self, idx):
         server = self.source_model.servers.pop(idx)
@@ -639,11 +682,13 @@ class LSPServerTable(QTableView):
             if not (0 <= idx < len(self.source_model.servers)):
                 return
             config = self.source_model.row(idx)
+
         dialog = LSPServerEditor(self, config, self._parent.get_option)
         if dialog.exec_():
             server = dialog.get_options()
             if config is not None:
                 self.source_model.server_map.pop(config.name)
+
             self.source_model.server_map[server.name] = server
             self.source_model.servers = list(
                 self.source_model.server_map.values())

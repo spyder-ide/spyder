@@ -44,17 +44,21 @@ class LanguageSpec:
     def __post_init__(self):
         if not self.name:
             raise ValueError("A language needs a non-empty name")
+
         if not self.language_id:
             raise ValueError(f"Language {self.name!r} needs a language_id")
+
         normalized = tuple(ext.lower().lstrip(".") for ext in self.extensions)
         if any(not ext for ext in normalized):
             raise ValueError(
                 f"Language {self.name!r} has an empty file extension"
             )
+
         if len(set(normalized)) != len(normalized):
             raise ValueError(
                 f"Language {self.name!r} lists an extension twice"
             )
+
         object.__setattr__(self, "extensions", normalized)
 
 
@@ -71,6 +75,7 @@ class Language(Enum):
     IPYTHON = LanguageSpec("IPython", ("ipy", "ipython"), "python")
     CYTHON = LanguageSpec("Cython", ("pyx", "pxi", "pxd"), "cython")
     ENAML = LanguageSpec("Enaml", ("enaml",), "enaml")
+
     FORTRAN77 = LanguageSpec("Fortran77", ("f", "for", "f77"), "fortran77")
     FORTRAN = LanguageSpec(
         "Fortran", ("f90", "f95", "f2k", "f03", "f08"), "fortran"
@@ -162,6 +167,7 @@ class Language(Enum):
             raise LanguageAlreadyRegisteredError(
                 f"A language named {spec.name!r} already exists"
             )
+
         for ext in spec.extensions:
             if ext in indexes["by_extension"]:
                 owner = indexes["by_extension"][ext]
@@ -186,6 +192,7 @@ class Language(Enum):
         cls._value2member_map_[spec] = member
         type.__setattr__(cls, member_name, member)
         cls.__rebuild_indexes()
+
         return member
 
     # ---- Lookups ------------------------------------------------------------
@@ -200,6 +207,7 @@ class Language(Enum):
         language = cls.__indexes()["by_name"].get(name.lower())
         if language is None:
             raise UnknownLanguageError(f"Unknown language name: {name!r}")
+
         return language
 
     @classmethod
@@ -211,6 +219,7 @@ class Language(Enum):
             raise UnknownLanguageError(
                 f"No language uses the extension {extension!r}"
             )
+
         return language
 
     @classmethod
@@ -221,6 +230,7 @@ class Language(Enum):
             raise UnknownLanguageError(
                 f"{filename!r} has no extension to infer a language from"
             )
+
         return cls.from_extension(ext)
 
     @classmethod
@@ -231,6 +241,7 @@ class Language(Enum):
             raise UnknownLanguageError(
                 f"No language uses the language_id {language_id!r}"
             )
+
         return languages
 
     @classmethod
@@ -259,21 +270,28 @@ class Language(Enum):
                 "Language.find() takes exactly one lookup key, got "
                 f"{given or 'none'}"
             )
+
         try:
             if name is not None:
                 return cls.from_name(name)
+
             if extension is not None:
                 return cls.from_extension(extension)
+
             if filename is not None:
                 return cls.from_filename(filename)
+
             candidates = cls.from_language_id(language_id)
         except UnknownLanguageError:
             return None
+
         if len(candidates) == 1:
             return next(iter(candidates))
+
         for candidate in candidates:
             if candidate.name.lower() == language_id.lower():
                 return candidate
+
         return None
 
     # ---- Indexes ------------------------------------------------------------
@@ -282,6 +300,7 @@ class Language(Enum):
         indexes = cls.__dict__.get("_Language__index_cache")
         if indexes is None:
             indexes = cls.__rebuild_indexes()
+
         return indexes
 
     @classmethod
@@ -296,6 +315,7 @@ class Language(Enum):
             by_language_id.setdefault(language.language_id, set()).add(
                 language
             )
+
         indexes = {
             "all": frozenset(cls),
             "by_name": by_name,
@@ -305,6 +325,7 @@ class Language(Enum):
             },
         }
         type.__setattr__(cls, "_Language__index_cache", indexes)
+
         return indexes
 
     def __repr__(self) -> str:
@@ -317,4 +338,5 @@ def _member_identifier(name: str) -> str:
     identifier = identifier.strip("_") or "LANGUAGE"
     if identifier[0].isdigit():
         identifier = f"LANG_{identifier}"
+
     return identifier
