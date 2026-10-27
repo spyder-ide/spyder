@@ -126,6 +126,41 @@ def test_markdown_preview_bounds_large_pages_without_changing_source(
     assert not stack.markdown_navigation.isVisible()
 
 
+def test_preview_releases_replaced_documents(editor_plugin, tmp_path):
+    filename = tmp_path / 'release.md'
+    filename.write_text('# First\n', encoding='utf-8')
+    manager = editor_plugin.get_widget()
+    manager.load(str(filename))
+    stack = manager.editorstacks[0]
+    stack.set_markdown_preview(True)
+    page = stack.get_current_editor().markdown_page
+    destroyed = []
+    for index in range(4):
+        page.browser.document().destroyed.connect(lambda: destroyed.append(True))
+        page.editor.insert_text(f'Update {index}\n')
+        page.render()
+        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    assert len(destroyed) == 4
+
+
+def test_preview_split_close_rebinds_search(reference, editor_plugin, tmp_path):
+    filename = tmp_path / 'split-preview.md'
+    filename.write_text('# Visible **preview**\n', encoding='utf-8')
+    manager = editor_plugin.get_widget()
+    manager.load(str(filename))
+    primary = manager.editorstacks[0]
+    primary.set_markdown_preview(True)
+    reference.load(str(filename))
+    reference.splitter.split(Qt.Horizontal)
+    child = reference.splitter.widget(1).editorstack
+    child.set_markdown_preview(True)
+    manager.set_last_focused_editorstack(reference, child)
+    child.close()
+    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    assert reference.find_widget.editor is reference.splitter.editorstack.get_current_view()
+    assert manager.find_widget.editor is primary.get_current_view()
+
+
 def test_markdown_preview_resources_are_local_images_only(reference, editor_plugin, tmp_path):
     from qtpy.QtCore import QUrl
     from qtpy.QtGui import QImage, QTextDocument
