@@ -65,6 +65,10 @@ def parse_spyder_dependencies():
         if ver:
             ver = str(SpecifierSet(ver))
 
+        # Transform pypi to conda name
+        if dep['package_name'].lower() == 'qtconsole':
+            dep['package_name'] = 'qtconsole-base'
+
         deps[dep['package_name'].lower()] = ver
 
     return deps
@@ -90,7 +94,7 @@ def parse_setup_install_requires(fpath):
                 # Add dependency
                 deps_list.append(line.strip().strip(',').strip("'"))
         if (
-            line.strip() in ("'pyqt5': [", "install_requires += [")
+            line.strip() in ("'pyqt6': [", "install_requires += [")
             and not is_dep_line
         ):
             # Depencies begin on next line
@@ -100,6 +104,10 @@ def parse_setup_install_requires(fpath):
     deps = {}
     for dep in deps_list:
         req = Requirement(dep)
+
+        # Transform pypi to conda name
+        if req.name == 'qtconsole':
+            req.name = 'qtconsole-base'
 
         if req.specifier:
             deps[req.name] = str(req.specifier)
@@ -133,6 +141,10 @@ def parse_setup_extra_requires(fpath):
     dep_list = [item for item in dep_list if item[0] != '#']
     for dep in dep_list:
         req = Requirement(dep)
+
+        # Transform pypi to conda name
+        if req.name == 'qtconsole':
+            req.name = 'qtconsole-base'
 
         if req.marker:
             # Skip dependencies with environment markers (e.g.
