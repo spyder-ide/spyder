@@ -20,10 +20,10 @@ from flaky import flaky
 import pytest
 from matplotlib.figure import Figure
 import numpy as np
+from qtconsole.svg import svg_to_image
 from qtpy.QtWidgets import QApplication, QStyle
 from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
-from qtconsole.svg import svg_to_image
 
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
@@ -106,8 +106,10 @@ def figure_to_qpixmap(fig, fmt):
     """
     if fmt == 'image/svg+xml':
         return QPixmap.fromImage(svg_to_image(fig))
+
     qpix = QPixmap()
     qpix.loadFromData(fig, fmt.upper())
+
     return qpix
 
 
