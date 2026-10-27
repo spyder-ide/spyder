@@ -23,6 +23,11 @@ from qtpy.QtCore import Signal, QObject, Slot, Qt
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.languageservices.api.symbols import (  # noqa: E402,F401
+    # Symbol kind extensions live in the language services API
+    SYMBOL_KIND_ICON,
+    SpyderSymbolKind,
+)
 
 if TYPE_CHECKING:
     from qtpy.QtWidgets import QWidget
@@ -38,12 +43,6 @@ SUPPORTED_LANGUAGES = sorted(
         if language not in (Language.PYTHON, Language.IPYTHON)
     ),
     key=str.lower,
-)
-
-# Symbol kind extensions live in the language services API
-from spyder.plugins.languageservices.api.symbols import (  # noqa: E402,F401
-    SYMBOL_KIND_ICON,
-    SpyderSymbolKind,
 )
 
 #: Spyder-specific LSP extension: cursor event notification method name.
@@ -131,6 +130,7 @@ class SpyderCompletionProvider(CompletionConfigurationObserver, QObject):
     Legacy provider API for completion providers.
 
     .. deprecated::
+
         Implement
         :class:`spyder.plugins.languageservices.api.provider.LanguageServicesProvider`
         and register it through the ``spyder.language_services`` entry point

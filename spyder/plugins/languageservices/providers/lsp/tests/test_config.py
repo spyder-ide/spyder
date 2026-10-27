@@ -15,8 +15,10 @@ from spyder.plugins.languageservices.providers.lsp.config import (
 
 
 def test_roundtrip_and_defaults():
-    config = ServerConfig(name="rust", cmd="rust-analyzer", stdio=True,
-                          languages=["rust"])
+    config = ServerConfig(
+        name="rust", cmd="rust-analyzer", stdio=True, languages=["rust"]
+    )
+
     data = config.to_conf()
     assert "name" not in data
     assert data["languages"] == ["rust"]
@@ -28,8 +30,10 @@ def test_roundtrip_and_defaults():
 def test_validation():
     with pytest.raises(ValueError):
         ServerConfig(name="")
+
     with pytest.raises(ValueError):
         ServerConfig(name="x", stdio=True, external=True)
+
     with pytest.raises(ValueError):
         ServerConfig.from_conf("x", {"nope": 1})
 

@@ -20,6 +20,7 @@ from pygls.protocol import LanguageServerProtocol, default_converter
 # Local imports
 from spyder.plugins.languageservices.api.symbols import SpyderSymbolKind
 
+
 if TYPE_CHECKING:
     from spyder.plugins.languageservices.providers.lsp.connection import (
         LanguageServerConnection,
@@ -49,12 +50,15 @@ def spyder_converter():
     def structure_notebook_filter(obj, _):
         if obj is None or isinstance(obj, str):
             return obj
+
         if "notebookType" in obj:
             return converter.structure(
                 obj, lsp.NotebookDocumentFilterNotebookType
             )
+
         if "scheme" in obj:
             return converter.structure(obj, lsp.NotebookDocumentFilterScheme)
+
         return converter.structure(obj, lsp.NotebookDocumentFilterPattern)
 
     converter.register_structure_hook(
@@ -111,7 +115,9 @@ class SpyderPyglsClient(JsonRPCClient):
             return list(connection.workspace_folders.values())
 
         @self.feature(lsp.WORKSPACE_CONFIGURATION)
-        def on_workspace_configuration(params: lsp.ConfigurationParams) -> list:
+        def on_workspace_configuration(
+            params: lsp.ConfigurationParams,
+        ) -> list:
             return [connection.configurations] * len(params.items)
 
         @self.feature(lsp.WORKSPACE_APPLY_EDIT)

@@ -17,6 +17,7 @@ from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
+
 PYLSP_SERVER_NAME = "pylsp"
 LOCALHOST = ("127.0.0.1", "localhost")
 PRELOAD_MODULES = ", ".join(PREFERRED_MODULES)
@@ -43,7 +44,9 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
     plugins = settings["pylsp"]["plugins"]
 
     max_line_length = get_conf("flake8/max_line_length", 79)
-    indent = get_conf("indent_chars", "*    *", section="editor").replace("*", "")
+    indent = get_conf("indent_chars", "*    *", section="editor").replace(
+        "*", ""
+    )
     tab_size = get_conf("tab_stop_width_spaces", 4, section="editor")
     indent_size = indent.count(" ") + indent.count("\t") * tab_size
 
@@ -68,11 +71,13 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
         "extendIgnore": _csv(get_conf("ruff/extendIgnore", "")),
         "lineLength": max_line_length,
     }
+
     if get_conf("pydocstyle", False):
         if "D" not in ruff["extendSelect"]:
             ruff["extendSelect"].append("D")
         if "D" in ruff["extendIgnore"]:
             ruff["extendIgnore"].remove("D")
+
     convention = get_conf("pydocstyle/convention", "numpy")
     ruff["config"] = f"lint.pydocstyle.convention = '{convention}'"
     plugins["ruff"].update(ruff)
@@ -80,9 +85,11 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
 
     formatter = get_conf("formatting", "black")
     for name in FORMATTERS:
-        # ruff enables formatting with a dedicated key (spyder-ide/spyder#26138)
+        # ruff enables formatting with a dedicated key (See
+        # spyder-ide/spyder#26138)
         key = "formatEnabled" if name == "ruff" else "enabled"
         plugins[name].update({key: name == formatter})
+
     plugins["black"]["line_length"] = max_line_length
     plugins["ruff"]["lineLength"] = max_line_length
 
@@ -91,7 +98,9 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
             "enable_block_comments": get_conf(
                 "show_comments", True, section="outline_explorer"
             ),
-            "group_cells": get_conf("group_cells", True, section="outline_explorer"),
+            "group_cells": get_conf(
+                "group_cells", True, section="outline_explorer"
+            ),
         }
     )
 
@@ -108,6 +117,7 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
             "env_vars": os.environ.copy(),
         }
     )
+
     plugins["jedi_completion"].update(
         {
             "enabled": get_conf("code_completion", True),
@@ -116,15 +126,18 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
             ),
         }
     )
+
     plugins["jedi_signature_help"].update(
         {"enabled": get_conf("jedi_signature_help", True)}
     )
+
     plugins["jedi_definition"].update(
         {
             "enabled": get_conf("jedi_definition", True),
             "follow_imports": get_conf("jedi_definition/follow_imports", True),
         }
     )
+
     plugins["preload"]["modules"] = get_conf("preload_modules", PRELOAD_MODULES)
 
     host = get_conf("advanced/host", "127.0.0.1")

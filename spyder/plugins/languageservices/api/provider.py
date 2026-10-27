@@ -33,6 +33,7 @@ from spyder.api.config.mixins import (
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 
+
 if TYPE_CHECKING:
     from spyder.api.preferences import SpyderPreferencesTab
     from spyder.api.widgets.status import StatusBarWidget
@@ -97,12 +98,15 @@ def supports_method(
     """
     if capabilities is None:
         return True
+
     attribute = CAPABILITY_ATTRIBUTES.get(method)
     if attribute is None:
         return True
+
     value = getattr(capabilities, attribute, None)
     if method == lsp.COMPLETION_ITEM_RESOLVE:
         return bool(value and getattr(value, "resolve_provider", False))
+
     return bool(value)
 
 
@@ -133,6 +137,7 @@ class ProviderConfigAccessor(SpyderConfigurationAccessor):
         """Prefix ``option`` with the provider's namespace."""
         if isinstance(option, tuple):
             return ("providers", self.provider_name, "values", *option)
+
         return ("providers", self.provider_name, "values", option)
 
     def _resolve(self, option, section):
@@ -140,6 +145,7 @@ class ProviderConfigAccessor(SpyderConfigurationAccessor):
         namespace. ``section="language_services"`` names plugin options."""
         if section is None:
             return self.wrap_option(option), CONF_SECTION
+
         return option, section
 
     def get_conf(self, option, default=NoDefault, section=None, secure=False):
@@ -177,6 +183,7 @@ class ProviderConfigAccessor(SpyderConfigurationAccessor):
                 CONF_SECTION, ("providers", self.provider_name, "values"), {}
             )
             return list(values)
+
         return CONF.options(section)
 
 
@@ -209,9 +216,11 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
     """``(option, default)`` pairs stored in the provider's namespace."""
 
     CONF_VERSION: str = "0.1.0"
-    """Version of :attr:`CONF_DEFAULTS`, using semantic versioning. Bump the
-    minor version when a default changes. Bump the major version when an
-    option is removed or renamed."""
+    """Version of :attr:`CONF_DEFAULTS`, using semantic versioning.
+
+    Bump the minor version when a default changes. Bump the major version when
+    an option is removed or renamed.
+    """
 
     CONF_TABS: list[type[SpyderPreferencesTab]] = []
     """Preference tabs shown in the plugin's configuration page."""
@@ -301,10 +310,12 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
         plugin: spyder.plugins.languageservices.plugin.LanguageServices | None
             Plugin owning the provider (``None`` in tests).
         config: ProviderConfigAccessor | None
-            Custom configuration accessor, defaults to ``ProviderConfigAccessor(self.NAME)``.
+            Custom configuration accessor, defaults to
+            ``ProviderConfigAccessor(self.NAME)``.
         """
         if not self.NAME:
             raise TypeError(f"{type(self).__name__} must define NAME")
+
         QObject.__init__(self, plugin)
         self.plugin = plugin
         self.config = (
@@ -319,12 +330,15 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
             static_attr = inspect.getattr_static(self, method_name, None)
             if not hasattr(static_attr, "_conf_listen"):
                 continue
+
             method = getattr(self, method_name, None)
             if not hasattr(method, "_conf_listen"):
                 continue
+
             info = method._conf_listen
             if len(info) > 1:
                 self._multi_option_listeners |= {method_name}
+
             for section, option in info:
                 if section is None:
                     section = CONF_SECTION
@@ -332,6 +346,7 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
                         option = ("providers", self.NAME, "values")
                     else:
                         option = self.config.wrap_option(option)
+
                 self._add_listener(method_name, option, section)
 
     # ---- Convenience -----------------------------------------------------
@@ -345,7 +360,7 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
 
     # ---- Lifecycle -------------------------------------------------------
     def supported_languages(self) -> frozenset[Language]:
-        """Languages the provider currently serves. Required.
+        """Languages the provider currently serves (required).
 
         The result may change while the provider runs (e.g. once a language
         server reports the languages it handles). Emit
@@ -353,7 +368,9 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
         """
         raise NotImplementedError
 
-    def capabilities(self, language: Language) -> lsp.ServerCapabilities | None:
+    def capabilities(
+        self, language: Language
+    ) -> lsp.ServerCapabilities | None:
         """Capabilities for ``language``. ``None`` means unknown."""
         return None
 

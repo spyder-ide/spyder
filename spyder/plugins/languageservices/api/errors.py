@@ -4,11 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Exceptions raised by the language services API."""
+"""Exceptions raised by the Language services API."""
 
 
 class LanguageServicesError(Exception):
-    """Base class for every error raised by the language services API."""
+    """Base class for every error raised by the Language services API."""
 
 
 class UnknownLanguageError(LanguageServicesError, LookupError):

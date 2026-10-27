@@ -27,6 +27,7 @@ from spyder.plugins.languageservices.providers.lsp.provider import (
 )
 from spyder.plugins.languageservices.services import LanguageServicesAPI
 
+
 pytestmark = pytest.mark.order(3)
 
 PYLSP_SETTINGS = {
@@ -82,6 +83,7 @@ def did_open(uri, text):
 
 
 class Recorder:
+
     def __init__(self, signal):
         self.calls = []
         signal.connect(lambda *args: self.calls.append(args))
@@ -92,6 +94,7 @@ async def wait_until(predicate, timeout=30):
         if predicate():
             return
         await asyncio.sleep(0.05)
+
     raise TimeoutError("Condition not met")
 
 
@@ -106,12 +109,14 @@ def test_pylsp_from_config(stdio, tmp_path):
     async def scenario():
         await api.start_provider(provider.NAME)
         assert provider.server_status("py") is ProviderStatus.STOPPED
+
         await api.start_language(Language.PYTHON)
         assert provider.server_status("py") is ProviderStatus.READY
         assert [s for _, s in statuses.calls] == [
             ProviderStatus.STARTING, ProviderStatus.READY
         ]
         assert api.is_language_supported(Language.PYTHON)
+
         capabilities = api.capabilities(Language.PYTHON)
         assert capabilities.completion_provider is not None
         assert "." in capabilities.completion_provider.trigger_characters
@@ -179,6 +184,7 @@ def test_pylsp_from_config(stdio, tmp_path):
 
         await api.stop_provider(provider.NAME)
         assert provider.server_status("py") is ProviderStatus.STOPPED
+
         # Diagnostics are cleared when the server stops
         assert diagnostics.calls[-1][0].diagnostics == []
 
@@ -197,6 +203,7 @@ def test_two_servers_for_one_language(tmp_path):
         await api.start_provider(provider.NAME)
         await api.start_language(Language.PYTHON)
         assert provider.servers_for(Language.PYTHON) == ["first", "second"]
+
         for name in ("first", "second"):
             assert provider.server_status(name) is ProviderStatus.READY
 
@@ -208,6 +215,7 @@ def test_two_servers_for_one_language(tmp_path):
             )
         )
         labels = [item.label for item in items]
+
         # Duplicates from the second server are dropped by the merge
         assert labels.count("os") == 1
 
@@ -299,6 +307,7 @@ def test_language_detection_from_registrations(tmp_path):
 
 
 class _FakeConnection:
+
     def __init__(self):
         self.name = "fake"
         self.initialized = True

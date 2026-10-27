@@ -30,6 +30,7 @@ from spyder.plugins.languageservices.services import (
     merge_capabilities,
 )
 
+
 URI = "file:///a.py"
 RANGE = lsp.Range(lsp.Position(0, 0), lsp.Position(0, 1))
 
@@ -62,6 +63,7 @@ class FakeProvider(LanguageServicesProvider):
         self.closed = []
         self.started = False
         self.capability_queries = 0
+
         super().__init__(None, ProviderConfigAccessor(name))
 
     def supported_languages(self):
@@ -85,10 +87,13 @@ class FakeProvider(LanguageServicesProvider):
 
     async def _answer(self, method, params, result):
         self.calls.append(method)
+
         if self._delay:
             await asyncio.sleep(self._delay)
+
         if self._error is not None:
             raise self._error
+
         return result
 
     async def completion(self, params):
@@ -103,12 +108,16 @@ class FakeProvider(LanguageServicesProvider):
 
     async def formatting(self, params):
         return await self._answer(
-            "formatting", params, [lsp.TextEdit(range=RANGE, new_text=self.NAME)]
+            "formatting",
+            params,
+            [lsp.TextEdit(range=RANGE, new_text=self.NAME)],
         )
 
     async def resolve_completion_item(self, item):
         return await self._answer(
-            "resolve", item, lsp.CompletionItem(label=f"{item.label}:{self.NAME}")
+            "resolve",
+            item,
+            lsp.CompletionItem(label=f"{item.label}:{self.NAME}"),
         )
 
 
@@ -173,6 +182,7 @@ async def setup_api(api, *providers, open_doc=True):
     for provider in providers:
         api.register_provider(provider)
         await api.start_provider(provider.NAME)
+
     if open_doc:
         await api.open_document(did_open())
 
@@ -180,13 +190,17 @@ async def setup_api(api, *providers, open_doc=True):
 def test_register_and_unregister(api):
     p = api.register_provider(FakeProvider("a"))
     assert api.get_provider("a") is p
+
     with pytest.raises(ProviderAlreadyRegisteredError):
         api.register_provider(FakeProvider("a"))
+
     with pytest.raises(ProviderNotFoundError):
         api.get_provider("zzz")
+
     asyncio.run(api.start_provider("a"))
     with pytest.raises(ProviderError):
         api.unregister_provider("a")
+
     asyncio.run(api.stop_provider("a"))
     assert api.unregister_provider("a") is p
     assert api.provider_names() == []
@@ -194,6 +208,7 @@ def test_register_and_unregister(api):
 
 def test_request_requires_open_document(api):
     asyncio.run(setup_api(api, FakeProvider("a"), open_doc=False))
+
     with pytest.raises(DocumentNotOpenError):
         asyncio.run(api.completion(completion_params()))
 
@@ -204,9 +219,12 @@ def test_completion_is_merged_in_priority_order(api):
             api,
             FakeProvider("low", priority=200, completions=["b", "c"]),
             FakeProvider("high", priority=10, completions=["a", "b"]),
-            FakeProvider("rust", languages=(Language.RUST,), completions=["z"]),
+            FakeProvider(
+                "rust", languages=(Language.RUST,), completions=["z"]
+            ),
         )
     )
+
     items = asyncio.run(api.completion(completion_params()))
     assert [(i.label, i.data["provider"]) for i in items] == [
         ("a", "high"), ("b", "high"), ("c", "low")
@@ -228,8 +246,11 @@ def test_hover_first_non_none(api):
 
 def test_exclusive_uses_highest_priority_or_selected(api):
     asyncio.run(
-        setup_api(api, FakeProvider("a", priority=1), FakeProvider("b", priority=2))
+        setup_api(
+            api, FakeProvider("a", priority=1), FakeProvider("b", priority=2)
+        )
     )
+
     edits = asyncio.run(api.formatting(formatting_params()))
     assert [e.new_text for e in edits] == ["a"]
     assert api.get_provider("b").calls == []
@@ -251,6 +272,7 @@ def test_unselected_provider_is_skipped(api):
             FakeProvider("b", priority=2, completions=["b"]),
         )
     )
+
     api.conf[("request_policies", "completion")] = {"providers": ["b"]}
     items = asyncio.run(api.completion(completion_params()))
     assert [i.label for i in items] == ["b"]
@@ -264,6 +286,7 @@ def test_merge_order_overrides_global_priority(api):
             FakeProvider("b", priority=2, completions=["b"]),
         )
     )
+
     api.conf[("request_policies", "completion")] = {"providers": ["b", "a"]}
     items = asyncio.run(api.completion(completion_params()))
     assert [i.label for i in items] == ["b", "a"]
@@ -273,6 +296,7 @@ def test_disabled_feature_is_unanswered(api):
     asyncio.run(
         setup_api(api, FakeProvider("a", priority=1, completions=["a"]))
     )
+
     api.conf[("request_policies", "completion")] = {"enabled": False}
     assert asyncio.run(api.completion(completion_params())) is None
 
@@ -285,6 +309,7 @@ def test_timeout_drops_slow_provider(api):
             FakeProvider("fast", priority=2, completions=["f"]),
         )
     )
+
     api.conf["request_timeout_ms"] = 50
     items = asyncio.run(api.completion(completion_params()))
     assert [i.label for i in items] == ["f"]
@@ -298,10 +323,12 @@ def test_exception_is_reported_and_others_survive(api):
             FakeProvider("good", priority=2, completions=["g"]),
         )
     )
+
     errors = Recorder(api.sig_exception_occurred)
     items = asyncio.run(api.completion(completion_params()))
     assert [i.label for i in items] == ["g"]
     assert len(errors.calls) == 1
+
     report = errors.calls[0][0]
     assert report["is_traceback"] and "boom" in report["text"]
     assert "'bad'" in report["title"]
@@ -315,6 +342,7 @@ def test_cancellation_propagates_to_providers(api):
         task = asyncio.ensure_future(api.completion(completion_params()))
         await asyncio.sleep(0.05)
         task.cancel()
+
         with pytest.raises(asyncio.CancelledError):
             await task
 
@@ -332,14 +360,23 @@ def test_resolve_routes_to_stamped_provider(api):
     asyncio.run(
         setup_api(
             api,
-            FakeProvider("a", priority=1, completions=["x"], capabilities=no_resolve_caps), 
-            FakeProvider("b", priority=2, completions=["y"], capabilities=resolve_caps)
+            FakeProvider(
+                "a",
+                priority=1,
+                completions=["x"],
+                capabilities=no_resolve_caps,
+            ),
+            FakeProvider(
+                "b", priority=2, completions=["y"], capabilities=resolve_caps
+            ),
         )
     )
+
     items = asyncio.run(api.completion(completion_params()))
     assert asyncio.run(api.resolve_completion_item(items[0])) is None
     assert asyncio.run(api.resolve_completion_item(items[1])).label == "y:b"
     assert api.get_provider("a").calls == ['completion']
+
     unstamped = lsp.CompletionItem(label="x")
     assert asyncio.run(api.resolve_completion_item(unstamped)) is None
 
@@ -428,14 +465,23 @@ def test_capabilities_and_language_lifecycle(api):
     assert changed.calls[-1] == (Language.PYTHON, merged)
 
     # Only providers whose capabilities allow a method receive it
-    assert [p.NAME for p in api.providers_for(
-        Language.PYTHON, lsp.TEXT_DOCUMENT_FORMATTING)] == ["b"]
-    assert [p.NAME for p in api.providers_for(
-        Language.PYTHON, lsp.TEXT_DOCUMENT_HOVER)] == ["a"]
+    assert [
+        p.NAME
+        for p in api.providers_for(
+            Language.PYTHON, lsp.TEXT_DOCUMENT_FORMATTING
+        )
+    ] == ["b"]
+    assert [
+        p.NAME
+        for p in api.providers_for(Language.PYTHON, lsp.TEXT_DOCUMENT_HOVER)
+    ] == ["a"]
 
     asyncio.run(api.stop_provider("b"))
-    assert api.capabilities(Language.PYTHON).document_formatting_provider is None
+    assert (
+        api.capabilities(Language.PYTHON).document_formatting_provider is None
+    )
     assert stopped.calls == []
+
     asyncio.run(api.stop_provider("a"))
     assert stopped.calls == [(Language.PYTHON,)]
     assert changed.calls[-1] == (Language.PYTHON, None)
@@ -533,12 +579,14 @@ def priority_providers():
 def test_merged_capabilities_follow_priority_for_any_start_order(api, order):
     providers = priority_providers()
     started = [providers[index] for index in order]
+
     for provider in started:
         others = [p for p in providers if p is not provider]
         queries = [p.capability_queries for p in others]
         api.register_provider(provider)
         asyncio.run(api.start_provider(provider.NAME))
         assert [p.capability_queries for p in others] == queries
+
     assert api.capabilities(Language.PYTHON) == merge_capabilities(
         [p._capabilities for p in providers]
     )
@@ -674,6 +722,7 @@ def test_dropping_a_language_never_announced_leaves_nothing_behind(api):
 
     p._languages = frozenset({Language.PYTHON, Language.RUST})
     assert api.capabilities(Language.RUST) is not None
+
     p._languages = frozenset({Language.PYTHON})
     p.sig_capabilities_changed.emit(Language.RUST)
     assert api.capabilities(Language.RUST) is None
@@ -688,6 +737,7 @@ def test_failed_announce_keeps_announced_languages_tracked(api):
                 self.gained += 1
                 if self.gained == 2:
                     raise RuntimeError("no capabilities")
+
             return super().capabilities(language)
 
         async def start_language(self, language):
@@ -705,6 +755,7 @@ def test_failed_announce_keeps_announced_languages_tracked(api):
 
     with pytest.raises(RuntimeError, match="no capabilities"):
         asyncio.run(api.start_language(Language.RUST))
+
     announced = [language for language, merged in changed.calls if merged]
     assert len(announced) == 1
 
@@ -720,14 +771,18 @@ def test_start_failure_is_reported(api):
 
     api.register_provider(Broken("broken"))
     errors = Recorder(api.sig_exception_occurred)
+
     with pytest.raises(RuntimeError):
         asyncio.run(api.start_provider("broken"))
+
     assert not api.is_started("broken")
     assert "cannot start" in errors.calls[0][0]["text"]
 
 
 def test_merge_capabilities_none():
     assert merge_capabilities([None, None]) is None
-    merged = merge_capabilities([None, lsp.ServerCapabilities(hover_provider=True)])
+    merged = merge_capabilities(
+        [None, lsp.ServerCapabilities(hover_provider=True)]
+    )
     assert merged.hover_provider is True
     assert merged.completion_provider is None

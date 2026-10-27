@@ -47,16 +47,22 @@ def partial(start, end, text):
 def test_apply_content_change_incremental_utf16():
     text = "a😀b\ncd\n"
     assert utf16_len("😀") == 2
+
     # Replace "b" (after the two-unit emoji) with "X"
     assert apply_content_change(text, partial((0, 3), (0, 4), "X")) == (
         "a😀X\ncd\n"
     )
+
     # Join the two lines
-    assert apply_content_change(text, partial((0, 4), (1, 0), "")) == "a😀bcd\n"
+    assert apply_content_change(text, partial((0, 4), (1, 0), "")) == (
+        "a😀bcd\n"
+    )
+
     # Insert at end of document
     assert apply_content_change(text, partial((2, 0), (2, 0), "e")) == (
         "a😀b\ncd\ne"
     )
+
     whole = lsp.TextDocumentContentChangeWholeDocument(text="new")
     assert apply_content_change(text, whole) == "new"
     with pytest.raises(ValueError):
@@ -100,10 +106,13 @@ def test_open_language_override_and_errors():
     assert registry.open(did_open(language_id="python")).language is (
         Language.PYTHON
     )
+
     doc = registry.open(did_open("file:///b.ipy"), language=Language.IPYTHON)
     assert doc.language is Language.IPYTHON
+
     with pytest.raises(UnknownLanguageError):
         registry.open(did_open("file:///c", language_id="klingon"))
+
     with pytest.raises(ValueError):
         registry.open(did_open("file:///d"), language=Language.RUST)
 

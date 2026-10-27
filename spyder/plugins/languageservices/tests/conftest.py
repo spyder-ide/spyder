@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Fixtures for the language services plugin tests."""
+"""Fixtures for the Language services plugin tests."""
 
 import pytest
 
@@ -19,8 +19,10 @@ def plugins_cls():
 
 @pytest.fixture(autouse=True)
 def no_entry_point_providers(monkeypatch):
-    """Keep the plugin free of the built-in providers (they start language
-    servers). Tests register the providers they need."""
+    """
+    Keep the plugin free of the built-in providers (they start language
+    servers). Tests register the providers they need.
+    """
     monkeypatch.setattr(
         "spyder.plugins.languageservices.plugin.entry_points",
         lambda group: [],

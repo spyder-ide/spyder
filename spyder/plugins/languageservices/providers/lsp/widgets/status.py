@@ -20,6 +20,7 @@ from spyder.api.widgets.status import StatusBarWidget
 from spyder.plugins.languageservices.api.provider import ProviderStatus
 from spyder.utils.stylesheet import MAC, WIN
 
+
 STATUS_LABELS = {
     ProviderStatus.STARTING: _("starting"),
     ProviderStatus.READY: _("ready"),
@@ -69,7 +70,9 @@ class LSPStatusWidget(StatusBarWidget):
         restart_action = self.create_action(
             "restart_server",
             text=text,
-            triggered=lambda: dispatch(self.provider.restart_language)(language),
+            triggered=lambda: dispatch(self.provider.restart_language)(
+                language
+            ),
             register_action=False,
         )
         self.add_item_to_menu(restart_action, self.menu)
@@ -133,6 +136,7 @@ class LSPStatusWidget(StatusBarWidget):
         if language is None or not self.provider.servers_for(language):
             self.setVisible(False)
             return
+
         status = self._statuses.get(language, ProviderStatus.STARTING)
         self.set_status(status, language)
         self.setVisible(True)

@@ -24,6 +24,7 @@ from typing import Dict, Optional
 import uuid
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
@@ -41,8 +42,6 @@ from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
-from lsprotocol import types as lsp
-
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
@@ -60,14 +59,14 @@ from spyder.plugins.editor.widgets.codeeditor import (
 )
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
-from spyder.plugins.languageservices.api.languages import Language
-from spyder.plugins.languageservices.api.uri import uri_as_path
 from spyder.plugins.editor.widgets.window import EditorMainWindow
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    update_bookmarks)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
+from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.languageservices.api.uri import uri_as_path
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
@@ -1108,6 +1107,7 @@ class EditorMainWidget(PluginMainWidget):
             index = editorstack.has_filename(filename)
             if index is None:
                 continue
+
             editor = editorstack.tabs.widget(index)
             editor.handle_response(
                 lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, params.diagnostics

@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field, replace
 from typing import Any
 
+
 AUTO_LANGUAGES = "auto"
 """``languages`` value for auto-detection, see :class:`LanguageServerClientProvider`."""
 
@@ -54,10 +55,12 @@ class ServerConfig:
     def __post_init__(self):
         if not self.name:
             raise ValueError("A server needs a name")
+
         if self.stdio and self.external:
             raise ValueError(
                 f"Server {self.name!r} cannot use stdio and be external"
             )
+
         if self.languages != AUTO_LANGUAGES:
             object.__setattr__(self, "languages", tuple(self.languages))
 
@@ -76,8 +79,10 @@ class ServerConfig:
         """Configuration representation (JSON compatible)."""
         data = asdict(self)
         data.pop("name")
+
         if isinstance(data["languages"], tuple):
             data["languages"] = list(data["languages"])
+
         return data
 
     @classmethod
@@ -89,6 +94,7 @@ class ServerConfig:
             raise ValueError(
                 f"Server {name!r} has unknown options: {sorted(unknown)}"
             )
+
         return cls(name=name, **data)
 
     def with_changes(self, **changes) -> ServerConfig:

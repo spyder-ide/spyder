@@ -16,6 +16,7 @@ class SpyderSymbolKind(IntEnum):
 
     #: Block comments shown in the outline explorer.
     BlockComment = 224
+
     #: Code cells shown in the outline explorer.
     Cell = 225
 

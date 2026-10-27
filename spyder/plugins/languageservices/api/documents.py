@@ -44,6 +44,7 @@ def utf16_offset_to_index(line: str, character: int) -> int:
         if units >= character:
             return index
         units += 2 if ord(ch) > 0xFFFF else 1
+
     return len(line)
 
 
@@ -52,6 +53,7 @@ def _split_lines(text: str) -> list[str]:
     lines = text.splitlines(keepends=True)
     if not lines or text.endswith(("\n", "\r")):
         lines.append("")
+
     return lines
 
 
@@ -60,9 +62,11 @@ def offset_at(text: str, position: lsp.Position) -> int:
     lines = _split_lines(text)
     if position.line >= len(lines):
         return len(text)
+
     line = lines[position.line]
     content = line.rstrip("\r\n")
     start = sum(len(prev) for prev in lines[: position.line])
+
     return start + utf16_offset_to_index(content, position.character)
 
 
@@ -73,12 +77,14 @@ def apply_content_change(
     change_range = getattr(change, "range", None)
     if change_range is None:
         return change.text
+
     start = offset_at(text, change_range.start)
     end = offset_at(text, change_range.end)
     if end < start:
         raise ValueError(
             f"Change range ends before it starts: {change_range}"
         )
+
     return text[:start] + change.text + text[end:]
 
 
@@ -129,18 +135,23 @@ class DocumentRegistry:
         item = params.text_document
         if language is None:
             language = Language.find(language_id=item.language_id)
+
         if language is None:
             raise UnknownLanguageError(
                 f"Cannot open {item.uri!r}: unknown language_id "
                 f"{item.language_id!r}"
             )
+
+
         if language.language_id != item.language_id:
             raise ValueError(
                 f"{language!r} does not use language_id "
                 f"{item.language_id!r}"
             )
+
         document = OpenDocument(item.uri, language, item.version)
         self.documents[item.uri] = document
+
         return document
 
     def change(self, params: lsp.DidChangeTextDocumentParams) -> OpenDocument:
@@ -156,8 +167,10 @@ class DocumentRegistry:
         uri = params.text_document.uri
         document = self.get(uri)
         del self.documents[uri]
+
         for key in [key for key in self.diagnostics if key[0] == uri]:
             del self.diagnostics[key]
+
         return document
 
     def get(self, uri: str) -> OpenDocument:
@@ -188,7 +201,9 @@ class DocumentRegistry:
         else:
             self.diagnostics.pop((uri, provider), None)
 
-    def diagnostics_for(self, uri: str) -> list[tuple[str, list[lsp.Diagnostic]]]:
+    def diagnostics_for(
+        self, uri: str
+    ) -> list[tuple[str, list[lsp.Diagnostic]]]:
         """``[(provider NAME, diagnostics)]`` recorded for ``uri``."""
         return [
             (provider, diagnostics)
@@ -203,6 +218,7 @@ class DocumentRegistry:
         languages) and return the uris that had some."""
         wanted = None if languages is None else frozenset(languages)
         cleared = []
+
         for key in list(self.diagnostics):
             uri, name = key
             if name != provider:
@@ -213,4 +229,5 @@ class DocumentRegistry:
                     continue
             del self.diagnostics[key]
             cleared.append(uri)
+
         return cleared

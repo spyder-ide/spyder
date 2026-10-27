@@ -18,6 +18,7 @@ from spyder.plugins.languageservices.api.provider import (
 from spyder.plugins.languageservices.plugin import LanguageServices
 from spyder.plugins.languageservices.services import LANGUAGE_SERVICES_LOOP
 
+
 URI = "file:///plugin_test.py"
 
 
@@ -54,7 +55,9 @@ class EchoProvider(LanguageServicesProvider):
 def provider(language_services, qtbot):
     provider = language_services.register_provider(EchoProvider)
     qtbot.waitUntil(lambda: language_services.is_provider_started("echo"))
+
     yield provider
+
     language_services.unregister_provider("echo")
 
 
@@ -74,6 +77,7 @@ def test_provider_registration_and_config(language_services, provider):
     assert stored["values"] == {"greeting": "hi", "count": 1}
     assert stored["enable"] is True
     assert provider.get_conf("greeting") == "hi"
+
     provider.set_conf("greeting", "hello")
     assert CONF.get(
         "language_services", ("providers", "echo", "values", "greeting")
@@ -93,6 +97,7 @@ def test_completion_request_through_plugin(language_services, provider, qtbot):
         text_document=lsp.TextDocumentIdentifier(URI),
         position=lsp.Position(0, 0),
     )
+
     # Coroutine API
     items = run(language_services.services_api.completion, params)
     assert [i.label for i in items] == ["hi"]

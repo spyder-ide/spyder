@@ -43,6 +43,7 @@ class TableHost(QWidget):
     def get_option(self, option, default=None, section=None):
         if option == "servers":
             return self.servers
+
         return get_option(option, default, section)
 
 
@@ -67,6 +68,7 @@ def test_editor_opens_blank_for_new_server(qtbot):
     assert editor.name_input.text() == ""
     assert editor.host_input.text() == "127.0.0.1"
     assert editor.port_spinner.value() == 2084
+
     # An empty name is invalid, so the dialog cannot be accepted yet.
     assert not editor.button_ok.isEnabled()
 
@@ -105,6 +107,7 @@ def test_editor_options_keep_hidden_fields(qtbot):
     editor.auto_languages_cb.setChecked(False)
     check_language(editor, "rust")
     options = editor.get_options()
+
     assert options.name == "renamed"
     assert options.languages == ("rust",)
     assert options.python_module
@@ -161,9 +164,11 @@ def test_editor_keeps_unknown_configured_language(qtbot):
     qtbot.addWidget(editor)
 
     assert not editor.auto_languages_cb.isChecked()
+
     # Configured languages are listed first so they are visible.
     first = [editor.languages_list.item(row).text() for row in range(2)]
     assert first == ["Rust", "zig"]
+
     items = language_items(editor)
     assert items["zig"].text() == "zig"
     assert set(editor.selected_languages()) == {"rust", "zig"}

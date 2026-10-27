@@ -43,12 +43,13 @@ from spyder.plugins.languageservices.api.provider import FEATURE_METHODS
 from spyder.plugins.languageservices.api.uri import path_as_uri, uri_as_path
 from spyder.utils import sourcecode
 
+
 if typ.TYPE_CHECKING:
-    from spyder.plugins.languageservices.plugin import LanguageServices
     from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
         EditBlock,
         TextDelta,
     )
+    from spyder.plugins.languageservices.plugin import LanguageServices
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ PLUGIN_METHODS = {
 
 
 def request(req=None, method=None, requires_response=True):
-    """Call ``req`` and send its result to the language services plugin."""
+    """Call ``req`` and send its result to the Language services plugin."""
     if req is None:
         return functools.partial(
             request, method=method, requires_response=requires_response
@@ -77,6 +78,7 @@ def request(req=None, method=None, requires_response=True):
     def wrapper(self, *args, **kwargs):
         if not self.completions_available:
             return
+
         params = req(self, *args, **kwargs)
         if params is not None:
             self.emit_request(method, params, requires_response)
@@ -101,6 +103,7 @@ def class_register(cls):
         method = getattr(cls, method_name)
         if hasattr(method, "_handle"):
             cls.handler_registry[method._handle] = method_name
+
     return cls
 
 
@@ -391,10 +394,10 @@ class LSPMixin:
         return Language.find(name=self.language)
 
     def emit_request(self, method, params, requires_response):
-        """Send a request or notification to the language services plugin.
+        """Send a request or notification to the Language services plugin.
 
         A new request cancels the previous in-flight request of the same
-        method. Answers reach :meth:`handle_response` on the Qt thread.
+        method. Also, it answers each :meth:`handle_response` on the Qt thread.
         """
         plugin = self.language_services
         if plugin is None:
@@ -411,6 +414,7 @@ class LSPMixin:
             def on_notification_done(future: DispatcherFuture):
                 if future.cancelled():
                     return
+
                 exc = future.exception()
                 if exc is not None:
                     self._report_request_error(method, exc)
@@ -432,13 +436,16 @@ class LSPMixin:
             if future.cancelled():
                 self._release_in_flight(method)
                 return
+
             if self._futures.get(method) is future:
                 del self._futures[method]
+
             exc = future.exception()
             if exc is not None:
                 self._release_in_flight(method)
                 self._report_request_error(method, exc)
                 return
+
             try:
                 self.handle_response(method, future.result())
             except RuntimeError:
@@ -448,8 +455,11 @@ class LSPMixin:
         future.connect(on_response)
 
     def _release_in_flight(self, method):
-        """Drop one tracked in-flight request that did not reach
-        handle_response (only WHOLE_DOCUMENT_REQUESTS are tracked)."""
+        """
+        Drop one tracked in-flight request that did not reach handle_response
+
+        Only WHOLE_DOCUMENT_REQUESTS are tracked.
+        """
         in_flight = self._requests_in_flight.get(method, 0)
         if in_flight:
             self._requests_in_flight[method] = in_flight - 1
@@ -459,6 +469,7 @@ class LSPMixin:
             # The document was closed while the request was in flight.
             logger.debug("%s for closed document: %s", method, exc)
             return
+
         raise LSPHandleError(
             f"Error while handling {method} for {self.filename}"
         ) from exc
@@ -592,6 +603,7 @@ class LSPMixin:
     def _cancel_pending_futures(self):
         for future in self._futures.values():
             future.cancel()
+
         self._futures.clear()
 
     @request(method=lsp.TEXT_DOCUMENT_DID_OPEN, requires_response=False)
@@ -627,9 +639,11 @@ class LSPMixin:
         if self.is_ipython():
             # Send valid python text to LSP as it doesn't support IPython
             text = self.ipython_to_python(text)
+
         language = self.document_language()
         if language is None:
             return None
+
         return lsp.DidOpenTextDocumentParams(
             text_document=lsp.TextDocumentItem(
                 uri=self.document_uri,
@@ -1200,14 +1214,18 @@ class LSPMixin:
         """Plain/markdown text of an LSP hover answer."""
         if hover is None:
             return ""
+
         raw = hover.contents
         entries = raw if isinstance(raw, (list, tuple)) else [raw]
         parts = []
         for entry in entries:
-            if isinstance(entry, (lsp.MarkupContent, lsp.MarkedStringWithLanguage)):
+            if isinstance(
+                entry, (lsp.MarkupContent, lsp.MarkedStringWithLanguage)
+            ):
                 parts.append(entry.value)
             else:
                 parts.append(str(entry))
+
         return "\n\n".join(part for part in parts if part)
 
     @handles(lsp.TEXT_DOCUMENT_HOVER)
@@ -1288,6 +1306,7 @@ class LSPMixin:
         try:
             if isinstance(position, list):
                 position = position[0] if position else None
+
             if position is not None:
                 if isinstance(position, lsp.Location):
                     uri = position.uri
@@ -1297,6 +1316,7 @@ class LSPMixin:
                     start = position.target_range.start
                 else:
                     return
+
                 file_path = uri_as_path(uri)
                 if self.filename == file_path:
                     self.go_to_line(
@@ -1368,6 +1388,7 @@ class LSPMixin:
             if using_spaces
             else self.tab_stop_width_spaces
         )
+
         return lsp.FormattingOptions(
             tab_size=tab_size,
             insert_spaces=using_spaces,
@@ -1588,7 +1609,9 @@ class LSPMixin:
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
+
         self.folding_sync_version = self.text_version
+
         return lsp.FoldingRangeParams(
             text_document=lsp.TextDocumentIdentifier(uri=self.document_uri)
         )

@@ -51,15 +51,17 @@ from spyder.plugins.languageservices.api.provider import (
     FEATURE_METHODS,
     LanguageServicesProvider,
     ProviderConfigAccessor,
-    ProviderStatus,
     supports_method,
 )
+
 
 logger = logging.getLogger(__name__)
 
 LANGUAGE_SERVICES_LOOP = "language_services"
-"""Identifier of the :class:`~spyder.api.asyncdispatcher.AsyncDispatcher`
-loop running provider coroutines."""
+"""
+Identifier of the :class:`~spyder.api.asyncdispatcher.AsyncDispatcher` loop
+running provider coroutines.
+"""
 
 DEFAULT_REQUEST_TIMEOUT_MS = 5000
 
@@ -80,6 +82,7 @@ def exception_report(
 ) -> dict[str, Any]:
     """Error data for ``sig_exception_occurred`` (see the error dialog)."""
     text = "".join(traceback.format_exception(exc))
+
     return {
         "text": text,
         "is_traceback": True,
@@ -97,10 +100,12 @@ def _union_lists(values: Iterable[list | None]) -> list | None:
     for value in values:
         if value is None:
             continue
+
         found = True
         for item in value:
             if item not in merged:
                 merged.append(item)
+
     return merged if found else None
 
 
@@ -109,9 +114,11 @@ def _merge_option(attribute: str, values: list[Any]) -> Any:
     truthy = [value for value in values if value]
     if not truthy:
         return None
+
     objects = [value for value in truthy if not isinstance(value, bool)]
     if not objects:
         return True
+
     first = objects[0]
     if attribute == "completion_provider":
         return attrs.evolve(
@@ -126,6 +133,7 @@ def _merge_option(attribute: str, values: list[Any]) -> Any:
                 getattr(o, "resolve_provider", False) for o in objects
             ),
         )
+
     if attribute == "signature_help_provider":
         return attrs.evolve(
             first,
@@ -136,14 +144,17 @@ def _merge_option(attribute: str, values: list[Any]) -> Any:
                 getattr(o, "retrigger_characters", None) for o in objects
             ),
         )
+
     return first
 
 
 def _sync_kind(value: Any) -> lsp.TextDocumentSyncKind | None:
     if value is None:
         return None
+
     if isinstance(value, lsp.TextDocumentSyncOptions):
         return value.change
+
     return lsp.TextDocumentSyncKind(value)
 
 
@@ -160,11 +171,13 @@ def merge_capabilities(
     known = [c for c in capabilities if c is not None]
     if not known:
         return None
+
     merged: dict[str, Any] = {}
     for attribute in set(CAPABILITY_ATTRIBUTES.values()):
         merged[attribute] = _merge_option(
             attribute, [getattr(c, attribute, None) for c in known]
         )
+
     kinds = [_sync_kind(c.text_document_sync) for c in known]
     kinds = [k for k in kinds if k is not None]
     sync = None
@@ -174,6 +187,7 @@ def merge_capabilities(
         sync = lsp.TextDocumentSyncKind.Full
     elif kinds:
         sync = lsp.TextDocumentSyncKind.None_
+
     return lsp.ServerCapabilities(
         position_encoding=lsp.PositionEncodingKind.Utf16,
         text_document_sync=sync,
@@ -184,13 +198,17 @@ def merge_capabilities(
 def _merge_served(
     capabilities: list[lsp.ServerCapabilities | None],
 ) -> lsp.ServerCapabilities:
-    """Merged capabilities of a served language. Empty when its providers
-    report none."""
+    """
+    Merged capabilities of a served language.
+
+    Empty when its providers report None.
+    """
     merged = merge_capabilities(capabilities)
     if merged is None:
         merged = lsp.ServerCapabilities(
             position_encoding=lsp.PositionEncodingKind.Utf16
         )
+
     return merged
 
 
@@ -198,12 +216,17 @@ def _merge_served(
 @dataclass
 class _ProviderState:
     provider: LanguageServicesProvider
+
     started: bool = False
+
     capabilities: dict[Language, lsp.ServerCapabilities | None] = field(
         default_factory=dict
     )
-    """Capabilities the provider last announced, by language. The merged
-    capabilities are built from these."""
+    """
+    Capabilities the provider last announced, by language.
+
+    The merged capabilities are built from these.
+    """
 
 
 def _merge_order(state: _ProviderState) -> tuple[int, str]:
@@ -251,6 +274,7 @@ class LanguageServicesAPI(QObject):
         plugin: QObject | None = None,
     ):
         super().__init__(plugin)
+
         self.plugin = plugin
         self._get_conf = get_conf or (lambda option, default: default)
         self._providers: dict[str, _ProviderState] = {}
@@ -275,12 +299,14 @@ class LanguageServicesAPI(QObject):
             provider = provider(
                 self.plugin, ProviderConfigAccessor(provider.NAME)
             )
+
         with self._lock:
             if provider.NAME in self._providers:
                 raise ProviderAlreadyRegisteredError(
                     f"Provider {provider.NAME!r} is already registered"
                 )
             self._providers[provider.NAME] = _ProviderState(provider)
+
         self._connect_provider(provider)
         return provider
 
@@ -291,9 +317,11 @@ class LanguageServicesAPI(QObject):
             raise ProviderError(
                 f"Provider {name!r} must be stopped before unregistering"
             )
+
         self._disconnect_provider(state.provider)
         with self._lock:
             del self._providers[name]
+
         return state.provider
 
     def get_provider(self, name: str) -> LanguageServicesProvider:
@@ -323,7 +351,9 @@ class LanguageServicesAPI(QObject):
         # object's own signals get queued delivery to their thread as usual.
         direct = Qt.DirectConnection
         provider.sig_diagnostics.connect(
-            lambda params, p=provider: self._on_provider_diagnostics(p, params),
+            lambda params, p=provider: self._on_provider_diagnostics(
+                p, params
+            ),
             direct,
         )
         provider.sig_capabilities_changed.connect(
@@ -378,8 +408,10 @@ class LanguageServicesAPI(QObject):
         state = self._state(name)
         if state.started:
             return
+
         self._loop = asyncio.get_running_loop()
         provider = state.provider
+
         try:
             await provider.start()
         except Exception as exc:
@@ -388,6 +420,7 @@ class LanguageServicesAPI(QObject):
                 exception_report(name, "start", exc)
             )
             raise
+
         state.started = True
         self._announce_languages(state)
 
@@ -396,9 +429,11 @@ class LanguageServicesAPI(QObject):
         state = self._state(name)
         if not state.started:
             return
+
         provider = state.provider
         state.started = False
         self._announce_languages(state)
+
         try:
             await provider.stop()
         finally:
@@ -409,6 +444,7 @@ class LanguageServicesAPI(QObject):
         for state in self._sorted_states():
             if not state.started:
                 continue
+
             await state.provider.start_language(language)
             self._announce_languages(state)
 
@@ -417,6 +453,7 @@ class LanguageServicesAPI(QObject):
         for state in self._sorted_states():
             if not state.started:
                 continue
+
             await state.provider.stop_language(language)
             self._clear_provider_diagnostics(state.provider.NAME, {language})
             self._announce_languages(state)
@@ -426,8 +463,8 @@ class LanguageServicesAPI(QObject):
     ) -> None:
         """Bring the merged capabilities in line with what ``state`` serves.
 
-        ``language`` is one the provider just reported capabilities for.
-        Other languages it keeps serving are left as they are.
+        ``language`` is one the provider just reported capabilities for. Other
+        languages it keeps serving are left as they are.
         """
         provider = state.provider
         with self._lock:
@@ -437,10 +474,12 @@ class LanguageServicesAPI(QObject):
                 else frozenset()
             )
             changed = state.capabilities.keys() ^ served
+
         if language is not None:
             # First, so a failure in another language cannot drop the report.
             changed.discard(language)
             self._announce_language(state, language)
+
         for changed_language in changed:
             self._announce_language(state, changed_language)
 
@@ -464,7 +503,9 @@ class LanguageServicesAPI(QObject):
                 changed = self._withdraw(state, language)
             else:
                 return
+
             merged = self.capabilities(language)
+
         if changed:
             self.sig_capabilities_changed.emit(language, merged)
             if merged is None:
@@ -485,6 +526,7 @@ class LanguageServicesAPI(QObject):
         old = state.capabilities.get(language)
         if not gained and new == old:
             return False
+
         # The provider may change its object in place later.
         new = copy.deepcopy(new)
         alone = merge_capabilities([new])
@@ -498,6 +540,7 @@ class LanguageServicesAPI(QObject):
         first = all(order < other for other in others)
         last = all(order > other for other in others)
         state.capabilities[language] = new
+
         # Merging into the current capabilities equals merging everything
         # again when no provider sits on both sides of this one and ``new``
         # keeps all it announced before.
@@ -505,7 +548,9 @@ class LanguageServicesAPI(QObject):
             merged = _merge_served([new, current] if first else [current, new])
         else:
             merged = self._merge_contributions(language)
+
         self._merged_capabilities[language] = merged
+
         return gained or merged != current
 
     def _withdraw(self, state: _ProviderState, language: Language) -> bool:
@@ -522,13 +567,19 @@ class LanguageServicesAPI(QObject):
             for other in self._providers.values()
         ):
             return True
+
         merged = self._merge_contributions(language)
         self._merged_capabilities[language] = merged
+
         return merged != current
 
-    def _merge_contributions(self, language: Language) -> lsp.ServerCapabilities:
-        """Announced capabilities of every provider of ``language``, merged
-        in priority order."""
+    def _merge_contributions(
+        self, language: Language
+    ) -> lsp.ServerCapabilities:
+        """
+        Announced capabilities of every provider of ``language``, merged in
+        priority order.
+        """
         return _merge_served(
             [
                 state.capabilities[language]
@@ -544,6 +595,7 @@ class LanguageServicesAPI(QObject):
         for state in self._providers.values():
             if state.started:
                 languages |= state.provider.supported_languages()
+
         return frozenset(languages)
 
     def is_language_supported(self, language: Language) -> bool:
@@ -555,23 +607,31 @@ class LanguageServicesAPI(QObject):
     def providers_for(
         self, language: Language, method: str | None = None
     ) -> list[LanguageServicesProvider]:
-        """Started providers serving ``language`` (and ``method``), in
-        priority order."""
+        """
+        Started providers serving ``language`` (and ``method``), in priority
+        order.
+        """
         providers = []
         for state in self._sorted_states():
             provider = state.provider
             if not state.started:
                 continue
+
             if language not in provider.supported_languages():
                 continue
+
             if method is not None and not supports_method(
                 provider.capabilities(language), method
             ):
                 continue
+
             providers.append(provider)
+
         return providers
 
-    def capabilities(self, language: Language) -> lsp.ServerCapabilities | None:
+    def capabilities(
+        self, language: Language
+    ) -> lsp.ServerCapabilities | None:
         """Merged capabilities of the providers serving ``language``.
 
         ``None`` only when no started provider serves the language. Served
@@ -580,9 +640,11 @@ class LanguageServicesAPI(QObject):
         with self._lock:
             if language in self._merged_capabilities:
                 return self._merged_capabilities[language]
+
             providers = self.providers_for(language)
             if not providers:
                 return None
+
             return _merge_served([p.capabilities(language) for p in providers])
 
     # ---- Policies --------------------------------------------------------
@@ -603,11 +665,14 @@ class LanguageServicesAPI(QObject):
         policy = self.policy_for(method)
         if not policy.enabled:
             return []
+
         if policy.providers:
             by_name = {p.NAME: p for p in providers}
             providers = [by_name[n] for n in policy.providers if n in by_name]
+
         if policy.mode is RequestMode.EXCLUSIVE:
             return providers[:1]
+
         return providers
 
     # ---- Requests --------------------------------------------------------
@@ -620,7 +685,9 @@ class LanguageServicesAPI(QObject):
             if policy.timeout_ms is not None
             else self.request_timeout()
         )
+
         handler = getattr(provider, FEATURE_METHODS[method])
+
         return await asyncio.wait_for(handler(params), timeout)
 
     async def _request(
@@ -632,14 +699,17 @@ class LanguageServicesAPI(QObject):
         providers = self._select_providers(method, providers)
         if not providers:
             return None
+
         results = await asyncio.gather(
             *(self._call(p, method, params) for p in providers),
             return_exceptions=True,
         )
+
         good: list[tuple[str, Any]] = []
         for provider, result in zip(providers, results):
             if isinstance(result, asyncio.CancelledError):
                 raise result
+
             if isinstance(result, asyncio.TimeoutError):
                 logger.warning(
                     "Provider %r timed out answering %s", provider.NAME, method
@@ -656,6 +726,7 @@ class LanguageServicesAPI(QObject):
                 )
             elif result is not None:
                 good.append((provider.NAME, result))
+
         return merge_strategy(method)(good) if good else None
 
     async def request(self, method: str, params: Any) -> Any:
@@ -675,24 +746,31 @@ class LanguageServicesAPI(QObject):
                 name not in self._providers
             ):
                 return None
+
             state = self._providers[name]
             if not state.started:
                 return None
+
             return await self._request(method, params, [state.provider])
+
         if method in _NO_DOCUMENT_METHODS:
             providers = [s.provider for s in self._sorted_states() if s.started]
             return await self._request(method, params, providers)
+
         language = self.documents.language_of(params.text_document.uri)
+
         return await self._request(
             method, params, self.providers_for(language, method)
         )
 
     # Feature coroutines ---------------------------------------------------
     async def completion(self, params: lsp.CompletionParams):
-        """Merged completion items, each stamped with ``data["provider"]``,
-        ``data["uri"]`` and ``data["resolve"]``. ``uri`` lets a provider resolve
-        against the right document; ``resolve`` is true only for items whose
-        provider supports ``completionItem/resolve``"""
+        """
+        Merged completion items, each stamped with ``data["provider"]``,
+        ``data["uri"]`` and ``data["resolve"]``. ``uri`` lets a provider
+        resolve against the right document; ``resolve`` is true only for items
+        whose provider supports ``completionItem/resolve``.
+        """
         uri = params.text_document.uri
         language = self.documents.language_of(uri)
         items = await self.request(lsp.TEXT_DOCUMENT_COMPLETION, params)
@@ -702,10 +780,12 @@ class LanguageServicesAPI(QObject):
                 language, lsp.COMPLETION_ITEM_RESOLVE
             )
         }
+
         for item in items or ():
             data = item.data if isinstance(item.data, dict) else {}
             name = data.get("provider")
             item.data = {**data, "uri": uri, "resolve": name in resolving}
+
         return items
 
     async def resolve_completion_item(self, item: lsp.CompletionItem):
@@ -732,7 +812,9 @@ class LanguageServicesAPI(QObject):
     async def formatting(self, params: lsp.DocumentFormattingParams):
         return await self.request(lsp.TEXT_DOCUMENT_FORMATTING, params)
 
-    async def range_formatting(self, params: lsp.DocumentRangeFormattingParams):
+    async def range_formatting(
+        self, params: lsp.DocumentRangeFormattingParams
+    ):
         return await self.request(lsp.TEXT_DOCUMENT_RANGE_FORMATTING, params)
 
     async def code_action(self, params: lsp.CodeActionParams):
@@ -774,7 +856,9 @@ class LanguageServicesAPI(QObject):
         for provider in self._started_providers(document.language):
             await provider.did_change(params)
 
-    async def save_document(self, params: lsp.DidSaveTextDocumentParams) -> None:
+    async def save_document(
+        self, params: lsp.DidSaveTextDocumentParams
+    ) -> None:
         document = self.documents.save(params)
         for provider in self._started_providers(document.language):
             await provider.did_save(params)
@@ -785,6 +869,7 @@ class LanguageServicesAPI(QObject):
         """Send ``didClose`` and drop the document and its diagnostics."""
         with self._lock:
             document = self.documents.close(params)
+
         for provider in self._started_providers(document.language):
             await provider.did_close(params)
 
@@ -831,10 +916,13 @@ class LanguageServicesAPI(QObject):
         with self._lock:
             if params.uri not in self.documents.documents:
                 return
+
             self.documents.set_diagnostics(
                 params.uri, provider.NAME, params.diagnostics
             )
+
             merged = self._merged_diagnostics(params.uri, params.version)
+
         self.sig_diagnostics.emit(merged)
 
     def _merged_diagnostics(
@@ -846,9 +934,11 @@ class LanguageServicesAPI(QObject):
             for name in self.provider_names()
             if name in sources
         ]
+
         diagnostics = merge_strategy(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)(
             ordered
         )
+
         return lsp.PublishDiagnosticsParams(
             uri=uri, diagnostics=diagnostics, version=version
         )
@@ -859,6 +949,7 @@ class LanguageServicesAPI(QObject):
         with self._lock:
             uris = self.documents.clear_provider_diagnostics(name, languages)
             merged = [self._merged_diagnostics(uri) for uri in uris]
+
         for params in merged:
             self.sig_diagnostics.emit(params)
 
@@ -870,4 +961,5 @@ class LanguageServicesAPI(QObject):
         state = self._state(provider.NAME)
         if not state.started:
             return
+
         self._announce_languages(state, language)

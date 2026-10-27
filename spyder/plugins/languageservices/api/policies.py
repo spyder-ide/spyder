@@ -50,19 +50,29 @@ class RequestPolicy:
     """
 
     mode: RequestMode = RequestMode.MERGE
+
     enabled: bool = True
     """Whether the feature is answered at all."""
+
     providers: tuple[str, ...] = ()
-    """Providers answering the feature, in priority order. Empty selects every
-    supporting provider in global priority order (for ``EXCLUSIVE``, its
-    highest-priority provider). A non-empty tuple both restricts the feature to
-    the named providers and orders them, overriding their global priority."""
+    """
+    Providers answering the feature, in priority order.
+
+    Empty selects every supporting provider in global priority order (for
+    ``EXCLUSIVE``, its highest-priority provider). A non-empty tuple both
+    restricts the feature to the named providers and orders them, overriding
+    their global priority.
+    """
+
     timeout_ms: int | None = None
     """Per-provider timeout. ``None`` uses the plugin-wide default."""
 
     def to_conf(self) -> dict[str, Any]:
-        """Serialize the configurable fields to the configuration
-        representation. ``mode`` is fixed per feature and is not stored."""
+        """
+        Serialize the configurable fields to the configuration representation.
+
+        ``mode`` is fixed per feature and is not stored.
+        """
         return {
             "enabled": self.enabled,
             "providers": list(self.providers),
@@ -80,6 +90,7 @@ class RequestPolicy:
         """
         if not data:
             return default
+
         policy = default
         if "enabled" in data and data["enabled"] is not None:
             policy = replace(policy, enabled=bool(data["enabled"]))
@@ -87,6 +98,7 @@ class RequestPolicy:
             policy = replace(policy, providers=tuple(data["providers"]))
         if "timeout_ms" in data:
             policy = replace(policy, timeout_ms=data["timeout_ms"])
+
         return policy
 
 
@@ -111,7 +123,9 @@ def feature_name(method: str) -> str:
     try:
         return FEATURE_METHODS[method]
     except KeyError as exc:
-        raise KeyError(f"{method!r} is not a language services feature") from exc
+        raise KeyError(
+            f"{method!r} is not a language services feature"
+        ) from exc
 
 
 def feature_method(name: str) -> str:
@@ -127,6 +141,7 @@ def first_non_none(results: list[tuple[str, Any]]) -> Any:
     for _, result in results:
         if result is not None:
             return result
+
     return None
 
 
@@ -138,14 +153,17 @@ def concatenate(results: list[tuple[str, Any]]) -> list | None:
             continue
         found = True
         merged.extend(result)
+
     return merged if found else None
 
 
 def _completion_items(result: Any) -> Iterable[lsp.CompletionItem]:
     if result is None:
         return ()
+
     if isinstance(result, lsp.CompletionList):
         return result.items or ()
+
     return result
 
 
@@ -160,6 +178,7 @@ def merge_completions(
     """
     if all(result is None for _, result in results):
         return None
+
     merged: list[lsp.CompletionItem] = []
     seen: set[str] = set()
     for rank, (name, result) in enumerate(results):
@@ -167,12 +186,14 @@ def merge_completions(
             key = item.label.strip()
             if key in seen:
                 continue
+
             seen.add(key)
             original = item.sort_text or item.label
             item.sort_text = f"{rank:03d}_{original}"
             data = item.data if isinstance(item.data, dict) else {}
             item.data = {**data, "provider": name}
             merged.append(item)
+
     return merged
 
 
@@ -185,7 +206,9 @@ def merge_diagnostics(
         for diagnostic in diagnostics or ():
             if not diagnostic.source:
                 diagnostic.source = name
+
             merged.append(diagnostic)
+
     return merged
 
 
@@ -196,9 +219,12 @@ def merge_definitions(results: list[tuple[str, Any]]) -> list | None:
     for name, result in results:
         if result is None:
             continue
+
         if isinstance(result, (lsp.Location, lsp.LocationLink)):
             result = [result]
+
         normalized.append((name, list(result)))
+
     return concatenate(normalized)
 
 
@@ -209,19 +235,24 @@ def merge_folding_ranges(
     merged = concatenate(results)
     if merged is None:
         return None
+
     unique: list[lsp.FoldingRange] = []
     seen: set[tuple[int, int]] = set()
     for folding_range in merged:
         key = (folding_range.start_line, folding_range.end_line)
         if key in seen:
             continue
+
         seen.add(key)
         unique.append(folding_range)
+
     return unique
 
 
 register_merge_strategy(lsp.TEXT_DOCUMENT_COMPLETION, merge_completions)
-register_merge_strategy(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, merge_diagnostics)
+register_merge_strategy(
+    lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, merge_diagnostics
+)
 register_merge_strategy(lsp.TEXT_DOCUMENT_DEFINITION, merge_definitions)
 register_merge_strategy(lsp.TEXT_DOCUMENT_REFERENCES, concatenate)
 register_merge_strategy(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL, concatenate)

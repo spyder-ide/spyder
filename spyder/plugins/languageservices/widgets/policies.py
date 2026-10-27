@@ -6,10 +6,10 @@
 
 """Table editor for the per-feature request policies.
 
-Each feature's mode (merge or exclusive) is fixed and shown read-only. A merge
-feature exposes a checkable, reorderable list of providers (checked providers
-answer it, top-to-bottom order is their priority). An exclusive feature exposes
-a single-provider selector. Either feature can be disabled.
+Each feature's mode (merge or exclusive) is fixed and shown as read-only. A
+merge feature exposes a checkable, reorderable list of providers (checked
+providers answer it, top-to-bottom order is their priority). An exclusive
+feature exposes a single-provider selector. Either feature can be disabled.
 """
 
 from __future__ import annotations
@@ -57,12 +57,14 @@ class ProviderOrderList(QListWidget):
 
     def __init__(self, parent, provider_names: list[str]):
         super().__init__(parent)
+
         self._provider_names = list(provider_names)
         self.setDragDropMode(QListWidget.InternalMove)
         self.setSelectionMode(QListWidget.SingleSelection)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self._fill(self._provider_names, set(self._provider_names))
+
         row = self.sizeHintForRow(0) if self.count() else 0
         self.setFixedHeight(row * max(self.count(), 1) + 2 * self.frameWidth())
 
@@ -76,18 +78,25 @@ class ProviderOrderList(QListWidget):
             )
 
     def set_providers(self, providers: tuple[str, ...]) -> None:
-        """Show ``providers`` (ordered, checked). Empty means every provider in
-        global priority order."""
+        """
+        Show ``providers`` (ordered, checked).
+
+        Empty means every provider in global priority order.
+        """
         if not providers:
             self._fill(self._provider_names, set(self._provider_names))
             return
+
         checked = set(providers)
         rest = [n for n in self._provider_names if n not in checked]
         self._fill([*providers, *rest], checked)
 
     def providers(self) -> tuple[str, ...]:
-        """Checked provider names in display order. Empty when the selection is
-        every provider in global priority order."""
+        """
+        Checked provider names in display order.
+
+        Empty when the selection is every provider in global priority order.
+        """
         names = [
             self.item(i).text()
             for i in range(self.count())
@@ -95,17 +104,21 @@ class ProviderOrderList(QListWidget):
         ]
         if names == self._provider_names:
             return ()
+
         return tuple(names)
 
 
 class RequestPolicyTable(QTableWidget):
-    """Each row holds a feature's fixed mode, an enable switch, the answering
-    providers and a per-provider timeout."""
+    """
+    Each row holds a feature's fixed mode, an enable switch, the answering
+    providers and a per-provider timeout.
+    """
 
     COL_FEATURE, COL_MODE, COL_ENABLED, COL_PROVIDERS, COL_TIMEOUT = range(5)
 
     def __init__(self, parent, provider_names: list[str]):
         super().__init__(parent)
+
         self.provider_names = list(provider_names)
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
@@ -122,6 +135,7 @@ class RequestPolicyTable(QTableWidget):
         self.setSelectionMode(QTableWidget.NoSelection)
         self._methods = list(FEATURE_METHODS)
         self.setRowCount(len(self._methods))
+
         for row, method in enumerate(self._methods):
             mode = DEFAULT_FEATURE_POLICIES[method].mode
 
@@ -146,6 +160,7 @@ class RequestPolicyTable(QTableWidget):
                 providers.addItem(AUTO_PROVIDER, None)
                 for name in self.provider_names:
                     providers.addItem(name, name)
+
             self.setCellWidget(row, self.COL_PROVIDERS, providers)
             enabled.toggled.connect(providers.setEnabled)
 
@@ -154,6 +169,7 @@ class RequestPolicyTable(QTableWidget):
             timeout.setSingleStep(100)
             timeout.setSpecialValueText(_("Default"))
             self.setCellWidget(row, self.COL_TIMEOUT, timeout)
+
         self.resizeRowsToContents()
 
     def _centered(self, widget: QWidget) -> QWidget:
@@ -171,19 +187,23 @@ class RequestPolicyTable(QTableWidget):
         """Show ``policies`` (feature name -> conf dict)."""
         for row, method in enumerate(self._methods):
             policy = RequestPolicy.from_conf(
-                policies.get(feature_name(method)), DEFAULT_FEATURE_POLICIES[method]
+                policies.get(feature_name(method)),
+                DEFAULT_FEATURE_POLICIES[method],
             )
             self._enabled_box(row).setChecked(policy.enabled)
+
             providers = self.cellWidget(row, self.COL_PROVIDERS)
             if isinstance(providers, ProviderOrderList):
                 providers.set_providers(policy.providers)
             else:
                 selected = policy.providers[0] if policy.providers else None
                 providers.setCurrentIndex(max(providers.findData(selected), 0))
+
             providers.setEnabled(policy.enabled)
             self.cellWidget(row, self.COL_TIMEOUT).setValue(
                 policy.timeout_ms or 0
             )
+
         self.resizeRowsToContents()
 
     def policies(self) -> dict[str, dict]:
@@ -199,6 +219,7 @@ class RequestPolicyTable(QTableWidget):
             else:
                 selected = widget.currentData()
                 providers = (selected,) if selected is not None else ()
+
             policy = RequestPolicy(
                 mode=DEFAULT_FEATURE_POLICIES[method].mode,
                 enabled=self._enabled_box(row).isChecked(),
@@ -207,4 +228,5 @@ class RequestPolicyTable(QTableWidget):
             )
             if policy != DEFAULT_FEATURE_POLICIES[method]:
                 result[name] = policy.to_conf()
+
         return result

@@ -4,4 +4,4 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Widgets of the language services plugin."""
+"""Widgets of the Language services plugin."""

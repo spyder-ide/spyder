@@ -559,8 +559,9 @@ def test_save_as_emits_resolved_language(editor_bot, mocker, tmpdir):
     editorstack.sig_open_file = Mock()
 
     new_filename = osp.join(tmpdir.strpath, 'foo.tsx')
-    mocker.patch.object(editorstack, 'select_savename',
-                        return_value=new_filename)
+    mocker.patch.object(
+        editorstack, "select_savename", return_value=new_filename
+    )
     assert editorstack.save_as() is True
 
     assert editor.language == 'TypeScript'

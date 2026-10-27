@@ -44,6 +44,7 @@ from spyder.plugins.languageservices.api.provider import (
 )
 from spyder.plugins.languageservices.api.uri import uri_as_path as process_uri
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -95,7 +96,9 @@ def _main_thread_executor() -> _MainThreadExecutor:
 async def run_in_main_thread(func: Callable[[], Any]) -> Any:
     """Await ``func()`` executed on the Qt main thread."""
     future = asyncio.get_running_loop().create_future()
-    QCoreApplication.postEvent(_main_thread_executor(), _CallEvent(func, future))
+    QCoreApplication.postEvent(
+        _main_thread_executor(), _CallEvent(func, future)
+    )
     return await future
 
 
@@ -126,12 +129,17 @@ class _DocumentProxy(QObject):
         # The proxy has no Qt parent. It is created on the services thread
         # and only called (never owned) from the main thread.
         super().__init__()
+
         self.provider = provider
         self.uri = uri
         self.filename = process_uri(uri)
+
         self.text = ""
-        """Current content, tracked for legacy providers' offsets and
-        prefixes. Legacy providers receive the text anyway."""
+        """
+        Current content, tracked for legacy providers' offsets and prefixes.
+
+        Legacy providers receive the text anyway.
+        """
 
     @Slot(str, object)
     def handle_response(self, method: str, params: Any) -> None:
@@ -159,6 +167,7 @@ def _formatting_options(options: lsp.FormattingOptions) -> dict[str, Any]:
         "tab_size": options.tab_size,
         "insert_spaces": options.insert_spaces,
     }
+
     for key in (
         "trim_trailing_whitespace",
         "insert_final_newline",
@@ -167,6 +176,7 @@ def _formatting_options(options: lsp.FormattingOptions) -> dict[str, Any]:
         value = getattr(options, key, None)
         if value is not None:
             data[key] = value
+
     return data
 
 
@@ -216,10 +226,16 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
     COMPLETION_ONLY = lsp.ServerCapabilities(
         completion_provider=lsp.CompletionOptions()
     )
-    """Capabilities of legacy providers that never announce theirs
-    (fallback, snippets). They only answer completion requests."""
+    """
+    Capabilities of legacy providers that never announce theirs (fallback,
+    snippets).
 
-    def capabilities(self, language: Language) -> lsp.ServerCapabilities | None:
+    They only answer completion requests.
+    """
+
+    def capabilities(
+        self, language: Language
+    ) -> lsp.ServerCapabilities | None:
         return self._capabilities.get(language, self.COMPLETION_ONLY)
 
     @Slot(object, str)
@@ -227,6 +243,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         language = self._language_from_legacy(name)
         if language is None:
             return
+
         self._capabilities[language] = capabilities
         self._languages.add(language)
         self.sig_capabilities_changed.emit(language)
@@ -236,9 +253,11 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         language = self._language_from_legacy(name)
         if language is None:
             return
+
         self._capabilities.pop(language, None)
         if self.completion_plugin.is_fallback_only(name):
             self._languages.discard(language)
+
         self.sig_capabilities_changed.emit(language)
 
     def _running_capabilities(self, name: str):
@@ -250,6 +269,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
             capabilities = getattr(client, "server_capabilites", None)
             if capabilities is not None:
                 return capabilities
+
         return None
 
     async def start_language(self, language: Language) -> None:
@@ -268,6 +288,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
                     if capabilities is not None:
                         self._capabilities[language] = capabilities
                         self.sig_capabilities_changed.emit(language)
+
             return started
 
         await run_in_main_thread(start)
@@ -280,6 +301,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
                 self.completion_plugin.stop_completion_services_for_language(
                     name
                 )
+
             self._languages.discard(language)
             self._capabilities.pop(language, None)
 
@@ -304,6 +326,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         proxy = self._documents.get(uri)
         if proxy is None:
             return
+
         params["response_instance"] = proxy
         params["requires_response"] = False
         await run_in_main_thread(
@@ -318,8 +341,10 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         future = loop.create_future()
         responder = _Responder(future)
         self._pending.add(responder)
+
         params["response_instance"] = responder
         params["requires_response"] = True
+
         try:
             await run_in_main_thread(
                 lambda: self.completion_plugin.send_request(
@@ -338,6 +363,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         proxy.language = self._legacy_name(language)
         proxy.text = item.text
         self._documents[item.uri] = proxy
+
         legacy = {
             "file": proxy.filename,
             "language": item.language_id,
@@ -364,6 +390,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         if proxy is not None:
             for change in params.content_changes:
                 proxy.text = apply_content_change(proxy.text, change)
+
         await self._notify(
             uri,
             lsp.TEXT_DOCUMENT_DID_CHANGE,
@@ -382,18 +409,21 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
             proxy = self._documents.get(uri)
             if proxy is not None:
                 proxy.text = params.text
+
         await self._notify(uri, lsp.TEXT_DOCUMENT_DID_SAVE, legacy)
 
     async def did_close(self, params: lsp.DidCloseTextDocumentParams) -> None:
         uri = params.text_document.uri
         if uri not in self._documents:
             return
+
         proxy = self._documents[uri]
         await self._notify(
             uri,
             lsp.TEXT_DOCUMENT_DID_CLOSE,
             {"file": proxy.filename, "codeeditor": proxy},
         )
+
         del self._documents[uri]
 
     # ---- Features --------------------------------------------------------
@@ -402,6 +432,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         proxy = self._documents.get(uri)
         if proxy is None:
             return None
+
         lines = proxy.text.splitlines()
         line = (
             lines[params.position.line]
@@ -413,6 +444,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         legacy = self._position_params(params)
         legacy["current_word"] = current_word
         result = await self._request(uri, lsp.TEXT_DOCUMENT_COMPLETION, legacy)
+
         return list(result) if result else None
 
     async def resolve_completion_item(self, item: lsp.CompletionItem):
@@ -420,6 +452,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         uri = data.get("uri")
         if uri is None:
             return None
+
         return await self._request(
             uri,
             lsp.COMPLETION_ITEM_RESOLVE,
@@ -439,8 +472,10 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         )
         if not result:
             return None
+
         if isinstance(result, lsp.Hover):
             return result
+
         return lsp.Hover(contents=str(result))
 
     async def signature_help(self, params: lsp.SignatureHelpParams):
@@ -456,8 +491,10 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
             lsp.TEXT_DOCUMENT_DEFINITION,
             self._position_params(params),
         )
+
         if result is None:
             return None
+
         return result if isinstance(result, list) else [result]
 
     async def document_symbol(self, params: lsp.DocumentSymbolParams):
@@ -486,6 +523,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
     async def range_formatting(self, params: lsp.DocumentRangeFormattingParams):
         uri = params.text_document.uri
         rng = params.range
+
         return await self._request(
             uri,
             lsp.TEXT_DOCUMENT_RANGE_FORMATTING,
@@ -515,6 +553,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
                 plugin.project_path_update(
                     process_uri(folder.uri), WorkspaceUpdateKind.ADDITION
                 )
+
             for folder in params.event.removed:
                 plugin.project_path_update(
                     process_uri(folder.uri), WorkspaceUpdateKind.DELETION
@@ -531,9 +570,9 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
                 for change in params.changes
             ]
         }
+
         await run_in_main_thread(
             lambda: self.completion_plugin.broadcast_notification(
                 lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, legacy
             )
         )
-

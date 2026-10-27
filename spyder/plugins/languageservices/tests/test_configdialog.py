@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Tests for the language services preferences page."""
+"""Tests for the Language services preferences page."""
 
 from unittest.mock import Mock
 
@@ -44,6 +44,7 @@ class TabbedTab(SpyderPreferencesTab):
 
     def __init__(self, parent):
         super().__init__(parent)
+
         self.box = self.create_checkbox("Flag", "flag")
         layout = QVBoxLayout()
         layout.addWidget(self.box)
@@ -81,6 +82,7 @@ def tabbed_entry_point(mocker):
 def test_config_dialog(tabbed_entry_point, config_dialog):
     configpage = config_dialog.get_page()
     assert configpage
+
     titles = [
         configpage.tabs.tabText(i) for i in range(configpage.tabs.count())
     ]
@@ -108,6 +110,7 @@ def test_config_dialog(tabbed_entry_point, config_dialog):
     table.cellWidget(row, table.COL_PROVIDERS).setCurrentIndex(1)
     configpage.save_to_conf()
     configpage.apply_callback()
+
     assert CONF.get("language_services", "request_policies") == {
         "formatting": {
             "enabled": True,
@@ -156,9 +159,11 @@ def test_lsp_servers_tab(lsp_entry_point, config_dialog):
 def test_provider_order_list_reports_selection(qtbot):
     widget = ProviderOrderList(None, ["a", "b", "c"])
     qtbot.addWidget(widget)
+
     # Every provider checked in global order is the default. The selection is
     # empty.
     assert widget.providers() == ()
+
     # An explicit subset keeps its given order.
     widget.set_providers(("b", "a"))
     assert widget.providers() == ("b", "a")
@@ -171,6 +176,7 @@ def test_request_policy_table_merge_roundtrips(qtbot):
     qtbot.addWidget(table)
     table.load({})
     assert table.policies() == {}
+
     row = table._methods.index("textDocument/completion")
     table.cellWidget(row, table.COL_PROVIDERS).set_providers(("b",))
     assert table.policies()["completion"] == {
@@ -178,5 +184,6 @@ def test_request_policy_table_merge_roundtrips(qtbot):
         "providers": ["b"],
         "timeout_ms": None,
     }
+
     table._enabled_box(row).setChecked(False)
     assert table.policies()["completion"]["enabled"] is False

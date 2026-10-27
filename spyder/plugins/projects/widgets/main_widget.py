@@ -742,7 +742,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.sig_workspace_notification_requested.emit(method, params)
 
     def _notify_watched_files(self, *changes):
-        """Send ``(path, FileChangeType)`` pairs as watched file changes."""
+        """Send ``(path, FileChangeType)`` pairs as a watched file changes."""
         self._notify_workspace(
             lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
             lsp.DidChangeWatchedFilesParams(
@@ -761,6 +761,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         # LSP specification only considers file updates
         if is_dir:
             return
+
         self._notify_watched_files((src_file, lsp.FileChangeType.Created))
 
     @Slot(str, str, bool)
@@ -770,6 +771,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         if is_dir:
             return
+
         self._notify_watched_files(
             (dest_file, lsp.FileChangeType.Created),
             (src_file, lsp.FileChangeType.Deleted),
@@ -782,6 +784,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         if is_dir:
             return
+
         self._notify_watched_files((src_file, lsp.FileChangeType.Deleted))
 
     @Slot(str, bool)
@@ -789,6 +792,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Notify LSP server about file modification."""
         if is_dir:
             return
+
         self._notify_watched_files((src_file, lsp.FileChangeType.Changed))
 
     @staticmethod
