@@ -300,6 +300,7 @@ class IconManager():
             'copywop':                 [('mdi.console-line',), {'color': self.MAIN_FG_COLOR}],
             'editpaste':               [('mdi.content-paste',), {'color': self.MAIN_FG_COLOR}],
             'edit':                    [('mdi.pencil',), {'color': self.MAIN_FG_COLOR}],
+            'secondary_editor':        [('mdi.dock-right',), {'color': self.MAIN_FG_COLOR}],
             'convention':              [('mdi.alpha-c-circle',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'refactor':                [('mdi.alpha-r-circle',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.BIG_ATTR_FACTOR}],
             '2uparrow':                [('mdi.arrow-collapse-up',), {'color': self.MAIN_FG_COLOR}],

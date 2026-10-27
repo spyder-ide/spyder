@@ -99,6 +99,7 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import file_uri, mimedata2url, start_file
 from spyder.utils.vcs import get_git_remotes, remote_to_url
@@ -296,6 +297,9 @@ class CodeEditor(
     ):
         TextEditBaseWidget.__init__(self, parent, class_parent=parent)
         EditsStackMixin.__init__(self)  # load after text edit (requires document)
+        self.sig_will_insert_text.connect(self._set_undo_view)
+        self.sig_will_remove_selection.connect(self._set_undo_view)
+        self.sig_will_paste_text.connect(self._set_undo_view)
         InlineCompletionsMixin.__init__(self)
         LSPMixin.__init__(self)
 
@@ -726,9 +730,10 @@ class CodeEditor(
             )
 
     def closeEvent(self, event):
+        self.release_undo_view()
         if hasattr(self, "highlighter") and isinstance(
             self.highlighter, sh.PygmentsSH
-        ):
+        ) and not self.is_cloned:
             self.highlighter.stop()
         if hasattr(self, "update_folding_thread"):
             self.update_folding_thread.quit()
@@ -743,7 +748,12 @@ class CodeEditor(
 
     def set_as_clone(self, editor):
         """Set as clone editor"""
+        self.set_undo_owner(editor)
         self.setDocument(editor.document())
+        self._text_version = self._undo_owner.text_version
+        self._undo_owner.sig_document_change.connect(self.sig_document_change)
+        self._undo_owner.new_text_set.connect(self.new_text_set)
+        self._undo_owner.sig_process_code_analysis.connect(self.finish_code_analysis)
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
         self._rehighlight_timer.timeout.connect(
@@ -1901,19 +1911,17 @@ class CodeEditor(
         """Toggle blanks visibility"""
         self.blanks_enabled = state
         option = self.document().defaultTextOption()
+        previous_flags = option.flags()
         option.setFlags(
             option.flags() | QTextOption.AddSpaceForLineAndParagraphSeparators
         )
-
         if self.blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
-
-        self.document().setDefaultTextOption(option)
-
-        # Rehighlight to make the spaces less apparent.
-        if self.blanks_enabled:
+        if option.flags() != previous_flags:
+            self.document().setDefaultTextOption(option)
+            # Rehighlight to make the spaces less apparent.
             self.rehighlight()
 
     def set_scrollpastend_enabled(self, state):
@@ -1965,7 +1973,7 @@ class CodeEditor(
             # Updating highlighter settings (font and color scheme)
             self.highlighter.setup_formats(self.font())
             if color_scheme is not None:
-                self.set_color_scheme(color_scheme)
+                self.set_color_scheme(color_scheme, force=True)
             else:
                 self._rehighlight_timer.start()
 
@@ -1980,12 +1988,15 @@ class CodeEditor(
         self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 
-    def set_color_scheme(self, color_scheme):
-        """Set color scheme for syntax highlighting"""
+    def set_color_scheme(self, color_scheme, force=False):
+        """Apply colors, rehighlighting only changed colors or font formats."""
         self.color_scheme = color_scheme
         if self.highlighter is not None:
-            # this calls self.highlighter.rehighlight()
-            self.highlighter.set_color_scheme(color_scheme)
+            colors = (THEME_MANAGER.get_color_scheme(color_scheme)
+                      if isinstance(color_scheme, str) else color_scheme)
+            if (force or self.highlighter.color_scheme is colors
+                    or self.highlighter.color_scheme != colors):
+                self.highlighter.set_color_scheme(colors)
             self._apply_highlighter_color_scheme()
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
@@ -2204,6 +2215,7 @@ class CodeEditor(
         delete_inline_completion: bool, optional
             Whether this is called to delete an inline completion.
         """
+        self._set_undo_view()
         # Flush pending edits to undo immediately
         self._commit_pending_edit()
         if self.undo_stack.can_undo():
@@ -2220,6 +2232,7 @@ class CodeEditor(
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
+        self._set_undo_view()
         self._commit_pending_edit()
         if self.undo_stack.can_redo():
             self.skip_rstrip = True
@@ -3653,6 +3666,7 @@ class CodeEditor(
 
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
+        self._set_undo_view()
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
             self._timer_completions_hint.start(self.completions_hint_after_ms)
@@ -4437,7 +4451,7 @@ class CodeEditor(
         with self.suspend_undo_recording():
             super().setPlainText(txt)
         self.clear_undo_stack()
-        self.new_text_set.emit()
+        self._undo_owner.new_text_set.emit()
 
     def focusOutEvent(self, event):
         """Extend Qt method"""

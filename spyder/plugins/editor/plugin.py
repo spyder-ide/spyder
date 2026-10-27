@@ -907,7 +907,8 @@ class Editor(SpyderDockablePlugin):
         """
         widget = self.get_widget()
         return widget.load(
-            filenames=filename, goto=goto, word=word, editorwindow=widget
+            filenames=filename, goto=goto, word=word, editorwindow=widget,
+            from_outline=True
         )
 
     def open_last_closed(self) -> None:

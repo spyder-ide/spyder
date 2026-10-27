@@ -512,7 +512,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         Focus codeeditor has changed.
         """
         if (
-            codeeditor.filename is None or
+            codeeditor is None or codeeditor.filename is None or
             codeeditor.breakpoints_manager is None
         ):
             return

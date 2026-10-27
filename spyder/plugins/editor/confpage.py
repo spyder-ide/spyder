@@ -34,6 +34,48 @@ SPHINXDOC = (
 DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
+def create_editor_view_checkbox(page, option, section=None):
+    """Use one definition of view labels/help in both editor preferences."""
+    options = {
+        'show_tab_bar': (_('Show tab bar'), _(
+            'If hidden, the file switcher, Outline pane and Ctrl-Tab '
+            'can still be used to navigate between open files.')),
+        'show_filename_toolbar': (_('Show full file path above editor'), _(
+            'If hidden, the full file path is still shown when hovering '
+            'over its tab.')),
+        'show_class_func_dropdown': (_('Show class/function selector'), _(
+            'For quick browsing and switching between classes/functions '
+            'in a file.')),
+        'scroll_past_end': (_('Allow scrolling past file end'), None),
+        'indent_guides': (_('Show indent guides'), None),
+        'code_folding': (_('Show code folding'), _(
+            'Allow collapsing and uncollapsing code by indent level')),
+        'line_numbers': (_('Show line numbers'), None),
+        'highlight_current_line': (_('Highlight current line'), None),
+        'highlight_current_cell': (_('Highlight current cell'), None),
+        'edge_line': (_('Show edge line'), None),
+        'automatic_completions': (_('Show completions on the fly'), None),
+    }
+    label, tip = options[option]
+    return page.create_checkbox(label, option, tip=tip, section=section)
+
+
+def create_editor_display_groups(page):
+    """Build the shared display groups with each page's configuration scope."""
+    groups = []
+    for title, options in (
+            (_('Interface'), ('show_tab_bar', 'show_filename_toolbar',
+                             'show_class_func_dropdown', 'scroll_past_end')),
+            (_('Helpers'), ('indent_guides', 'code_folding', 'line_numbers')),
+            (_('Highlight'), ('highlight_current_line', 'highlight_current_cell'))):
+        group = QGroupBox(title)
+        layout = QVBoxLayout(group)
+        for option in options:
+            layout.addWidget(create_editor_view_checkbox(page, option))
+        groups.append(group)
+    return groups
+
+
 class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
     def __init__(self, plugin, parent):
@@ -52,52 +94,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         newcb = self.create_checkbox
 
         # ---- Display tab
-        # -- Interface group
-        interface_group = QGroupBox(_("Interface"))
-        showtabbar_box = newcb(
-            _("Show tab bar"),
-            'show_tab_bar',
-            tip=_(
-                "If hidden, the file switcher, Outline pane and Ctrl-Tab "
-                "can still be used to navigate between open files."
-            ),
-        )
-        show_filename_box = newcb(
-            _("Show full file path above editor"),
-            'show_filename_toolbar',
-            tip=_(
-                "If hidden, the full file path is still shown when hovering "
-                "over its tab."
-            ),
-        )
-        showclassfuncdropdown_box = newcb(
-            _("Show class/function selector"),
-            'show_class_func_dropdown',
-            tip=_(
-                "For quick browsing and switching between classes/functions "
-                "in a file."
-            ),
-        )
-        scroll_past_end_box = newcb(
-            _("Allow scrolling past file end"), 'scroll_past_end'
-        )
-
-        interface_layout = QVBoxLayout()
-        interface_layout.addWidget(showtabbar_box)
-        interface_layout.addWidget(show_filename_box)
-        interface_layout.addWidget(showclassfuncdropdown_box)
-        interface_layout.addWidget(scroll_past_end_box)
-        interface_group.setLayout(interface_layout)
+        interface_group, helpers_group, highlight_group = create_editor_display_groups(self)
 
         # -- Helpers group
-        helpers_group = QGroupBox(_("Helpers"))
-        showindentguides_box = newcb(_("Show indent guides"), 'indent_guides')
-        showcodefolding_box = newcb(
-            _("Show code folding"),
-            'code_folding',
-            tip=_("Allow collapsing and uncollapsing code by indent level"),
-        )
-        linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         breakpoints_box = newcb(
             _("Show debugger breakpoints"),
             'editor_debugger_panel',
@@ -114,22 +113,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             ),
         )
 
-        helpers_layout = QVBoxLayout()
-        helpers_layout.addWidget(showindentguides_box)
-        helpers_layout.addWidget(showcodefolding_box)
-        helpers_layout.addWidget(linenumbers_box)
+        helpers_layout = helpers_group.layout()
         helpers_layout.addWidget(breakpoints_box)
         helpers_layout.addWidget(todolist_box)
-        helpers_group.setLayout(helpers_layout)
 
         # -- Highlight group
-        highlight_group = QGroupBox(_("Highlight"))
-        currentline_box = newcb(
-            _("Highlight current line"), 'highlight_current_line'
-        )
-        currentcell_box = newcb(
-            _("Highlight current cell"), 'highlight_current_cell'
-        )
         occurrence_box = newcb(
             _("Highlight occurrences of selected text after"),
             'occurrence_highlighting',
@@ -165,11 +153,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         occurrence_layout.addLayout(occurrence_glayout)
         occurrence_layout.addStretch(1)
 
-        highlight_layout = QVBoxLayout()
-        highlight_layout.addWidget(currentline_box)
-        highlight_layout.addWidget(currentcell_box)
-        highlight_layout.addLayout(occurrence_layout)
-        highlight_group.setLayout(highlight_layout)
+        highlight_group.layout().addLayout(occurrence_layout)
 
         # ---- Source code tab
         # -- Automatic changes group

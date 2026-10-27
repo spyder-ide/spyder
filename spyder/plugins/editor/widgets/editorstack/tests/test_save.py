@@ -303,7 +303,7 @@ def test_save_as(editor_bot, mocker):
     # Save name is in the stack, but not the current index.
     editor_stack.close_file.return_value = True
     assert save_as(index=2) is True
-    editor_stack.close_file.assert_called_with(0)
+    editor_stack.close_file.assert_called_with(0, close_document=True)
     assert editor_stack.save.called
     # This index is one less because the tab with the saved name was closed.
     editor_stack.rename_in_data.assert_called_with(__file__,
@@ -424,7 +424,7 @@ def test_save_copy_as(editor_bot, mocker):
     # Save name is in the stack, but not the current index.
     editor_stack.close_file.return_value = True
     assert save_copy_as(index=2) is True
-    editor_stack.close_file.assert_called_with(0)
+    editor_stack.close_file.assert_called_with(0, close_document=True)
     assert editor.encoding.write.called
     editor_stack.plugin_load.emit.assert_called_with('foo.py')
 

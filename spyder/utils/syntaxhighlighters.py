@@ -293,6 +293,11 @@ class BaseSH(QSyntaxHighlighter):
 
     def highlight_patterns(self, text, offset=0):
         """Highlight URI and mailto: patterns."""
+        if (self.patterns is DEFAULT_COMPILED_PATTERNS
+                and not ('://' in text or '@' in text
+                         or ('#' in text and '/' in text)
+                         or 'gh-' in text or 'gl-' in text or 'bb-' in text)):
+            return
         for match in self.patterns.finditer(text, offset):
             for __, value in list(match.groupdict().items()):
                 if value:
@@ -681,19 +686,12 @@ class PythonSH(BaseSH):
         oedata = None
         import_stmt = None
         for match in self.PROG.finditer(text):
-            for key, value in list(match.groupdict().items()):
-                if value:
-                    state, import_stmt, oedata = self.highlight_match(
-                        text,
-                        match,
-                        key,
-                        value,
-                        offset,
-                        state,
-                        import_stmt,
-                        oedata,
-                        inline_completion_start,
-                    )
+            key = match.lastgroup
+            value = match.group(key)
+            if value:
+                state, import_stmt, oedata = self.highlight_match(
+                    text, match, key, value, offset,
+                    state, import_stmt, oedata, inline_completion_start)
 
         tbh.set_state(block, state)
 

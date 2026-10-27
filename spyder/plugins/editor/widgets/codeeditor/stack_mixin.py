@@ -838,6 +838,8 @@ class EditsStackMixin:
     sig_document_change = Signal(EditBlock)
 
     def __init__(self):
+        self._undo_owner = self
+        self._undo_view = self
         self._undo_stack = UndoStack()
         self.__edit_block_tstmp = None
         self.__edit_block = False
@@ -864,30 +866,52 @@ class EditsStackMixin:
             self._on_cursor_position_changed
         )
 
+    def set_undo_owner(self, editor):
+        """Use one recorder for all views of a shared document."""
+        self._commit_pending_edit()
+        self._commit_timer.stop()
+        self.document().contentsChange.disconnect(self._on_document_contents_change)
+        self._undo_owner = editor._undo_owner
+
+    def _set_undo_view(self, *args):
+        owner = self._undo_owner
+        if owner._undo_view is not self:
+            owner._commit_pending_edit()
+            owner._undo_view = self
+            owner.__undo_cursor_state = CursorState.from_editor(self)
+        owner._on_cursor_position_changed()
+
+    def release_undo_view(self):
+        """Release a view before its Qt widget is deleted by its stack."""
+        if self._undo_owner._undo_view is self:
+            self._undo_owner._set_undo_view()
+
     def undo(self):
         edit = self.undo_stack.get_previous()
         reversed_edit = edit.reverse()
         with self.suspend_undo_recording():
             self.apply_edit(reversed_edit)
-        self.sig_document_change.emit(reversed_edit)
+        self._undo_owner.sig_document_change.emit(reversed_edit)
 
     def redo(self):
         edit = self.undo_stack.get_next()
         with self.suspend_undo_recording():
             self.apply_edit(edit)
-        self.sig_document_change.emit(edit)
+        self._undo_owner.sig_document_change.emit(edit)
 
     @property
     def undo_stack(self):
         """Return the editor undo stack."""
-        return self._undo_stack
+        return self._undo_owner._undo_stack
 
     def clear_undo_stack(self):
         """Clear the editor undo stack and any pending edit capture."""
+        if self._undo_owner is not self:
+            return self._undo_owner.clear_undo_stack()
         logger.debug("Clearing custom undo stack")
         self._undo_stack.clear()
         self.__pending_edit = None
-        self.__undo_cursor_state = CursorState.from_editor(self)
+        self.__undo_cursor_state = CursorState.from_editor(self._undo_view)
 
         document = self.document()
         self.__undo_last_revision = (
@@ -899,6 +923,10 @@ class EditsStackMixin:
     @contextmanager
     def suspend_undo_recording(self):
         """Temporarily disable undo recording while applying a state."""
+        if self._undo_owner is not self:
+            with self._undo_owner.suspend_undo_recording():
+                yield
+            return
         self.__undo_recording_depth += 1
 
         try:
@@ -931,7 +959,11 @@ class EditsStackMixin:
         the pre-edit snapshot by only updating when the document revision has
         not changed since the last recorded revision.
         """
-        current_state = CursorState.from_editor(self)
+        if self._undo_owner is not self:
+            if self.hasFocus():
+                self._set_undo_view()
+            return
+        current_state = CursorState.from_editor(self._undo_view)
         document = self.document()
         if document is None:
             return
@@ -1008,6 +1040,8 @@ class EditsStackMixin:
         cursor.endEditBlock()
 
     def _commit_pending_edit(self):
+        if self._undo_owner is not self:
+            return self._undo_owner._commit_pending_edit()
         if self.__pending_edit is None:
             return
 
@@ -1066,7 +1100,7 @@ class EditsStackMixin:
             self.__revision_in_sync = True
 
         if not delta.inserted_text and not delta.removed_text:
-            self.__undo_cursor_state = CursorState.from_editor(self)
+            self.__undo_cursor_state = CursorState.from_editor(self._undo_view)
             return
 
         self.__undo_last_text[bytes_position:bytes_removed_position] = (
@@ -1074,7 +1108,7 @@ class EditsStackMixin:
         )
 
         if self.__undo_recording_depth > 0:
-            self.__undo_cursor_state = CursorState.from_editor(self)
+            self.__undo_cursor_state = CursorState.from_editor(self._undo_view)
             return
 
         edit = EditBlock(
@@ -1084,7 +1118,7 @@ class EditsStackMixin:
                 for d in delta.exploded()
                 if (d.inserted_text or d.removed_text)
             ],
-            after=CursorState.from_editor(self),
+            after=CursorState.from_editor(self._undo_view),
         )
         self.__undo_cursor_state = edit.after
 
@@ -1106,18 +1140,20 @@ class EditsStackMixin:
     @contextmanager
     def single_edit_block(self):
         """Context manager to group multiple edits into a single undo entry."""
-        self.__edit_block = True
-        if self.__pending_edit is not None:
-            self.__edit_block_tstmp = self.__pending_edit.timestamp
+        self._set_undo_view()
+        owner = self._undo_owner
+        owner.__edit_block = True
+        if owner.__pending_edit is not None:
+            owner.__edit_block_tstmp = owner.__pending_edit.timestamp
 
         try:
             yield
         finally:
             if (
-                self.__pending_edit is not None
-                and self.__pending_edit.timestamp != self.__edit_block_tstmp
+                owner.__pending_edit is not None
+                and owner.__pending_edit.timestamp != owner.__edit_block_tstmp
             ):
-                self._commit_pending_edit()
+                owner._commit_pending_edit()
 
-            self.__edit_block_tstmp = None
-            self.__edit_block = False
+            owner.__edit_block_tstmp = None
+            owner.__edit_block = False

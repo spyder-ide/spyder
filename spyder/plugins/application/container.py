@@ -705,7 +705,8 @@ class ApplicationContainer(PluginMainContainer):
 
     # ---- File actions
     # -------------------------------------------------------------------------
-    def open_file_using_dialog(self, filename: Optional[str], basedir: str):
+    def open_file_using_dialog(self, filename: Optional[str], basedir: str,
+                               opener=None):
         """
         Show Open File dialog and open the selected file.
 
@@ -716,6 +717,9 @@ class ApplicationContainer(PluginMainContainer):
             name filter for the Open File dialog.
         basedir : str
             Directory initially displayed in the Open File dialog.
+        opener : callable, optional
+            Load each selected filename in an explicit editor view. By default,
+            dispatch through the application's normal file-type routing.
         """
         if self.edit_filetypes is None:
             self.edit_filetypes = get_edit_filetypes()
@@ -769,7 +773,10 @@ class ApplicationContainer(PluginMainContainer):
 
         for filename in filenames:
             filename = osp.normpath(filename)
-            self.sig_open_file_in_plugin_requested.emit(filename)
+            if opener is None:
+                self.sig_open_file_in_plugin_requested.emit(filename)
+            else:
+                opener(filename)
 
     def add_recent_file(self, fname: str) -> None:
         """
