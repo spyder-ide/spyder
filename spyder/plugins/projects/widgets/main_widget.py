@@ -320,12 +320,22 @@ class ProjectExplorerWidget(PluginMainWidget):
         data = dlg.project_data
         root_path = data.get("root_path", None)
         project_type = data.get("project_type", EmptyProject.ID)
+        interpreter = data.get("interpreter", "")
 
         if result:
             logger.debug(f'Creating a project at {root_path}')
-            self.create_project(root_path, project_type_id=project_type)
+            self.create_project(
+                root_path,
+                project_type_id=project_type,
+                interpreter=interpreter,
+            )
 
-    def create_project(self, root_path, project_type_id=EmptyProject.ID):
+    def create_project(
+            self,
+            root_path,
+            project_type_id=EmptyProject.ID,
+            interpreter=""
+            ):
         """Create a new project."""
         project_types = self.get_project_types()
         if project_type_id in project_types:
@@ -340,6 +350,11 @@ class ProjectExplorerWidget(PluginMainWidget):
                 QMessageBox.warning(self, "Project creation", message)
                 shutil.rmtree(root_path, ignore_errors=True)
                 return
+
+            # This needs to be set before opening the project, so the
+            # interpreter is used when the project is loaded.
+            if interpreter:
+                project_type.set_option("interpreter", interpreter)
 
             self.sig_project_created.emit(root_path, project_type_id)
             self.open_project(path=root_path, project_type=project_type)
