@@ -30,6 +30,9 @@ def test_preview_tab_focus_updates_its_native_outline(reference, editor_plugin, 
                      pos=stack.tabs.tabBar().tabRect(0).center())
     assert stack.get_current_view() is first.markdown_page.browser
     assert outline.treewidget.current_editor is first.oe_proxy
+    QApplication.setActiveWindow(editor_plugin.main)
+    stack.get_current_view().setFocus()
+    qtbot.waitUntil(lambda: QApplication.focusWidget() is first.markdown_page.browser)
     manager = editor_plugin.get_widget()
     assert manager.get_current_editorstack() is stack
     manager.find()

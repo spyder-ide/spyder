@@ -3,6 +3,8 @@
 
 """Configuration changes must not repeatedly highlight unchanged documents."""
 import pytest
+from qtpy.compat import isalive
+from qtpy.QtCore import QCoreApplication, QEvent
 from qtpy.QtGui import QFont, QTextOption
 from lsprotocol import types as lsp
 
@@ -16,7 +18,6 @@ def test_clone_diagnostics_keep_shared_error_markers(configured_editor, qtbot, c
     editor = configured_editor
     editor.set_text('a=\n')
     clone = CodeEditor(None)
-    qtbot.addWidget(clone)
     clone.setup_editor(language='Python', cloned_from=editor, font=editor.font())
     diagnostics = [lsp.Diagnostic(
         range=lsp.Range(lsp.Position(0, 2), lsp.Position(0, 2)),
@@ -36,13 +37,15 @@ def test_clone_diagnostics_keep_shared_error_markers(configured_editor, qtbot, c
         clone.scrollflagarea.close()
         clone.decorations.close()
         clone.close()
+        clone.deleteLater()
+        QCoreApplication.sendPostedEvents(clone, QEvent.DeferredDelete)
+        assert not isalive(clone) and isalive(editor)
 
 
 def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot):
     """Actual pylsp notifications update and clear the secondary gutter."""
     editor, completion = completions_codeeditor
     clone = CodeEditor(None)
-    qtbot.addWidget(clone)
     clone.setup_editor(language='Python', cloned_from=editor, font=editor.font())
     clone.filename = editor.filename
     clone.sig_perform_completion_request.connect(completion.send_request)
@@ -62,10 +65,19 @@ def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot):
         data = clone.document().firstBlock().userData()
         assert data is None or not data.code_analysis
     finally:
+        editor.notify_close()
+        assert editor.update_diagnostics_thread.wait(5000)
+        assert editor.update_folding_thread.wait(5000)
         clone.notify_close()
         clone.scrollflagarea.close()
         clone.decorations.close()
         clone.close()
+        clone.deleteLater()
+        QCoreApplication.sendPostedEvents(clone, QEvent.DeferredDelete)
+        assert not isalive(clone) and isalive(editor)
+        editor.scrollflagarea.close()
+        editor.decorations.close()
+        editor.hide()
 
 
 @pytest.fixture
