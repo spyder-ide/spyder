@@ -1286,5 +1286,91 @@ def test_collectionseditorwidget_close_action(mocker, qtbot):
     assert CollectionsEditor.reject.call_count == 1
 
 
+def test_collectionseditor_short_type_names(qtbot):
+    """
+    Test that only the last part of dotted type names is shown in the Type
+    column, that its tooltip shows the full name and that sorting by that
+    column uses the names it shows.
+
+    This is a regression test for spyder-ide/spyder#24952.
+    """
+    ClassOfSomething = type(
+        'ClassOfSomething', (), {'__module__': 'my_module.something'}
+    )
+    variables = {
+        'a': 1,
+        'b': ClassOfSomething(),
+        'c': numpy.array([1.0, 2.0]),
+    }
+    editor = CollectionsEditorTableView(None, variables)
+    qtbot.addWidget(editor)
+    model = editor.model()
+
+    # Check text and tooltip of the Type column
+    assert data_col(model, 1) == [
+        'int', 'ClassOfSomething', 'Array of float64'
+    ]
+    assert [
+        model.data(model.index(row, 1), Qt.ToolTipRole) for row in range(3)
+    ] == ['int', 'something.ClassOfSomething', 'Array of float64']
+
+    # Sort by type
+    model.sort(1)
+    assert data_col(model, 0) == ['c', 'b', 'a']
+
+
+def test_remote_collectionseditor_short_type_names(qtbot):
+    """
+    Test that only the last part of dotted type names is shown in the Type
+    column of the Variable Explorer, that its tooltip shows the full name and
+    that sorting and filtering work with the names it shows.
+
+    This is a regression test for spyder-ide/spyder#24952.
+    """
+    variables = {
+        'a': {
+            'type': 'int',
+            'size': 1,
+            'view': '1',
+            'python_type': 'int',
+            'numpy_type': 'Unknown',
+        },
+        'b': {
+            'type': 'something.ClassOfSomething',
+            'size': 1,
+            'view': 'ClassOfSomething object of my_module.something module',
+            'python_type': 'my_module.something.ClassOfSomething',
+            'numpy_type': 'Unknown',
+        },
+        'c': {
+            'type': 'Array of float64',
+            'size': (2,),
+            'view': 'array([1., 2.])',
+            'python_type': 'NDArray',
+            'numpy_type': 'Array',
+        },
+    }
+    editor = RemoteCollectionsEditorTableView(None, variables)
+    qtbot.addWidget(editor)
+    model = editor.model()
+
+    # Check text and tooltip of the Type column
+    assert data_col(model, 1) == [
+        'int', 'ClassOfSomething', 'Array of float64'
+    ]
+    assert [
+        model.data(model.index(row, 1), Qt.ToolTipRole) for row in range(3)
+    ] == ['int', 'something.ClassOfSomething', 'Array of float64']
+
+    # Sort by type
+    editor.sortByColumn(1, Qt.AscendingOrder)
+    assert data_col(model, 0) == ['c', 'b', 'a']
+
+    # Filter by the type name shown in the Type column
+    editor.do_find('ClassOfSomething')
+    assert model.rowCount() == 1
+    assert data(model, 0, 0) == 'b'
+
+
 if __name__ == "__main__":
     pytest.main()
