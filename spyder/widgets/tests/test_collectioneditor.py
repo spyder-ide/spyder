@@ -34,6 +34,7 @@ from spyder.widgets.collectionseditor import (
     CollectionsEditorTableView,
     CollectionsEditorWidget,
     CollectionsModel,
+    get_short_type_name,
     LARGE_NROWS,
     natsort,
     RemoteCollectionsEditorTableView,
@@ -1284,6 +1285,30 @@ def test_collectionseditorwidget_close_action(mocker, qtbot):
 
     editor.widget.close_action.trigger()
     assert CollectionsEditor.reject.call_count == 1
+
+
+@pytest.mark.parametrize(
+    "type_name, expected",
+    [
+        # Names without dots are left unchanged
+        ("int", "int"),
+        ("DataFrame", "DataFrame"),
+        # Only the last part of dotted names is kept
+        ("something.ClassOfSomething", "ClassOfSomething"),
+        ("a.b.c.ClassOfSomething", "ClassOfSomething"),
+        # Names with spaces are descriptions, not dotted names
+        ("Array of float64", "Array of float64"),
+        ("Polars DataFrame", "Polars DataFrame"),
+        ("Array of datetime64[ns]", "Array of datetime64[ns]"),
+        ("Array of my_module.MyType", "Array of my_module.MyType"),
+        # Names that end with a dot or are empty are left unchanged
+        ("something.", "something."),
+        ("", ""),
+    ],
+)
+def test_get_short_type_name(type_name, expected):
+    """Test the function that shortens type names in the Type column."""
+    assert get_short_type_name(type_name) == expected
 
 
 def test_collectionseditor_short_type_names(qtbot):
