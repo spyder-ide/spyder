@@ -583,7 +583,7 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
             value = value['view']
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
-        elif index.column() == 1:
+        elif index.column() == 1:  # Type column
             # Only show the last part of dotted type names to prevent the
             # Type column from getting too wide. The full name is shown in
             # the tooltip instead.
@@ -608,7 +608,7 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
                         "on macOS) for multiple rows"
                     )
                 return '\n'.join(textwrap.wrap(tooltip, 50))
-            if index.column() == 1:
+            if index.column() == 1:  # Type column
                 # Show the full type name
                 return value
             return display
