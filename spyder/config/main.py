@@ -126,6 +126,7 @@ DEFAULTS = [
               }),
             ('quick_layouts',
              {
+              'current_layout': 'Spyder Default Layout',
               'place_holder': '',
               'names': [],
               'order': [],
@@ -354,6 +355,7 @@ DEFAULTS = [
               'type_column': False,
               'date_column': False,
               'search_files_in_switcher': True,
+              'follow_gitignore': True,
               }),
             ('explorer',
              {
