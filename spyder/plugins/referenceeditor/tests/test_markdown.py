@@ -161,7 +161,7 @@ def test_preview_split_close_rebinds_search(reference, editor_plugin, tmp_path):
     assert manager.find_widget.editor is primary.get_current_view()
 
 
-def test_markdown_preview_resources_are_local_images_only(reference, editor_plugin, tmp_path):
+def test_markdown_preview_resources_are_local_images_only(editor_plugin, tmp_path):
     from qtpy.QtCore import QUrl
     from qtpy.QtGui import QImage, QTextDocument
     filename = tmp_path / 'images.md'
@@ -287,9 +287,7 @@ def test_markdown_outline_navigation_keeps_preview_and_finds_exact_heading(
         reference.load(str(filename))
     stack = reference.splitter.editorstack if secondary else manager.editorstacks[0]
     other = manager.editorstacks[0] if secondary else None
-    loaded = stack.get_current_editor().toPlainText()
-    loaded_exactly = loaded == text
-    assert loaded_exactly, (len(loaded), len(text), repr(loaded[:80]), repr(text[:80]))
+    assert stack.get_current_editor().toPlainText() == text
     stack.set_markdown_preview(True)
     page = stack.get_current_editor().markdown_page
     source_document = stack.get_current_editor().document()
@@ -304,9 +302,7 @@ def test_markdown_outline_navigation_keeps_preview_and_finds_exact_heading(
         assert heading.next().text().startswith(occurrence)
         assert page.page_start <= sum(len(item) + 1 for item in lines[:line - 1]) < page.page_end
         assert stack.get_current_editor().document() is source_document
-        source_text = stack.get_current_editor().toPlainText()
-        source_unchanged = source_text == text
-        assert source_unchanged, (len(source_text), len(text), repr(source_text[:80]), repr(text[:80]))
+        assert stack.get_current_editor().toPlainText() == text
         assert not source_document.isModified()
         if other is not None:
             assert other.get_current_view() is other.get_current_editor()
@@ -345,7 +341,7 @@ def test_markdown_outline_overflow_opens_source(editor_plugin, tmp_path):
     assert editor.get_cursor_line_number() == line
 
 
-def test_markdown_outline_discards_stale_results(reference, editor_plugin, qtbot, tmp_path, monkeypatch):
+def test_markdown_outline_discards_stale_results(editor_plugin, qtbot, tmp_path, monkeypatch):
     from threading import Event
     from spyder.plugins.outlineexplorer import markdown
     parser = markdown.markdown_symbols

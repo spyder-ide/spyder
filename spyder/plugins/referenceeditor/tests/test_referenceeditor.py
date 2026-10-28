@@ -78,7 +78,7 @@ def test_creation_is_lazy_and_shared(reference, editor_plugin, tmp_path):
 
 
 @pytest.mark.parametrize('close_split', [False, True])
-def test_closed_clone_releases_shared_undo_view(reference, editor_plugin, qtbot, tmp_path, close_split):
+def test_closed_clone_releases_shared_undo_view(reference, editor_plugin, tmp_path, close_split):
     manager = editor_plugin.get_widget()
     filename = tmp_path / 'lifetime.py'
     filename.write_text('first\nsecond\n', encoding='utf-8')
@@ -385,7 +385,8 @@ def test_transfer_primary_view_preserves_document_and_undo(reference, editor_plu
     target.undo()
     assert editor.toPlainText() == 'value = 1\n'
     target_count = reference.splitter.editorstack.get_stack_count()
-    reference.transfer_tab(primary, copy=True) if copy else None
+    if copy:
+        reference.transfer_tab(primary, copy=True)
     assert reference.splitter.editorstack.get_stack_count() == target_count
 
 

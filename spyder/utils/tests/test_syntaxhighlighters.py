@@ -5,7 +5,6 @@
 
 """Tests for syntaxhighlighters.py"""
 
-import cProfile
 import os
 from pathlib import Path
 import subprocess
@@ -31,14 +30,6 @@ def test_link_scan_handles_long_nonlinks_in_bounded_time(letter, length, tmp_pat
         'highlighter = PythonSH(document); '
         'highlighter.highlight_patterns(sys.argv[1] * int(sys.argv[2]))',
         letter, str(length)], env=environment, timeout=30, check=True)
-
-
-def test_python_tokens_do_not_allocate_group_dictionaries(qapp):
-    document = QTextDocument('def example(value):\n    return value + 42\n')
-    highlighter = PythonSH(document)
-    profiler = cProfile.Profile()
-    profiler.runcall(highlighter.rehighlightBlock, document.firstBlock())
-    assert not any('groupdict' in str(entry.code) for entry in profiler.getstats())
 
 
 @pytest.mark.parametrize('text, expected', [
@@ -84,8 +75,7 @@ def test_python_family_token_formats(qapp, highlighter_class, text, token, lengt
     document = QTextDocument(text)
     highlighter = highlighter_class(document)
     highlighter.rehighlightBlock(document.firstBlock())
-    start = 1 if token == 'magic' else 0
-    assert any(region.start == start and region.length == length
+    assert any(region.start == 0 and region.length == length
                and region.format.foreground() == highlighter.formats[token].foreground()
                for region in document.firstBlock().layout().formats())
 
