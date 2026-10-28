@@ -38,11 +38,11 @@ def test_clone_diagnostics_keep_shared_error_markers(configured_editor, qtbot, c
         clone.close()
 
 
-def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot_module):
+def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot):
     """Actual pylsp notifications update and clear the secondary gutter."""
     editor, completion = completions_codeeditor
     clone = CodeEditor(None)
-    qtbot_module.addWidget(clone)
+    qtbot.addWidget(clone)
     clone.setup_editor(language='Python', cloned_from=editor, font=editor.font())
     clone.filename = editor.filename
     clone.sig_perform_completion_request.connect(completion.send_request)
@@ -53,15 +53,16 @@ def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot_modu
         return data is not None and bool(data.code_analysis)
     try:
         clone.setPlainText('a=\n')
-        qtbot_module.waitUntil(has_error_marker, timeout=30000)
+        qtbot.waitUntil(has_error_marker, timeout=30000)
         data = clone.document().firstBlock().userData()
         assert any(item[2] == lsp.DiagnosticSeverity.Error for item in data.code_analysis)
         assert clone.errors_present()
         clone.setPlainText('a = 1\n')
-        qtbot_module.waitUntil(lambda: not clone.errors_present(), timeout=30000)
+        qtbot.waitUntil(lambda: not clone.errors_present(), timeout=30000)
         data = clone.document().firstBlock().userData()
         assert data is None or not data.code_analysis
     finally:
+        clone.notify_close()
         clone.scrollflagarea.close()
         clone.decorations.close()
         clone.close()
@@ -115,7 +116,8 @@ def test_repeated_colors_do_not_rehighlight(configured_editor, highlight_calls):
     assert not highlight_calls
     editor.set_color_scheme('spyder_themes.spyder/light')
     assert len(highlight_calls) == 1
-    keyword = editor.document().firstBlock().layout().formats()[0].format
+    formats = editor.document().firstBlock().layout().formats()
+    keyword = formats[0].format
     assert keyword.foreground().color() == editor.highlighter.formats['keyword'].foreground().color()
 
 
@@ -126,7 +128,8 @@ def test_modified_named_scheme_is_applied(configured_editor, highlight_calls):
         CONF.set('appearance', 'spyder_themes.spyder/dark/keyword', ('#123456', True, False))
         editor.set_color_scheme('spyder_themes.spyder/dark')
         assert len(highlight_calls) == 1
-        keyword = editor.document().firstBlock().layout().formats()[0].format
+        formats = editor.document().firstBlock().layout().formats()
+        keyword = formats[0].format
         assert keyword.foreground().color().name() == '#123456'
     finally:
         CONF.set('appearance', 'spyder_themes.spyder/dark/keyword', previous)
@@ -138,7 +141,8 @@ def test_modified_shared_scheme_dictionary_is_applied(configured_editor):
     configured_editor.set_color_scheme(colors)
     colors['keyword'] = ('#222222', False, False)
     configured_editor.set_color_scheme(colors)
-    keyword = configured_editor.document().firstBlock().layout().formats()[0].format
+    formats = configured_editor.document().firstBlock().layout().formats()
+    keyword = formats[0].format
     assert keyword.foreground().color().name() == '#222222'
 
 
@@ -146,7 +150,8 @@ def test_same_colors_still_apply_changed_font(configured_editor, highlight_calls
     editor = configured_editor
     editor.set_font(QFont('Monospace', 17), color_scheme='spyder_themes.spyder/dark')
     assert highlight_calls
-    keyword = editor.document().firstBlock().layout().formats()[0].format
+    formats = editor.document().firstBlock().layout().formats()
+    keyword = formats[0].format
     assert keyword.font().pointSize() == 17
 
 

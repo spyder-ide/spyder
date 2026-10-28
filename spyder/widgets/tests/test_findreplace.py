@@ -13,7 +13,7 @@ import os
 # Test library imports
 import pytest
 from qtpy import PYSIDE6
-from qtpy.QtCore import Qt
+from qtpy.QtCore import QCoreApplication, QEvent, Qt
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import QVBoxLayout, QWidget
 
@@ -66,6 +66,24 @@ def findreplace_editor(qtbot, request):
     widget.show()
 
     return widget
+
+
+@pytest.mark.parametrize('destroy_current', [False, True])
+def test_destroyed_editor_does_not_leave_stale_search_binding(findreplace_editor, destroy_current):
+    """Destroyed views are released without clearing a replacement binding."""
+    widget = findreplace_editor
+    finder, previous = widget.findreplace, widget.editor
+    replacement = CodeEditor(widget)
+    replacement.setup_editor()
+    if not destroy_current:
+        finder.set_editor(replacement)
+    previous.scrollflagarea.close()
+    previous.decorations.close()
+    previous.deleteLater()
+    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    assert finder.editor is (None if destroy_current else replacement)
+    finder.set_editor(replacement)
+    assert finder.editor is replacement
 
 
 def test_findreplace_multiline_replacement(findreplace_editor, qtbot):

@@ -25,6 +25,7 @@ def test_preview_tab_focus_updates_its_native_outline(reference, editor_plugin, 
     second = stack.data[1].editor
     outline.treewidget.set_current_editor(second.oe_proxy, False)
     stack.get_current_view().setFocus()
+    QApplication.setActiveWindow(None)
     qtbot.mouseClick(stack.tabs.tabBar(), Qt.LeftButton,
                      pos=stack.tabs.tabBar().tabRect(0).center())
     assert stack.get_current_view() is first.markdown_page.browser
@@ -358,6 +359,7 @@ def test_markdown_outline_discards_stale_results(editor_plugin, qtbot, tmp_path,
     filename.write_text('# Old\n', encoding='utf-8')
     manager = editor_plugin.get_widget()
     manager.outlineexplorer.treewidget.is_visible = True
+    QApplication.setActiveWindow(None)
     manager.load(str(filename))
     editor = manager.editorstacks[0].get_current_editor()
     updates = []

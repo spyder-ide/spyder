@@ -462,13 +462,17 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
 
         # Disconnect previous connection to highlight matches
-        if isinstance(self.editor, CodeEditor):
-            self.editor.textChanged.disconnect(self.update_matches)
+        if self.editor is not None:
+            self.editor.destroyed.disconnect(self._editor_destroyed)
+            if isinstance(self.editor, CodeEditor):
+                self.editor.textChanged.disconnect(self.update_matches)
 
         self.is_code_editor = isinstance(editor, CodeEditor)
 
         # Set current editor
         self.editor = editor
+        if editor is not None:
+            editor.destroyed.connect(self._editor_destroyed)
 
         # Keep number of matches updated if editor text has changed
         if self.is_code_editor:
@@ -478,6 +482,12 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
             self.refresh()
         if self.isHidden() and editor is not None:
             self.clear_matches()
+
+    @Slot()
+    def _editor_destroyed(self):
+        """Release a search target before Qt deletes its view."""
+        self.editor = None
+        self.is_code_editor = False
 
     @Slot()
     def find_next(self, set_focus=True):

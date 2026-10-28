@@ -2564,6 +2564,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         # Make sure that any replace happens in the editor on top
         # See spyder-ide/spyder#9688.
         self._bind_current_view()
+        self._refresh_outlineexplorer(update=False)
 
         # Update highlighted matches and its total number when switching files.
         self.find_widget.highlight_matches()

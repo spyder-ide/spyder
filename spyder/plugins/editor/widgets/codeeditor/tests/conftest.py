@@ -178,7 +178,6 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = codeeditor_factory()
-    qtbot_module.addWidget(editor)
 
     completion_plugin, capabilities = completion_plugin_all_started
     completion_plugin.wait_for_ms = 2000
@@ -207,7 +206,11 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     def teardown():
         editor.completion_widget.hide()
         editor.tooltip_widget.hide()
-        editor.hide()
+        editor.notify_close()
+        editor.scrollflagarea.close()
+        editor.decorations.close()
+        editor.close()
+        editor.deleteLater()
 
         # Capture stderr and assert there are no errors
         sys_stream = capsys.readouterr()

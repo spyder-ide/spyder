@@ -427,27 +427,24 @@ def test_failed_target_does_not_remove_source_view(reference, editor_plugin, mon
 
 
 def test_application_close_cancels_pending_scrollflag_work(editor_plugin, qtbot, tmp_path):
-    from qtpy.QtTest import QSignalSpy
     filename = tmp_path / 'closing.py'
     filename.write_text('value = 7\n', encoding='utf-8')
     manager = editor_plugin.get_widget()
     manager.load(str(filename))
     panel = manager.get_current_editor().scrollflagarea
-    starts = QSignalSpy(panel._update_flags_thread.started)
     try:
-        panel.update_flags()
-        manager.on_close()
-        panel.update_flags.flush()
-        qtbot.wait(50)
-        assert not starts
+        with qtbot.assertNotEmitted(panel._update_flags_thread.started):
+            panel.update_flags()
+            manager.on_close()
+            panel.update_flags.flush()
+            qtbot.wait(50)
     finally:
         panel.close()
 
 
 @pytest.mark.parametrize('secondary', [False, True])
 def test_open_document_outline_navigation_does_not_load_again(
-        reference, editor_plugin, monkeypatch, tmp_path, secondary):
-    from qtpy.QtTest import QSignalSpy
+        reference, editor_plugin, monkeypatch, tmp_path, qtbot, secondary):
     manager = editor_plugin.get_widget()
     filename = tmp_path / 'navigation.py'
     filename.write_text('first = 1\nsecond = 2\n', encoding='utf-8')
@@ -460,13 +457,12 @@ def test_open_document_outline_navigation_does_not_load_again(
     def unexpected_load(*args, **kwargs):
         pytest.fail('Navigation must reuse the existing document')
     monkeypatch.setattr(primary, 'load', unexpected_load)
-    starting = QSignalSpy(manager.starting_long_process)
-    ending = QSignalSpy(manager.ending_long_process)
-    if secondary:
-        reference.load(str(filename), goto=2, word='second', from_outline=True)
-    else:
-        editor_plugin.load_edit_goto(str(filename), 2, 'second')
-    assert not starting and not ending
+    with (qtbot.assertNotEmitted(manager.starting_long_process),
+          qtbot.assertNotEmitted(manager.ending_long_process)):
+        if secondary:
+            reference.load(str(filename), goto=2, word='second', from_outline=True)
+        else:
+            editor_plugin.load_edit_goto(str(filename), 2, 'second')
     assert stack.get_current_editor().get_cursor_line_number() == 2
     assert stack.get_current_editor().document() is document
     assert not document.isModified()
