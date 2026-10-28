@@ -290,6 +290,7 @@ class PlotsWidget(ShellConnectMainWidget):
                     self.dock_action,
                     self.toggle_view_action,
                     self.lock_unlock_action,
+                    self.help_action,
                 ]:
                     action.setEnabled(value)
             except (RuntimeError, AttributeError):
