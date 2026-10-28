@@ -588,7 +588,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         self.help_action = self.create_action(
             name=PluginMainWidgetActions.HelpPage,
             text=_("Help"),
-            tip=_("Show help for the pane"),
+            tip=_("Show the pane documentation"),
             icon=self.create_icon("help"),
             triggered=self._show_help_page,
         )
