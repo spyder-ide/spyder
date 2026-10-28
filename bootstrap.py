@@ -156,14 +156,14 @@ if args.debug:
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 
-# Selecting the GUI toolkit: PyQt5 if installed
+# Selecting the GUI toolkit: PyQt6 if installed
 if args.gui is None:
     try:
-        import PyQt5  # analysis:ignore
-        logger.info("PyQt5 is detected, selecting")
-        os.environ['QT_API'] = 'pyqt5'
+        import PyQt6  # analysis:ignore
+        logger.info("PyQt6 is detected, selecting")
+        os.environ['QT_API'] = 'pyqt6'
     except ImportError:
-        sys.exit("ERROR: No PyQt5 detected!")
+        sys.exit("ERROR: No PyQt6 detected!")
 else:
     logger.info("Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
