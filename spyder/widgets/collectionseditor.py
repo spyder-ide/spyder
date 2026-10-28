@@ -444,13 +444,13 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
                 self.keys,
                 self.types,
                 reverse=reverse,
-                sort_key=get_short_type_name
+                sort_key=get_short_type_name,
             )
             self.sizes = sort_against(
                 self.sizes,
                 self.types,
                 reverse=reverse,
-                sort_key=get_short_type_name
+                sort_key=get_short_type_name,
             )
             try:
                 self.types.sort(reverse=reverse, key=get_short_type_name)
