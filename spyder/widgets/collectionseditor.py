@@ -583,9 +583,11 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
             value = value['view']
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
-        elif index.column() == 1:  # Type column
-            # Only show the last part of dotted type names to prevent the
-            # Type column from getting too wide. The full name is shown in
+        elif index.column() == 1:
+            # Column 1 is the "Type" column, which shows the type of each item
+            # (the other columns are 0: Name/Key/Index, 2: Size, 3: Value).
+            # Only show the last part of dotted type names in it, to prevent
+            # that column from getting too wide. The full name is shown in
             # the tooltip instead.
             # Fixes spyder-ide/spyder#24952
             display = get_short_type_name(value)
@@ -608,8 +610,9 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
                         "on macOS) for multiple rows"
                     )
                 return '\n'.join(textwrap.wrap(tooltip, 50))
-            if index.column() == 1:  # Type column
-                # Show the full type name
+            if index.column() == 1:
+                # Column 1 is the "Type" column. Its cells only show the last
+                # part of dotted type names, so show the full name here.
                 return value
             return display
         if role == Qt.UserRole:
