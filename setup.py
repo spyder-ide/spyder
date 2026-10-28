@@ -269,8 +269,8 @@ qt_requirements = {
         'qtconsole>=5.7.2,<5.8.0',
     ],
     'pyqt6': [
-        'pyqt6>=6.5,<7',
-        'pyqt6-webengine>=6.5,<7',
+        'pyqt6>=6.5,<6.12',
+        'pyqt6-webengine>=6.5,<6.12',
         'qtconsole>=5.7.2,<5.8.0',
     ],
     'pyside6': [
@@ -278,7 +278,7 @@ qt_requirements = {
         'qtconsole>=5.7.2,<5.8.0',
     ],
     'conda-forge': [
-        'qtconsole>=5.7.2,<5.8.0',
+        'qtconsole-base>=5.7.2,<5.8.0',
     ]
 }
 
