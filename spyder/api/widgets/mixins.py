@@ -1200,10 +1200,12 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
                 return icon.pixmap(max_dimension, max_dimension)
 
         # Fallback to original method for icons without colorization classes.
-        # Get width and height
-        pm = QPixmap(image_path)
-        width = pm.width()
-        height = pm.height()
+        # Get width and height using the SVG renderer; QPixmap cannot
+        # reliably load SVG files in all Qt versions
+        renderer = QSvgRenderer(image_path)
+        default_size = renderer.defaultSize()
+        width = default_size.width()
+        height = default_size.height()
 
         # Rescale but preserving aspect ratio
         if rescale is not None:
@@ -1219,7 +1221,6 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
         )
         image.fill(0)
         painter = QPainter(image)
-        renderer = QSvgRenderer(image_path)
         renderer.render(painter)
         painter.end()
 
