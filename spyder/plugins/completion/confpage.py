@@ -12,6 +12,7 @@ from qtpy.QtWidgets import QGroupBox, QVBoxLayout, QGridLayout
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
+from spyder.plugins.editor.confpage import create_editor_view_checkbox
 
 
 class CompletionConfigPage(PluginConfigPage):
@@ -44,9 +45,8 @@ class CompletionConfigPage(PluginConfigPage):
             _("Show completion details"),
             'completions_hint',
             section='editor')
-        automatic_completion_box = newcb(
-            _("Show completions on the fly"),
-            'automatic_completions',
+        automatic_completion_box = create_editor_view_checkbox(
+            self, 'automatic_completions',
             section='editor')
         use_enter_for_completions_box = newcb(
             _("Use Enter to accept code completions"),

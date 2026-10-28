@@ -5,11 +5,79 @@
 
 """Tests for syntaxhighlighters.py"""
 
-import pytest
-from qtpy.QtWidgets import QApplication
-from qtpy.QtGui import QTextDocument
+import os
+from pathlib import Path
+import subprocess
+import sys
 
-from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH, MarkdownSH
+import pytest
+from qtpy.QtGui import QTextCharFormat, QTextDocument
+
+from spyder.utils.syntaxhighlighters import (
+    CythonSH, EnamlSH, HtmlSH, IPythonSH, PythonSH, MarkdownSH)
+
+
+@pytest.mark.parametrize('letter, length', [('a', 100000), ('中', 200000)])
+def test_link_scan_handles_long_nonlinks_in_bounded_time(letter, length, tmp_path):
+    """Do not backtrack over every suffix of a long identifier/comment."""
+    environment = dict(os.environ, SPYDER_CONFDIR=str(tmp_path))
+    environment['PYTHONPATH'] = str(Path(__file__).resolve().parents[3])
+    subprocess.run([sys.executable, '-c',
+        'import sys; from qtpy.QtWidgets import QApplication; '
+        'from qtpy.QtGui import QTextDocument; '
+        'from spyder.utils.syntaxhighlighters import PythonSH; '
+        'app = QApplication([]); document = QTextDocument(); '
+        'highlighter = PythonSH(document); '
+        'highlighter.highlight_patterns(sys.argv[1] * int(sys.argv[2]))',
+        letter, str(length)], env=environment, timeout=30, check=True)
+
+
+@pytest.mark.parametrize('text, expected', [
+    ('# owner/repo#42 next', [('issue', 'owner/repo#42')]),
+    ('abcgh:owner/repo#42', [('issue', 'gh:owner/repo#42')]),
+    ('some/path/owner/repo#2', [('issue', 'owner/repo#2')]),
+    ('a-b/c_d#42', [('issue', 'a-b/c_d#42')]),
+    ('/repo#42 owner/#3', [('issue', '/repo#42'), ('issue', 'owner/#3')]),
+    ('xgh-12 gl-3 bb-4', [('issue', 'gh-12'), ('issue', 'gl-3'), ('issue', 'bb-4')]),
+    ('amailto:bob@example.com', [('mail', 'mailto:bob@example.com')]),
+    ('Abob@example.com', [('mail', 'bob@example.com')]),
+    ('mailto: bob@example.com', [('mail', 'mailto: bob@example.com')]),
+    ('jane.doe+tag@example.com', [('mail', 'tag@example.com')]),
+    ('中foo@bar.com', [('mail', 'foo@bar.com')]),
+    ('https://example.com/path', [('url', 'https://example.com/path')]),
+    ('file:///D:/note.md', [('file', 'file:///D:/note.md')]),
+    ('X2/中2#1YXbowner/no-number#0',
+     [('issue', 'X2/中2#1'), ('issue', 'YXbowner/no-number#0')]),
+    ('BUG-42', [('ticket', 'BUG-42')]),
+])
+def test_pattern_prescreen_keeps_native_link_underlines(qapp, text, expected):
+    document = QTextDocument(text)
+    highlighter = PythonSH(document)
+    if text == 'BUG-42':
+        highlighter.update_patterns({'ticket': r'BUG-\d+'})
+    highlighter.rehighlightBlock(document.firstBlock())
+    expected_positions = {position for _, value in expected
+                          for position in range(text.index(value), text.index(value) + len(value))}
+    actual_positions = {position for region in document.firstBlock().layout().formats()
+                        if region.format.underlineStyle() == QTextCharFormat.SingleUnderline
+                        for position in range(region.start, region.start + region.length)}
+    assert actual_positions == expected_positions
+
+
+@pytest.mark.parametrize('highlighter_class, text, token, length', [
+    (PythonSH, 'match value:', 'keyword', 5),
+    (PythonSH, 'case value:', 'keyword', 4),
+    (IPythonSH, '%time value', 'symbol', 1),
+    (CythonSH, 'cdef int value', 'keyword', 4),
+    (EnamlSH, 'enamldef View(Window):', 'keyword', 8),
+])
+def test_python_family_token_formats(qapp, highlighter_class, text, token, length):
+    document = QTextDocument(text)
+    highlighter = highlighter_class(document)
+    highlighter.rehighlightBlock(document.firstBlock())
+    assert any(region.start == 0 and region.length == length
+               and region.format.foreground() == highlighter.formats[token].foreground()
+               for region in document.firstBlock().layout().formats())
 
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)

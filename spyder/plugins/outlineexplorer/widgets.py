@@ -402,6 +402,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor is None:
             return
 
+        editor.set_outline_active(state and self.is_visible)
         # Connect syntax highlighter
         sig_update = editor.sig_outline_explorer_data_changed
         sig_move = editor.sig_cursor_position_changed
@@ -444,10 +445,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         logger.debug(f"Set current editor to file {editor.fname}")
         self.current_editor = editor
+        editor.set_outline_active(self.is_visible)
 
         if (
             self.is_visible
-            and (editor.get_language().lower() in self._languages)
+            and (editor.get_language().lower() in self._languages
+                 or editor.get_language().lower() == 'markdown')
             and not editor.is_tree_updated
         ):
             if editor.info is not None:
@@ -500,6 +503,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             # Clear and re-populate the tree again.
             # Fixes spyder-ide/spyder#15517
             items.delete()
+            if editor is self.current_editor:
+                editor.set_outline_active(self.is_visible)
             editor.request_symbols()
 
             # Resort root items
@@ -532,6 +537,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for language in self._languages:
             self.set_editors_to_update(language, reset_info=reset_info)
             self.update_timers[language].start()
+        for editor in self.editor_ids:
+            if editor.get_language().lower() == 'markdown':
+                editor.request_symbols()
 
     @Slot(list)
     def update_editor(self, items, editor=None):
@@ -895,8 +903,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def change_visibility(self, is_visible):
         """Actions to take when the widget visibility has changed."""
         self.is_visible = is_visible
+        if self.current_editor is not None:
+            self.current_editor.set_outline_active(is_visible)
 
         if is_visible:
+            for editor in self.editor_ids:
+                if editor.get_language().lower() == 'markdown' and editor.info is not None:
+                    self.update_editor(editor.info, editor)
             # Udpdate outdated trees for all LSP languages
             for language in self._languages:
                 # Don't run this while trees are being updated after their LSP

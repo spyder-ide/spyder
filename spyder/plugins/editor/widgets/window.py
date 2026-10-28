@@ -173,7 +173,7 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
             self.outlineexplorer.edit_goto.connect(
                 lambda filenames, goto, word:
                 main_widget.load(filenames=filenames, goto=goto, word=word,
-                                 editorwindow=self.parent())
+                                 editorwindow=self.parent(), from_outline=True)
             )
 
             self.outlineexplorer.sig_collapse_requested.connect(

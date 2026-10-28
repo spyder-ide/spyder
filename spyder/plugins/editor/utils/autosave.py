@@ -135,6 +135,8 @@ class AutosaveForPlugin(object):
         """Instruct current editorstack to autosave files where necessary."""
         logger.debug('Autosave triggered')
         stack = self.editor.get_current_editorstack()
+        if stack.editor_owner is not None:
+            stack = self.editor.editorstacks[0]
         stack.autosave.autosave_all()
         self.start_autosave_timer()
 

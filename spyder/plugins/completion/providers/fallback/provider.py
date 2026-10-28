@@ -12,6 +12,7 @@ Wraps FallbackActor to provide compatibility with SpyderCompletionProvider API.
 
 # Standard library imports
 import logging
+from lsprotocol import types as lsp
 
 # Local imports
 from spyder.api.translations import _
@@ -55,6 +56,9 @@ class FallbackProvider(SpyderCompletionProvider):
             self.started = False
 
     def send_request(self, language, req_type, req, req_id=None):
+        if (req_type == lsp.TEXT_DOCUMENT_DID_CLOSE
+                and getattr(req.get('codeeditor'), 'is_cloned', False)):
+            return
         request = {
             'type': req_type,
             'file': req['file'],

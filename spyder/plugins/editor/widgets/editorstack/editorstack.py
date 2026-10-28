@@ -25,11 +25,11 @@ import unicodedata
 # Third party imports
 import qstylizer.style
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
+from qtpy.QtCore import QEvent, QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
-                            QToolBar, QToolButton)
+                            QToolBar, QToolButton, QPushButton, QStackedWidget)
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
@@ -245,14 +245,12 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.menu = None
         self.tabs = None
         self.tabs_switcher = None
-
+        self.data: list[FileInfo] = []
         self.stack_history = StackHistory(self)
 
         self.setup_editorstack(parent, layout)
 
         self.find_widget = None
-
-        self.data: list[FileInfo] = []
 
         # Actions
         self.switcher_action = None
@@ -620,7 +618,22 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         menu_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-        corner_widgets = {Qt.TopRightCorner: [menu_btn]}
+        self.markdown_action = self.create_action(
+            'markdown_preview', text=_('Markdown preview'),
+            toggled=self.set_markdown_preview, register_action=False)
+        self.markdown_button = QPushButton(_('Preview'), self)
+        self.markdown_button.setCheckable(True)
+        self.markdown_button.clicked.connect(self.markdown_action.trigger)
+        self.markdown_action.toggled.connect(self.markdown_button.setChecked)
+        self.markdown_button.setToolTip(_('Switch between Markdown source and preview'))
+        self.markdown_button.hide()
+        self.markdown_action.setVisible(False)
+        self.markdown_navigation = QStackedWidget(self)
+        self.markdown_navigation.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        self.markdown_navigation.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
+        self.markdown_navigation.hide()
+        corner_widgets = {Qt.TopRightCorner: [self.markdown_navigation,
+                                             self.markdown_button, menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.set_close_function(self.close_file)
@@ -636,6 +649,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             # Fixes spyder-ide/spyder#561.
             self.tabs.setDocumentMode(True)
         self.tabs.currentChanged.connect(self.current_changed)
+        self.tabs.browse_tabs_menu.aboutToShow.connect(self.filter_browse_tabs)
+        self.tabs.installEventFilter(self)
 
         tab_container = QWidget()
         tab_container.setObjectName('tab-container')
@@ -678,7 +693,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     @Slot()
     def update_fname_label(self):
         """Update file name label."""
-        filename = str(self.get_current_filename())
+        filename = self.get_current_filename() or ''
         if len(filename) > 100:
             metrics = QFontMetrics(
                 self.default_font
@@ -709,6 +724,12 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """Overrides QWidget closeEvent()."""
         self.threadmanager.close_all_threads()
         self.analysis_timer.timeout.disconnect(self.analyze_script)
+        for finfo in self.data:
+            finfo.editor.release_undo_view()
+            finfo.editor.scrollflagarea.close()
+            finfo.editor.decorations.close()
+            if hasattr(finfo.editor, 'markdown_page'):
+                finfo.editor.markdown_page.dispose(detach_source=False)
 
         # Remove editor references from the outline explorer settings
         if self.outlineexplorer is not None:
@@ -749,6 +770,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """Clone EditorStack from other instance"""
         for other_finfo in other.data:
             self.clone_editor_from(other_finfo, set_current=True)
+            index = other.has_filename(other_finfo.filename)
+            if not other.tabs.isTabVisible(index):
+                self.set_tab_visible(self.has_filename(other_finfo.filename), False)
         self.set_stack_index(other.get_stack_index())
 
     def get_main_widget(self):
@@ -765,6 +789,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
+        self.set_markdown_preview(False)
         if line is not None:
             # When this method is called from the fileswitcher, a line
             # number is specified, so there is no need for the dialog.
@@ -816,6 +841,14 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    def on_configuration_change(self, option, section, value):
+        """Keep another dock's view options separate from primary policies."""
+        owner = getattr(self, 'editor_owner', None)
+        if (owner is not None and section == 'editor'
+                and option in owner.editor_options):
+            value = owner.get_editor_option(option)
+        super().on_configuration_change(option, section, value)
+
     @on_conf_change(
         option=("provider_configuration", "lsp", "values", "pyflakes"),
         section='completions',
@@ -1196,17 +1229,133 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         return self.tabs.currentIndex()
 
     def get_current_finfo(self):
-        if self.data:
+        if self.data and self.tabs.isTabVisible(self.get_stack_index()):
             return self.data[self.get_stack_index()]
 
     def get_current_editor(self):
-        return self.tabs.currentWidget()
+        if self.tabs.isTabVisible(self.get_stack_index()):
+            return self.data[self.get_stack_index()].editor
+
+    def get_current_view(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            return editor.markdown_page.current_view() if hasattr(editor, 'markdown_page') else editor
+
+    def set_markdown_preview(self, enabled):
+        editor = self.get_current_editor()
+        if editor is None:
+            return
+        if enabled and (editor.language or '').lower() != 'markdown':
+            return
+        if enabled and not hasattr(editor, 'markdown_page'):
+            from spyder.plugins.editor.widgets.markdown import MarkdownPage
+            index = self.get_stack_index()
+            text, tip, icon = self.tabs.tabText(index), self.tabs.tabToolTip(index), self.tabs.tabIcon(index)
+            blocked = self.tabs.blockSignals(True)
+            self.tabs.removeTab(index)
+            page = editor.markdown_page = MarkdownPage(editor)
+            self.markdown_navigation.addWidget(page.navigation)
+            page.view_changed.connect(self._bind_current_view)
+            if self.find_widget is not None:
+                page.view_changed.connect(self.find_widget.update_matches)
+            page.browser.focused.connect(self.focus_changed)
+            page.open_file.connect(lambda filename: self.edit_goto.emit(filename, 1, ''))
+            self.tabs.insertTab(index, page, icon, text)
+            self.tabs.setTabToolTip(index, tip)
+            self.tabs.setCurrentIndex(index)
+            self.tabs.blockSignals(blocked)
+        if hasattr(editor, 'markdown_page'):
+            editor.markdown_page.set_preview(enabled)
+            self.get_current_view().setFocus()
+            self._refresh_outlineexplorer(update=False)
+
+    def _bind_current_view(self):
+        editor = self.get_current_editor()
+        markdown = editor is not None and (editor.language or '').lower() == 'markdown'
+        if not markdown and editor is not None and hasattr(editor, 'markdown_page'):
+            if editor.markdown_page.currentIndex():
+                editor.markdown_page.set_preview(False)
+        view = self.get_current_view()
+        self.markdown_action.blockSignals(True)
+        self.markdown_action.setVisible(markdown)
+        self.markdown_action.setChecked(view is not editor)
+        self.markdown_action.blockSignals(False)
+        self.markdown_button.blockSignals(True)
+        self.markdown_button.setText(
+            _('Source code') if view is not editor else _('Preview'))
+        self.markdown_button.setChecked(view is not editor)
+        self.markdown_button.blockSignals(False)
+        self.markdown_button.setVisible(markdown)
+        paged = False
+        if view is not editor and editor is not None:
+            page = editor.markdown_page
+            self.markdown_navigation.setCurrentWidget(page.navigation)
+            paged = page.page_start > 0 or page.page_end < len(page.text)
+        self.markdown_navigation.setVisible(paged)
+        if self.find_widget is not None:
+            self.find_widget.enable_replace = view is editor and editor is not None and not editor.isReadOnly()
+            self.find_widget.replace_text_button.setVisible(self.find_widget.enable_replace)
+            if not self.find_widget.enable_replace:
+                self.find_widget.hide_replace()
+            self.find_widget.set_editor(view, refresh=False)
+
+    def visible_tab_indexes(self):
+        """Presentation membership; canonical data and indexes stay intact."""
+        return [index for index in range(self.tabs.count()) if self.tabs.isTabVisible(index)]
+
+    def set_tab_visible(self, index, visible):
+        """Keep active view and outline separate from retained documents."""
+        if self.tabs.isTabVisible(index) == visible:
+            return
+        proxy = self.data[index].editor.oe_proxy
+        if self.outlineexplorer is not None:
+            if visible:
+                proxy.is_tree_updated = False
+                self.outlineexplorer.register_editor(proxy)
+            else:
+                self.outlineexplorer.remove_editor(proxy)
+        self.tabs.setTabVisible(index, visible)
+        if not visible:
+            self.stack_history.remove(index)
+        self._normalize_visible_current()
+        self.refresh()
+        self.update_fname_label()
+        self.refresh_file_dependent_actions.emit()
+
+    def _normalize_visible_current(self):
+        """Qt may display a hidden page after the last visible tab is removed."""
+        indexes = self.visible_tab_indexes()
+        if not indexes:
+            widget = self.tabs.currentWidget()
+            if widget is not None:
+                widget.hide()
+        elif self.get_stack_index() not in indexes:
+            self.tabs.setCurrentIndex(indexes[-1])
+        self.update_fname_label()
+
+    def filter_browse_tabs(self):
+        """Filter the native menu without changing its actions' tab indexes."""
+        for index, action in enumerate(self.tabs.browse_tabs_menu.actions()):
+            action.setVisible(self.tabs.isTabVisible(index))
+
+    def eventFilter(self, watched, event):
+        if (watched is self.tabs and event.type() == QEvent.KeyPress
+                and event.modifiers() & Qt.ControlModifier
+                and event.key() in (Qt.Key_PageUp, Qt.Key_8, Qt.Key_PageDown, Qt.Key_9)):
+            indexes = self.visible_tab_indexes()
+            if indexes:
+                current = self.get_stack_index()
+                position = indexes.index(current) if current in indexes else 0
+                step = -1 if event.key() in (Qt.Key_PageUp, Qt.Key_8) else 1
+                self.set_stack_index(indexes[(position + step) % len(indexes)])
+            return True
+        return super().eventFilter(watched, event)
 
     def get_stack_count(self):
         return self.tabs.count()
 
     def set_stack_index(self, index, instance=None):
-        if instance == self or instance is None:
+        if (instance == self or instance is None) and self.tabs.isTabVisible(index):
             self.tabs.setCurrentIndex(index)
 
     @on_conf_change(option='show_tab_bar')
@@ -1221,8 +1370,11 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.tabs.blockSignals(True)
         self.tabs.removeTab(index)
         self.data.pop(index)
+        self._normalize_visible_current()
         self.tabs.blockSignals(False)
         self.update_actions()
+
+        self._bind_current_view()
 
     def __modified_readonly_title(self, title, is_modified, is_readonly):
         if is_modified is not None and is_modified:
@@ -1259,7 +1411,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.data.insert(index, finfo)
         index = self.data.index(finfo)
         editor = finfo.editor
-        self.tabs.insertTab(index, editor, self.get_tab_text(index))
+        self.tabs.insertTab(index, getattr(editor, 'markdown_page', editor), self.get_tab_text(index))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -1267,6 +1419,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.update_actions()
 
     def __repopulate_stack(self):
+        hidden = {self.data[index].editor for index in range(self.tabs.count())
+                  if not self.tabs.isTabVisible(index)}
         self.tabs.blockSignals(True)
         self.tabs.clear()
         for finfo in self.data:
@@ -1277,8 +1431,10 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             index = self.data.index(finfo)
             tab_text = self.get_tab_text(index, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
-            index = self.tabs.addTab(finfo.editor, tab_text)
+            index = self.tabs.addTab(getattr(finfo.editor, 'markdown_page', finfo.editor), tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
+            self.tabs.setTabVisible(index, finfo.editor not in hidden)
+        self._normalize_visible_current()
         self.tabs.blockSignals(False)
 
     def rename_in_data(self, original_filename, new_filename):
@@ -1353,10 +1509,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
         self.menu.clear_actions()
-        if self.data:
+        if self.get_current_editor() is not None:
             given_actions = self._given_actions + [
                 self.external_fileexp_action
             ]
+            if self.markdown_action.isVisible():
+                given_actions = [self.markdown_action, *given_actions]
+            controller = getattr(self.get_main_widget(), 'reference_editor', None)
+            if controller is not None:
+                given_actions = controller.transfer_actions(self) + given_actions
             for given_action in given_actions:
                 self.menu.add_action(
                     given_action, section=EditorStackMenuSections.GivenSection
@@ -1486,7 +1647,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     def __get_main_widget_actions(self):
         actions = []
         if self.parent() is not None:
-            main_widget = self.get_main_widget()
+            main_widget = getattr(self, 'editor_owner', None) or self.get_main_widget()
         else:
             main_widget = None
 
@@ -1517,12 +1678,14 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     # ---- Accessors
     def get_current_filename(self):
-        if self.data:
-            return self.data[self.get_stack_index()].filename
+        info = self.get_current_finfo()
+        if info is not None:
+            return info.filename
 
     def get_current_language(self):
-        if self.data:
-            return self.data[self.get_stack_index()].editor.language
+        editor = self.get_current_editor()
+        if editor is not None:
+            return editor.language
 
     def get_current_project_path(self):
         if self.data:
@@ -1580,11 +1743,12 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             index = None
 
         if index is not None:
+            self.set_tab_visible(index, True)
             if focus:
                 self.set_stack_index(index)
             editor = self.data[index].editor
             if focus:
-                editor.setFocus()
+                self.get_current_view().setFocus()
             else:
                 self.stack_history.remove_and_append(index)
 
@@ -1637,19 +1801,31 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.refresh()
 
     # ---- Close file, tabwidget...
-    def close_file(self, index=None, force=False):
+    def close_file(self, index=None, force=False, close_document=False):
         """Close file (index=None -> close current file)
         Keep current file index unchanged (if current file
-        that is being closed)"""
+        that is being closed). close_document also closes other pane views."""
         current_index = self.get_stack_index()
         count = self.get_stack_count()
 
         if index is None:
-            if count > 0:
+            if self.get_current_editor() is not None:
                 index = current_index
             else:
                 self.find_widget.set_editor(None)
                 return
+
+        controller = (getattr(self.get_main_widget(), 'reference_editor', None)
+                      if self.parent() else None)
+        if close_document and controller is not None and self.editor_owner is not None:
+            primary = self.get_main_widget().editorstacks[0]
+            position = primary.has_filename(self.data[index].filename)
+            return (primary.close_file(position, force=force, close_document=True)
+                    if position is not None else False)
+        if controller is not None and not (force or close_document):
+            closed = controller.close_tab(self, index)
+            if closed is not None:
+                return closed
 
         new_index = None
         if count > 1:
@@ -1660,11 +1836,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         can_close_file = self.get_main_widget().can_close_file(
             self.data[index].filename) if self.parent() else True
-        is_ok = (force or self.save_if_changed(cancelable=True, index=index)
+        reference_view = getattr(self, 'editor_owner', None) is not None
+        is_ok = (force or reference_view or self.save_if_changed(cancelable=True, index=index)
                  and can_close_file)
         if is_ok:
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
+            finfo.editor.release_undo_view()
+            finfo.editor.scrollflagarea.close()
+            finfo.editor.decorations.close()
             # Removing editor reference from outline explorer settings:
             if self.outlineexplorer is not None:
                 self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
@@ -1672,6 +1852,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             filename = self.data[index].filename
             self.remove_from_data(index)
             editor = finfo.editor
+            if hasattr(editor, 'markdown_page'):
+                editor.markdown_page.dispose()
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
@@ -1712,11 +1894,11 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 # one after the other without refocusing each one.
                 self.__file_status_flag = False
 
-                editor.setFocus()
+                self.get_current_view().setFocus()
 
             self.add_last_closed_file(finfo.filename)
 
-            if finfo.filename in self.autosave.file_hashes:
+            if not reference_view and finfo.filename in self.autosave.file_hashes:
                 del self.autosave.file_hashes[finfo.filename]
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
@@ -1739,14 +1921,14 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             in small caps).
         """
         for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
+            editor = self.data[index].editor
             if editor.language.lower() == language:
                 editor.register_completion_capabilities(capabilities)
 
     def start_completion_services(self, language):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
+            editor = self.data[index].editor
             if editor.language.lower() == language:
                 editor.start_completion_services()
 
@@ -1754,35 +1936,38 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """Notify language server unavailability to code editors."""
         try:
             for index in range(self.get_stack_count()):
-                editor = self.tabs.widget(index)
+                editor = self.data[index].editor
                 if editor.language.lower() == language:
                     editor.stop_completion_services()
         except RuntimeError:
             pass
 
-    def close_all_files(self):
+    def close_all_files(self, close_document=False):
         """Close all opened scripts"""
-        while self.close_file():
-            pass
+        indexes = (range(self.get_stack_count()) if close_document
+                   else self.visible_tab_indexes())
+        for index in reversed(indexes):
+            if not self.close_file(index, close_document=close_document):
+                break
 
     def close_all_right(self):
         """ Close all files opened to the right """
         num = self.get_stack_index()
-        n = self.get_stack_count()
-        for __ in range(num, n - 1):
-            self.close_file(num + 1)
+        for index in reversed(self.visible_tab_indexes()):
+            if index > num:
+                self.close_file(index)
 
     def close_all_left(self):
         """Close all files opened to the left."""
-        n = self.get_stack_index()
-        for __ in range(n):
-            self.close_file(0)
+        current = self.get_stack_index()
+        for index in reversed(self.visible_tab_indexes()):
+            if index < current:
+                self.close_file(index)
 
     def on_close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
-        for __ in range(self.get_stack_count() - 1):
-            self.close_file(0)
+        self.close_all_left()
 
     def sort_file_tabs_alphabetically(self):
         """Sort open tabs alphabetically."""
@@ -1952,7 +2137,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """
         if index is None:
             # Save the currently edited file
-            if not self.get_stack_count():
+            if self.get_current_editor() is None:
                 return
             index = self.get_stack_index()
 
@@ -2119,6 +2304,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             return osp.normpath(filename)
         return None
 
+    def _close_save_destination(self, original_filename, filename):
+        """Resolve Save As collisions through the document-owning stack."""
+        stack = (self.get_main_widget().editorstacks[0]
+                 if getattr(self, 'editor_owner', None) is not None else self)
+        destination = stack.has_filename(filename)
+        return (destination is None
+                or destination == stack.has_filename(original_filename)
+                or stack.close_file(destination, close_document=True))
+
     def save_as(self, index=None):
         """Save file as...
 
@@ -2141,6 +2335,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """
         if index is None:
             # Save the currently edited file
+            if self.get_current_finfo() is None:
+                return False
             index = self.get_stack_index()
         finfo = self.data[index]
         original_newly_created = finfo.newly_created
@@ -2151,13 +2347,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         original_filename = finfo.filename
         filename = self.select_savename(original_filename)
         if filename:
-            ao_index = self.has_filename(filename)
-            # Note: ao_index == index --> saving an untitled file
-            if ao_index is not None and ao_index != index:
-                if not self.close_file(ao_index):
-                    return
-                if ao_index < index:
-                    index -= 1
+            if not self._close_save_destination(original_filename, filename):
+                finfo.newly_created = original_newly_created
+                return
 
             new_index = self.rename_in_data(original_filename,
                                             new_filename=filename)
@@ -2198,22 +2390,23 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """
         if index is None:
             # Save the currently edited file
+            if self.get_current_finfo() is None:
+                return False
             index = self.get_stack_index()
         finfo = self.data[index]
         original_filename = finfo.filename
         filename = self.select_savename(original_filename)
         if filename:
-            ao_index = self.has_filename(filename)
-            # Note: ao_index == index --> saving an untitled file
-            if ao_index is not None and ao_index != index:
-                if not self.close_file(ao_index):
-                    return
-                if ao_index < index:
-                    index -= 1
+            if not self._close_save_destination(original_filename, filename):
+                return
             try:
                 self._write_to_file(finfo, filename)
                 # open created copy file
-                self.plugin_load.emit(filename)
+                owner = getattr(self, 'editor_owner', None)
+                if owner is not None:
+                    self.get_main_widget().load(filename, editorwindow=owner)
+                else:
+                    self.plugin_load.emit(filename)
                 return True
             except EnvironmentError as error:
                 self.msgbox = QMessageBox(
@@ -2232,6 +2425,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         Iterate through self.data and call save() on any modified files.
         """
+        if getattr(self, 'editor_owner', None) is not None:
+            return self.get_main_widget().editorstacks[0].save_all(save_new_files)
         all_saved = True
         n_files_changed = False
 
@@ -2343,15 +2538,16 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     def current_changed(self, index):
         """Stack index has changed"""
         editor = self.get_current_editor()
-        if index != -1:
-            editor.setFocus()
+        if editor is not None:
+            self.get_current_view().setFocus()
             logger.debug("Set focus to: %s" % editor.filename)
         else:
             self.reset_statusbar.emit()
         self.opened_files_list_changed.emit()
 
         self.stack_history.refresh()
-        self.stack_history.remove_and_append(index)
+        if editor is not None:
+            self.stack_history.remove_and_append(index)
         self.sig_codeeditor_changed.emit(editor)
 
         # Needed to avoid an error generated after moving/renaming
@@ -2367,7 +2563,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         # Make sure that any replace happens in the editor on top
         # See spyder-ide/spyder#9688.
-        self.find_widget.set_editor(editor, refresh=False)
+        self._bind_current_view()
+        self._refresh_outlineexplorer(update=False)
 
         # Update highlighted matches and its total number when switching files.
         self.find_widget.highlight_matches()
@@ -2387,7 +2584,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     def _get_previous_file_index(self):
         """Return the penultimate element of the stack history."""
         try:
-            return self.stack_history[-2]
+            return [index for index in self.stack_history if self.tabs.isTabVisible(index)][-2]
         except IndexError:
             return None
 
@@ -2402,7 +2599,10 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             True: move to next file
             False: move to previous file
         """
-        self.tabs_switcher = TabSwitcherWidget(self, self.stack_history,
+        history = [index for index in self.stack_history if self.tabs.isTabVisible(index)]
+        if not history:
+            return
+        self.tabs_switcher = TabSwitcherWidget(self, history,
                                                self.tabs)
         self.tabs_switcher.show()
         self.tabs_switcher.select_row(1 if forward else -1)
@@ -2418,6 +2618,10 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 else:
                     self.spinner.stop()
                 self.refresh()
+            else:
+                page = getattr(finfo.editor, 'markdown_page', None)
+                if page is not None and fwidget is page.current_view():
+                    self._refresh_outlineexplorer(update=False)
         self.editor_focus_changed.emit()
 
     def _refresh_outlineexplorer(self, index=None, update=True, clear=False):
@@ -2427,7 +2631,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data and len(self.data) > index:
+        if self.data and 0 <= index < len(self.data) and self.tabs.isTabVisible(index):
             finfo = self.data[index]
             oe.setEnabled(True)
             oe.set_current_editor(finfo.editor.oe_proxy,
@@ -2449,7 +2653,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """
         if self.outlineexplorer is not None:
             self.outlineexplorer.treewidget.set_editor_ids_order(
-                [finfo.editor.get_document_id() for finfo in self.data])
+                [self.data[index].editor.get_document_id() for index in self.visible_tab_indexes()])
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
@@ -2522,7 +2726,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
             answer = self.msgbox.exec_()
             if answer == QMessageBox.Yes:
-                self.close_file(index, force=True)
+                self.close_file(index, force=True, close_document=True)
             else:
                 finfo.newly_created = True
                 finfo.editor.document().setModified(True)
@@ -2568,7 +2772,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                         self
                     )
                     self.msgbox.exec_()
-                    self.close_file(index, force=True)
+                    self.close_file(index, force=True, close_document=True)
 
         # Finally, resetting temporary flag:
         self.__file_status_flag = False
@@ -2586,10 +2790,10 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             index = self.get_stack_index()
 
         # Set current editor
-        if self.get_stack_count():
+        if self.data and 0 <= index < len(self.data) and self.tabs.isTabVisible(index):
             finfo = self.data[index]
             editor = finfo.editor
-            editor.setFocus()
+            self.get_current_view().setFocus()
 
             if self.formatting_action is not None:
                 self.formatting_action.setEnabled(
@@ -2607,12 +2811,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             self.update_plugin_title.emit()
         else:
             editor = None
+            self.reset_statusbar.emit()
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(False)
 
         # Update the modification-state-dependent parameters
         self.modification_changed()
 
         # Update FindReplace binding
-        self.find_widget.set_editor(editor, refresh=False)
+        self._bind_current_view()
 
     def modification_changed(self, state=None, index=None, editor_id=None):
         """
@@ -2645,6 +2852,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.refresh_save_actions.emit()
 
         # Refreshing eol mode
+        if not self.tabs.isTabVisible(index):
+            return
         eol_chars = finfo.editor.get_line_separator()
         self.refresh_eol_chars(eol_chars)
         self.stack_history.refresh()
@@ -2676,6 +2885,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     def revert(self):
         """Revert file from disk."""
+        if self.get_current_finfo() is None:
+            return
         index = self.get_stack_index()
         finfo = self.data[index]
         logger.debug("Reverting {}".format(finfo.filename))

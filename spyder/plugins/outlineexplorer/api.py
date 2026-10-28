@@ -166,6 +166,10 @@ class OutlineExplorerProxy(QObject):
         """Returns a list of outline explorer data."""
         raise NotImplementedError
 
+    def set_outline_active(self, active):
+        """Notify local symbol providers whether their tree is visible."""
+        pass
+
     def request_symbols(self):
         """Request current editor symbols."""
         raise NotImplementedError
@@ -302,10 +306,11 @@ class OutlineExplorerData(QObject):
             if self.def_type == self.CELL:
                 if self.cell_level != other.cell_level:
                     return False
-                # Must update all other cells whose name has changed.
-                for oedata in document_cells(self.block, forward=True):
-                    if oedata._def_name in [self._def_name, old_def_name]:
-                        oedata.sig_update.emit()
+                # Only renaming can change subsequent duplicate cell names.
+                if self._def_name != old_def_name:
+                    for oedata in document_cells(self.block, forward=True):
+                        if oedata._def_name in [self._def_name, old_def_name]:
+                            oedata.sig_update.emit()
             return True
         return False
 
