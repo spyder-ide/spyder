@@ -780,7 +780,7 @@ def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
 
     # Create editor window
     editor_window = widget.create_new_window()
-    qtbot.wait(500)  # To check visually that the window was created
+    qtbot.wait(1000)  # To check visually that the window was created
 
     # Check Outline is visible (the default)
     assert editor_window.editorwidget.outlineexplorer.width() > 0

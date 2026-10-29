@@ -65,7 +65,7 @@ class PluginsConfigPage(PluginConfigPage):
                 section=conf_section_name,
                 restart=True,
             )
-            cb.checkbox.stateChanged.connect(
+            cb.checkbox.checkStateChanged.connect(
                 functools.partial(
                     self._on_plugin_state_changed, plugin_name=plugin_name
                 )
@@ -107,7 +107,7 @@ class PluginsConfigPage(PluginConfigPage):
                 section=self.plugin._external_plugins_conf_section,
                 restart=True,
             )
-            cb.checkbox.stateChanged.connect(
+            cb.checkbox.checkStateChanged.connect(
                 functools.partial(
                     self._on_plugin_state_changed, plugin_name=plugin_name
                 )
@@ -261,7 +261,7 @@ class PluginsConfigPage(PluginConfigPage):
         if answer == QMessageBox.Yes:
             for plugin in plugins:
                 cb = self.plugins_checkboxes[plugin][0]
-                with self._disable_stateChanged(cb, plugin):
+                with self._disable_checkStateChanged(cb, plugin):
                     # Use click instead of setChecked because it also changes
                     # the associated checkbox option when clicking on Apply or
                     # Ok
@@ -269,20 +269,20 @@ class PluginsConfigPage(PluginConfigPage):
         else:
             # Revert to previous state
             cb = self.plugins_checkboxes[plugin_name][0]
-            with self._disable_stateChanged(cb, plugin_name):
+            with self._disable_checkStateChanged(cb, plugin_name):
                 cb.click()
 
     @contextmanager
-    def _disable_stateChanged(self, checkbox: QCheckBox, plugin_name: str):
+    def _disable_checkStateChanged(self, checkbox: QCheckBox, plugin_name: str):
         # Temporarily disconnect this signal to not call it when changing the
         # checkbox state programmatically.
-        checkbox.stateChanged.disconnect()
+        checkbox.checkStateChanged.disconnect()
 
         try:
             yield
         finally:
             # Reconnect slot again
-            checkbox.stateChanged.connect(
+            checkbox.checkStateChanged.connect(
                 functools.partial(
                     self._on_plugin_state_changed, plugin_name=plugin_name
                 )
