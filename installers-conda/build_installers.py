@@ -73,7 +73,7 @@ def _process_extra_specs(extra_specs, no_local=False):
 
         packages = channel_data.get("packages", {})
         for pkg in (
-            "spyder", "spyder-kernels", "qtconsole", "python-lsp-server"
+            "spyder", "spyder-kernels", "qtconsole-base", "python-lsp-server"
         ):
             version = packages.get(pkg, {}).get("version")
             if version:
