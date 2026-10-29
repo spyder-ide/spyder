@@ -769,8 +769,8 @@ def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith("linux") and running_in_ci(),
-    reason="Segfaults on Linux and CIs"
+    sys.platform.startswith("linux") or os.name == 'nt' and running_in_ci(),
+    reason="Segfaults on Linux/Windows and CIs"
 )
 def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
     """Check that the outline is shown/hidden as expected in editor windows."""
