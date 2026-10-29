@@ -466,7 +466,12 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
 
         # Disconnect previous connection to highlight matches
         if self.editor is not None and self.is_code_editor:
-            self.editor.textChanged.disconnect(self.update_matches)
+            try:
+                self.editor.textChanged.disconnect(self.update_matches)
+            except RuntimeError:
+                # The previous editor was already deleted, e.g. because its
+                # file was closed after being moved or removed outside Spyder
+                pass
 
         self.is_code_editor = isinstance(editor, CodeEditor)
 
