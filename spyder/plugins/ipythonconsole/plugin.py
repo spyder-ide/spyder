@@ -9,18 +9,27 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
+from concurrent.futures import Future
 from functools import cached_property
+import os.path as osp
 import re
+import shlex
 import sys
-from typing import List, Optional
+from typing import List, Optional, Union
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QTimer, Signal, Slot
 from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.fonts import SpyderFontType
-from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugins import (
+    ExposedCallError,
+    Plugins,
+    SpyderDockablePlugin,
+    current_caller,
+    expose,
+)
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
@@ -32,6 +41,28 @@ from spyder.plugins.ipythonconsole.api import (
     RemoteConsolesMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
+from spyder.plugins.ipythonconsole.utils.execution import (
+    DEFAULT_EXECUTE_TIMEOUT,
+    NEW_CONSOLE_TIMEOUT,
+    build_run_line,
+    call_kernel_helper,
+    check_idle,
+    check_name,
+    check_ready,
+    get_console_id,
+    get_console_state,
+    request_variables,
+    run_code,
+)
+from spyder.plugins.ipythonconsole.utils.scheduler import (
+    describe_caller,
+    get_scheduler,
+)
+from spyder.plugins.ipythonconsole.utils.kernel_helpers import (
+    spyder_input_history,
+    spyder_object_help,
+    spyder_summarize_variable,
+)
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets import (
     MatplotlibStatus,
@@ -273,6 +304,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
 
         self._is_remote_consoles_menu_added = False
+
+        # Outside callers (e.g. AI agents) that created consoles, by id
+        self._console_creators = {}
+
+        # Schedulers follow the user's typing from the start, so outside code
+        # doesn't interrupt them
+        widget.sig_shellwidget_created.connect(get_scheduler)
 
         # Main widget signals
         # Connect signal to open preferences
@@ -1271,6 +1309,470 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def show_quickref(self):
         """Show IPython Cheat Sheet."""
         self.get_widget().show_quickref()
+
+    # ---- For outside callers (e.g. AI agents)
+    # -------------------------------------------------------------------------
+    def get_console_shellwidget(self, console_id: Optional[str] = None):
+        """
+        Get the shellwidget of a console.
+
+        Parameters
+        ----------
+        console_id : str, optional
+            Id of the console, as returned by :meth:`list_consoles` (e.g.
+            ``1/A``). By default, the current console.
+
+        Returns
+        -------
+        ShellWidget or None
+            The console's shellwidget, or ``None`` if there's no console
+            with that id.
+        """
+        if console_id is None:
+            client = self.get_current_client()
+            return client.shellwidget if client is not None else None
+
+        for client in self.get_clients():
+            if get_console_id(client) == console_id:
+                return client.shellwidget
+        return None
+
+    def get_console_id(self, shellwidget=None) -> Optional[str]:
+        """
+        Get the id of a console (e.g. ``1/A``), as used by the exposed
+        methods, from its shellwidget. By default, the current console.
+        """
+        if shellwidget is None:
+            shellwidget = self.get_current_shellwidget()
+        client = getattr(shellwidget, "ipyclient", None)
+        return get_console_id(client) if client is not None else None
+
+    @expose(read_only=True)
+    def list_consoles(self) -> list:
+        """
+        List the IPython consoles open in Spyder, with their id, name, state
+        (idle, busy, debugging or starting), working directory (where
+        relative paths in code run there are resolved), which one is the
+        current console, who is running code in it (``user``, ``you`` or
+        the name of another agent), how many runs are waiting for it, and
+        who created it if an agent did (with new_console).
+        """
+        caller = current_caller()
+        current = self.get_current_client()
+        consoles = []
+        for client in self.get_clients():
+            console_id = get_console_id(client)
+            shellwidget = client.shellwidget
+            scheduler = get_scheduler(shellwidget)
+
+            running_for = None
+            if scheduler.is_running_outside_code():
+                running_for = self._describe_for(
+                    scheduler.get_running_caller(), caller
+                )
+            elif shellwidget._executing or shellwidget.is_debugging():
+                running_for = "user"
+
+            creator = self._console_creators.get(console_id)
+            consoles.append(
+                {
+                    "id": console_id,
+                    "name": client.get_name(),
+                    "state": get_console_state(shellwidget),
+                    "cwd": shellwidget.get_cwd() or None,
+                    "current": client is current,
+                    "running_for": running_for,
+                    "waiting_runs": scheduler.get_waiting(),
+                    "created_by": (
+                        self._describe_for(creator, caller)
+                        if creator is not None
+                        else None
+                    ),
+                }
+            )
+        return consoles
+
+    @staticmethod
+    def _describe_for(who, caller) -> str:
+        """Name of ``who`` for ``caller``: ``you`` if it's the same."""
+        if who is not None and who == caller:
+            return "you"
+        return describe_caller(who)
+
+    @expose(name="execute_code")
+    def execute_code_with_output(
+        self,
+        code: str,
+        console_id: Optional[str] = None,
+        timeout: float = DEFAULT_EXECUTE_TIMEOUT,
+    ) -> Future:
+        """
+        Run Python code in one of Spyder's IPython consoles and get its
+        output (stdout, stderr, results and tracebacks) and the figures it
+        displays, as images.
+
+        The code runs in the user's live kernel, so variables persist between
+        calls, and the user sees the code and its output in the console.
+        IPython magics are supported. Figures also appear in Spyder's Plots
+        pane.
+
+        If the console is busy (e.g. the user or another agent is running
+        code in it), the code waits for it to be free. The user goes first:
+        the code doesn't start while they're typing in the console.
+
+        Parameters
+        ----------
+        code : str
+            Python code to run.
+        console_id : str, optional
+            Id of the console to use, as returned by list_consoles. By
+            default, the console currently selected in Spyder.
+        timeout : float, optional
+            Seconds to wait for the console to be free and the code to finish
+            before returning the output collected so far. The code keeps
+            running, but it doesn't run if the console is still busy.
+
+        Returns
+        -------
+        Future
+            Resolved with a dict with the ``output`` text, whether the code
+            ``raised_exception``, the ``images`` it displayed and ``notes``
+            about how the execution ended (e.g. if it's still running).
+        """
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+        return run_code(shellwidget, code, timeout)
+
+    @expose
+    def interrupt_console(self, console_id: Optional[str] = None) -> str:
+        """
+        Interrupt the code you're running in an IPython console, like
+        pressing Ctrl+C, and cancel your code that is waiting for the
+        console. Code run by the user or other agents can't be interrupted.
+
+        Parameters
+        ----------
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+        """
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+
+        caller = current_caller()
+        scheduler = get_scheduler(shellwidget)
+        cancelled = scheduler.cancel(caller)
+        messages = []
+        if cancelled:
+            messages.append(f"Cancelled {cancelled} waiting run(s).")
+
+        busy = shellwidget._executing or shellwidget.is_debugging()
+        if not busy:
+            messages.append("No code was running.")
+        elif caller is None or (
+            scheduler.is_running_outside_code()
+            and scheduler.get_running_caller() == caller
+        ):
+            # Keep the user's runs waiting in Spyder's queue (e.g. a file
+            # they ran with F5), which interrupting the kernel clears
+            execute_queue = list(shellwidget._execute_queue)
+            shellwidget.interrupt_kernel()
+            if caller is not None:
+                shellwidget._execute_queue = execute_queue
+            messages.append("Interrupted the code.")
+        else:
+            activity = scheduler.describe_activity()
+            message = (
+                f"The code running wasn't started by you ({activity}), so "
+                f"it wasn't interrupted. Ask the user to stop it if needed."
+            )
+            if not cancelled:
+                raise ExposedCallError(message)
+            messages.append(message)
+
+        return " ".join(messages)
+
+    @expose(read_only=True)
+    def list_variables(self, console_id: Optional[str] = None) -> Future:
+        """
+        List the variables defined in an IPython console, with their type,
+        size and a short preview of their value, as shown in Spyder's
+        Variable Explorer. Use execute_code to inspect a variable in more
+        detail.
+
+        Parameters
+        ----------
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+
+        Returns
+        -------
+        Future
+            Resolved with a list of dicts with the ``name``, ``type``,
+            ``size`` and ``value`` of each variable.
+        """
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+        check_idle(shellwidget)
+        return request_variables(shellwidget)
+
+    @expose
+    def new_console(
+        self,
+        name: Optional[str] = None,
+        wdir: Optional[str] = None,
+    ) -> Future:
+        """
+        Open a new IPython console with its own kernel, e.g. to run long or
+        risky computations without blocking or changing the user's console.
+        It doesn't share variables with other consoles. The console the user
+        has selected doesn't change, so pass the returned id as console_id
+        to the other tools to use it.
+
+        Parameters
+        ----------
+        name : str, optional
+            Name for the console's tab, e.g. the agent's name.
+        wdir : str, optional
+            Working directory of the new console. By default, the one Spyder
+            uses for new consoles.
+
+        Returns
+        -------
+        Future
+            Resolved with the ``id`` and ``name`` of the console once its
+            kernel is ready.
+        """
+        if wdir is not None and not osp.isdir(wdir):
+            raise ExposedCallError(f"{wdir} is not a directory.")
+
+        previous = self.get_current_shellwidget()
+        client = self.get_widget().create_new_client(
+            give_focus=False, given_name=name, initial_cwd=wdir
+        )
+        if client is None:
+            raise ExposedCallError("The console couldn't be created.")
+        if current_caller() is not None:
+            self._console_creators[get_console_id(client)] = current_caller()
+
+        # Keep the console the user is working in selected
+        if previous is not None:
+            self.set_current_shellwidget(previous)
+
+        future: Future = Future()
+        shellwidget = client.shellwidget
+        timer = QTimer(shellwidget)
+        timer.setSingleShot(True)
+
+        def finish(error=None):
+            timer.stop()
+            try:
+                shellwidget.sig_prompt_ready.disconnect(on_ready)
+            except (TypeError, RuntimeError):
+                pass
+            if future.done():
+                return
+            if error is not None:
+                future.set_exception(ExposedCallError(error))
+            else:
+                future.set_result(
+                    {"id": get_console_id(client), "name": client.get_name()}
+                )
+
+        def on_ready():
+            if shellwidget.spyder_kernel_ready:
+                finish()
+
+        shellwidget.sig_prompt_ready.connect(on_ready)
+        timer.timeout.connect(
+            lambda: finish(
+                "The console's kernel didn't start in time. Check the "
+                "console for errors."
+            )
+        )
+        timer.start(NEW_CONSOLE_TIMEOUT * 1000)
+        return future
+
+    @expose(read_only=True)
+    def inspect_variable(
+        self, name: str, console_id: Optional[str] = None
+    ) -> Future:
+        """
+        Get a summary of a variable in an IPython console without running
+        code in it: the type and, depending on it, the shape, dtypes, missing
+        values, first rows and statistics (DataFrames and Series), the
+        shape, dtype and range (arrays), the length and a preview
+        (collections) or the repr (other objects).
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable, or an attribute of it (e.g. ``df`` or
+            ``model.coef_``).
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+        """
+        check_name(name)
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+        check_idle(shellwidget)
+        return call_kernel_helper(
+            shellwidget, spyder_summarize_variable, repr(name), "globals()"
+        )
+
+    @expose(read_only=True)
+    def get_object_help(
+        self, name: str, console_id: Optional[str] = None
+    ) -> Future:
+        """
+        Get the signature, docstring, module and package version of a
+        function, class or module, as installed in the environment of an
+        IPython console. Objects don't need to be imported in the console
+        (e.g. ``pandas.DataFrame.merge``).
+
+        Parameters
+        ----------
+        name : str
+            Name of the object, e.g. ``np.linspace`` or
+            ``pandas.DataFrame.merge``.
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+        """
+        check_name(name)
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+        check_idle(shellwidget)
+        return call_kernel_helper(
+            shellwidget, spyder_object_help, repr(name), "globals()"
+        )
+
+    @expose(read_only=True)
+    def get_console_history(
+        self, count: int = 50, console_id: Optional[str] = None
+    ) -> Future:
+        """
+        Get the last inputs run in an IPython console since its kernel
+        started (by the user or with execute_code), oldest first. Use it to
+        see what the user did, e.g. to turn it into a script.
+
+        Parameters
+        ----------
+        count : int, optional
+            Number of inputs to get.
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+        """
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+        check_idle(shellwidget)
+        return call_kernel_helper(
+            shellwidget, spyder_input_history, str(int(count))
+        )
+
+    @expose
+    def run_file(
+        self,
+        filename: str,
+        args: str = "",
+        wdir: Optional[str] = None,
+        console_id: Optional[str] = None,
+        timeout: float = DEFAULT_EXECUTE_TIMEOUT,
+    ) -> Future:
+        """
+        Run a Python file in an IPython console, like pressing F5 in Spyder,
+        and get its output. If the file is open in the Editor, its current
+        contents run, including unsaved changes.
+
+        Parameters
+        ----------
+        filename : str
+            Absolute path of the file.
+        args : str, optional
+            Command line arguments for the file.
+        wdir : str, optional
+            Working directory to run the file in. By default, the file's
+            directory.
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+        timeout : float, optional
+            Seconds to wait for the console to be free and the file to finish
+            before returning the output collected so far. It keeps running.
+
+        Returns
+        -------
+        Future
+            Resolved like the one of ``execute_code_with_output``.
+        """
+        filename = osp.abspath(filename)
+        if not osp.isfile(filename):
+            raise ExposedCallError(f"{filename} doesn't exist.")
+
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+
+        line = build_run_line(shellwidget, filename, args, wdir)
+        return run_code(shellwidget, line, timeout)
+
+    @expose(name="run_cell")
+    def run_cell_with_output(
+        self,
+        filename: str,
+        cell: Union[int, str],
+        console_id: Optional[str] = None,
+        timeout: float = DEFAULT_EXECUTE_TIMEOUT,
+    ) -> Future:
+        """
+        Run a cell (a block delimited by ``# %%`` comments) of a file open in
+        the Editor in an IPython console, like pressing Shift+Enter in Spyder,
+        and get its output. The cell's current contents in the Editor run,
+        including unsaved changes.
+
+        Parameters
+        ----------
+        filename : str
+            Absolute path of the file. It's opened in the Editor if needed.
+        cell : int or str
+            Index of the cell (0-based, the code before the first ``# %%``
+            is cell 0 if there's any) or its name (the text after ``# %%``).
+        console_id : str, optional
+            Id of the console, as returned by list_consoles. By default, the
+            console currently selected in Spyder.
+        timeout : float, optional
+            Seconds to wait for the console to be free and the cell to finish
+            before returning the output collected so far. It keeps running.
+
+        Returns
+        -------
+        Future
+            Resolved like the one of ``execute_code_with_output``.
+        """
+        filename = osp.abspath(filename)
+        if not osp.isfile(filename):
+            raise ExposedCallError(f"{filename} doesn't exist.")
+
+        shellwidget = self.get_console_shellwidget(console_id)
+        check_ready(shellwidget, console_id)
+        if not shellwidget.is_spyder_kernel:
+            raise ExposedCallError(
+                "The console is not running a Spyder kernel, so it can't run "
+                "cells. Use execute_code with the cell's code instead."
+            )
+
+        # The kernel gets the cell's code from the Editor
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor is None:
+            raise ExposedCallError("Running cells needs Spyder's Editor.")
+        if editor.get_codeeditor_for_filename(filename) is None:
+            editor.load(filename)
+
+        option = "-i" if isinstance(cell, int) else "-n"
+        line = "%runcell " + shlex.join([option, str(cell), filename])
+        return run_code(shellwidget, line, timeout)
 
     # ---- For the Remote client plugin
     # -------------------------------------------------------------------------

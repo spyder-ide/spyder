@@ -19,7 +19,12 @@ import sys
 from qtpy.QtCore import QTimer, Slot
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins import (
+    Plugins,
+    SpyderDockablePlugin,
+    SpyderPluginV2,
+    expose,
+)
 from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -838,6 +843,14 @@ class Application(SpyderPluginV2):
         elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.open_last_closed()
+
+    @expose(read_only=True)
+    def get_recent_files(self) -> list[str]:
+        """
+        Get the files recently opened in Spyder (shown in
+        File > Open recent), most recent first.
+        """
+        return list(self.get_container().recent_files)
 
     def add_recent_file(self, fname: str) -> None:
         """

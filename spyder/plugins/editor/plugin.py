@@ -10,14 +10,21 @@ from __future__ import annotations
 from collections.abc import Callable
 import configparser
 import logging
+import os.path as osp
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from qtpy.QtCore import Signal
+from qtpy.QtGui import QTextCursor
 
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.fonts import SpyderFontType
-from spyder.api.plugins import SpyderDockablePlugin, Plugins
+from spyder.api.plugins import (
+    ExposedCallError,
+    Plugins,
+    SpyderDockablePlugin,
+    expose,
+)
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
@@ -1258,6 +1265,245 @@ class Editor(SpyderDockablePlugin):
 
     def replace(self) -> None:
         return self.get_widget().replace()
+
+    # ---- For outside callers (e.g. AI agents)
+    @expose(read_only=True)
+    def get_editor_state(self) -> dict:
+        """
+        Get the file the user is looking at in Spyder's Editor, the cursor
+        position (1-based), the selected text and the list of open files,
+        including which ones have unsaved changes. Use it to find out what
+        the user refers to with "this file", "this function" or "the
+        selection".
+        """
+        state = {
+            "current_file": self.get_current_filename(),
+            "cursor": None,
+            "selection": None,
+        }
+
+        codeeditor = self.get_current_editor()
+        if codeeditor is not None:
+            line, column = codeeditor.get_cursor_line_column()
+            state["cursor"] = {"line": line + 1, "column": column + 1}
+            state["selection"] = codeeditor.get_selected_text() or None
+
+        state["open_files"] = []
+        for filename in self.get_filenames():
+            codeeditor = self.get_codeeditor_for_filename(filename)
+            state["open_files"].append(
+                {
+                    "filename": filename,
+                    "unsaved_changes": (
+                        codeeditor is not None
+                        and codeeditor.document().isModified()
+                    ),
+                }
+            )
+        return state
+
+    @expose(name="read_editor_file", read_only=True)
+    def get_file_contents(self, filename: str | None = None) -> str:
+        """
+        Read the contents of a file open in Spyder's Editor, including
+        unsaved changes that are not on disk yet.
+
+        Parameters
+        ----------
+        filename : str, optional
+            Absolute path of the file. By default, the current file.
+        """
+        if filename is None:
+            filename = self.get_current_filename()
+        codeeditor = self.get_codeeditor_for_filename(osp.abspath(filename))
+        if codeeditor is None:
+            raise ExposedCallError(
+                f"{filename} is not open in the Editor. Use open_file to open "
+                f"it or read it from disk instead."
+            )
+        return codeeditor.toPlainText()
+
+    @expose(name="open_file")
+    def open_file_at_line(self, filename: str, line: int | None = None):
+        """
+        Open a file in Spyder's Editor to show it to the user, optionally at
+        a given line.
+
+        Parameters
+        ----------
+        filename : str
+            Absolute path of the file.
+        line : int, optional
+            Line to go to (1-based).
+        """
+        filename = osp.abspath(filename)
+        if not osp.isfile(filename):
+            raise ExposedCallError(f"{filename} doesn't exist.")
+        self.load(filename, goto=line)
+
+    @expose
+    def edit_file(
+        self,
+        filename: str,
+        old_text: str,
+        new_text: str,
+        replace_all: bool = False,
+    ) -> dict:
+        """
+        Replace text in a file through Spyder's Editor, which opens the file
+        if needed. Unlike writing the file on disk, the change is applied to
+        what the user sees, including their unsaved changes, and they can
+        undo it with Ctrl+Z. The file isn't saved: use save_file for that.
+
+        Parameters
+        ----------
+        filename : str
+            Absolute path of the file.
+        old_text : str
+            Text to replace. It must match the Editor's contents exactly,
+            including indentation (see read_editor_file), and appear only once
+            unless replace_all is true.
+        new_text : str
+            Text to put instead.
+        replace_all : bool, optional
+            Replace every occurrence of old_text.
+        """
+        filename = osp.abspath(filename)
+        codeeditor = self.get_codeeditor_for_filename(filename)
+        if codeeditor is None:
+            if not osp.isfile(filename):
+                raise ExposedCallError(f"{filename} doesn't exist.")
+            self.load(filename)
+            codeeditor = self.get_codeeditor_for_filename(filename)
+            if codeeditor is None:
+                raise ExposedCallError(f"{filename} couldn't be opened.")
+
+        # The Editor uses \n for line endings internally
+        old_text = old_text.replace("\r\n", "\n")
+        new_text = new_text.replace("\r\n", "\n")
+        if not old_text:
+            raise ExposedCallError("old_text can't be empty.")
+
+        text = codeeditor.toPlainText()
+        starts = []
+        start = text.find(old_text)
+        while start != -1:
+            starts.append(start)
+            start = text.find(old_text, start + len(old_text))
+
+        if not starts:
+            raise ExposedCallError(
+                "old_text was not found in the file. It must match exactly, "
+                "including indentation: use read_editor_file to see the "
+                "current contents."
+            )
+        if len(starts) > 1 and not replace_all:
+            raise ExposedCallError(
+                f"old_text appears {len(starts)} times. Include more context "
+                f"to make it unique, or set replace_all."
+            )
+
+        def to_position(index):
+            # Qt counts UTF-16 code units
+            return len(text[:index].encode("utf-16-le")) // 2
+
+        # Replace from the end so earlier positions stay valid, in a single
+        # undo step
+        cursor = codeeditor.textCursor()
+        cursor.beginEditBlock()
+        for start in reversed(starts):
+            cursor.setPosition(to_position(start))
+            cursor.setPosition(
+                to_position(start + len(old_text)), QTextCursor.KeepAnchor
+            )
+            cursor.insertText(new_text)
+        cursor.endEditBlock()
+
+        return {
+            "filename": filename,
+            "replacements": len(starts),
+            "unsaved_changes": codeeditor.document().isModified(),
+        }
+
+    @expose(name="save_file")
+    def save_file_by_name(self, filename: str) -> None:
+        """
+        Save a file open in Spyder's Editor to disk, e.g. after edit_file.
+        It also saves any other unsaved changes the user made in that file.
+
+        Parameters
+        ----------
+        filename : str
+            Absolute path of the file.
+        """
+        filename = osp.abspath(filename)
+        editorstack = self.get_current_editorstack()
+        index = editorstack.has_filename(filename)
+        if index is None:
+            raise ExposedCallError(f"{filename} is not open in the Editor.")
+        if not osp.isfile(editorstack.data[index].filename):
+            raise ExposedCallError(
+                f"{filename} was never saved, so the user needs to choose "
+                f"where to save it."
+            )
+        if not editorstack.save(index=index, save_new_files=False):
+            raise ExposedCallError(f"{filename} couldn't be saved.")
+
+    @expose(name="new_editor_file")
+    def new_file_with_text(self, text: str) -> str:
+        """
+        Create a new, unsaved file in Spyder's Editor with the given
+        contents, e.g. to show the user code to review. Returns its name.
+
+        Parameters
+        ----------
+        text : str
+            Contents of the file.
+        """
+        self.get_widget().new(text=text)
+        return self.get_current_filename()
+
+    @expose(read_only=True)
+    def get_diagnostics(self, filename: Optional[str] = None) -> list:
+        """
+        Get the errors and warnings that Spyder's code analysis (pyflakes,
+        pycodestyle, etc.) shows for a file open in the Editor, with their
+        line and column (1-based). They're updated a moment after the file
+        changes, and are only available if code completion and linting are
+        enabled in Spyder.
+
+        Parameters
+        ----------
+        filename : str, optional
+            Absolute path of the file. By default, the current file.
+        """
+        if filename is None:
+            filename = self.get_current_filename()
+        codeeditor = self.get_codeeditor_for_filename(osp.abspath(filename))
+        if codeeditor is None:
+            raise ExposedCallError(
+                f"{filename} is not open in the Editor. Use open_file first."
+            )
+
+        severities = {1: "error", 2: "warning", 3: "information", 4: "hint"}
+        diagnostics = []
+        for diagnostic in codeeditor._diagnostics:
+            start = diagnostic.range.start
+            diagnostics.append(
+                {
+                    "line": start.line + 1,
+                    "column": start.character + 1,
+                    "severity": severities.get(
+                        int(diagnostic.severity or 1), "error"
+                    ),
+                    "source": diagnostic.source,
+                    "code": (
+                        str(diagnostic.code) if diagnostic.code else None
+                    ),
+                    "message": diagnostic.message,
+                }
+            )
+        return diagnostics
 
     # ---- To extend the editor
     def add_extension(self, extension: type[EditorExtension]) -> None:
