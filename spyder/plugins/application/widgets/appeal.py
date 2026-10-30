@@ -70,6 +70,7 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
             .render(changelog_md)
             .strip()
             .replace("\n", "")
+            .replace("'", "\\'")
         )
 
         # Read html for appeal page

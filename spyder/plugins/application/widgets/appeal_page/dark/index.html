@@ -69,7 +69,7 @@
     // Set initial view before first paint to avoid appeal→changelog flicker
     if (showChangelog) {
       info.classList.add("invisible");
-      content.innerHTML = "${changelog_html}";
+      content.innerHTML = '${changelog_html}';
       changelog.classList.add("visible");
       changelogLoaded = true;
     }
@@ -78,7 +78,7 @@
     // load the changelog and animate the panel if desired
     async function loadChangelog(animate = true) {
       if (changelogLoaded) return;
-      content.innerHTML = "${changelog_html}";
+      content.innerHTML = '${changelog_html}';
       changelog.classList.add("visible");
 
       if (animate) {
