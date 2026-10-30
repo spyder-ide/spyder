@@ -351,7 +351,7 @@ def test():
     _ = qapplication()
     dlg = UserEnvDialog()
     dlg.show()
-    sys.exit(dlg.exec_())
+    sys.exit(dlg.exec())
 
 
 if __name__ == "__main__":
