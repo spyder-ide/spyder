@@ -155,8 +155,8 @@ class Projects(SpyderDockablePlugin):
 
         self._language_services.sig_language_stopped.connect(
             self._on_language_stopped)
-        widget.sig_project_loaded.connect(self._add_path_to_completions)
-        widget.sig_project_closed.connect(self._remove_path_from_completions)
+        widget.sig_project_loaded.connect(self._add_path_to_language_services)
+        widget.sig_project_closed.connect(self._remove_path_from_language_services)
         widget.sig_workspace_notification_requested.connect(
             self._send_workspace_notification)
 
@@ -242,9 +242,9 @@ class Projects(SpyderDockablePlugin):
         self._language_services.sig_language_stopped.disconnect(
             self._on_language_stopped)
 
-        widget.sig_project_loaded.disconnect(self._add_path_to_completions)
+        widget.sig_project_loaded.disconnect(self._add_path_to_language_services)
         widget.sig_project_closed.disconnect(
-            self._remove_path_from_completions)
+            self._remove_path_from_language_services)
         widget.sig_workspace_notification_requested.disconnect(
             self._send_workspace_notification)
 
@@ -465,12 +465,12 @@ class Projects(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         editor.set_current_project_path()
 
-    def _add_path_to_completions(self, path):
+    def _add_path_to_language_services(self, path):
         self._language_services.notify_workspace_folders(
             self.get_widget()._workspace_folders_params(added=[path])
         )
 
-    def _remove_path_from_completions(self, path):
+    def _remove_path_from_language_services(self, path):
         self._language_services.notify_workspace_folders(
             self.get_widget()._workspace_folders_params(removed=[path])
         )
