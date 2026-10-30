@@ -31,9 +31,6 @@ for f in spyder/*/*.py; do
     if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/environ.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/qthelpers.py ]]; then
         continue
     fi
@@ -47,9 +44,6 @@ for f in spyder/*/*.py; do
         continue
     fi
     if [[ $f == spyder/widgets/about.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/collectionseditor.py ]]; then
         continue
     fi
     if [[ $f == spyder/api/__init__.py ]]; then
