@@ -185,7 +185,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self._project_types = OrderedDict()
         self.current_active_project = None
         self.latest_project = None
-        self.completions_available = False
+        self.language_services_available = False
         self._fzf = find_program('fzf')
         self._default_switcher_paths = []
 
@@ -727,18 +727,18 @@ class ProjectExplorerWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def start_workspace_services(self):
         """Enable LSP workspace functionality."""
-        self.completions_available = True
+        self.language_services_available = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
     def stop_workspace_services(self):
         """Disable LSP workspace functionality."""
-        self.completions_available = False
+        self.language_services_available = False
 
     def _notify_workspace(self, method, params):
         """Emit a workspace notification while services are available."""
-        if self.completions_available:
+        if self.language_services_available:
             self.sig_workspace_notification_requested.emit(method, params)
 
     def _notify_watched_files(self, *changes):
