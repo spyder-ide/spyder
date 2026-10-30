@@ -18,10 +18,13 @@ import pytest
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QClipboard
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QInputDialog, QMessageBox, QTextEdit)
+                            QFileSystemModel, QInputDialog, QMessageBox,
+                            QTextEdit)
 
 # Local imports
+from spyder.plugins.explorer.widgets import explorer, main_widget
 from spyder.plugins.explorer.widgets.main_widget import FileExplorerTest
+from spyder.plugins.explorer.widgets.utils import is_unc_path
 from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
 
 
@@ -59,6 +62,42 @@ def file_explorer_associations(qtbot):
     widget = FileExplorerTest(file_associations=associations)
     qtbot.addWidget(widget)
     return widget
+
+
+@pytest.fixture
+def unwatched_explorer(file_explorer, tmp_path, monkeypatch, qtbot):
+    """
+    Set up a file explorer showing a folder that Qt doesn't watch for
+    changes, which is what happens with UNC paths on Windows.
+    """
+    for module in [explorer, main_widget]:
+        monkeypatch.setattr(module, "is_unc_path", lambda path: True)
+
+    widget = file_explorer.explorer
+    treewidget = widget.treewidget
+    treewidget.fsmodel.setOption(QFileSystemModel.DontWatchForChanges, True)
+
+    # Resolve the path because getcwd returns it that way (e.g. on macOS)
+    folder = tmp_path.resolve()
+    (folder / "subdir").mkdir()
+    (folder / "file.txt").write_text("")
+    widget.chdir(str(folder))
+    qtbot.waitUntil(lambda: "file.txt" in shown_names(treewidget))
+
+    return widget, folder
+
+
+def shown_names(treewidget, folder=None):
+    """Names shown by treewidget in its root or in folder."""
+    model = treewidget.fsmodel
+    if folder is None:
+        parent = treewidget.rootIndex()
+    else:
+        parent = model.index(str(folder))
+    return {
+        model.fileName(model.index(row, 0, parent))
+        for row in range(model.rowCount(parent))
+    }
 
 
 def create_timer(func, interval=500):
@@ -431,6 +470,108 @@ def test_go_to_current_file(file_explorer, tmp_path):
     # Setting None disables the action
     widget.set_current_editor_file(None)
     assert not widget.go_to_dir_of_file_in_editor_action.isEnabled()
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("\\\\server\\share\\dir", True),
+        ("//server/share/dir", True),
+        ("C:\\Users\\spyder", False),
+        ("/home/spyder", False),
+    ]
+)
+def test_is_unc_path(path, expected):
+    """Test that UNC paths are detected."""
+    assert is_unc_path(path) == expected
+
+
+def test_refresh_action_visibility(file_explorer, tmp_path, monkeypatch):
+    """
+    Test that the refresh action is shown for UNC paths in the local tree.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    widget = file_explorer.explorer
+    unc_dir = tmp_path / "unc"
+    local_dir = tmp_path / "local"
+    unc_dir.mkdir()
+    local_dir.mkdir()
+    monkeypatch.setattr(
+        main_widget, "is_unc_path", lambda path: path == str(unc_dir)
+    )
+
+    widget.chdir(str(unc_dir))
+    assert widget.refresh_action.isVisible()
+
+    # Navigating from the tree also updates it
+    widget.treewidget.chdir(str(local_dir))
+    assert not widget.refresh_action.isVisible()
+
+    widget.treewidget.chdir(str(unc_dir))
+    assert widget.refresh_action.isVisible()
+
+
+def test_refresh_unwatched_folder(unwatched_explorer, qtbot):
+    """
+    Test that the refresh action reloads folders Qt doesn't watch, including
+    expanded subfolders.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    widget, folder = unwatched_explorer
+    treewidget = widget.treewidget
+    subdir = folder / "subdir"
+    treewidget.expand(treewidget.fsmodel.index(str(subdir)))
+    qtbot.wait(500)
+
+    # Changes done outside Spyder are not shown
+    (folder / "new.txt").write_text("")
+    (subdir / "new_in_subdir.txt").write_text("")
+    qtbot.wait(1000)
+    assert "new.txt" not in shown_names(treewidget)
+
+    # They are after refreshing and the subfolder stays expanded
+    widget.refresh_action.trigger()
+    qtbot.waitUntil(lambda: "new.txt" in shown_names(treewidget))
+    qtbot.waitUntil(
+        lambda: "new_in_subdir.txt" in shown_names(treewidget, subdir)
+    )
+    assert treewidget.isExpanded(treewidget.fsmodel.index(str(subdir)))
+
+
+def test_file_operations_refresh_unwatched_folder(
+    unwatched_explorer, qtbot, mocker
+):
+    """
+    Test that file operations done in Files are shown right away in folders
+    Qt doesn't watch.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    widget, folder = unwatched_explorer
+    treewidget = widget.treewidget
+
+    # Rename
+    mocker.patch.object(
+        QInputDialog, "getText", return_value=("renamed.txt", True)
+    )
+    treewidget.rename_file(str(folder / "file.txt"))
+    qtbot.waitUntil(lambda: "renamed.txt" in shown_names(treewidget))
+    assert "file.txt" not in shown_names(treewidget)
+
+    # New folder
+    mocker.patch.object(
+        QInputDialog, "getText", return_value=("new_folder", True)
+    )
+    treewidget.new_folder(basedir=str(folder))
+    qtbot.waitUntil(lambda: "new_folder" in shown_names(treewidget))
+
+    # Move
+    treewidget.move(
+        fnames=[str(folder / "renamed.txt")], directory=str(folder / "subdir")
+    )
+    qtbot.waitUntil(lambda: "renamed.txt" not in shown_names(treewidget))
 
 
 if __name__ == "__main__":
