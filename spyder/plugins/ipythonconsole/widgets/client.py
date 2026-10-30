@@ -673,6 +673,7 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
             # Numexpr unknown error, see spyder-ide/spyder#25815
             'nthreads cannot be larger than environment variable '
             '"NUMEXPR_MAX_THREADS"',
+            'qt.qpa.windowclass'
         ]
 
         return any([err in error for err in benign_errors])
