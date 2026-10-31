@@ -278,6 +278,7 @@ class PylintWidget(PluginMainWidget):
         "Run an analysis using Pylint to get feedback on style issues, bad "
         "practices, potential bugs, and suggested improvements in your code."
     )
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/pylint"
 
     DATAPATH = get_conf_path("pylint.results")
     VERSION = "1.1.0"

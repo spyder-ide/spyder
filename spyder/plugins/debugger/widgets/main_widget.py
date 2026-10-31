@@ -96,6 +96,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         "through your code and see the functions here that Python has run."
     )
     SET_LAYOUT_WHEN_EMPTY = False
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/debugging"
 
     # Signals
     sig_edit_goto = Signal(str, int, str)

@@ -60,7 +60,7 @@ def test_init(historylog):
     hl = historylog
     assert len(hl.get_widget().editors) == 1
     assert len(hl.get_widget().filenames) == 1
-    assert len(hl.get_actions()) == 7
+    assert len(hl.get_actions()) == 8
 
 
 @pytest.mark.order(1)
