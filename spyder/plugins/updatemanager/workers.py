@@ -580,10 +580,11 @@ class WorkerUpdateUpdater(BaseWorker):
             "updater.bat" if os.name == "nt" else "updater.sh",
         )
         conda_exe = find_conda()
-        conda_cmd = "create"
-        if self.updater_version > parse("0.0.0"):
-            conda_cmd = "update"
         env_path = osp.join(osp.dirname(sys.prefix), "spyder-updater")
+
+        # Determine if environment already exists
+        env_exists = osp.exists(env_path)
+        conda_cmd = "update" if env_exists else "create"
 
         installer_dir = osp.dirname(self.installer_path)
         if os.name == "nt":
@@ -598,6 +599,12 @@ class WorkerUpdateUpdater(BaseWorker):
         spy_updater_conda = glob(
             osp.join(installer_dir, "spyder-updater*.conda")
         )[0]
+
+        # Ensure lock file exists
+        if not osp.exists(spy_updater_lock):
+            raise FileNotFoundError(
+                f"Lock file not found: {spy_updater_lock}"
+            )
 
         # Run updater script
         kwargs = dict(shell=True, capture_output=True, text=True)
