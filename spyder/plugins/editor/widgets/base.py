@@ -19,7 +19,7 @@ import sys
 from lsprotocol import types as lsp
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QEvent, QMimeData, QPoint, Qt, Signal, Slot
-from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
+from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QWheelEvent, QTextFormat,
                         QTextOption, QTextCursor)
 from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
@@ -1194,7 +1194,7 @@ class TextEditBaseWidget(
         QPlainTextEdit.focusOutEvent(self, event)
 
     def wheelEvent(self, event):
-        """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
+        """Handle Shift scrolling and Ctrl zoom without stealing focus."""
         # This feature is disabled on MacOS, see spyder-ide/spyder#1510.
         if (
             sys.platform != 'darwin'
@@ -1213,7 +1213,16 @@ class TextEditBaseWidget(
                         self.zoom_in.emit()
                 return
 
-        QPlainTextEdit.wheelEvent(self, event)
+        if event.modifiers() == Qt.ShiftModifier and not event.angleDelta().isNull():
+            # Shift selects the axis, not the scrollbar's page-step mode.
+            scroll_event = QWheelEvent(
+                event.position(), event.globalPosition(), event.pixelDelta(),
+                event.angleDelta(), event.buttons(), Qt.NoModifier,
+                event.phase(), event.inverted())
+            QApplication.sendEvent(self.horizontalScrollBar(), scroll_event)
+            event.setAccepted(scroll_event.isAccepted())
+        else:
+            QPlainTextEdit.wheelEvent(self, event)
 
         # Needed to prevent stealing focus when scrolling.
         # If the current widget with focus is the CompletionWidget, it means
