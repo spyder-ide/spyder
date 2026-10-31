@@ -293,8 +293,8 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         # Signals
         if not external:
             self.cmd_input.textChanged.connect(lambda x: self.validate())
-        self.external_cb.stateChanged.connect(self.set_local_options)
-        self.stdio_cb.stateChanged.connect(self.set_stdio_options)
+        self.external_cb.checkStateChanged.connect(self.set_local_options)
+        self.stdio_cb.checkStateChanged.connect(self.set_stdio_options)
         self.lang_cb.currentIndexChanged.connect(self.lang_selection_changed)
         self.conf_input.textChanged.connect(self.validate)
         self.bbox.accepted.connect(self.accept)
@@ -425,7 +425,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
             self.cmd_input.setEnabled(False)
             self.cmd_input.setStyleSheet('')
             self.args_input.setEnabled(False)
-            self.stdio_cb.stateChanged.disconnect()
+            self.stdio_cb.checkStateChanged.disconnect()
             self.stdio_cb.setChecked(False)
             self.stdio_cb.setEnabled(False)
         else:
@@ -433,7 +433,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
             self.args_input.setEnabled(True)
             self.stdio_cb.setEnabled(True)
             self.stdio_cb.setChecked(False)
-            self.stdio_cb.stateChanged.connect(self.set_stdio_options)
+            self.stdio_cb.checkStateChanged.connect(self.set_stdio_options)
         try:
             self.validate()
         except Exception:
@@ -446,7 +446,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
         if enabled:
             self.cmd_input.setEnabled(True)
             self.args_input.setEnabled(True)
-            self.external_cb.stateChanged.disconnect()
+            self.external_cb.checkStateChanged.disconnect()
             self.external_cb.setChecked(False)
             self.external_cb.setEnabled(False)
             self.host_input.setStyleSheet('')
@@ -457,7 +457,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
             self.args_input.setEnabled(True)
             self.external_cb.setChecked(False)
             self.external_cb.setEnabled(True)
-            self.external_cb.stateChanged.connect(self.set_local_options)
+            self.external_cb.checkStateChanged.connect(self.set_local_options)
             self.host_input.setEnabled(True)
             self.port_spinner.setEnabled(True)
         try:

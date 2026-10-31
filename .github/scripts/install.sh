@@ -23,12 +23,6 @@ fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
-    if [ -n "$SPYDER_QT_BINDING" ]; then
-        # conda has no PyQt6 package
-        echo "Cannot use Qt 6 with Conda" 1>&2
-        exit 1
-    fi
-
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
         micromamba install --file requirements/windows.yml
@@ -58,6 +52,11 @@ if [ "$USE_CONDA" = "true" ]; then
     # Pin IPykernel to 7.2.0 because version 7.3.0+ causes segfaults
     micromamba install ipykernel=7.2.0
 
+    if [ "$SPYDER_QT_BINDING" = "pyside6" ]; then
+        # Install PySide6 since it is not listed in requirements *.yml files
+        micromamba install "pyside6>=6.9,<7"
+    fi
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -79,6 +78,7 @@ else
 
     # Force installation of Jedi 0.20
     pip install jedi==0.20.0
+
 fi
 
 # Install subrepos from source

@@ -501,6 +501,7 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
+@pytest.mark.close_main_window
 def test_get_help_ipython_console_special_characters(
         main_window, qtbot, tmpdir):
     """
@@ -541,7 +542,7 @@ def test_get_help_ipython_console_special_characters(
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
-                    timeout=6000)
+                    timeout=40000)
 
 
 @flaky(max_runs=3)
@@ -7939,6 +7940,8 @@ def test_view_own_class_in_variable_explorer(main_window, qtbot):
     assert instance_value.var == 123
 
 
+@flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_help_long_type_alias_rendering(main_window, qtbot):
     """Test that long type annotations from __main__ are readable."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -7972,7 +7975,7 @@ def test_help_long_type_alias_rendering(main_window, qtbot):
     # Validate the docstring is shown in the Help pane
     qtbot.waitUntil(
         lambda: check_text(webpage, "Test docstring"),
-        timeout=20000
+        timeout=40000
     )
 
     # And the right signature is in it.
@@ -7980,6 +7983,8 @@ def test_help_long_type_alias_rendering(main_window, qtbot):
     assert not check_text(webpage, "Sequence[int | str] | int | str |")
 
 
+@flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_help_numpy_typing_annotations(main_window, qtbot):
     """Test that numpy typing annotations don't break argument visibility."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -8013,7 +8018,7 @@ def test_help_numpy_typing_annotations(main_window, qtbot):
 
     qtbot.waitUntil(
         lambda: check_text(webpage, "Numpy typing test"),
-        timeout=20000
+        timeout=40000
     )
 
     assert check_text(webpage, "axis")

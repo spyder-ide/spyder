@@ -69,11 +69,9 @@ register_envs: false
 environment_file: {{ BUILD_PATH }}/conda-base-linux-64.lock  # [linux]
 environment_file: {{ BUILD_PATH }}/conda-base-win-64.lock  # [win]
 environment_file: {{ BUILD_PATH }}/conda-base-osx-arm64.lock  # [osx and arm64]
-environment_file: {{ BUILD_PATH }}/conda-base-osx-64.lock  # [osx and not arm64]
 
 extra_envs:
   spyder-runtime:
     environment_file: {{ BUILD_PATH }}/conda-runtime-linux-64.lock  # [linux]
     environment_file: {{ BUILD_PATH }}/conda-runtime-win-64.lock  # [win]
     environment_file: {{ BUILD_PATH }}/conda-runtime-osx-arm64.lock  # [osx and arm64]
-    environment_file: {{ BUILD_PATH }}/conda-runtime-osx-64.lock  # [osx and not arm64]

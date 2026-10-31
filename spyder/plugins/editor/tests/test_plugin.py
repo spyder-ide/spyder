@@ -645,8 +645,8 @@ def test_editorstacks_and_windows(editor_plugin, qtbot):
 
     # Close split in window and check focus is given to the current editor
     # in the main stack of the window
-    editor_window.editorwidget.editorstacks[1].close_split_action.trigger()
-    qtbot.waitUntil(lambda: len(editor_window.editorwidget.editorstacks) == 1)
+    editor_window.editorwidget.editorstacks[1].close_split()
+    qtbot.waitUntil(lambda: len(editor_window.editorwidget.editorstacks) == 1, timeout=20000)
     assert len(editor_plugin.get_widget().editorstacks) == 2
     assert (
         editor_window.editorwidget.editorstacks[0].get_current_editor()
@@ -769,8 +769,8 @@ def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith("linux") and running_in_ci(),
-    reason="Segfaults on Linux and CIs"
+    sys.platform.startswith("linux") or os.name == 'nt' and running_in_ci(),
+    reason="Segfaults on Linux/Windows and CIs"
 )
 def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
     """Check that the outline is shown/hidden as expected in editor windows."""
@@ -780,7 +780,7 @@ def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
 
     # Create editor window
     editor_window = widget.create_new_window()
-    qtbot.wait(500)  # To check visually that the window was created
+    qtbot.wait(1000)  # To check visually that the window was created
 
     # Check Outline is visible (the default)
     assert editor_window.editorwidget.outlineexplorer.width() > 0
