@@ -19,7 +19,6 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication, QPlainTextEdit
 
 # Local imports
-from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.editor.api.actions import EditorWidgetActions
@@ -34,7 +33,7 @@ def editorstack(qtbot):
     Set up EditorStack with CodeEditors containing some Python code.
     The cursor is at the empty line below the code.
     """
-    editorstack = EditorStack(None, [], False)
+    editorstack = EditorStack(None, [])
     editorstack.set_find_widget(Mock())
     editorstack.close_split_action.setEnabled(False)
     editorstack.new('foo.py', 'utf-8', 'Line1\nLine2\nLine3\nLine4')
@@ -380,41 +379,12 @@ def test_shortcuts_for_new_editors(editorstack, qtbot):
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server."
 )
-@pytest.mark.parametrize(
-    'key, modifier, action',
-    [
-        (Qt.Key_N, Qt.ControlModifier, 'New file'),
-        (Qt.Key_O, Qt.ControlModifier, 'Open file'),
-        (Qt.Key_T, Qt.ControlModifier | Qt.ShiftModifier, 'Open last closed'),
-        (Qt.Key_S, Qt.ControlModifier, 'Save file'),
-        (Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, 'Save all'),
-        (Qt.Key_S, Qt.ControlModifier | Qt.ShiftModifier, 'Save as'),
-        (Qt.Key_W, Qt.ControlModifier, 'Close file'),
-        (Qt.Key_F4, Qt.ControlModifier, 'Close file'),
-        (Qt.Key_W, Qt.ControlModifier | Qt.ShiftModifier, 'Close all'),
-])
-def test_file_shortcut(editorstack, qtbot, key, modifier, action):
-    """
-    Test that typing file shortcuts raises the corresponding signal.
-    """
-    editor = editorstack.get_current_editor()
-    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
-        qtbot.keyClick(editor, key, modifier=modifier)
-    assert blocker.args == [action, Plugins.Application]
-
-
-@pytest.mark.skipif(
-    sys.platform.startswith('linux') and running_in_ci(),
-    reason="It fails on Linux due to the lack of a proper X server."
-)
 def test_wrap_lines_shortcut(editorstack, qtbot):
     """
     Test that the wrap lines shortcut works as expected.
     """
     editor = editorstack.get_current_editor()
-    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
-        qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
-    assert blocker.args == [EditorWidgetActions.WrapLines, Plugins.Editor]
+    qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.AltModifier)
     assert editor.lineWrapMode() == QPlainTextEdit.WidgetWidth
 
 

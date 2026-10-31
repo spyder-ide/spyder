@@ -58,7 +58,8 @@ class ToursContainer(PluginMainContainer):
     # ------------------------------------------------------------------------
     def setup(self):
         self.tours_menu = self.create_menu(
-            "tours_menu", _("Interactive tours"))
+            "tours_menu", _("Interactive tours")
+        )
 
     def update_actions(self):
         pass
@@ -67,7 +68,7 @@ class ToursContainer(PluginMainContainer):
     # ------------------------------------------------------------------------
     def register_tour(self, tour_id, title, tour_data):
         """
-        Register a new interactive tour on spyder.
+        Register a new interactive tour in Spyder.
 
         Parameters
         ----------
@@ -81,16 +82,41 @@ class ToursContainer(PluginMainContainer):
         if tour_id in self._tours:
             raise SpyderAPIError(
                 "Tour with id '{}' has already been registered!".format(
-                    tour_id))
+                    tour_id
+                )
+            )
 
         self._tours[tour_id] = tour_data
         self._tour_titles[tour_id] = title
+
         action = self.create_action(
             tour_id,
             text=title,
             triggered=lambda: self.show_tour(tour_id),
+            register_action=False,
         )
         self.add_item_to_menu(action, menu=self.tours_menu)
+
+    def unregister_tour(self, tour_id):
+        """
+        Unregister a tour from Spyder.
+
+        Parameters
+        ----------
+        tour_id: str
+            Unique tour string identifier.
+        """
+        if tour_id not in self._tours:
+            raise SpyderAPIError(
+                "Tour with id '{}' has not been registered!".format(
+                    tour_id
+                )
+            )
+
+        self._tours.pop(tour_id)
+        self._tour_titles.pop(tour_id)
+
+        self.remove_item_from_menu(tour_id, menu=self.tours_menu)
 
     def show_tour(self, tour_id):
         """

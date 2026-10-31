@@ -76,6 +76,8 @@ class MainWindowMock(QMainWindow):
         self._cli_options = get_options(sys_argv)[0]
         super().__init__()
         PLUGIN_REGISTRY.main = self
+        self.is_setting_up = True
+        self.is_closing = False
 
     def register_plugin(self, plugin_class: type[SpyderPluginClass]):
         plugin = PLUGIN_REGISTRY.register_plugin(self, plugin_class)
@@ -85,9 +87,7 @@ class MainWindowMock(QMainWindow):
     @staticmethod
     def unregister_plugin(plugin: SpyderPluginClass):
         try:
-            PLUGIN_REGISTRY.delete_plugin(
-                plugin.NAME
-            )
+            PLUGIN_REGISTRY.delete_plugin(plugin.NAME)
         except KeyError:
             pass
 

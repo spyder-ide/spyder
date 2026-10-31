@@ -11,34 +11,20 @@ Editor Switcher manager.
 # Standard library imports
 import os.path as osp
 
-# Third-party imports
-from lsprotocol import types as lsp
-
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
-from spyder.plugins.completion.api import SYMBOL_KIND_ICON
 from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
-from spyder.utils.icon_manager import ima
-
-
-def _symbol_range(symbol):
-    """Return the lsp.Range of a DocumentSymbol or SymbolInformation."""
-    if isinstance(symbol, lsp.SymbolInformation):
-        return symbol.location.range
-    return symbol.range
 
 
 class EditorSwitcherManager(SpyderConfigurationAccessor):
     """
     Switcher instance manager to handle base modes for an Editor.
 
-    Symbol mode -> '@'
     Line mode -> ':'
     Files mode -> ''
     """
 
-    SYMBOL_MODE = '@'
     LINE_MODE = ':'
     FILES_MODE = ''
 
@@ -63,24 +49,18 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
     def setup_switcher(self):
         """Setup switcher modes and signals."""
         self._switcher.add_mode(self.LINE_MODE, _('Go to Line'))
-        self._switcher.add_mode(self.SYMBOL_MODE, _('Go to Symbol in File'))
         self._switcher.sig_mode_selected.connect(self.handle_switcher_modes)
         self._switcher.sig_item_selected.connect(
             self.handle_switcher_selection
         )
         self._switcher.sig_rejected.connect(self.handle_switcher_rejection)
-        self._switcher.sig_item_changed.connect(
-            self.handle_switcher_item_change
-        )
         self._switcher.sig_search_text_available.connect(
             lambda text: self._switcher.setup()
         )
 
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
-        if mode == self.SYMBOL_MODE:
-            self.create_symbol_switcher()
-        elif mode == self.LINE_MODE:
+        if mode == self.LINE_MODE:
             self.create_line_switcher()
         elif mode == self.FILES_MODE:
             # Each plugin/main_widget that wants to attach to the switcher
@@ -144,87 +124,10 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
                                 data=data,
                                 action_item=True)
 
-    def create_symbol_switcher(self):
-        """Populate switcher with symbol info."""
-        editor = self._editor()
-        language = editor.language
-        editor.update_whitespace_count(0, 0)
-
-        self._current_line = editor.get_cursor_line_number()
-        self._switcher.clear()
-        self._switcher.set_placeholder_text(_('Select symbol'))
-
-        oe_symbols = editor.oe_proxy.info or []
-        display_variables = self.get_conf(
-            'display_variables',
-            section='outline_explorer'
-        )
-
-        idx = 0
-        init_row = 0
-        total_symbols = len(oe_symbols)
-        oe_symbols = sorted(
-            oe_symbols, key=lambda x: _symbol_range(x).start.line
-        )
-
-        for symbol in oe_symbols:
-            symbol_name = symbol.name
-            symbol_kind = symbol.kind
-            if language.lower() == 'python':
-                if symbol_kind == lsp.SymbolKind.Module:
-                    total_symbols -= 1
-                    continue
-
-                if (
-                    symbol_kind == lsp.SymbolKind.Variable and
-                    not display_variables
-                ):
-                    total_symbols -= 1
-                    continue
-
-                if (
-                    symbol_kind == lsp.SymbolKind.Field
-                    and not display_variables
-                ):
-                    total_symbols -= 1
-                    continue
-
-            symbol_start = _symbol_range(symbol).start.line
-            fold_level = editor.leading_whitespaces[symbol_start]
-            space = ' ' * fold_level
-            formated_title = f'{space}{symbol_name}'
-
-            icon = ima.icon(SYMBOL_KIND_ICON.get(symbol_kind, 'no_match'))
-            data = {
-                'title': symbol_name,
-                'line_number': symbol_start + 1
-            }
-            last_item = idx + 1 == total_symbols
-
-            self._switcher.add_item(
-                title=formated_title,
-                icon=icon,
-                section=self._section,
-                data=data,
-                last_item=last_item
-            )
-            
-            init_row = idx if symbol_start <= self._current_line else init_row
-            idx += 1
-
-        # Needed to update fold spaces for item titles
-        self._switcher.setup()
-
-        # Set the current row and center view.
-        # Fixes spyder-ide/spyder#23138
-        self._switcher.init_current_row(init_row)
-
     def handle_switcher_selection(self, item, mode, search_text):
         """Handle item selection of the switcher."""
         data = item.get_data()
-        if mode == '@':
-            self.symbol_switcher_handler(data)
-        elif mode == ':':
+        if mode == ':':
             self.line_switcher_handler(data, search_text)
         elif mode == '':
             # Each plugin/main_widget that wants to attach to the switcher
@@ -253,17 +156,6 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
             editorstack.go_to_line(self._current_line)
             self._current_line = None
 
-    def handle_switcher_item_change(self, current):
-        """Handle item selection change."""
-        mode = self._switcher.get_mode()
-
-        if mode == '@' and current is not None:
-            editorstack = self._editorstack()
-            data = current.get_data()
-            if isinstance(data, dict):
-                line_number = int(data['line_number'])
-                editorstack.go_to_line(line_number)
-
     def editor_switcher_handler(self, data):
         """Populate switcher with FileInfo data."""
         editorstack = self._editorstack()
@@ -287,12 +179,3 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
         except Exception:
             # Invalid line number
             pass
-
-    def symbol_switcher_handler(self, data):
-        """Handle symbol switcher selection."""
-        editorstack = self._editorstack()
-        line_number = data['line_number']
-        editorstack.go_to_line(int(line_number))
-        self._current_line = None
-        self._switcher.hide()
-        self._switcher.set_search_text('')

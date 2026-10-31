@@ -101,6 +101,27 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
 
     # ---- ShellConnectStatusBarWidget API
     # -------------------------------------------------------------------------
+    def request_status(self, shellwidget):
+        """Request status info from the kernel."""
+        # Avoid errors when running our test suite on Mac and Windows.
+        # On Windows the following error appears:
+        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
+        if running_in_ci() and not sys.platform.startswith("linux"):
+            mpl_backend = "inline"
+        else:
+            # CommError: Needed when the comm is not connected.
+            # Fixes spyder-ide/spyder#22194
+            # TimeoutError: Prevent error that seems to happen sporadically.
+            # Fixes spyder-ide/spyder#24865
+            # RuntimeError: A remote console can be closed too quickly, which
+            # raises a "Kernel is dead" error from comms.
+            try:
+                mpl_backend = shellwidget.get_matplotlib_backend()
+            except (CommError, TimeoutError, RuntimeError):
+                mpl_backend = None
+
+        return mpl_backend
+
     def update_status(self, gui):
         """Update interactive state."""
         logger.debug(f"Setting Matplotlib backend to {gui}")
@@ -134,24 +155,8 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
         # Reset value of interactive backend
         self._interactive_gui = None
 
-        # Avoid errors when running our test suite on Mac and Windows.
-        # On Windows the following error appears:
-        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
-        if running_in_ci() and not sys.platform.startswith("linux"):
-            mpl_backend = "inline"
-        else:
-            # CommError: Needed when the comm is not connected.
-            # Fixes spyder-ide/spyder#22194
-            # TimeoutError: Prevent error that seems to happen sporadically.
-            # Fixes spyder-ide/spyder#24865
-            # RuntimeError: A remote console can be closed too quickly, which
-            # raises a "Kernel is dead" error from comms.
-            try:
-                mpl_backend = shellwidget.get_matplotlib_backend()
-            except (CommError, TimeoutError, RuntimeError):
-                mpl_backend = None
-
         # Associate detected backend to shellwidget
+        mpl_backend = self.request_status(shellwidget)
         self.shellwidget_to_status[shellwidget] = mpl_backend
 
         # Hide widget if Matplotlib is not available or failed to import in the
@@ -203,6 +208,31 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
 
     # ---- ShellConnectStatusBarWidget API
     # -------------------------------------------------------------------------
+    def request_status(self, shellwidget):
+        """Request status info from the kernel."""
+        # Avoid errors when running our test suite on Mac and Windows.
+        # On Windows the following error appears:
+        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
+        if running_in_ci() and not sys.platform.startswith("linux"):
+            env_info = PythonEnvInfo(
+                path=sys.executable,
+                env_type=PythonEnvType.Conda,
+                name="foo",
+                python_version=".".join(
+                    [str(n) for n in sys.version_info[:3]]
+                ),
+                ipython_version=ipython_release.version,
+                sys_version=sys.version,
+            )
+        else:
+            # Handle any possible error.
+            try:
+                env_info = shellwidget.get_pythonenv_info()
+            except Exception:
+                env_info = None
+
+        return env_info
+
     def update_status(self, env_info: dict):
         """Update env info."""
         if (
@@ -240,28 +270,8 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
 
     def on_kernel_start(self, shellwidget):
         """Actions to take when the kernel starts."""
-        # Avoid errors when running our test suite on Mac and Windows.
-        # On Windows the following error appears:
-        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
-        if running_in_ci() and not sys.platform.startswith("linux"):
-            env_info = PythonEnvInfo(
-                path=sys.executable,
-                env_type=PythonEnvType.Conda,
-                name="foo",
-                python_version=".".join(
-                    [str(n) for n in sys.version_info[:3]]
-                ),
-                ipython_version=ipython_release.version,
-                sys_version=sys.version,
-            )
-        else:
-            # Handle any possible error.
-            try:
-                env_info = shellwidget.get_pythonenv_info()
-            except Exception:
-                env_info = None
-
         # Associate env info to shellwidget
+        env_info = self.request_status(shellwidget)
         self.shellwidget_to_status[shellwidget] = env_info
 
         # Update status
