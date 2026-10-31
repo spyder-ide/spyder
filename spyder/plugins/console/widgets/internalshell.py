@@ -20,7 +20,7 @@ import threading
 from time import time
 
 # Third party imports
-from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
+from qtpy.QtCore import QEventLoop, QObject, Qt, Signal, Slot
 from qtpy.QtWidgets import QMessageBox
 from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
                                              getsource)
@@ -192,8 +192,14 @@ class InternalShell(PythonShellWidget):
         self.interpreter = Interpreter(namespace, self.exitfunc,
                                        SysOutput, WidgetProxy,
                                        get_debug_level())
-        self.interpreter.stdout_write.data_avail.connect(self.stdout_avail)
-        self.interpreter.stderr_write.data_avail.connect(self.stderr_avail)
+        self.interpreter.stdout_write.data_avail.connect(
+            self.stdout_avail,
+            Qt.QueuedConnection
+        )
+        self.interpreter.stderr_write.data_avail.connect(
+            self.stderr_avail,
+            Qt.QueuedConnection
+        )
         self.interpreter.widget_proxy.sig_set_readonly.connect(self.setReadOnly)
         self.interpreter.widget_proxy.sig_new_prompt.connect(self.new_prompt)
         self.interpreter.widget_proxy.sig_edit.connect(self.edit_script)
