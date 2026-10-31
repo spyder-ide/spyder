@@ -160,6 +160,30 @@ def natsort(s):
     return x
 
 
+def get_short_type_name(type_name):
+    """
+    Return the last component of a dotted type name.
+
+    This is used to prevent long type names (e.g. those of classes defined in
+    nested modules) from making the Type column too wide.
+
+    Parameters
+    ----------
+    type_name : str
+        Type name, as returned by `get_human_readable_type`.
+
+    Returns
+    -------
+    str
+        The text after the last dot in `type_name`. Names with spaces (e.g.
+        "Array of float64") are descriptions rather than dotted names, so
+        they are returned unchanged.
+    """
+    if ' ' in type_name:
+        return type_name
+    return type_name.rsplit('.', 1)[-1] or type_name
+
+
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
 
@@ -414,12 +438,22 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
             except:
                 pass
         elif column == 1:
-            self.keys[:self.rows_loaded] = sort_against(self.keys,
-                                                        self.types,
-                                                        reverse=reverse)
-            self.sizes = sort_against(self.sizes, self.types, reverse=reverse)
+            # Sort by the type names shown in the Type column, which can be
+            # shorter than the ones saved in self.types.
+            self.keys[:self.rows_loaded] = sort_against(
+                self.keys,
+                self.types,
+                reverse=reverse,
+                sort_key=get_short_type_name,
+            )
+            self.sizes = sort_against(
+                self.sizes,
+                self.types,
+                reverse=reverse,
+                sort_key=get_short_type_name,
+            )
             try:
-                self.types.sort(reverse=reverse)
+                self.types.sort(reverse=reverse, key=get_short_type_name)
             except:
                 pass
         elif column == 2:
@@ -549,6 +583,14 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
             value = value['view']
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
+        elif index.column() == 1:
+            # Column 1 is the "Type" column, which shows the type of each item
+            # (the other columns are 0: Name/Key/Index, 2: Size, 3: Value).
+            # Only show the last part of dotted type names in it, to prevent
+            # that column from getting too wide. The full name is shown in
+            # the tooltip instead.
+            # Fixes spyder-ide/spyder#24952
+            display = get_short_type_name(value)
         else:
             if isinstance(value, str):
                 display = str(value)
@@ -568,6 +610,10 @@ class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
                         "on macOS) for multiple rows"
                     )
                 return '\n'.join(textwrap.wrap(tooltip, 50))
+            if index.column() == 1:
+                # Column 1 is the "Type" column. Its cells only show the last
+                # part of dotted type names, so show the full name here.
+                return value
             return display
         if role == Qt.UserRole:
             if isinstance(value, NUMERIC_TYPES):
