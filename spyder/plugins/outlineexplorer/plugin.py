@@ -15,13 +15,14 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
 class OutlineExplorer(SpyderDockablePlugin):
     NAME = 'outline_explorer'
     CONF_SECTION = 'outline_explorer'
-    REQUIRES = [Plugins.Completions, Plugins.Editor]
+    REQUIRES = [Plugins.LanguageServices, Plugins.Editor]
     OPTIONAL = []
 
     CONF_FILE = False
@@ -53,13 +54,13 @@ class OutlineExplorer(SpyderDockablePlugin):
         self.sig_mainwindow_state_changed.connect(
             self._on_mainwindow_state_changed)
 
-    @on_plugin_available(plugin=Plugins.Completions)
-    def on_completions_available(self):
-        completions = self.get_plugin(Plugins.Completions)
+    @on_plugin_available(plugin=Plugins.LanguageServices)
+    def on_language_services_available(self):
+        language_services = self.get_plugin(Plugins.LanguageServices)
 
-        completions.sig_language_completions_available.connect(
+        language_services.sig_capabilities_changed.connect(
             self.start_symbol_services)
-        completions.sig_stop_completions.connect(
+        language_services.sig_language_stopped.connect(
             self.stop_symbol_services)
 
     @on_plugin_available(plugin=Plugins.Editor)
@@ -72,13 +73,13 @@ class OutlineExplorer(SpyderDockablePlugin):
         widget.edit_goto.connect(editor.load_edit_goto)
         widget.edit.connect(editor.load_edit)
 
-    @on_plugin_teardown(plugin=Plugins.Completions)
-    def on_completions_teardown(self):
-        completions = self.get_plugin(Plugins.Completions)
+    @on_plugin_teardown(plugin=Plugins.LanguageServices)
+    def on_language_services_teardown(self):
+        language_services = self.get_plugin(Plugins.LanguageServices)
 
-        completions.sig_language_completions_available.disconnect(
+        language_services.sig_capabilities_changed.disconnect(
             self.start_symbol_services)
-        completions.sig_stop_completions.disconnect(
+        language_services.sig_language_stopped.disconnect(
             self.stop_symbol_services)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
@@ -121,20 +122,22 @@ class OutlineExplorer(SpyderDockablePlugin):
 
     # ----- Public API
     # -------------------------------------------------------------------------
-    @Slot(dict, str)
+    @Slot(object, object)
     def start_symbol_services(
-        self, capabilities: lsp.ServerCapabilities, language
+        self, language: Language, capabilities: lsp.ServerCapabilities | None
     ):
-        """Enable LSP symbols functionality."""
+        """Enable symbols for ``language`` when a provider supplies them."""
         explorer = self.get_widget()
-        symbol_provider = capabilities.document_symbol_provider
-        if symbol_provider:
-            explorer.start_symbol_services(language)
+        if capabilities is not None and capabilities.document_symbol_provider:
+            explorer.start_symbol_services(language.name.lower())
+        else:
+            explorer.stop_symbol_services(language.name.lower())
 
-    def stop_symbol_services(self, language):
-        """Disable LSP symbols functionality."""
+    @Slot(object)
+    def stop_symbol_services(self, language: Language):
+        """Disable symbols for ``language``."""
         explorer = self.get_widget()
-        explorer.stop_symbol_services(language)
+        explorer.stop_symbol_services(language.name.lower())
 
     def update_all_editors(self):
         """Update all editors with an associated LSP server."""

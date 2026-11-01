@@ -33,14 +33,14 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
 
     # Set formatter
     CONF.set(
-        'completions',
-        ('provider_configuration', 'lsp', 'values', 'formatting'),
+        'language_services',
+        ('providers', 'pylsp', 'values', 'formatting'),
         formatter
     )
     # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
     CONF.set(
-        'completions',
-        ('provider_configuration', 'lsp', 'values', 'ruff'),
+        'language_services',
+        ('providers', 'pylsp', 'values', 'ruff'),
         formatter == 'ruff'
     )
     completion_plugin.after_configuration_update([])
@@ -97,8 +97,8 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
 
     # Set formatter
     CONF.set(
-        'completions',
-        ('provider_configuration', 'lsp', 'values', 'formatting'),
+        'language_services',
+        ('providers', 'pylsp', 'values', 'formatting'),
         formatter
     )
     completion_plugin.after_configuration_update([])
@@ -145,20 +145,20 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
 
     # Set formatter and max line length options
     CONF.set(
-        'completions',
-        ('provider_configuration', 'lsp', 'values', 'formatting'),
+        'language_services',
+        ('providers', 'pylsp', 'values', 'formatting'),
         formatter
     )
     CONF.set(
-        'completions',
-        ('provider_configuration', 'lsp', 'values',
+        'language_services',
+        ('providers', 'pylsp', 'values',
          'flake8/max_line_length'),
         max_line_length
     )
     # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
     CONF.set(
-        'completions',
-        ('provider_configuration', 'lsp', 'values', 'ruff'),
+        'language_services',
+        ('providers', 'pylsp', 'values', 'ruff'),
         formatter == 'ruff'
     )
     completion_plugin.after_configuration_update([])

@@ -106,6 +106,9 @@ class Plugins(DockablePlugins):
     ExternalTerminal = "external_terminal"
     """The Spyder External Terminal plugin."""
 
+    LanguageServices = "language_services"
+    """The Spyder Language Services plugin."""
+
     Layout = "layout"
     """The Spyder Layout plugin."""
 
