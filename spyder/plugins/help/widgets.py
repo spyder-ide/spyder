@@ -283,6 +283,7 @@ class PlainText(QWidget):
 class HelpWidget(PluginMainWidget):
 
     ENABLE_SPINNER = True
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/help"
 
     # Signals
     sig_item_found = Signal()

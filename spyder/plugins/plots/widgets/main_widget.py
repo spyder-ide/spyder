@@ -76,6 +76,7 @@ class PlotsWidget(ShellConnectMainWidget):
         "it can't display interactive plots like Bokeh, Plotly or Altair."
     )
     SHOW_INFO_MESSAGE = True
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/plots"
 
     # Signals
     sig_figure_loaded = Signal()
@@ -289,6 +290,7 @@ class PlotsWidget(ShellConnectMainWidget):
                     self.dock_action,
                     self.toggle_view_action,
                     self.lock_unlock_action,
+                    self.help_action,
                 ]:
                     action.setEnabled(value)
             except (RuntimeError, AttributeError):
