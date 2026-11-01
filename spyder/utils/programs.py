@@ -25,6 +25,8 @@ import threading
 import time
 import logging
 
+from spyder.utils.lazy import LAZY_IMPORTS as __lazy_modules__
+
 # Third party imports
 from packaging.version import parse
 import psutil
