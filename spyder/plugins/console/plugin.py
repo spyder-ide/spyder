@@ -168,7 +168,6 @@ class Console(SpyderDockablePlugin):
 
     def on_close(self, cancelable=False):
         self.get_widget().dialog_manager.close_all()
-        return True
 
     def on_mainwindow_visible(self):
         self.set_exit_function(self.main.closing)

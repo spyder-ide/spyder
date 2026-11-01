@@ -37,6 +37,9 @@ from spyder.plugins.completion.api import (
 )
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
+from spyder.plugins.completion.providers.languageserver.widgets import (
+    LSPStatusWidget,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -335,6 +338,20 @@ class CompletionPlugin(SpyderPluginV2):
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         self.register_statusbar_widgets()
 
+        # Update LSP status bar widget without giving focus to the Editor after
+        # the Status bar plugin is reenabled
+        if not self.is_app_starting:
+            editor = self.get_plugin(Plugins.Editor, error=False)
+            if editor:
+                ced = editor.get_current_editor()
+                if ced:
+                    self.get_container().statusbar_rpc(
+                        LSPStatusWidget.ID,
+                        "set_current_language",
+                        (ced.language.lower(),),
+                        {},
+                    )
+
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
@@ -440,20 +457,16 @@ class CompletionPlugin(SpyderPluginV2):
 
     def on_close(self, cancelable=False) -> bool:
         """Check if any provider has any pending task before closing."""
-        can_close = True
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider = provider_info['instance']
                 provider_can_close = provider.can_close()
-                can_close = can_close and provider_can_close
                 logger.debug(
                     f"Provider {provider_name} can close: {provider_can_close}"
                 )
                 if provider_can_close:
                     provider.shutdown()
-
-        return can_close
 
     def after_configuration_update(self, options: List[Union[tuple, str]]):
         """
