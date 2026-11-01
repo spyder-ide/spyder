@@ -108,6 +108,38 @@ def generate_pandas_indexes():
 # =============================================================================
 # Tests
 # =============================================================================
+@pytest.mark.parametrize('value', ['', 'short text', '中\n🙂' * 100,
+                                  '中\n🙂' * 101, b'bytes' * 100],
+                         ids=['empty', 'short', 'boundary', 'long', 'bytes'])
+def test_long_text_preview_preserves_edit_and_stored_values(qtbot, value):
+    editor = DataFrameEditor()
+    qtbot.addWidget(editor)
+    assert editor.setup_and_check(DataFrame({'content': [value]}))
+    model = editor.dataModel
+    index = model.index(0, 0)
+    preview = value[:300] + '…' if isinstance(value, str) and len(value) > 300 else value
+    assert model.data(index, Qt.DisplayRole) == preview
+    assert model.data(index, Qt.EditRole) == value
+    assert model.get_value(0, 0) == value
+    assert editor.get_value().iat[0, 0] == value
+
+
+def test_copy_long_text_uses_full_dataframe_not_display_preview(qtbot):
+    import io
+    from qtpy.QtWidgets import QApplication
+    value = '中文\t"quoted"\n' * 100 + 'last character'
+    editor = DataFrameEditor()
+    qtbot.addWidget(editor)
+    assert editor.setup_and_check(DataFrame({'content': [value]}))
+    view = editor.dataTable
+    view.setCurrentIndex(view.model().index(0, 0))
+    with patch.object(QApplication, 'clipboard') as clipboard:
+        view.copy()
+    copied = read_csv(io.StringIO(clipboard.return_value.setText.call_args.args[0]),
+                      sep='\t', index_col=0)
+    assert copied.iat[0, 0] == value
+
+
 def test_dataframemodel_index_sort(qtbot):
     """Validate the data in the model for index when sorting."""
     ds = Series(numpy.arange(10))
