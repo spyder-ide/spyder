@@ -17,7 +17,7 @@ from typing import Optional
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2, Plugins
+from spyder.api.plugins import SpyderPluginV2, Plugins, expose
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
@@ -247,6 +247,13 @@ class WorkingDirectory(SpyderPluginV2):
         except EnvironmentError:
             pass
 
+    @expose(
+        read_only=True,
+        description=(
+            "Get Spyder's current working directory, which the IPython "
+            "consoles and the Files pane use by default."
+        ),
+    )
     def get_workdir(self):
         """
         Get current working directory.

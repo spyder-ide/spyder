@@ -22,7 +22,7 @@ from superqt.utils import qdebounced
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
-from spyder.api.plugins import SpyderDockablePlugin, Plugins
+from spyder.api.plugins import SpyderDockablePlugin, Plugins, expose
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
@@ -325,6 +325,11 @@ class Explorer(SpyderDockablePlugin):
         """
         self.get_widget().chdir(directory, emit=emit, server_id=server_id)
 
+    @expose(
+        name="get_files_folder",
+        read_only=True,
+        description="Get the folder the user is browsing in the Files pane.",
+    )
     def get_current_folder(self):
         """Get folder displayed at the moment."""
         return self.get_widget().get_current_folder()

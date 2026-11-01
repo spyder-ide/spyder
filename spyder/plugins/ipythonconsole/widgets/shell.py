@@ -131,6 +131,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_focus_changed = Signal()
     sig_new_client = Signal()
 
+    sig_kernel_restarted = Signal(bool)
+    """
+    This signal is emitted when the kernel restarts, so its namespace is
+    lost.
+
+    Parameters
+    ----------
+    died : bool
+        Whether it restarted because it died (e.g. it crashed), instead of
+        being restarted on purpose.
+    """
+
     # Kernel died and restarted (not user requested)
     sig_prompt_ready = Signal()
     sig_remote_execute = Signal()
@@ -1620,6 +1632,9 @@ overrided by the Sympy module (e.g. plot)
 
         self._append_html(f"<br>{msg}<br>", before_prompt=False)
         self.insert_horizontal_ruler()
+
+        if not reconnected:
+            self.sig_kernel_restarted.emit(died)
 
     def _handle_kernel_restarted(self, *args, **kwargs):
         """The kernel restarted."""
