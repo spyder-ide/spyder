@@ -708,12 +708,10 @@ class SpyderKernel(IPythonKernel):
         """Set the traceback syntax highlighting style."""
         if parse_version(ipython_release.version) >= parse_version("9.0"):
             # Create spyder theme definition and set it (IPython 9.x+)
-            import IPython.utils.PyColorize
-            from IPython.utils.PyColorize import (
-                Theme,
-                linux_theme,
-                neutral_theme,
-            )
+            from IPython.utils.PyColorize import Theme, theme_table
+
+            linux_theme = theme_table["linux"]
+            neutral_theme = theme_table["neutral"]
 
             base = "default"
             extra_style = neutral_theme.extra_style
@@ -723,7 +721,12 @@ class SpyderKernel(IPythonKernel):
 
             extra_style.update(create_pygments_dict(syntax_style))
             theme = Theme("spyder_theme", base, extra_style)
-            IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
+
+            if ipython_release.version_info[:3] >= (9, 18, 0):
+                theme_table._by_name["spyder_theme"] = theme
+            else:
+                theme_table["spyder_theme"] = theme
+
             self.shell.run_line_magic("colors", "spyder_theme")
         else:
             # Use `tb_highlight_style` class attribute to set the style (
