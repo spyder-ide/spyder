@@ -95,6 +95,89 @@ def test_decorations(codeeditor, qtbot):
     assert decorations[0].kind == 'current_cell'
 
 
+def test_goto_occurrence(codeeditor, qtbot):
+    """Test occurrence features."""
+    editor = codeeditor
+
+    # Set random size
+    editor.resize(640, 480)
+
+    # Set cell of different length.
+    base_function = (
+        "def some_function():\n"
+        "    some_variable = 1\n"
+        "    some_variable += 2\n"
+    )
+
+    editor.set_text(base_function)
+
+    # Move cursor over 1st 'some_variable'
+    editor.go_to_line(2)
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Right, n=6)
+    # wait for occurrences to be highlighted
+    with qtbot.waitSignal(editor.sig_flags_changed, timeout=5000):
+        editor.setTextCursor(cursor)
+
+    start_position = cursor.position()
+    start_position_in_block = cursor.positionInBlock()
+
+    editor.go_to_previous_occurrence()
+    # when already at first occurrence, can't move to previous
+    assert editor.textCursor().position() == start_position
+    
+    editor.go_to_next_occurrence()
+    # cursor was moved
+    assert editor.textCursor().position() > start_position
+    # position in selection was maintained test
+    assert editor.textCursor().positionInBlock() == start_position_in_block
+    second_position = editor.textCursor().position()
+    
+    editor.go_to_next_occurrence()
+    # when already at last occurrence, can't move to next
+    assert editor.textCursor().position() == second_position
+    
+    editor.go_to_previous_occurrence()
+    # make sure go to previous actually works this time
+    assert editor.textCursor().position() == start_position
+    
+    #select the variable
+    cursor = editor.textCursor()
+    cursor.select(QTextCursor.WordUnderCursor)
+    editor.setTextCursor(cursor)
+    third_position = cursor.position()
+    
+    editor.go_to_next_occurrence()
+    # cursor moved?
+    assert editor.textCursor().position() > third_position
+    # cursor still has selection
+    assert editor.textCursor().hasSelection()
+    
+    #reverse the selection direction
+    cursor = editor.textCursor()
+    anchor = cursor.anchor()
+    cursor.clearSelection()
+    cursor.setPosition(anchor, QTextCursor.MoveMode.KeepAnchor)
+    fourth_position = anchor
+    editor.setTextCursor(cursor)
+    # make sure it's reversed
+    assert editor.textCursor().position() < editor.textCursor().anchor()
+    
+    editor.go_to_previous_occurrence()
+    # moved back?
+    assert editor.textCursor().position() < fourth_position
+    # still has reversed selection?
+    assert editor.textCursor().position() < editor.textCursor().anchor()
+    
+    editor.add_cursor_next_occurrence()
+    # A cursor was added?
+    assert len(editor.extra_cursors) == 1
+    
+    editor.add_cursor_previous_occurrence()
+    # A cursor was added but then merged?
+    assert len(editor.extra_cursors) == 1
+
+
 @flaky(max_runs=10)
 @pytest.mark.skipif(
     QT_VERSION.startswith("6"),
