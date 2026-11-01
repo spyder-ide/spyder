@@ -27,6 +27,7 @@ dependencies:
 - lsprotocol >=2025.0.0,<2026.0.0
 - lxml >=4.9.0
 - markdown-it-py >=3.0.0
+- mcp >=2.3.0,<3.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
 - openpyxl >=3.0.0

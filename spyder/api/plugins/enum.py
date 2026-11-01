@@ -115,6 +115,9 @@ class Plugins(DockablePlugins):
     MainMenu = "mainmenu"
     """The Spyder Main Menu plugin."""
 
+    MCPServer = "mcp_server"
+    """The Spyder MCP server plugin."""
+
     Preferences = "preferences"
     """The Spyder Preferences plugin."""
 
