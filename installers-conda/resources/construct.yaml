@@ -66,6 +66,11 @@ initialize_conda: false
 register_python: false
 register_envs: false
 
+# Refuse to install on macOS versions older than the bundled packages support.
+# MACOS_MIN is set in build_installers.py.
+virtual_specs:  # [osx]
+  - __osx>={{ environ["MACOS_MIN"] }}  # [osx]
+
 environment_file: {{ BUILD_PATH }}/conda-base-linux-64.lock  # [linux]
 environment_file: {{ BUILD_PATH }}/conda-base-win-64.lock  # [win]
 environment_file: {{ BUILD_PATH }}/conda-base-osx-arm64.lock  # [osx and arm64]
