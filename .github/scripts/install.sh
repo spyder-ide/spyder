@@ -73,7 +73,6 @@ else
 
     # Force installation of Jedi 0.20
     pip install jedi==0.20.0
-
 fi
 
 # Install subrepos from source
