@@ -47,6 +47,27 @@ class TestIpythonConsole:
             timeout=5
         ) == []
 
+    def test_stop_kernel_after_error(
+        self, ipyconsole, remote_client, remote_client_id, qtbot
+    ):
+        ipyconsole.get_widget().create_ipyclient_for_server(remote_client_id)
+        client = ipyconsole.get_current_client()
+        shell = client.shellwidget
+        qtbot.waitUntil(
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
+            timeout=180000,
+        )
+        with qtbot.waitSignal(shell.sig_shellwidget_errored):
+            client.show_kernel_error("Kernel failed")
+
+        ipyconsole.get_widget().close_client(client=client)
+
+        assert await_future(
+            list_kernels(remote_client, remote_client_id),
+            timeout=5
+        ) == []
+
     def test_restart_kernel(self, remote_shell, ipyconsole, qtbot):
         """Test that kernel is restarted correctly."""
         # Do an assignment to verify that it's not there after restarting
