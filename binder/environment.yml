@@ -70,7 +70,7 @@ dependencies:
 - coverage
 - cython
 - flaky
-- matplotlib-base
+- matplotlib
 - pandas
 - pillow
 - pytest <8.0

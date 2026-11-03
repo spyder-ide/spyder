@@ -195,7 +195,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     full_reqs.update(linux_reqs)
 
     # These packages are not declared in our dependencies dialog
-    for dep in ['pyqt6', 'pyqt6-webengine', 'python.app', 'fzf', 'fcitx-qt5']:
+    for dep in ['pyqt6', 'pyqt6-webengine', 'python.app', 'fzf']:
         full_reqs.pop(dep)
 
     assert spyder_deps == full_reqs
@@ -218,7 +218,7 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     full_reqs.update(linux_reqs)
 
     # We can't declare these as dependencies in setup.py
-    for dep in ['python.app', 'fzf', 'fcitx-qt5']:
+    for dep in ['python.app', 'fzf']:
         full_reqs.pop(dep)
 
     assert spyder_setup == full_reqs

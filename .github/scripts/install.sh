@@ -52,11 +52,6 @@ if [ "$USE_CONDA" = "true" ]; then
     # Pin IPykernel to 7.2.0 because version 7.3.0+ causes segfaults
     micromamba install ipykernel=7.2.0
 
-    if [ "$SPYDER_QT_BINDING" = "pyside6" ]; then
-        # Install PySide6 since it is not listed in requirements *.yml files
-        micromamba install "pyside6>=6.9,<7"
-    fi
-
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
