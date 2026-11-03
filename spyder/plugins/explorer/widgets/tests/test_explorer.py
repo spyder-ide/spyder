@@ -15,7 +15,7 @@ import sys
 
 # Third party imports
 import pytest
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import QFile, Qt, QTimer
 from qtpy.QtGui import QClipboard
 from qtpy.QtWidgets import (
     QApplication,
@@ -30,7 +30,10 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.plugins.explorer.widgets import explorer, main_widget
 from spyder.plugins.explorer.widgets.main_widget import FileExplorerTest
-from spyder.plugins.explorer.widgets.utils import is_unc_path
+from spyder.plugins.explorer.widgets.utils import (
+    is_network_path,
+    is_unc_path,
+)
 from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
 
 
@@ -194,6 +197,100 @@ def test_delete_file(explorer_with_files, mocker):
     mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
     project.explorer.treewidget.delete(fnames=[top_folder])
     assert not osp.exists(top_folder)
+
+
+@pytest.mark.parametrize("permanently", [True, False])
+def test_delete_folder_without_trash(explorer_with_files, mocker, permanently):
+    """
+    Test that folders that can't be moved to the trash are deleted
+    permanently only if users agree.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    project, __, __, top_folder, __ = explorer_with_files
+    treewidget = project.explorer.treewidget
+
+    # Simulate a network share, which doesn't have a trash
+    mocker.patch.object(explorer, "is_network_path", return_value=True)
+    mocker.patch.object(QFile, "moveToTrash", return_value=(False, ""))
+
+    # The first dialog asks to delete the folder and the second one to do it
+    # permanently
+    warning = mocker.patch.object(
+        QMessageBox,
+        "warning",
+        side_effect=[
+            QMessageBox.Yes,
+            QMessageBox.Yes if permanently else QMessageBox.No,
+        ],
+    )
+    tree_removed = mocker.Mock()
+    treewidget.sig_tree_removed.connect(tree_removed)
+
+    treewidget.delete(fnames=[top_folder])
+
+    assert warning.call_count == 2
+    assert osp.exists(top_folder) is not permanently
+    assert tree_removed.called is permanently
+
+
+def test_delete_files_without_trash(explorer_with_files, mocker):
+    """
+    Test that selecting Yes to All when deleting several files that can't be
+    moved to the trash only asks once to delete them permanently.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    project, __, __, top_folder, __ = explorer_with_files
+    treewidget = project.explorer.treewidget
+    fnames = []
+    for name in ["a.txt", "b.txt", "c.txt"]:
+        fname = osp.join(top_folder, name)
+        with open(fname, "w") as f:
+            f.write(name)
+        fnames.append(fname)
+
+    mocker.patch.object(explorer, "is_network_path", return_value=True)
+    mocker.patch.object(QFile, "moveToTrash", return_value=(False, ""))
+    warning = mocker.patch.object(
+        QMessageBox,
+        "warning",
+        side_effect=[QMessageBox.YesToAll, QMessageBox.YesToAll],
+    )
+    removed = mocker.Mock()
+    treewidget.sig_removed.connect(removed)
+
+    treewidget.delete(fnames=fnames)
+
+    assert warning.call_count == 2
+    assert not any(osp.exists(fname) for fname in fnames)
+    assert removed.call_count == 3
+
+
+def test_delete_without_trash_outside_network(explorer_with_files, mocker):
+    """
+    Test that an error is shown when files outside network shares can't be
+    moved to the trash, instead of deleting them permanently.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    project, __, __, top_folder, __ = explorer_with_files
+    treewidget = project.explorer.treewidget
+    mocker.patch.object(QFile, "moveToTrash", return_value=(False, ""))
+    warning = mocker.patch.object(
+        QMessageBox, "warning", return_value=QMessageBox.Yes
+    )
+    critical = mocker.patch.object(QMessageBox, "critical")
+    tree_removed = mocker.Mock()
+    treewidget.sig_tree_removed.connect(tree_removed)
+
+    treewidget.delete(fnames=[top_folder])
+
+    # Only the first dialog is shown, followed by an error
+    assert warning.call_count == 1
+    assert critical.call_count == 1
+    assert osp.exists(top_folder)
+    assert not tree_removed.called
 
 
 def test_rename_file_with_files(explorer_with_files, mocker, qtbot):
@@ -491,6 +588,12 @@ def test_go_to_current_file(file_explorer, tmp_path):
 def test_is_unc_path(path, expected):
     """Test that UNC paths are detected."""
     assert is_unc_path(path) == expected
+
+
+def test_is_network_path(tmp_path):
+    """Test that network paths are detected."""
+    assert is_network_path("\\\\server\\share\\dir")
+    assert not is_network_path(str(tmp_path))
 
 
 def test_refresh_action_visibility(file_explorer, tmp_path, monkeypatch):

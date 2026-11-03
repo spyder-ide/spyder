@@ -22,7 +22,6 @@ import sys
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import (
     QDir,
-    QFile,
     QMimeData,
     QSortFilterProxyModel,
     Qt,
@@ -63,6 +62,7 @@ from spyder.plugins.explorer.widgets.utils import (
     create_script,
     fixpath,
     IconProvider,
+    is_network_path,
     is_unc_path,
     show_in_external_file_explorer,
 )
@@ -388,6 +388,7 @@ class DirView(SpyderWidgetMixin, QTreeView):
         self.common_actions = None
         self.filter_on = False
         self.expanded_or_colapsed_by_mouse = False
+        self._delete_permanently_to_all = False
 
         # Widgets
         self.fsmodel = None
@@ -1154,14 +1155,18 @@ class DirView(SpyderWidgetMixin, QTreeView):
             if not ok and encoding.is_text_file(path):
                 self.sig_open_file_requested.emit(path)
 
-    def remove_tree(self, dirname):
+    def remove_tree(self, dirname, permanently=False):
         """
-        Remove whole directory tree
+        Remove whole directory tree by moving it to the trash or permanently.
 
-        Reimplemented in project explorer widget
+        Returns True if successful and False if it couldn't be moved to the
+        trash.
         """
-        while osp.exists(dirname):
-            QFile.moveToTrash(dirname)
+        if permanently:
+            shutil.rmtree(dirname)
+            return True
+
+        return misc.move_to_trash(dirname)
 
     def refresh_unwatched_folder(self):
         """
@@ -1193,11 +1198,33 @@ class DirView(SpyderWidgetMixin, QTreeView):
             elif answer == QMessageBox.YesToAll:
                 yes_to_all = True
         try:
-            if osp.isfile(fname):
-                misc.remove_file(fname)
+            is_file = osp.isfile(fname)
+            if is_file:
+                removed = misc.remove_file(fname)
+            else:
+                removed = self.remove_tree(fname)
+
+            # Network shares don't have a trash, so let users delete files
+            # permanently there, as Windows Explorer does.
+            # Fixes spyder-ide/spyder#26432
+            if not removed:
+                if not is_network_path(fname):
+                    raise OSError(_("It couldn't be moved to the trash can"))
+
+                answer = self._ask_to_delete_permanently(fname, multiple)
+                if answer == QMessageBox.Cancel:
+                    return False
+                elif answer == QMessageBox.No:
+                    return yes_to_all
+
+                if is_file:
+                    misc.remove_file(fname, permanently=True)
+                else:
+                    self.remove_tree(fname, permanently=True)
+
+            if is_file:
                 self.sig_removed.emit(fname)
             else:
-                self.remove_tree(fname)
                 self.sig_tree_removed.emit(fname)
             return yes_to_all
         except EnvironmentError as error:
@@ -1208,6 +1235,39 @@ class DirView(SpyderWidgetMixin, QTreeView):
                   ) % (action_str, fname, str(error)))
         return False
 
+    def _ask_to_delete_permanently(self, fname, multiple):
+        """
+        Ask users if they want to delete fname permanently because it couldn't
+        be moved to the trash.
+
+        Returns the button clicked by them.
+        """
+        if self._delete_permanently_to_all:
+            return QMessageBox.Yes
+
+        if multiple:
+            buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
+                       QMessageBox.No | QMessageBox.Cancel)
+        else:
+            buttons = QMessageBox.Yes | QMessageBox.No
+
+        answer = QMessageBox.warning(
+            self,
+            _("Delete"),
+            _("<b>%s</b> can't be moved to the trash can because it's in a "
+              "network location."
+              "<br><br>"
+              "Do you want to delete it permanently? This can't be undone."
+              ) % osp.basename(fname),
+            buttons
+        )
+
+        if answer == QMessageBox.YesToAll:
+            self._delete_permanently_to_all = True
+            answer = QMessageBox.Yes
+
+        return answer
+
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
@@ -1215,6 +1275,7 @@ class DirView(SpyderWidgetMixin, QTreeView):
             fnames = self.get_selected_filenames()
         multiple = len(fnames) > 1
         yes_to_all = None
+        self._delete_permanently_to_all = False
         for fname in fnames:
             spyproject_path = osp.join(fname, '.spyproject')
             if osp.isdir(fname) and osp.exists(spyproject_path):
@@ -1228,6 +1289,8 @@ class DirView(SpyderWidgetMixin, QTreeView):
                 if yes_to_all is not None and not yes_to_all:
                     # Canceled
                     break
+
+        self.refresh_unwatched_folder()
 
     def rename_file(self, fname):
         """Rename file"""

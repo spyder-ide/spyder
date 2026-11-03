@@ -16,7 +16,12 @@ import pytest
 from qtpy.QtCore import QFile
 
 # Local imports
-from spyder.utils.misc import get_common_path, move_file
+from spyder.utils.misc import (
+    get_common_path,
+    move_file,
+    move_to_trash,
+    remove_file,
+)
 
 
 def test_get_common_path():
@@ -67,6 +72,48 @@ def test_move_file(tmp_path, monkeypatch, trash_available):
     move_file(str(folder), str(dest_dir / "folder"))
     assert not folder.exists()
     assert (dest_dir / "folder" / "file.txt").read_text() == "text"
+
+
+@pytest.mark.parametrize(
+    "qt_result, expected",
+    [
+        ((True, "/trash/file.txt"), True),
+        ((False, ""), False),
+        (True, True),
+        (False, False),
+    ]
+)
+def test_move_to_trash_result(monkeypatch, qt_result, expected):
+    """
+    Test that move_to_trash handles the result of QFile.moveToTrash for
+    different Qt bindings.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    monkeypatch.setattr(QFile, "moveToTrash", lambda *args: qt_result)
+    assert move_to_trash("file.txt") is expected
+
+
+def test_remove_file(tmp_path, monkeypatch):
+    """
+    Test that remove_file reports when files can't be moved to the trash and
+    that they can be removed permanently.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    fname = tmp_path / "script.py"
+    fname.write_text("print(1)")
+    (tmp_path / "script.pyc").write_text("")
+
+    # Simulate a filesystem without a trash, like Windows network shares
+    monkeypatch.setattr(QFile, "moveToTrash", lambda *args: (False, ""))
+    assert not remove_file(str(fname))
+    assert fname.exists()
+    assert (tmp_path / "script.pyc").exists()
+
+    assert remove_file(str(fname), permanently=True)
+    assert not fname.exists()
+    assert not (tmp_path / "script.pyc").exists()
 
 
 if __name__ == "__main__":

@@ -357,6 +357,7 @@ class ProjectExplorerTreeWidget(FilteredDirView):
             fnames = self.get_selected_filenames()
         multiple = len(fnames) > 1
         yes_to_all = None
+        self._delete_permanently_to_all = False
         for fname in fnames:
             if fname == self.proxymodel.path_list[0]:
                 self.sig_delete_project.emit()
