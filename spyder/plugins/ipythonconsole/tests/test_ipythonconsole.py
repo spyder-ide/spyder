@@ -1537,7 +1537,7 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
     # Evaluate an expression to be sure the restart was successful
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
-    assert shell.is_defined('a')
+    qtbot.waitUntil(lambda: shell.is_defined('a'))
 
     # Wait until the comm replies
     open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())

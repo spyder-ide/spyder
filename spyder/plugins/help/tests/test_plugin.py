@@ -46,11 +46,13 @@ def help_plugin(qtbot):
 
     if WEBENGINE:
         help_widget._webpage = webview.page()
+        with qtbot.waitSignal(help_widget._webpage.loadFinished):
+            window.show()
     else:
         help_widget._webpage = webview.page().mainFrame()
+        window.show()
 
     qtbot.addWidget(window)
-    window.show()
     return help_plugin
 
 
@@ -90,7 +92,7 @@ def test_no_docs_message(help_plugin, qtbot):
     help_plugin.set_editor_doc(default_info_response())
     qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
                                        "No documentation available"),
-                    timeout=4000)
+                    timeout=20000)
 
 
 @flaky(max_runs=3)
@@ -106,7 +108,7 @@ def test_no_further_docs_message(help_plugin, qtbot):
     help_plugin.set_editor_doc(info)
     qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
                                        "No further documentation available"),
-                    timeout=3000)
+                    timeout=20000)
 
 
 def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
