@@ -1020,6 +1020,97 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
+def test_kernel_shuts_down_when_closing_client_after_startup_warning(
+    ipyconsole, qtbot
+):
+    # Start a console with its own kernel, before its kernel is connected.
+    ipyconsole.create_new_client()
+    client = ipyconsole.get_current_client()
+    assert client.kernel_handler is None
+
+    # Emit a startup warning as kernel stderr while the console is connecting.
+    client.shellwidget.sig_shellwidget_created.connect(
+        lambda shellwidget: shellwidget.kernel_handler.sig_stderr.emit(
+            "C:\\env\\lib\\module.py:12: UserWarning: harmless warning\n"
+            "  warnings.warn(msg)\n"
+        )
+    )
+    qtbot.waitSignal(
+        client.shellwidget.sig_prompt_ready, timeout=SHELL_TIMEOUT
+    ).wait()
+
+    kernel_handler = client.kernel_handler
+    kernel_manager = kernel_handler.kernel_manager
+
+    try:
+        # Close the console and assert its kernel was shut down.
+        ipyconsole.get_widget().close_client(client=client, ask_recursive=False)
+        assert not kernel_manager.is_alive()
+    finally:
+        # Forcefully shut down the kernel if it wasn't shut down normally.
+        if kernel_manager.is_alive():
+            kernel_manager.shutdown_kernel(now=True)
+
+        # Wait for the threads to finish to avoid Qt crashing upon GC.
+        kernel_handler.close_std_threads()
+
+
+def test_kernel_shuts_down_on_startup_error(ipyconsole, qtbot):
+    # Start a console with its own kernel, before its kernel is connected.
+    ipyconsole.create_new_client()
+    client = ipyconsole.get_current_client()
+    assert client.kernel_handler is None
+
+    # Emit a startup error as kernel stderr while the console is connecting.
+    with qtbot.waitSignal(client.shellwidget.sig_shellwidget_errored):
+        client.shellwidget.sig_shellwidget_created.connect(
+            lambda shellwidget: shellwidget.kernel_handler.sig_stderr.emit(
+                "Traceback (most recent call last):\n"
+                '  File "C:\\env\\lib\\module.py", line 12, in <module>\n'
+                "RuntimeError: kernel startup failed\n"
+            )
+        )
+
+    kernel_handler = client.kernel_handler
+    kernel_manager = kernel_handler.kernel_manager
+
+    try:
+        assert not kernel_manager.is_alive()
+    finally:
+        # Forcefully shut down the kernel if it wasn't shut down normally.
+        if kernel_manager.is_alive():
+            kernel_manager.shutdown_kernel(now=True)
+
+        # Wait for the threads to finish to avoid Qt crashing upon GC.
+        kernel_handler.close_std_threads()
+
+        ipyconsole.get_widget().close_client(client=client, ask_recursive=False)
+
+
+@pytest.mark.parametrize(
+    "stop_kernel",
+    [
+        pytest.param(
+            lambda client: client.disconnect_kernel(shutdown_kernel=True),
+            id="no-kernel",
+        ),
+        pytest.param(
+            lambda client: client.kernel_handler.close(),
+            id="kernel-already-shut-down",
+        ),
+    ],
+)
+def test_shellwidget_shutdown_is_idempotent(ipyconsole, stop_kernel):
+    client = ipyconsole.get_current_client()
+    shell = client.shellwidget
+    kernel_manager = shell.kernel_handler.kernel_manager
+    stop_kernel(client)
+    assert not kernel_manager.is_alive()
+
+    shell.shutdown()
+    shell.shutdown()
+
+
 @flaky(max_runs=3)
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
