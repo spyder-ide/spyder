@@ -19,7 +19,7 @@ import re
 import shutil
 import sys
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -30,8 +30,10 @@ import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy import PYQT6
-from qtpy.QtCore import QPoint, Qt
-from qtpy.QtGui import QKeySequence, QShortcut, QTextCursor
+from qtpy.QtCore import QEvent, QPoint, QPointF, Qt, QUrl
+from qtpy.QtGui import (
+    QKeySequence, QMouseEvent, QShortcut, QTextCursor)
+from qtpy.QtWidgets import QApplication
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -58,6 +60,7 @@ from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
 from spyder.plugins.ipythonconsole.widgets.shell import PROMPT_BLOCK_RE
 from spyder.utils.conda import get_list_conda_envs, find_pixi
 from spyder.utils.theme_manager import THEME_MANAGER
+from spyder.widgets import mixins
 
 
 @flaky(max_runs=3)
@@ -3176,6 +3179,49 @@ def test_umr(ipyconsole, qtbot, tmp_path):
         shell.execute(f"%runfile {fname}")
 
     assert "Reloaded modules" in control.toPlainText()
+
+
+def test_click_url_in_output(ipyconsole, qtbot, monkeypatch):
+    """Check that urls printed in the console can be opend by clicking."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    open_url = Mock()
+    monkeypatch.setattr(mixins.QDesktopServices, "openUrl", open_url)
+
+    # Print a url
+    url = "https://www.spyde-ide.org"
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"print('VIsit {url}')")
+
+    # Get coordinates on top of the url in the output
+    cursor = control.document().find(f"Visit {url}")
+    cursor.setPosition(cursor.selectionStart() + len("Visit ") + 3)
+    rect = control.cursorRect(cursor)
+    pos = QPoint(rect.left() + 2, rect.center().y())
+
+    def send_mouse_event(event_type, button, buttons):
+        event = QMouseEvent(
+            event_type,
+            QPointF(pos),
+            QPointF(control.viewport().mapToGlobal(pos)),
+            button,
+            buttons,
+            Qt.NoModifier,
+        )
+        QApplication.sendEvent(control.viewport(), event)
+
+    # Hover over the url and check it's detected
+    send_mouse_event(QEvent.MouseMove, Qt.NoButton, Qt.NoButton)
+    assert control.anchor == url
+
+    # Click on it and check it's opened
+    send_mouse_event(QEvent.MouseButtonPress, Qt.LeftButton, Qt.LeftButton)
+    send_mouse_event(QEvent.MouseButtonRelease, Qt.LeftButton, Qt.NoButton)
+    open_url.assert_called_once_with(QUrl(url))
 
 
 if __name__ == "__main__":

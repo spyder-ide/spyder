@@ -26,7 +26,7 @@ from packaging.version import parse
 from qtpy import PYQT6, QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
-    QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
+    QDesktopServices, QFontMetrics, QTextCursor, QTextDocument, QTextFormat)
 from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
@@ -63,6 +63,13 @@ EOL_SYMBOLS = (
     "\u2028",   # Line Separator
     "\u2029",   # Paragraph Separator
 )
+
+# Regex to detect urls in plain text
+URL_REGEX = re.compile(sh.DEFAULT_PATTERNS['url'])
+
+# Text format property used to identify the extra selection that underlines 
+# urls on hover
+URL_UNDERLINE_PROPERTY = QTextFormat.UserProperty + 1
 
 # Tips style
 TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
@@ -1608,7 +1615,9 @@ class BaseEditMixin(object):
 
 
 class TracebackLinksMixin(object):
-    """Mixin to make file names in tracebacks and anchors clickable."""
+    """
+    Mixin to make file names in tracebacks, anchors and urls clickable.
+    """
     QT_CLASS = None
 
     # This signal emits a parsed error traceback text so we can then
@@ -1623,20 +1632,51 @@ class TracebackLinksMixin(object):
     def mouseReleaseEvent(self, event):
         """Go to error or link in anchor."""
         self.QT_CLASS.mouseReleaseEvent(self, event)
+
+        # Don't follow lins when the user is selecting text or using other 
+        # mouse buttons (e.g. to show context menu).
+        if (
+            event.button() != Qt.LeftButton 
+            or self.has_selected_text()
+        ):
+            return
+        
         text = self.get_line_at(event.pos())
 
-        if get_error_match(text) and not self.has_selected_text():
+        if get_error_match(text):
             if self.sig_go_to_error_requested is not None:
                 self.sig_go_to_error_requested.emit(text)
         elif self.anchor:
             QDesktopServices.openUrl(QUrl(self.anchor))
-            QApplication.restoreOverrideCursor()
             self.anchor = None
+            self._clear_link_hover()
 
     def mouseMoveEvent(self, event):
-        """Show pointing hand cursor on error messages and anchors."""
+        """
+        Show pointing hand cursor on error messages, anchors and urls, and
+        underline the last ones.
+        """
+
+        # Don't interfere with text selection by dragging
+        if event.buttons() != Qt.NoButton:
+            self.anchor = None
+            self._clear_link_hover()
+            self.QT_CLASS.mouseMoveEvent(self, event)
+            return
+        
         text = self.get_line_at(event.pos())
         self.anchor = self.anchorAt(event.pos())
+
+        # Detect urls in plain text (e.eg. printe by users) if there's no 
+        # anchor at the mouse position
+        url_cursor = None
+        if not self.anchor:
+            self.anchor, url_cursor = self.get_url_at(event.pos())
+
+        if url_cursor is not None:
+            self._underline_url(url_cursor)
+        else:
+            self._remove_url_underline()
 
         if get_error_match(text) or self.anchor:
             if not self.__cursor_changed:
@@ -1645,19 +1685,115 @@ class TracebackLinksMixin(object):
             event.accept()
             return
 
-        if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
+        self._restore_cursor()
 
         self.QT_CLASS.mouseMoveEvent(self, event)
 
     def leaveEvent(self, event):
         """If cursor has not been restored yet, do it now"""
+        self._clear_link_hover()
+        self.QT_CLASS.leaveEvent(self, event)
+
+    def get_url_at(self, coordinates):
+        """
+        Return the url at *coordinates* (QPoint) and a cursor that selects it.
+
+        If there's no url there, return (None, None).
+        """
+        cursor = self.cursorForPosition(coordinates)
+        position = self._get_char_position_at(coordinates)
+        if position is None:
+            return None, None
+
+        block = cursor.block()
+        for match in URL_REGEX.finditer(block.text()):
+            start, end = sh.get_span(match)
+            start_pos = block.position() + start
+            end_pos = block.position() + end
+
+            if start_pos <= position < end_pos:
+                cursor.setPosition(start_pos)
+                cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+                return str(cursor.selectedText()), cursor
+            
+        return None, None
+
+    def _get_char_position_at(self, coordinates):
+        """
+        Return the position of the character under *coordinates* (QPoint) or 
+        None if there's no character there.
+
+        Notes
+        -----
+        cursorForPosition returns the closest position between characters, 
+        so we need to check the characters at both sides of it. We do it this
+        way instead of checking a single rect around a pattern (as the Editor 
+        does) to also support long lines that are wrapped.
+        """
+        position = self.cursorForPosition(coordinates).position()
+        cursor = self.textCursor()
+        x, y = coordinates.x(), coordinates.y()
+
+        for char_position in (position-1, position):
+            if char_position < 0:
+                continue
+
+            cursor.setPosition(char_position)
+            if cursor.atBlockEnd():
+                continue
+            char_rect = self.cursorRect(cursor)
+
+            cursor.setPosition(char_position + 1)
+            next_char_rect = self.cursorRect(cursor)
+
+            if not (char_rect.top() <= y <= char_rect.bottom()):
+                continue
+
+            if next_char_rect.top() != char_rect.top():
+                # This is the last character of a wrapped line
+                if x >= char_rect.left():
+                    return char_position
+            elif char_rect.left() <= x <next_char_rect.left():
+                return char_position
+            
+        return None
+
+    def _underline_url(self, cursor):
+        """Underline the url selected by *cursor*."""
+        selections = [
+            selection for selection in self.extraSelections()
+            if not selection.format.boolProperty(URL_UNDERLINE_PROPERTY)
+        ]
+
+        selection = QTextEdit.ExtraSelection()
+        selection.cursor = cursor
+        selection.format.setFontUnderline(True)
+        selection.format.setProperty(URL_UNDERLINE_PROPERTY, True)
+        selections.append(selection)
+
+        self.setExtraSelections(selections)
+
+    def _remove_url_underline(self):
+        """Remove url underline , if present."""
+        selections = self.extraSelections()
+        other_selections = [
+            selection for selection in selections
+            if not selection.format.boolProperty(URL_UNDERLINE_PROPERTY)
+        ]
+
+        if len(other_selections) != len(selections):
+            self.setExtraSelections(other_selections)
+
+    def _restore_cursor(self):
+        """Restore mouse cursor if it was changed."""
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
 
-        self.QT_CLASS.leaveEvent(self, event)
+    def _clear_link_hover(self):
+        """Remove all visual feedback given when hovering links."""
+        self._remove_url_underline()
+        self._restore_cursor()
 
 
 class GetHelpMixin(object):

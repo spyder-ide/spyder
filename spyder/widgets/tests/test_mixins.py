@@ -4,8 +4,13 @@
 # Licensed under the terms of the MIT License
 #
 
+# Standard library imports
+from unittest.mock import Mock
+
 # Third party imports
-from qtpy.QtWidgets import QPlainTextEdit
+from qtpy.QtCore import QEvent, QPoint, QPointF, Qt, QUrl
+from qtpy.QtGui import QMouseEvent
+from qtpy.QtWidgets import QApplication, QPlainTextEdit
 
 import pytest
 
@@ -18,6 +23,35 @@ class BaseWidget(mixins.BaseEditMixin, QPlainTextEdit):
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         mixins.BaseEditMixin.__init__(self)
+
+
+class LinksWidget(mixins.TracebackLinksMixin, BaseWidget):
+    QT_CLASS = QPlainTextEdit
+
+    def __init__(self, parent=None):
+        BaseWidget.__init__(self, parent)
+        mixins.TracebackLinksMixin.__init__(self)
+
+
+def send_mouse_event(widget, event_type, pos, button=Qt.LeftButton):
+    """Send a mouse event to the viewport of widget at pos."""
+    if event_type == QEvent.MouseMove:
+        buttons = Qt.NoButton
+        button = Qt.NoButton
+    elif event_type == QEvent.MouseButtonPress:
+        buttons = button
+    else:
+        buttons = Qt.NoButton
+
+    event = QMouseEvent(
+        event_type,
+        QPointF(pos),
+        QPointF(widget.viewport().mapToGlobal(pos)),
+        button,
+        buttons,
+        Qt.NoModifier,
+    )
+    QApplication.sendEvent(widget.viewport(), event)
 
 
 # --- Fixtures
@@ -260,3 +294,76 @@ def test_get_number_with_words(mixinsbot):
     assert getm('Word') == 6
     # But the third (out of the three) which is [Ww]ord
     assert getm('Word', word=True) == 3
+
+
+def test_click_url(qtbot, monkeypatch):
+    """Check that urls in plain text are underlined on hover and opened"""
+    widget = LinksWidget()
+    widget.setLineWrapMode(QPlainTextEdit.WidgetWidth)
+    qtbot.addWidget(widget)
+    widget.show()
+
+    url = 'https://www.spyder-ide.org/blog'
+    text = f'Plain text \nPlease visit {url} for more info'
+    widget.setPlainText(text)
+
+    open_url = Mock()
+    monkeypatch.setattr(mixins.QDesktopServices, 'openUrl', open_url)
+
+    def get_coordinates(position):
+        """Get coordinates on top of the character at position"""
+        cursor = widget.textCursor()
+        cursor.setPosition(position)
+        rect = widget.cursorRect(cursor)
+        return QPoint(rect.left() + 2, rect.center().y())
+
+    # Check url detection when it's wrapped in two lines
+    width = widget.fontMetrics().horizontalAdvance('Please visit https://')
+    widget.resize(width + 40, 200)
+    qtbot.wait(100)
+
+    first_line_pos = get_coordinates(text.index(url) + 2)
+    second_line_pos = get_coordinates(text.index(url) + len(url) - 2)
+    assert first_line_pos.y() < second_line_pos.y()
+    assert widget.get_url_at(first_line_pos)[0] == url
+    assert widget.get_url_at(second_line_pos)[0] == url
+
+    # Check url detection in a single line
+    widget.resize(1000, 200)
+    qtbot.wait(100)
+
+    url_pos = get_coordinates(text.index(url) + 5)
+    text_pos = get_coordinates(text.index('info'))
+    assert widget.get_url_at(url_pos)[0] == url
+    assert widget.get_url_at(text_pos) == (None, None)
+
+    # Check there's no url detected next to it
+    assert widget.get_url_at(get_coordinates(text.index(url) - 2)) == (None, None)
+
+    # Check url is underlined on hover
+    send_mouse_event(widget, QEvent.MouseMove, url_pos)
+    assert widget.anchor == url
+    underlines = [
+        s for s in widget.extraSelections()
+        if s.format.boolProperty(mixins.URL_UNDERLINE_PROPERTY)
+    ]
+    assert len(underlines) == 1
+    assert underlines[0].cursor.selectedText() == url
+
+    # Check underline is removed when moving away from the url
+    send_mouse_event(widget, QEvent.MouseMove, text_pos)
+    assert widget.anchor is None
+    assert widget.extraSelections() == []
+
+    # Check right clicks don't open the url
+    send_mouse_event(widget, QEvent.MouseMove, url_pos)
+    send_mouse_event(
+        widget, QEvent.MouseButtonRelease, url_pos, button=Qt.RightButton
+    )
+    open_url.assert_not_called()
+
+    # Check left click opens it
+    send_mouse_event(widget, QEvent.MouseButtonPress, url_pos)
+    send_mouse_event(widget, QEvent.MouseButtonRelease,  url_pos)
+    open_url.assert_called_once_with(QUrl(url))
+    assert widget.extraSelections() == []
