@@ -259,19 +259,26 @@ def get_conf_path(filename=None):
         if not xdg_config_home:
             xdg_config_home = osp.join(get_home_dir(), '.config')
 
-        if not osp.isdir(xdg_config_home):
-            os.makedirs(xdg_config_home)
+        os.makedirs(xdg_config_home, exist_ok=True)
 
         conf_dir = osp.join(xdg_config_home, get_conf_subfolder())
     else:
         conf_dir = osp.join(get_home_dir(), get_conf_subfolder())
 
-    # Create conf_dir
+    # Create conf_dir.
+    # Note: Another Spyder process could create it at the same time, so we
+    # don't fail if it already exists. See spyder-ide/spyder#26494
     if not osp.isdir(conf_dir):
         if running_under_pytest() or get_safe_mode() or get_custom_conf_dir():
-            os.makedirs(conf_dir)
+            os.makedirs(conf_dir, exist_ok=True)
         else:
-            os.mkdir(conf_dir)
+            # Don't create missing parent dirs for the default location
+            try:
+                os.mkdir(conf_dir)
+            except FileExistsError:
+                # Only ignore the error if it's a dir and not a file
+                if not osp.isdir(conf_dir):
+                    raise
 
     if filename is None:
         return conf_dir
@@ -308,8 +315,7 @@ def get_conf_paths():
         tmpfolder = str(tempfile.gettempdir())
         for i in range(3):
             path = os.path.join(tmpfolder, 'site-config-' + str(i))
-            if not os.path.isdir(path):
-                os.makedirs(path)
+            os.makedirs(path, exist_ok=True)
             search_paths.append(path)
         SEARCH_PATH = tuple(search_paths)
 

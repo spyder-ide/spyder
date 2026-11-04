@@ -148,3 +148,46 @@ def spyderconfig_previous(tmpdir, mocker):
     return SpyderUserConfig(name=name, path=path, defaults={}, load=True,
                             version='50.0.0', backup=False, raw_mode=True,
                             remove_obsolete=False)
+
+
+@pytest.fixture
+def racing_mkdir(tmp_path, monkeypatch):
+    """
+    Simulate another Spyder process creating folders at the same time.
+
+    Every folder this test tries to create under `tmp_path` is created first
+    by a "concurrent process", i.e. right after the caller checked that it
+    didn't exist and right before it creates it.
+
+    Returns
+    -------
+    list of str
+        Absolute paths of the folders the concurrent process created.
+    """
+    real_mkdir = os.mkdir
+    root = str(tmp_path)
+    created = []
+
+    def mkdir(path, *args, **kwargs):
+        abs_path = os.path.abspath(os.fsdecode(path))
+        try:
+            in_root = os.path.commonpath([root, abs_path]) == root
+        except ValueError:
+            # Paths on different drives on Windows
+            in_root = False
+
+        # Race each folder only once, so callers that retry with a new name
+        # (e.g. tempfile.mkdtemp) still work.
+        if (
+            in_root
+            and abs_path not in created
+            and not os.path.exists(abs_path)
+        ):
+            real_mkdir(abs_path)
+            created.append(abs_path)
+
+        return real_mkdir(path, *args, **kwargs)
+
+    # os.makedirs calls os.mkdir for each missing folder, so this covers both
+    monkeypatch.setattr(os, 'mkdir', mkdir)
+    return created

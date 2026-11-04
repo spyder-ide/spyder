@@ -9,6 +9,7 @@
 # Standard library imports
 import configparser as cp
 import os
+import os.path as osp
 
 # Third party imports
 import pytest
@@ -435,6 +436,32 @@ def test_spyderconfig_get_defaults_path_name_from_version(spyderconfig):
     path, name = func('53.0.0')
     assert name == 'defaults-spyder-test-53.0.0'
     assert path.endswith('defaults')
+
+
+def test_userconfig_concurrent_creation_of_dirs(tmp_path, racing_mkdir):
+    """
+    Test that UserConfig doesn't fail if another Spyder process creates its
+    dirs at the same time.
+
+    This is a regression test for spyder-ide/spyder#26494
+    """
+    path = str(tmp_path / 'new' / 'config')
+    UserConfig(
+        name='spyder-test',
+        path=path,
+        defaults={'section': {'option': 'value'}},
+        load=True,
+        version='1.0.0',
+        backup=True,
+        raw_mode=True,
+        remove_obsolete=False,
+    )
+
+    # The backups and defaults dirs are created when loading the config
+    for folder in [path, osp.join(path, 'backups'),
+                   osp.join(path, 'defaults')]:
+        assert folder in racing_mkdir
+        assert osp.isdir(folder)
 
 
 if __name__ == "__main__":

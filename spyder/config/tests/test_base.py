@@ -29,6 +29,19 @@ from spyder.utils.conda import get_list_conda_envs
 
 
 # ============================================================================
+# ---- Helpers
+# ============================================================================
+def use_default_conf_dir(monkeypatch, home):
+    """Make get_conf_path use its default location under `home`."""
+    monkeypatch.setattr(spyder.config.base, 'running_under_pytest',
+                        lambda: False)
+    monkeypatch.setattr(spyder.config.base, 'get_safe_mode', lambda: False)
+    monkeypatch.setattr(spyder.config.base, 'get_home_dir', lambda: home)
+    monkeypatch.delenv('SPYDER_CONFDIR', raising=False)
+    monkeypatch.setenv('XDG_CONFIG_HOME', osp.join(home, '.config'))
+
+
+# ============================================================================
 # ---- Tests
 # ============================================================================
 def test_is_stable_version():
@@ -53,6 +66,75 @@ def test_get_conf_path(monkeypatch, use_dev_config_dir):
     assert osp.isdir(conf_path)
     monkeypatch.undo()
     reload(spyder.config.base)
+
+
+def test_get_conf_path_concurrent_creation(tmp_path, monkeypatch,
+                                           racing_mkdir):
+    """
+    Test that get_conf_path doesn't fail if another Spyder process creates
+    the config dir at the same time.
+
+    This is a regression test for spyder-ide/spyder#26494
+    """
+    # Default location, created with os.mkdir
+    home = str(tmp_path)
+    use_default_conf_dir(monkeypatch, home)
+    conf_path = spyder.config.base.get_conf_path()
+    assert osp.isdir(conf_path)
+    assert conf_path in racing_mkdir
+
+    # Clean location (tests and safe mode), created with os.makedirs
+    clean_dir = str(tmp_path / 'clean' / 'conf')
+    monkeypatch.setattr(spyder.config.base, 'running_under_pytest',
+                        lambda: True)
+    monkeypatch.setattr(spyder.config.base, 'get_clean_conf_dir',
+                        lambda: clean_dir)
+    assert spyder.config.base.get_conf_path() == clean_dir
+    assert clean_dir in racing_mkdir
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'),
+    reason="The parent dir ($XDG_CONFIG_HOME) is always created on Linux"
+)
+def test_get_conf_path_default_dir_missing_parent(tmp_path, monkeypatch):
+    """
+    Test that get_conf_path doesn't create missing parent dirs for the
+    default location.
+    """
+    use_default_conf_dir(monkeypatch, str(tmp_path / 'missing'))
+    with pytest.raises(FileNotFoundError):
+        spyder.config.base.get_conf_path()
+
+
+def test_get_conf_path_default_dir_is_file(tmp_path, monkeypatch):
+    """
+    Test that get_conf_path fails for the default location if there's a file
+    in its place.
+    """
+    use_default_conf_dir(monkeypatch, str(tmp_path))
+    subfolder = spyder.config.base.get_conf_subfolder()
+    if sys.platform.startswith('linux'):
+        os.makedirs(tmp_path / '.config')
+        (tmp_path / '.config' / subfolder).touch()
+    else:
+        (tmp_path / subfolder).touch()
+
+    with pytest.raises(FileExistsError):
+        spyder.config.base.get_conf_path()
+
+
+def test_get_conf_paths_concurrent_creation(tmp_path, monkeypatch,
+                                            racing_mkdir):
+    """
+    Test that get_conf_paths doesn't fail if another process creates the test
+    site config dirs at the same time.
+    """
+    monkeypatch.setattr(spyder.config.base.tempfile, 'gettempdir',
+                        lambda: str(tmp_path))
+    paths = spyder.config.base.get_conf_paths()
+    assert len(paths) == 3
+    assert all(path in racing_mkdir for path in paths)
 
 
 @pytest.mark.skipif(

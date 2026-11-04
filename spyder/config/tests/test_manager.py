@@ -155,5 +155,42 @@ def test_secure_options():
     clear_site_config()
 
 
+def test_concurrent_creation_of_config_dirs(tmp_path, monkeypatch,
+                                            racing_mkdir):
+    """
+    Test that ConfigurationManager doesn't fail if another Spyder process
+    creates its config dirs at the same time.
+
+    This is a regression test for spyder-ide/spyder#26494
+    """
+    # Don't look for deprecated config files in the real home dir
+    monkeypatch.setattr(
+        'spyder.config.manager.get_home_dir', lambda: str(tmp_path)
+    )
+
+    conf_path = str(tmp_path / 'app' / 'config')
+    config = ConfigurationManager(conf_path=conf_path)
+    assert conf_path in racing_mkdir
+
+    # The backups and defaults dirs are created when loading the config
+    for folder in ['backups', 'defaults']:
+        assert osp.join(conf_path, folder) in racing_mkdir
+
+    # Dirs created after startup
+    base_path = str(tmp_path)
+    monkeypatch.setattr(
+        'spyder.config.manager.get_conf_path', lambda: base_path
+    )
+    paths = [
+        config.get_user_config_path(),
+        config.get_plugin_config_path('test-plugin'),
+    ]
+    project_root = str(tmp_path / 'project')
+    config.get_project_config_path(project_root)
+    paths.append(osp.join(project_root, '.spyproj', 'config'))
+
+    assert all(path in racing_mkdir for path in paths)
+
+
 if __name__ == "__main__":
     pytest.main()

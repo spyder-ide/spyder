@@ -50,8 +50,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         self._name = name
         self._path = path
 
-        if not osp.isdir(osp.dirname(self._path)):
-            os.makedirs(osp.dirname(self._path))
+        os.makedirs(osp.dirname(self._path), exist_ok=True)
 
     def _write(self, fp):
         """
@@ -320,8 +319,7 @@ class UserConfig(DefaultsConfig):
             version=version, old_version=old_version)
         path = os.path.dirname(fpath_backup)
 
-        if not osp.isdir(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
 
         try:
             shutil.copyfile(fpath, fpath_backup)
@@ -427,8 +425,7 @@ class UserConfig(DefaultsConfig):
             self._name,
             version,
         )
-        if not osp.isdir(defaults_path):
-            os.makedirs(defaults_path)
+        os.makedirs(defaults_path, exist_ok=True)
 
         return defaults_path, name
 
