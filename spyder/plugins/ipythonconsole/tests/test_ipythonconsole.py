@@ -1103,7 +1103,7 @@ def test_kernel_crash(ipyconsole, qtbot):
             webpage = webview.page().mainFrame()
 
         qtbot.waitUntil(
-            lambda: check_text(webpage, "Bad config encountered"),
+            lambda: check_text(webpage, "Bad config encountered", qtbot),
             timeout=6000)
 
         # Wait until the error has been received by the cached kernel_handler
@@ -2380,10 +2380,10 @@ def test_old_kernel_version(ipyconsole, qtbot):
     info_page = w.get_current_client().infowidget.page()
 
     qtbot.waitUntil(
-        lambda: check_text(info_page, "1.0.0"), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "1.0.0", qtbot), timeout=SHELL_TIMEOUT
     )
     qtbot.waitUntil(
-        lambda: check_text(info_page, "pip install spyder"), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "pip install spyder", qtbot), timeout=SHELL_TIMEOUT
     )
 
 
@@ -2459,7 +2459,8 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     qtbot.waitUntil(
         lambda: check_text(
             info_page,
-            "The Python environment or installation"
+            "The Python environment or installation",
+            qtbot,
         ),
         timeout=6000
     )

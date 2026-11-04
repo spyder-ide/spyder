@@ -433,13 +433,13 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.keyClicks(object_combo, 'numpy', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy", qtbot), timeout=6000)
 
     # Get help - numpy.arange
     qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "arange", qtbot), timeout=6000)
 
     # Get help - np
     # Clear combo
@@ -448,13 +448,13 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.keyClicks(object_combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy", qtbot), timeout=6000)
 
     # Get help - np.arange
     qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "arange", qtbot), timeout=6000)
 
 
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
@@ -494,7 +494,7 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Matrix or vector norm."),
+        lambda: check_text(webpage, "Matrix or vector norm.", qtbot),
         timeout=6000)
 
 
@@ -541,7 +541,7 @@ def test_get_help_ipython_console_special_characters(
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
+    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring.", qtbot),
                     timeout=40000)
 
 
@@ -567,7 +567,7 @@ def test_get_help_ipython_console(main_window, qtbot):
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell", qtbot), timeout=6000)
 
 
 @flaky(max_runs=3)
@@ -611,9 +611,9 @@ def test_get_help_editor(main_window, qtbot, object_info):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, expected_text), timeout=30000)
+    qtbot.waitUntil(lambda: check_text(webpage, expected_text, qtbot), timeout=30000)
 
-    assert check_text(webpage, expected_text)
+    assert check_text(webpage, expected_text, qtbot)
 
 
 def test_window_title(main_window, tmpdir, qtbot):
@@ -7980,13 +7980,13 @@ def test_help_long_type_alias_rendering(main_window, qtbot):
 
     # Validate the docstring is shown in the Help pane
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Test docstring"),
+        lambda: check_text(webpage, "Test docstring", qtbot),
         timeout=40000
     )
 
     # And the right signature is in it.
-    assert check_text(webpage, "x")
-    assert not check_text(webpage, "Sequence[int | str] | int | str |")
+    assert check_text(webpage, "x", qtbot)
+    assert not check_text(webpage, "Sequence[int | str] | int | str |", qtbot)
 
 
 @flaky(max_runs=3)
@@ -8023,13 +8023,13 @@ def test_help_numpy_typing_annotations(main_window, qtbot):
     control.inspect_current_object()
 
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Numpy typing test"),
+        lambda: check_text(webpage, "Numpy typing test", qtbot),
         timeout=40000
     )
 
-    assert check_text(webpage, "axis")
+    assert check_text(webpage, "axis", qtbot)
     assert not check_text(
-        webpage, "[Union[bool, int, float, complex, str, bytes]]"
+        webpage, "[Union[bool, int, float, complex, str, bytes]]", qtbot
     )
 
 

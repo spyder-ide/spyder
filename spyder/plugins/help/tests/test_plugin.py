@@ -59,17 +59,12 @@ def help_plugin(qtbot):
 # =============================================================================
 # Utility functions
 # =============================================================================
-def check_text(widget, text):
+def check_text(widget, text, qtbot):
     """Check if some text is present in a widget."""
     if WEBENGINE:
-        def callback(data):
-            global html
-            html = data
-        widget.toHtml(callback)
-        try:
-            return text in html
-        except NameError:
-            return False
+        with qtbot.waitCallback() as cb:
+            widget.toHtml(cb)
+        return text in cb.args[0]
     else:
         return text in widget.toHtml()
 
@@ -91,7 +86,8 @@ def test_no_docs_message(help_plugin, qtbot):
     """
     help_plugin.set_editor_doc(default_info_response())
     qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No documentation available"),
+                                       "No documentation available",
+                                       qtbot),
                     timeout=20000)
 
 
@@ -107,7 +103,8 @@ def test_no_further_docs_message(help_plugin, qtbot):
 
     help_plugin.set_editor_doc(info)
     qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No further documentation available"),
+                                       "No further documentation available",
+                                       qtbot),
                     timeout=20000)
 
 
