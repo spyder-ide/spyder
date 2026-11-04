@@ -296,7 +296,7 @@ class WorkspaceEventHandler(QObject, PatternMatchingEventHandler):
         QObject.__init__(self, parent)
         PatternMatchingEventHandler.__init__(
             self,
-            patterns=[f"*{ext}" for ext in EDIT_EXTENSIONS],
+            patterns=[f"**/*{ext}" for ext in EDIT_EXTENSIONS],
         )
 
     def fmt_is_dir(self, is_dir):
