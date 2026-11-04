@@ -19,6 +19,7 @@ def test_get_options():
     assert not options.new_instance
     assert not options.reset_to_defaults
     assert not options.reset_config_files
+    assert not options.reset_hdpi_settings
     assert not options.optimize
     assert not options.paths
     assert options.working_directory is None
@@ -38,6 +39,9 @@ def test_get_options():
     options, args = getopt(['--defaults', '--reset'])
     assert options.reset_to_defaults
     assert options.reset_config_files
+
+    options, args = getopt(['--reset-hdpi-settings'])
+    assert options.reset_hdpi_settings
 
     options, args = getopt(['--optimize', '--workdir', 'test dir'])
     assert options.optimize

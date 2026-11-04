@@ -126,6 +126,7 @@ DEFAULTS = [
               }),
             ('quick_layouts',
              {
+              'current_layout': 'Spyder Default Layout',
               'place_holder': '',
               'names': [],
               'order': [],
@@ -135,6 +136,7 @@ DEFAULTS = [
             ('internal_console',
              {
               'max_line_count': 300,
+              'standard_streams': True,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
               'wrap': True,
@@ -354,6 +356,7 @@ DEFAULTS = [
               'type_column': False,
               'date_column': False,
               'search_files_in_switcher': True,
+              'follow_gitignore': True,
               }),
             ('explorer',
              {

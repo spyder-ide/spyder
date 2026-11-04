@@ -11,10 +11,10 @@ on:
       - '.github/scripts/run_tests.sh'
       - '.github/workflows/test-linux.yml'
       - 'requirements/*.yml'
+      - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
-      - '**.sh'
       - '!installers-conda/**'
 
   pull_request:
@@ -27,10 +27,10 @@ on:
       - '.github/scripts/run_tests.sh'
       - '.github/workflows/test-linux.yml'
       - 'requirements/*.yml'
+      - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
-      - '**.sh'
       - '!installers-conda/**'
 
   workflow_call:

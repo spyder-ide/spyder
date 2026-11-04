@@ -99,6 +99,7 @@ class WidgetProxy(QObject):
         # External editor
         self._gotoline = None
         self._path = None
+        self._standard_streams = True
         self.input_data = None
         self.input_condition = input_condition
 
@@ -192,13 +193,18 @@ class InternalShell(PythonShellWidget):
         self.interpreter = Interpreter(namespace, self.exitfunc,
                                        SysOutput, WidgetProxy,
                                        get_debug_level())
+
+        connection_type = (
+            Qt.QueuedConnection if self._standard_streams
+            else Qt.AutoConnection
+        )
         self.interpreter.stdout_write.data_avail.connect(
             self.stdout_avail,
-            Qt.QueuedConnection
+            connection_type
         )
         self.interpreter.stderr_write.data_avail.connect(
             self.stderr_avail,
-            Qt.QueuedConnection
+            connection_type
         )
         self.interpreter.widget_proxy.sig_set_readonly.connect(self.setReadOnly)
         self.interpreter.widget_proxy.sig_new_prompt.connect(self.new_prompt)
@@ -326,7 +332,7 @@ class InternalShell(PythonShellWidget):
             try:
                 args = [filename]
                 if goto > 0 and goto_option:
-                    args.append('%s%d'.format(goto_option, goto))
+                    args.append('%s%d' % (goto_option, goto))
 
                 programs.run_program(editor_path, args)
             except OSError:
@@ -495,3 +501,7 @@ class InternalShell(PythonShellWidget):
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         return self.interpreter.is_defined(objtxt, force_import)
+
+    def toggle_standard_streams(self, enable):
+        """Enable/disable standard streams redirection"""
+        self._standard_streams = enable
