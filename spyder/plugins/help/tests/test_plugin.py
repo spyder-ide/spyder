@@ -20,6 +20,7 @@ import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.help.plugin import Help
 
 
@@ -38,7 +39,7 @@ def help_plugin(qtbot):
                 return Mock()
 
     window = MainMock()
-    help_plugin = Help(parent=window, configuration=None)
+    help_plugin = Help(parent=window, configuration=CONF)
     help_widget = help_plugin.get_widget()
     webview = help_widget.rich_text.webview._webview
 
@@ -116,7 +117,7 @@ def test_no_further_docs_message(help_plugin, qtbot):
     )
 
 
-def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
+def test_help_opens_when_show_tutorial_unit(help_plugin):
     """
     'Show tutorial' opens the help plugin if closed.
 
@@ -125,6 +126,24 @@ def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
     help_plugin.switch_to_plugin = Mock()
     help_plugin.show_tutorial()
     assert help_plugin.switch_to_plugin.call_count == 1
+
+
+def test_disable_show_source_on_close(help_plugin):
+    widget = help_plugin.get_widget()
+
+    # Enable show_source and check options are set as expected
+    widget.show_source_action.setChecked(True)
+    assert help_plugin.get_conf("show_source")
+    assert help_plugin.get_conf("plain_mode")
+    assert not help_plugin.get_conf("rich_mode")
+
+    # Simulate the plugin was closed
+    help_plugin.on_close()
+
+    # Check options were set as expected
+    assert not help_plugin.get_conf("show_source")
+    assert not help_plugin.get_conf("plain_mode")
+    assert help_plugin.get_conf("rich_mode")
 
 
 if __name__ == "__main__":

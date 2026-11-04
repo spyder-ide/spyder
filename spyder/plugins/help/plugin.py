@@ -210,6 +210,21 @@ class Help(SpyderDockablePlugin):
 
     def on_close(self, cancelable=False):
         self.save_history()
+
+        # Disable these options so no UI changes are triggered when closing the
+        # app
+        for option in ["show_source", "rich_mode", "plain_mode"]:
+            self.disable_conf(option)
+
+        # Don't leave show_source on True because next session an error will be
+        # raised due to that.
+        self.set_conf("show_source", False)
+
+        # Set rich_mode to True so the intro message is always shown at startup
+        # in the next session
+        self.set_conf("rich_mode", True)
+        self.set_conf("plain_mode", False)
+
         return True
 
     def apply_conf(self, options_set, notify=False):
