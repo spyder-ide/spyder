@@ -589,7 +589,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             name=PluginMainWidgetActions.HelpPage,
             text=_("Help"),
             tip=_("Show the pane documentation"),
-            icon=self.create_icon("help"),
+            icon=self.create_icon("DialogHelpButton"),
             triggered=self._show_help_page,
         )
         self.help_action.setVisible(self.HELP_URL != "")
