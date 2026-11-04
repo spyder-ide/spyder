@@ -10,9 +10,9 @@ on:
       - '.github/scripts/run_tests.sh'
       - '.github/workflows/test-remoteclient.yml'
       - 'requirements/*.yml'
+      - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - '**.bat'
       - '**.py'
-      - '**.sh'
       - '!installers-conda/**'
 
   pull_request:
@@ -24,9 +24,9 @@ on:
       - '.github/scripts/run_tests.sh'
       - '.github/workflows/test-remoteclient.yml'
       - 'requirements/*.yml'
+      - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - '**.bat'
       - '**.py'
-      - '**.sh'
       - '!installers-conda/**'
 
   workflow_call:

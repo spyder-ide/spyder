@@ -35,6 +35,14 @@ def get_options(argv=None):
         help="Remove all configuration files!"
     )
     parser.add_argument(
+        '--reset-hdpi-settings',
+        dest="reset_hdpi_settings",
+        action='store_true',
+        default=False,
+        help="Reset high DPI scaling settings to their defaults. Use this "
+             "if a wrong scale factor makes Spyder unusable"
+    )
+    parser.add_argument(
         '--optimize',
         action='store_true',
         default=False,

@@ -20,6 +20,7 @@ from flaky import flaky
 import pytest
 from matplotlib.figure import Figure
 import numpy as np
+from qtconsole.svg import svg_to_image
 from qtpy.QtWidgets import QApplication, QStyle
 from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
@@ -96,6 +97,22 @@ def png_to_qimage(png):
     return qpix.toImage()
 
 
+def figure_to_qpixmap(fig, fmt):
+    """Return a QPixmap for a figure, handling SVG correctly.
+
+    QPixmap.loadFromData does not reliably load SVG data in all Qt versions
+    (Qt 6.9+ returns a null 0x0 pixmap). Use svg_to_image (QSvgRenderer)
+    instead for SVG figures.
+    """
+    if fmt == 'image/svg+xml':
+        return QPixmap.fromImage(svg_to_image(fig))
+
+    qpix = QPixmap()
+    qpix.loadFromData(fig, fmt.upper())
+
+    return qpix
+
+
 # =============================================================================
 # ---- Tests
 # =============================================================================
@@ -130,8 +147,7 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     Test saving png and svg figures to file with the figure browser.
     """
     fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
-    expected_qpix = QPixmap()
-    expected_qpix.loadFromData(fig, fmt.upper())
+    expected_qpix = figure_to_qpixmap(fig, fmt)
 
     # Save the figure to disk with the figure browser.
     saved_figname = osp.join(str(tmpdir), 'spyfig' + fext)
@@ -139,10 +155,14 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
                  return_value=(saved_figname, fext))
 
     figbrowser.save_figure()
-    saved_qpix = QPixmap()
-    saved_qpix.load(saved_figname)
-
     assert osp.exists(saved_figname)
+    if fext == '.svg':
+        with open(saved_figname, 'rb') as f:
+            saved_qpix = QPixmap.fromImage(svg_to_image(f.read()))
+    else:
+        saved_qpix = QPixmap()
+        saved_qpix.load(saved_figname)
+
     assert expected_qpix.toImage() == saved_qpix.toImage()
 
 
@@ -155,18 +175,28 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
     # Save all figures, but cancel the dialog to get a directory.
-    mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=None)
+    mock_qfiledialog = mocker.patch(
+        'spyder.plugins.plots.widgets.figurebrowser.QFileDialog'
+    )
+
+    mock_dialog = mock_qfiledialog.return_value
+    mock_dialog.exec_.return_value = False
     fignames = figbrowser.save_all_figures()
     assert fignames is None
 
     # Save all figures.
-    mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=str(tmpdir.mkdir('all_saved_figures')))
+    mock_dialog.exec_.return_value = True
+    mock_dialog.selectedFiles.return_value=[
+        str(tmpdir.mkdir('all_saved_figures'))
+    ]
     fignames = figbrowser.save_all_figures()
     assert len(fignames) == len(figs)
+
+    # Check the directory dialog uses "Save in" as its accept button label.
+    mock_dialog.setLabelText.assert_called_with(
+        mock_qfiledialog.Accept, 'Save in'
+    )
+    
     for fig, figname in zip(figs, fignames):
         expected_qpix = QPixmap()
         expected_qpix.loadFromData(fig, fmt.upper())
@@ -440,8 +470,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     figbrowser.figviewer.auto_fit_plotting = False
 
     # Calculate original figure size in pixels.
-    qpix = QPixmap()
-    qpix.loadFromData(fig, fmt.upper())
+    qpix = figure_to_qpixmap(fig, fmt)
     fwidth, fheight = qpix.width(), qpix.height()
 
     assert figbrowser.zoom_disp_value < 100
@@ -476,8 +505,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     figcanvas = figviewer.figcanvas
 
     # Calculate original figure size in pixels.
-    qpix = QPixmap()
-    qpix.loadFromData(fig, fmt.upper())
+    qpix = figure_to_qpixmap(fig, fmt)
     fwidth, fheight = qpix.width(), qpix.height()
 
     # Test when `Fit plots to window` is set to True.
