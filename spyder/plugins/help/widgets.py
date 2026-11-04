@@ -28,6 +28,7 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
+from spyder.config.manager import CONF
 from spyder.plugins.help.utils.sphinxify import (
     generate_context,
     loading,
@@ -495,12 +496,6 @@ class HelpWidget(PluginMainWidget):
         self.plain_text.sig_custom_context_menu_requested.connect(
             self._show_plain_text_context_menu)
 
-    def _should_display_welcome_page(self):
-        """Determine if the help welcome page should be displayed."""
-        return (self._last_editor_doc is None or
-                self._last_console_cb is None or
-                self._last_editor_cb is None)
-
     @on_conf_change(option='wrap')
     def on_wrap_option_update(self, value):
         self.plain_text.set_wrap_mode(value)
@@ -521,9 +516,7 @@ class HelpWidget(PluginMainWidget):
     @on_conf_change(option='automatic_import')
     def on_automatic_import_update(self, value):
         self.object_combo.validate_current_text()
-        if self._should_display_welcome_page():
-            self.show_intro_message()
-        else:
+        if CONF.all_observers_notified:
             self.force_refresh()
 
     @on_conf_change(option='rich_mode')
@@ -539,9 +532,7 @@ class HelpWidget(PluginMainWidget):
             self.docstring = value
             self.stacked_widget.setCurrentWidget(self.plain_text)
 
-        if self._should_display_welcome_page():
-            self.show_intro_message()
-        else:
+        if CONF.all_observers_notified:
             self.force_refresh()
 
     @on_conf_change(option='show_source')
@@ -552,9 +543,7 @@ class HelpWidget(PluginMainWidget):
                 False)
 
         self.docstring = not value
-        if self._should_display_welcome_page():
-            self.show_intro_message()
-        else:
+        if CONF.all_observers_notified:
             self.force_refresh()
 
     def update_actions(self):

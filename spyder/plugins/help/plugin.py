@@ -205,6 +205,9 @@ class Help(SpyderDockablePlugin):
         widget.set_rich_text_font(app_font, font)
         widget.set_plain_text_color_scheme(color_scheme)
 
+    def on_mainwindow_visible(self):
+        self.get_widget().show_intro_message()
+
     def on_close(self, cancelable=False):
         self.save_history()
         return True
