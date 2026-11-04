@@ -321,22 +321,68 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         return editorstacks
 
     def get_editorstack_in_direction(self, editorstack, direction):
-        """Return the next EditorStack in the given direction."""
-        editorstacks = self.get_editorstacks()
+        """Return the EditorStack in the given direction."""
+        directions = {
+            'left': (Qt.Horizontal, -1),
+            'right': (Qt.Horizontal, 1),
+            'up': (Qt.Vertical, -1),
+            'down': (Qt.Vertical, 1),
+        }
+    
+        if direction not in directions:
+            return None
+    
+        orientation, offset = directions[direction]
+        splitter = editorstack.parentWidget()
+        child = editorstack
+    
+        # Find the closest ancestor splitter with a sibling in that direction.
+        while isinstance(splitter, EditorSplitter):
+            if splitter.orientation() == orientation:
+                index = splitter.indexOf(child)
+                target_index = index + offset
+    
+                if 0 <= target_index < splitter.count():
+                    target = splitter.widget(target_index)
+    
+                    # Enter the destination branch from its nearest edge.
+                    edge = {
+                        'right': 'left',
+                        'left': 'right',
+                        'down': 'top',
+                        'up': 'bottom',
+                    }[direction]
+    
+                    return self._get_editorstack_at_edge(target, edge)
+    
+            child = splitter
+            splitter = splitter.parentWidget()
+    
+        return None
 
-        if editorstack not in editorstacks:
+
+    def _get_editorstack_at_edge(self, widget, edge):
+        """Return the EditorStack closest to the specified edge."""
+        if isinstance(widget, EditorStack):
+            return widget
+
+        if not isinstance(widget, EditorSplitter):
             return None
 
-        current_index = editorstacks.index(editorstack)
+        horizontal = widget.orientation() == Qt.Horizontal
 
-        if direction in ('right', 'down'):
-            target_index = (current_index + 1) % len(editorstacks)
-        elif direction in ('left', 'up'):
-            target_index = (current_index - 1) % len(editorstacks)
+        if edge == 'left':
+            index = 0
+        elif edge == 'right':
+            index = widget.count() - 1 if horizontal else 0
+        elif edge == 'top':
+            index = 0
+        elif edge == 'bottom':
+            index = widget.count() - 1 if not horizontal else 0
         else:
             return None
 
-        return editorstacks[target_index]
+        return self._get_editorstack_at_edge(widget.widget(index), edge)
 
     @property
     def _stylesheet(self):
