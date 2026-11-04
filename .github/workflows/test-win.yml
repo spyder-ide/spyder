@@ -158,7 +158,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           QT_API: 'pyqt6'
           PYTEST_QT_API: 'pyqt6'
-          QTWEBENGINE_CHROMIUM_FLAGS: '--disable-gpu'
+          QTWEBENGINE_CHROMIUM_FLAGS: '--disable-gpu --no-sandbox'
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
           .github/scripts/run_tests.sh -n 0 || \
@@ -180,5 +180,5 @@ jobs:
         shell: bash -l {0}
         run: |
           # Avoid EPERM: operation not permitted
-          tasklist | grep python
+          tasklist | grep python || true
           taskkill //im python.exe //f || true

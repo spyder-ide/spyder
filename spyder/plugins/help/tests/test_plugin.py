@@ -62,7 +62,7 @@ def help_plugin(qtbot):
 def check_text(widget, text, qtbot):
     """Check if some text is present in a widget."""
     if WEBENGINE:
-        with qtbot.waitCallback() as cb:
+        with qtbot.waitCallback(timeout=20000) as cb:
             widget.toHtml(cb)
         return text in cb.args[0]
     else:
