@@ -97,6 +97,7 @@ class ProjectExplorerWidget(PluginMainWidget):
     DESCRIPTION_WHEN_EMPTY = _(
         "Create one using the menu entry Projects > New project."
     )
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/projects"
 
     # ---- Constants
     # -------------------------------------------------------------------------

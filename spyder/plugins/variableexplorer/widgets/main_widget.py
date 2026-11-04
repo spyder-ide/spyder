@@ -104,6 +104,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         "Run code in the Editor or IPython console to see any global "
         "variables listed here for exploration and editing."
     )
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/variableexplorer"
 
     # Other class constants
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
