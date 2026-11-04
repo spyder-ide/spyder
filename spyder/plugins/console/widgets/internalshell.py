@@ -320,7 +320,7 @@ class InternalShell(PythonShellWidget):
             try:
                 args = [filename]
                 if goto > 0 and goto_option:
-                    args.append('%s%d'.format(goto_option, goto))
+                    args.append('%s%d' % (goto_option, goto))
 
                 programs.run_program(editor_path, args)
             except OSError:

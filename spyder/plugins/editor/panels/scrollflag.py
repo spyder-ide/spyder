@@ -159,7 +159,13 @@ class ScrollFlagArea(Panel):
     def _update_flags(self):
         """Update flags list."""
         editor = self.editor
-        block = editor.document().firstBlock()
+
+        # Prevent an error when editor is removed while updating flags
+        try:
+            block = editor.document().firstBlock()
+        except RuntimeError:
+            return
+
         while block.isValid():
             # Parse all lines in the file looking for something to flag.
             data = block.userData()
