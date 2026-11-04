@@ -32,7 +32,11 @@ import pytest
 from qtpy import PYQT6
 from qtpy.QtCore import QEvent, QPoint, QPointF, Qt, QUrl
 from qtpy.QtGui import (
-    QKeySequence, QMouseEvent, QShortcut, QTextCursor)
+    QKeySequence, 
+    QMouseEvent, 
+    QShortcut, 
+    QTextCursor,
+)
 from qtpy.QtWidgets import QApplication
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
@@ -3195,7 +3199,7 @@ def test_click_url_in_output(ipyconsole, qtbot, monkeypatch):
     # Print a url
     url = "https://www.spyde-ide.org"
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"print('VIsit {url}')")
+        shell.execute(f"print('Visit {url}')")
 
     # Get coordinates on top of the url in the output
     cursor = control.document().find(f"Visit {url}")

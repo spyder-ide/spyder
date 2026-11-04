@@ -338,7 +338,10 @@ def test_click_url(qtbot, monkeypatch):
     assert widget.get_url_at(text_pos) == (None, None)
 
     # Check there's no url detected next to it
-    assert widget.get_url_at(get_coordinates(text.index(url) - 2)) == (None, None)
+    assert widget.get_url_at(get_coordinates(text.index(url) - 2)) == (
+        None, 
+        None,
+    )
 
     # Check url is underlined on hover
     send_mouse_event(widget, QEvent.MouseMove, url_pos)
@@ -367,3 +370,4 @@ def test_click_url(qtbot, monkeypatch):
     send_mouse_event(widget, QEvent.MouseButtonRelease,  url_pos)
     open_url.assert_called_once_with(QUrl(url))
     assert widget.extraSelections() == []
+    

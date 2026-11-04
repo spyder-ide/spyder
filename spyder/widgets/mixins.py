@@ -26,7 +26,12 @@ from packaging.version import parse
 from qtpy import PYQT6, QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
-    QDesktopServices, QFontMetrics, QTextCursor, QTextDocument, QTextFormat)
+    QDesktopServices, 
+    QFontMetrics, 
+    QTextCursor, 
+    QTextDocument, 
+    QTextFormat,
+)
 from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
@@ -1633,7 +1638,7 @@ class TracebackLinksMixin(object):
         """Go to error or link in anchor."""
         self.QT_CLASS.mouseReleaseEvent(self, event)
 
-        # Don't follow lins when the user is selecting text or using other 
+        # Don't follow links when the user is selecting text or using other 
         # mouse buttons (e.g. to show context menu).
         if (
             event.button() != Qt.LeftButton 
@@ -1667,7 +1672,7 @@ class TracebackLinksMixin(object):
         text = self.get_line_at(event.pos())
         self.anchor = self.anchorAt(event.pos())
 
-        # Detect urls in plain text (e.eg. printe by users) if there's no 
+        # Detect urls in plain text (eg. printed by user's code) if there's no 
         # anchor at the mouse position
         url_cursor = None
         if not self.anchor:
@@ -1734,7 +1739,7 @@ class TracebackLinksMixin(object):
         cursor = self.textCursor()
         x, y = coordinates.x(), coordinates.y()
 
-        for char_position in (position-1, position):
+        for char_position in (position - 1, position):
             if char_position < 0:
                 continue
 
