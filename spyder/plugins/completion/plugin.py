@@ -114,11 +114,11 @@ class CompletionPlugin(SpyderPluginV2):
         Plugins.Editor,
         Plugins.MainInterpreter,
         Plugins.MainMenu,
-        Plugins.Preferences
+        Plugins.Preferences,
+        Plugins.LanguageServices,
     ]
     OPTIONAL = [
         Plugins.IPythonConsole,
-        Plugins.LanguageServices,
         Plugins.PythonpathManager,
     ]
 
