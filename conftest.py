@@ -254,34 +254,10 @@ def reset_conf_before_test(request):
     from spyder.config.manager import CONF
     CONF.reset_to_defaults(notification=False)
 
-    from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
-    from spyder.plugins.completion.plugin import CompletionPlugin
-
     from importlib.metadata import entry_points
 
-    # Restore completion clients default settings, since they
+    # Restore language services providers default settings, since they
     # don't have default values on the configuration.
-    provider_configurations = {}
-    for entry_point in entry_points(group=COMPLETION_ENTRYPOINT):
-        Provider = entry_point.load()
-        provider_name = Provider.COMPLETION_PROVIDER_NAME
-
-        (provider_conf_version,
-         current_conf_values,
-         provider_defaults) = CompletionPlugin._merge_default_configurations(
-            Provider, provider_name, provider_configurations)
-
-        new_provider_config = {
-            'version': provider_conf_version,
-            'values': current_conf_values,
-            'defaults': provider_defaults
-        }
-        provider_configurations[provider_name] = new_provider_config
-
-    CONF.set('completions', 'provider_configuration', provider_configurations,
-             notification=False)
-
-    # Restore language services providers default settings
     from spyder.plugins.languageservices.api.provider import (
         PROVIDERS_ENTRYPOINT,
     )
