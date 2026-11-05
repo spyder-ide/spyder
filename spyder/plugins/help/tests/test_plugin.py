@@ -114,9 +114,6 @@ def test_no_further_docs_message(help_plugin, qtbot):
         ),
         timeout=20000,
     )
-                                       "No further documentation available",
-                                       qtbot),
-                    timeout=20000)
 
 
 def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
