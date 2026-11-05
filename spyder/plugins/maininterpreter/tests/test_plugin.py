@@ -153,24 +153,24 @@ def projects(maininterpreter_conf, mocker):
 def test_project_interpreter_is_used_and_restored(
     maininterpreter_conf, projects, tmp_path
 ):
-    """The project interpreter replaces the global one until the project is
-    closed."""
+    """The project interpreter is used for new consoles without changing the
+    options of the Preferences page."""
     interpreter = _make_venv(tmp_path)
     projects.get_active_project.return_value = FakeProject(
         tmp_path, interpreter
     )
     maininterpreter_conf.set_conf("default", True)
     maininterpreter_conf.set_conf("custom", False)
+    global_executable = maininterpreter_conf.get_conf("executable")
 
     maininterpreter_conf._on_project_loaded(str(tmp_path))
     assert maininterpreter_conf.get_conf("executable") == interpreter
-    assert maininterpreter_conf.get_conf("custom") is True
-    assert maininterpreter_conf.get_conf("custom_interpreter") == interpreter
-
-    maininterpreter_conf._on_project_closed(str(tmp_path))
+    # Preferences stay global
     assert maininterpreter_conf.get_conf("default") is True
     assert maininterpreter_conf.get_conf("custom") is False
-    assert maininterpreter_conf.get_conf("executable") != interpreter
+
+    maininterpreter_conf._on_project_closed(str(tmp_path))
+    assert maininterpreter_conf.get_conf("executable") == global_executable
 
 
 def test_project_without_interpreter_uses_global_one(
@@ -225,3 +225,25 @@ def test_detected_interpreter_is_saved_in_project(
     maininterpreter_conf._on_project_loaded(str(tmp_path))
     assert project.options[PROJECT_INTERPRETER_OPTION] == interpreter
     assert maininterpreter_conf.get_conf("executable") == interpreter
+
+
+def test_project_interpreter_changed_in_settings(
+    maininterpreter_conf, projects, tmp_path
+):
+    """Saving a new interpreter in Project Settings applies it, and clearing
+    it goes back to the global one."""
+    interpreter = _make_venv(tmp_path)
+    project = FakeProject(tmp_path)
+    projects.get_active_project.return_value = project
+    maininterpreter_conf.set_conf("default", True)
+    maininterpreter_conf.set_conf("custom", False)
+    global_executable = maininterpreter_conf.get_conf("executable")
+
+    project.options[PROJECT_INTERPRETER_OPTION] = interpreter
+    maininterpreter_conf._on_project_interpreter_changed(str(tmp_path))
+    assert maininterpreter_conf.get_conf("executable") == interpreter
+
+    project.options[PROJECT_INTERPRETER_OPTION] = ""
+    maininterpreter_conf._on_project_interpreter_changed(str(tmp_path))
+    assert maininterpreter_conf.get_conf("executable") == global_executable
+    assert maininterpreter_conf.get_conf("default") is True

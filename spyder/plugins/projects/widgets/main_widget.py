@@ -25,7 +25,6 @@ from qtpy.QtWidgets import (
     QHBoxLayout, QInputDialog, QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.plugins import Plugins
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
@@ -173,6 +172,17 @@ class ProjectExplorerWidget(PluginMainWidget):
         Method name to broadcast.
     params: dict
         Parameters of the notification.
+    """
+
+    sig_project_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active project is
+    changed in Project Settings.
+
+    Parameters
+    ----------
+    project_path: str
+        Path of the project whose interpreter changed.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -579,21 +589,17 @@ class ProjectExplorerWidget(PluginMainWidget):
                     self.recent_projects)[:max_projects]
 
     def change_settings(self):
-        logger.debug("Change settings ...")
-
+        """Open the project settings dialog."""
         if self.current_active_project is None:
-            # TODO: Show error dialog
             return
 
         self._unmaximize()
         dlg = ConfigDialog(self, self.current_active_project)
-        result = dlg.exec_()
-        if result:
+        if dlg.exec_():
             dlg.save_configuration()
-            maininterpreter = self.get_plugin().get_plugin(Plugins.MainInterpreter)
-            if maininterpreter is not None:
-                maininterpreter.set_custom_interpreter(self.current_active_project.config.get('workspace', 'interpreter'))
-
+            self.sig_project_interpreter_changed.emit(
+                self.current_active_project.root_path
+            )
 
 
 

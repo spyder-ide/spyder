@@ -46,7 +46,6 @@ class Projects(SpyderDockablePlugin):
         Plugins.Editor,
         Plugins.IPythonConsole,
         Plugins.Switcher,
-        Plugins.MainInterpreter,
     ]
     WIDGET_CLASS = ProjectExplorerWidget
 
@@ -87,6 +86,17 @@ class Projects(SpyderDockablePlugin):
         between projects (signature 2).
     """
 
+    sig_project_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active project is
+    changed in Project Settings.
+
+    Parameters
+    ----------
+    project_path: str
+        Path of the project whose interpreter changed.
+    """
+
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -112,6 +122,9 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_created.connect(self.sig_project_created)
         widget.sig_project_closed.connect(self.sig_project_closed)
         widget.sig_project_loaded.connect(self.sig_project_loaded)
+        widget.sig_project_interpreter_changed.connect(
+            self.sig_project_interpreter_changed
+        )
 
         treewidget.sig_delete_project.connect(self.delete_project)
         treewidget.sig_redirect_stdio_requested.connect(
@@ -129,19 +142,7 @@ class Projects(SpyderDockablePlugin):
 
         self.register_project_type(self, EmptyProject)
 
-    @on_plugin_available(plugin=Plugins.MainInterpreter)
-    def on_maininterpreter_available(self):
-        widget = self.get_widget()
-        widget.sig_project_loaded.connect(lambda v: self._update_active_interpreter())
-
-    def _update_active_interpreter(self):
-        widget = self.get_widget()
-        if widget.current_active_project is not None:
-            maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-            maininterpreter.get_container().add_to_custom_interpreters(widget.current_active_project.config.get('workspace', 'interpreter'))
-            maininterpreter.get_container().validate_custom_interpreters_list()
-            maininterpreter.set_custom_interpreter(widget.current_active_project.config.get('workspace', 'interpreter'))
-
+   
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)

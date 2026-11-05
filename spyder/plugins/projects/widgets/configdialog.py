@@ -38,6 +38,9 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
+from spyder.utils.conda import find_local_venv_interpreter
+
+
 # For logging
 logger = logging.getLogger(__name__)
 
@@ -82,74 +85,43 @@ class SettingsPage(SpyderConfigPage, SpyderFontsMixin):
     # SpyderConfigPage API
     LOAD_FROM_CONFIG = False
 
-    def __init__(self, parent):
+    def __init__(self, parent, project_root=None):
         super().__init__(parent)
+        self.project_root = project_root
 
         self._location = self.create_browsefile(
             text=_("Interpreter location"),
             option=None,
             alignment=Qt.Vertical,
-            tip=_("Select the python executable to use for the project. Leave empty to use the default interpreter"),
+            tip=_(
+                "Select the Python executable to use for this project. "
+                "Leave empty to use the global interpreter."
+            ),
             status_icon=ima.icon("error"),
         )
 
-        self._description_font = self.get_font(SpyderFontType.Interface)
-        self._description_font.setPointSize(
-            self._description_font.pointSize() + 1
+        self._detect_button = QPushButton(_("Detect"))
+        self._detect_button.setToolTip(
+            _("Look for an environment in the project folder")
         )
+        self._detect_button.clicked.connect(self._detect)
 
     # ---- Public API
     # -------------------------------------------------------------------------
     @property
     def interpreter(self):
-        return osp.normpath(self._location.textbox.text())
+        text = self._location.textbox.text().strip()
+        return osp.normpath(text) if text else ""
 
     def load_configuration(self, config):
-        """Load configuration inot the dialog"""
-        self._location.textbox.setText(
-            config.get('workspace', 'interpreter'))
+        """Load configuration into the dialog."""
+        self._location.textbox.setText(config.get('workspace', 'interpreter'))
 
     def save_configuration(self, config):
         config.set('workspace', 'interpreter', self.interpreter)
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    def _validate_location(
-        self,
-        location: str,
-        reasons: ValidationReasons | None = None,
-        name: str | None = None
-    ) -> ValidationReasons:
-
-        if reasons is None:
-            reasons: ValidationReasons = {}
-
-        if not osp.isfile(location):
-            self._location.status_action.setVisible(True)
-            self._location.status_action.setToolTip(
-                _("This directory doesn't exist")
-            )
-            reasons["no_location"] = True
-
-        return reasons
-
-    def _compose_failed_validation_text(self, reasons: ValidationReasons):
-        n_reasons = list(reasons.values()).count(True)
-        prefix = "- " if n_reasons > 1 else ""
-        suffix = "<br>" if n_reasons > 1 else ""
-
-        text = ""
-        if reasons.get("no_location"):
-            text += (
-                prefix
-                + _("The location you selected doesn't exist.")
-                + suffix
-            )
-
-        return text
-
     def get_name(self):
-        return _("Existing directory")
+        return _("Interpreter")
 
     def get_icon(self):
         return self.create_icon("project_preferences")
@@ -157,13 +129,31 @@ class SettingsPage(SpyderConfigPage, SpyderFontsMixin):
     def setup_page(self):
         layout = QVBoxLayout()
         layout.addWidget(self._location)
+        layout.addWidget(self._detect_button, alignment=Qt.AlignLeft)
         layout.addStretch()
         self.setLayout(layout)
 
     def validate_page(self):
-        # Clear validation state
         self._location.status_action.setVisible(False)
+
+        text = self._location.textbox.text().strip()
+        if text and not osp.isfile(text):
+            self._location.status_action.setVisible(True)
+            self._location.status_action.setToolTip(
+                _("This file doesn't exist")
+            )
         return True
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _detect(self):
+        """Look for an environment in the project folder."""
+        if not self.project_root:
+            return
+
+        found = find_local_venv_interpreter(self.project_root)
+        if found:
+            self._location.textbox.setText(found)
 
 
 # =============================================================================
@@ -190,10 +180,12 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
-        self.setWindowTitle(_('Project settings')+f"[{self._project.get_name()}]")
+        self.setWindowTitle(
+            _('Project settings') + f" [{self._project.get_name()}]"
+        )
         self.setWindowIcon(ima.icon("project_preferences"))
 
-        self._page = SettingsPage(self)
+        self._page = SettingsPage(self, project_root=project.root_path)
         self._page.initialize()
         self._page.load_configuration(self._project.config)
 
