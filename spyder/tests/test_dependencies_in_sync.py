@@ -66,6 +66,7 @@ def parse_spyder_dependencies():
             ver = str(SpecifierSet(ver))
 
         # Transform pypi to conda name
+        # TODO: Remove this when qtconsole is made to depend on PyQt6.
         if dep['package_name'].lower() == 'qtconsole':
             dep['package_name'] = 'qtconsole-base'
 
@@ -143,6 +144,7 @@ def parse_setup_extra_requires(fpath):
         req = Requirement(dep)
 
         # Transform pypi to conda name
+        # TODO: Remove this when qtconsole is made to depend on PyQt6.
         if req.name == 'qtconsole':
             req.name = 'qtconsole-base'
 

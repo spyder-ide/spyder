@@ -541,8 +541,10 @@ def test_get_help_ipython_console_special_characters(
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring.", qtbot),
-                    timeout=40000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "This function docstring.", qtbot),
+        timeout=40000
+    )
 
 
 @flaky(max_runs=3)
@@ -567,7 +569,9 @@ def test_get_help_ipython_console(main_window, qtbot):
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell", qtbot), timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "SpyderShell", qtbot), timeout=6000
+    )
 
 
 @flaky(max_runs=3)
@@ -611,7 +615,9 @@ def test_get_help_editor(main_window, qtbot, object_info):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, expected_text, qtbot), timeout=30000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, expected_text, qtbot), timeout=30000
+    )
 
     assert check_text(webpage, expected_text, qtbot)
 

@@ -60,7 +60,9 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             _("Use stdio pipes to communicate with server"),
             'advanced/stdio')
         self.use_stdio.checkbox.checkStateChanged.connect(self.disable_tcp)
-        self.external_server.checkbox.checkStateChanged.connect(self.disable_stdio)
+        self.external_server.checkbox.checkStateChanged.connect(
+            self.disable_stdio
+        )
 
         # Advanced layout
         advanced_g_layout = QGridLayout()

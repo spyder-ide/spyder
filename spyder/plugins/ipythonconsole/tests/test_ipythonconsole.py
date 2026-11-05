@@ -2383,7 +2383,8 @@ def test_old_kernel_version(ipyconsole, qtbot):
         lambda: check_text(info_page, "1.0.0", qtbot), timeout=SHELL_TIMEOUT
     )
     qtbot.waitUntil(
-        lambda: check_text(info_page, "pip install spyder", qtbot), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "pip install spyder", qtbot),
+        timeout=SHELL_TIMEOUT,
     )
 
 

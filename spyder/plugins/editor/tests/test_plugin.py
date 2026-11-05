@@ -646,7 +646,10 @@ def test_editorstacks_and_windows(editor_plugin, qtbot):
     # Close split in window and check focus is given to the current editor
     # in the main stack of the window
     editor_window.editorwidget.editorstacks[1].close_split()
-    qtbot.waitUntil(lambda: len(editor_window.editorwidget.editorstacks) == 1, timeout=20000)
+    qtbot.waitUntil(
+        lambda: len(editor_window.editorwidget.editorstacks) == 1,
+        timeout=20000
+    )
     assert len(editor_plugin.get_widget().editorstacks) == 2
     assert (
         editor_window.editorwidget.editorstacks[0].get_current_editor()

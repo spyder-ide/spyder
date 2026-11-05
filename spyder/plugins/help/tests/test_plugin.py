@@ -85,10 +85,14 @@ def test_no_docs_message(help_plugin, qtbot):
     can't get any info.
     """
     help_plugin.set_editor_doc(default_info_response())
-    qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No documentation available",
-                                       qtbot),
-                    timeout=20000)
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_plugin.get_widget()._webpage,
+            "No documentation available",
+            qtbot,
+        ),
+        timeout=20000,
+    )
 
 
 @flaky(max_runs=3)
@@ -102,7 +106,14 @@ def test_no_further_docs_message(help_plugin, qtbot):
     info['argspec'] = '(x, y)'
 
     help_plugin.set_editor_doc(info)
-    qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_plugin.get_widget()._webpage,
+            "No further documentation available",
+            qtbot,
+        ),
+        timeout=20000,
+    )
                                        "No further documentation available",
                                        qtbot),
                     timeout=20000)

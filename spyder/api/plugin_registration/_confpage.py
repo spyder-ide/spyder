@@ -273,7 +273,9 @@ class PluginsConfigPage(PluginConfigPage):
                 cb.click()
 
     @contextmanager
-    def _disable_checkStateChanged(self, checkbox: QCheckBox, plugin_name: str):
+    def _disable_checkStateChanged(
+        self, checkbox: QCheckBox, plugin_name: str
+    ):
         # Temporarily disconnect this signal to not call it when changing the
         # checkbox state programmatically.
         checkbox.checkStateChanged.disconnect()
