@@ -562,16 +562,46 @@ def test_get_help_ipython_console(main_window, qtbot):
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("from numpy.linalg import norm")
+
     # Write some object in the console
-    qtbot.keyClicks(control, 'get_ipython')
+    qtbot.keyClicks(control, "norm")
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "SpyderShell", qtbot), timeout=6000
+        lambda: check_text(webpage, "Matrix or vector norm", qtbot),
+        timeout=6000,
     )
+
+    # Check "Show source" action for objects with source
+    help_widget = help_plugin.get_widget()
+    show_source_action = help_widget.show_source_action
+    assert show_source_action.isEnabled()
+
+    show_source_action.setChecked(True)
+    assert not help_widget.rich_text.isVisible()
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "Matrix or vector norm" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects without source
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import pandas as pd")
+
+    qtbot.keyClicks(control, "pd.DataFrame")
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: "No source code available for pd.DataFrame"
+        in help_widget.plain_text.editor.toPlainText(),
+        timeout=6000,
+    )
+    assert help_widget.plain_text.isVisible()
 
 
 @flaky(max_runs=3)

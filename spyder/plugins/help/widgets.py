@@ -308,7 +308,7 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_cb = None
         self.css_path = self.get_conf('css_path', section='appearance')
         self.no_docs = _("No documentation available")
-        self.docstring = True  # TODO: What is this used for?
+        self.docstring = True # Used to tell when to show plain text docstrings
 
         # Widgets
         self._sphinx_thread = SphinxThread(
@@ -1074,17 +1074,13 @@ class HelpWidget(PluginMainWidget):
         elif self.docstring:
             hlp_text = doc
             if hlp_text is None:
-                hlp_text = source_text
-                if hlp_text is None:
-                    return False
+                hlp_text = self.no_docs
         else:
             hlp_text = source_text
             if hlp_text is None:
-                hlp_text = doc
-                if hlp_text is None:
-                    hlp_text = _("No source code available.")
-                    if ignore_unknown:
-                        return False
+                hlp_text = _(f"No source code available for {obj_text}.")
+                if ignore_unknown:
+                    return False
             else:
                 is_code = True
 
