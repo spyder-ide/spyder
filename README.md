@@ -71,7 +71,7 @@ interactive execution, deep inspection, and beautiful visualization
 capabilities of a scientific package.
 
 Beyond its many built-in features, its abilities can be extended even further
-via its plugin system and API. Furthermore, Spyder can also be used as a PyQt5
+via its plugin system and API. Furthermore, Spyder can also be used as a PyQt6
 extension library, allowing you to build upon its functionality and embed
 its components, such as the interactive console, in your own software.
 
@@ -209,7 +209,7 @@ a Python version equal or greater than 3.8.
 The basic dependencies to run Spyder are:
 
 * **Python** 3.11+: The core language Spyder is written in and for.
-* **PyQt5** 5.15+: Python bindings for Qt, used for Spyder's GUI.
+* **PyQt6** 6.9+: Python bindings for Qt, used for Spyder's GUI.
 
 The rest our dependencies (both required and optional) are declared in
 [this file](https://github.com/spyder-ide/spyder/blob/master/spyder/dependencies.py).

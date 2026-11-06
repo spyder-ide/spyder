@@ -46,28 +46,25 @@ def help_plugin(qtbot):
 
     if WEBENGINE:
         help_widget._webpage = webview.page()
+        with qtbot.waitSignal(help_widget._webpage.loadFinished):
+            window.show()
     else:
         help_widget._webpage = webview.page().mainFrame()
+        window.show()
 
     qtbot.addWidget(window)
-    window.show()
     return help_plugin
 
 
 # =============================================================================
 # Utility functions
 # =============================================================================
-def check_text(widget, text):
+def check_text(widget, text, qtbot):
     """Check if some text is present in a widget."""
     if WEBENGINE:
-        def callback(data):
-            global html
-            html = data
-        widget.toHtml(callback)
-        try:
-            return text in html
-        except NameError:
-            return False
+        with qtbot.waitCallback(timeout=20000) as cb:
+            widget.toHtml(cb)
+        return text in cb.args[0]
     else:
         return text in widget.toHtml()
 
@@ -88,9 +85,14 @@ def test_no_docs_message(help_plugin, qtbot):
     can't get any info.
     """
     help_plugin.set_editor_doc(default_info_response())
-    qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No documentation available"),
-                    timeout=4000)
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_plugin.get_widget()._webpage,
+            "No documentation available",
+            qtbot,
+        ),
+        timeout=20000,
+    )
 
 
 @flaky(max_runs=3)
@@ -104,9 +106,14 @@ def test_no_further_docs_message(help_plugin, qtbot):
     info['argspec'] = '(x, y)'
 
     help_plugin.set_editor_doc(info)
-    qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No further documentation available"),
-                    timeout=3000)
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_plugin.get_widget()._webpage,
+            "No further documentation available",
+            qtbot,
+        ),
+        timeout=20000,
+    )
 
 
 def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):

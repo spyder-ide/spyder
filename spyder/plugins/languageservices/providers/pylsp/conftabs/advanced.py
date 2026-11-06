@@ -59,8 +59,10 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         self.use_stdio = self.create_checkbox(
             _("Use stdio pipes to communicate with server"),
             'advanced/stdio')
-        self.use_stdio.checkbox.stateChanged.connect(self.disable_tcp)
-        self.external_server.checkbox.stateChanged.connect(self.disable_stdio)
+        self.use_stdio.checkbox.checkStateChanged.connect(self.disable_tcp)
+        self.external_server.checkbox.checkStateChanged.connect(
+            self.disable_stdio
+        )
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
@@ -108,7 +110,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         if state == Qt.Checked:
             self.advanced_host.textbox.setEnabled(False)
             self.advanced_port.spinbox.setEnabled(False)
-            self.external_server.checkbox.stateChanged.disconnect()
+            self.external_server.checkbox.checkStateChanged.disconnect()
             self.external_server.checkbox.setChecked(False)
             self.external_server.checkbox.setEnabled(False)
         else:
@@ -116,7 +118,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             self.advanced_port.spinbox.setEnabled(True)
             self.external_server.checkbox.setChecked(False)
             self.external_server.checkbox.setEnabled(True)
-            self.external_server.checkbox.stateChanged.connect(
+            self.external_server.checkbox.checkStateChanged.connect(
                 self.disable_stdio)
 
     def disable_stdio(self, state):
@@ -124,7 +126,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
             self.advanced_module.textbox.setEnabled(False)
-            self.use_stdio.stateChanged.disconnect()
+            self.use_stdio.checkStateChanged.disconnect()
             self.use_stdio.setChecked(False)
             self.use_stdio.setEnabled(False)
         else:
@@ -133,7 +135,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             self.advanced_module.textbox.setEnabled(True)
             self.use_stdio.setChecked(False)
             self.use_stdio.setEnabled(True)
-            self.use_stdio.stateChanged.connect(self.disable_tcp)
+            self.use_stdio.checkStateChanged.connect(self.disable_tcp)
 
     @Slot(bool)
     def show_advanced_warning(self, state):
