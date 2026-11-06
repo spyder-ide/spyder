@@ -406,6 +406,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
 
     @Slot(bool)
     @Slot(int)
+    @Slot(Qt.CheckState)
     def set_local_options(self, enabled):
         self.external = enabled
         self.cmd_input.setEnabled(True)
@@ -430,6 +431,7 @@ class LSPServerEditor(SpyderFontsMixin, QDialog):
 
     @Slot(bool)
     @Slot(int)
+    @Slot(Qt.CheckState)
     def set_stdio_options(self, enabled):
         self.stdio = enabled
         if enabled:
