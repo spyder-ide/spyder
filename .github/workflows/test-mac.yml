@@ -151,6 +151,8 @@ jobs:
         shell: bash -l {0}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QT_API: 'pyqt6'
+          PYTEST_QT_API: 'pyqt6'
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
           .github/scripts/run_tests.sh -n 0 || \
