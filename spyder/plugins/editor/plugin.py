@@ -440,6 +440,15 @@ class Editor(SpyderDockablePlugin):
             )
 
         # ---- Search menu ----
+        # Find section
+        for search_item in widget.search_menu_actions:
+            mainmenu.add_item_to_application_menu(
+                search_item,
+                menu_id=ApplicationMenus.Search,
+                section=SearchMenuSections.FindInText,
+                before_section=SearchMenuSections.Cursor,
+            )
+
         # Cursor section
         cursor_actions = [
             widget.previous_edit_cursor_action,
@@ -542,9 +551,6 @@ class Editor(SpyderDockablePlugin):
             )
 
         # ---- Search menu ----
-        search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
-        search_menu.aboutToShow.disconnect(widget.update_search_menu)
-
         # Find section
         for search_item in widget.search_menu_actions:
             mainmenu.remove_item_from_application_menu(
