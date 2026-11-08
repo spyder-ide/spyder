@@ -44,6 +44,7 @@ def help_plugin(qtbot):
     webview = help_widget.rich_text.webview._webview
 
     window.setCentralWidget(help_widget)
+    help_plugin.on_mainwindow_visible()
 
     if WEBENGINE:
         help_widget._webpage = webview.page()
@@ -79,6 +80,38 @@ def default_info_response():
 # =============================================================================
 # Tests
 # =============================================================================
+def test_plugin_at_startup(help_plugin, qtbot):
+    """Check how the plugin should be displayed at startup."""
+    help_widget = help_plugin.get_widget()
+
+    # Check we show the intro message
+    assert help_widget.rich_text.isVisible()
+
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_widget._webpage,
+            "you can get help of any object",
+            qtbot,
+        ),
+        timeout=20000,
+    )
+
+    # Check state of widgets in Help's toolbar
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check source combobox
+    assert help_widget.source_is_console()
+
+
 @flaky(max_runs=3)
 def test_no_docs_message(help_plugin, qtbot):
     """
@@ -129,6 +162,7 @@ def test_help_opens_when_show_tutorial_unit(help_plugin):
 
 
 def test_disable_show_source_on_close(help_plugin):
+    """Check we disable the 'Show source' action when the plugin is closed."""
     widget = help_plugin.get_widget()
 
     # Enable show_source and check options are set as expected

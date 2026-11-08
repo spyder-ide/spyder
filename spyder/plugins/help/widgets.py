@@ -343,10 +343,6 @@ class HelpWidget(PluginMainWidget):
         self.object_combo.setItemText(0, '')
         self.plain_text.set_wrap_mode(self.get_conf('wrap'))
         self.source_combo.addItems([_("Console"), _("Editor")])
-        if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.11.0')):
-            self.source_combo.hide()
-            self.source_label.hide()
 
         # Layout
         self.stacked_widget = QStackedWidget()
@@ -488,10 +484,6 @@ class HelpWidget(PluginMainWidget):
                 section=HelpWidgetMainToolbarSections.Main,
             )
 
-        self.source_changed()
-        self.switch_to_rich_text()
-        self.show_intro_message()
-
         # Signals
         self.plain_text.sig_custom_context_menu_requested.connect(
             self._show_plain_text_context_menu)
@@ -613,14 +605,18 @@ class HelpWidget(PluginMainWidget):
 
     def source_changed(self):
         """Handle a source (plain/rich) change."""
+        toolbar = self.get_main_toolbar()
+        object_combo_action = toolbar.action_for_widget(self.object_combo)
+        object_edit_action = toolbar.action_for_widget(self.object_edit)
+
         is_console = self.source_is_console()
         if is_console:
-            self.object_combo.show()
-            self.object_edit.hide()
+            object_combo_action.setVisible(True)
+            object_edit_action.setVisible(False)
         else:
             # Editor
-            self.object_combo.hide()
-            self.object_edit.show()
+            object_combo_action.setVisible(False)
+            object_edit_action.setVisible(True)
 
         self.get_action(HelpWidgetActions.ToggleShowSource).setEnabled(
             is_console)

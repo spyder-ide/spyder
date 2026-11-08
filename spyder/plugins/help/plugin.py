@@ -206,7 +206,18 @@ class Help(SpyderDockablePlugin):
         widget.set_plain_text_color_scheme(color_scheme)
 
     def on_mainwindow_visible(self):
-        self.get_widget().show_intro_message()
+        widget = self.get_widget()
+
+        # Show intro message
+        widget.show_intro_message()
+
+        # Make sure the Console source is always visible at startup
+        widget.switch_to_console_source()
+
+        # Hide this widget because it's not needed when Console is the source
+        widget.get_main_toolbar().action_for_widget(
+            widget.object_edit
+        ).setVisible(False)
 
     def on_close(self, cancelable=False):
         self.save_history()

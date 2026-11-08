@@ -577,8 +577,20 @@ def test_get_help_ipython_console(main_window, qtbot):
         timeout=6000,
     )
 
-    # Check "Show source" action for objects with source
+    # Check state of widgets in Help's toolbar
     help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check "Show source" action for objects with source
     show_source_action = help_widget.show_source_action
     assert show_source_action.isEnabled()
 
@@ -616,7 +628,6 @@ def test_get_help_ipython_console(main_window, qtbot):
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
     # Wait until the window is fully up
-    # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -649,7 +660,21 @@ def test_get_help_editor(main_window, qtbot, object_info):
         lambda: check_text(webpage, expected_text, qtbot), timeout=30000
     )
 
-    assert check_text(webpage, expected_text, qtbot)
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert not object_combo_action.isVisible()
+    assert object_edit_action.isVisible()
+
+    # This action should be disabled when the docs source is the Editor
+    assert not help_widget.show_source_action.isEnabled()
 
 
 def test_window_title(main_window, tmpdir, qtbot):
