@@ -70,6 +70,8 @@ class ExplorerWidgetActions:
 class ExplorerWidget(PluginMainWidget):
     """Explorer widget"""
 
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/fileexplorer"
+
     # --- Signals
     # ------------------------------------------------------------------------
     sig_dir_opened = Signal(str, str)

@@ -1494,7 +1494,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             if main_widget.windowwidget is not None:
                 actions += [main_widget.dock_action]
             else:
-                actions += [
+                actions += [                    
+                    main_widget.help_action,
                     main_widget.lock_unlock_action,
                     main_widget.undock_action,
                     main_widget.close_action
