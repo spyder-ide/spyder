@@ -623,8 +623,19 @@ def test_get_help_ipython_console(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.parametrize(
     "object_info",
-    [("range", "range"),
-     ("import numpy as np", "An array object of arbitrary homogeneous items")])
+    [
+        (
+            # Check we show docs for regular objects
+            "from numpy.linalg import norm",
+            "Matrix or vector norm",
+        ),
+        (
+            # Check the no docs message is shown for objects without docstring
+            "from collections.abc import Awaitable",
+            "No further documentation available",
+        ),
+    ],
+)
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
     # Wait until the window is fully up
@@ -672,6 +683,7 @@ def test_get_help_editor(main_window, qtbot, object_info):
 
     assert not object_combo_action.isVisible()
     assert object_edit_action.isVisible()
+    assert help_widget.object_edit.text() == object_name.split()[-1]
 
     # This action should be disabled when the docs source is the Editor
     assert not help_widget.show_source_action.isEnabled()
