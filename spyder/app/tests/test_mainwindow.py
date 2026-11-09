@@ -36,7 +36,6 @@ from numpy.testing import assert_array_equal
 from packaging.version import parse
 import pylint
 import pytest
-from qtpy import PYQT6
 from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (
@@ -458,7 +457,6 @@ def test_get_help_combo(main_window, qtbot):
 
 
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
@@ -1263,7 +1261,6 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
      parse(ipy_release.version) == parse('7.11.0')),
@@ -1529,7 +1526,6 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
@@ -1935,7 +1931,6 @@ def test_close_when_file_is_changed(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.qt_no_exception_capture
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working as expected."""
     # Wait until the window is fully up
@@ -3797,7 +3792,6 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
@@ -3865,7 +3859,6 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_remove(main_window, qtbot, tmpdir):
     """
@@ -4605,7 +4598,6 @@ def test_post_mortem(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     """Test that we can run an unsaved file with multiprocessing."""
@@ -6071,7 +6063,6 @@ if __name__ == "__main__":
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     os.name == 'nt',
     reason="ctypes.string_at(0) doesn't segfaults on Windows")
@@ -6221,7 +6212,6 @@ def test_history_from_ipyconsole(main_window, qtbot):
     assert text.splitlines()[-1] == code
 
 
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     os.name != "nt", reason="Fails frequently on Mac and Linux"
 )
@@ -6306,7 +6296,6 @@ def test_out_runfile_runcell(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Does not work on Mac and Windows")
@@ -7245,7 +7234,6 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     not sys.platform.startswith("linux"),
     reason="No quotes on Windows file paths and fails frequently on Mac"
 )
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     """
     Test that we can run files with quotes in name, renamed files,
