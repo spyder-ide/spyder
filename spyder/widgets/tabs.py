@@ -890,8 +890,6 @@ class Tabs(SpyderShortcutsMixin, BaseTabs):
     def register_shortcuts(self, parent):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ("go to next file", lambda: self.tab_navigate(1), "editor"),
-            ("go to previous file", lambda: self.tab_navigate(-1), "editor"),
             (
                 "close file 1",
                 lambda: self.sig_close_tab.emit(self.currentIndex()),
