@@ -12,6 +12,7 @@ import os
 import re
 import socket
 import sys
+import textwrap
 import unicodedata
 
 # Third party imports
@@ -339,6 +340,11 @@ class HelpWidget(PluginMainWidget):
 
         # Setup
         self.object_edit.setReadOnly(True)
+        tip = _(
+            "Searches can't be done when the documentation source is the "
+            "Editor"
+        )
+        self.object_edit.setToolTip("\n".join(textwrap.wrap(tip, 50)))
         self.object_combo.setMaxCount(self.get_conf('max_history_entries'))
         self.object_combo.setItemText(0, '')
         self.plain_text.set_wrap_mode(self.get_conf('wrap'))
@@ -950,7 +956,7 @@ class HelpWidget(PluginMainWidget):
 
         self.switch_to_editor_source()
         self._last_editor_doc = help_data
-        self.object_edit.setText(help_data['obj_text'])
+        self.object_edit.setText(help_data['obj_text'] or help_data["name"])
 
         if self.get_conf('rich_mode'):
             self.render_sphinx_doc(help_data)
