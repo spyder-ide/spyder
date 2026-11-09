@@ -200,3 +200,42 @@ def test_plain_press_does_not_start_drag(qtbot):
     ))
 
     assert menu.drag_action is None
+
+
+def test_ctrl_8_and_9_do_not_switch_tabs(qtbot):
+    """Ctrl+8/9 no longer switch tabs."""
+    tabs, _pages = make_tabs(qtbot, ["first.py", "second.py"])
+
+    qtbot.keyClick(tabs, Qt.Key_9, Qt.ControlModifier)
+    assert tabs.currentIndex() == 0
+
+    tabs.setCurrentIndex(1)
+    qtbot.keyClick(tabs, Qt.Key_8, Qt.ControlModifier)
+    assert tabs.currentIndex() == 1
+
+
+def test_ctrl_page_up_and_down_switch_tabs(qtbot):
+    """Ctrl+PageUp/PageDown switch tabs and wrap around."""
+    tabs, _pages = make_tabs(qtbot, ["first.py", "second.py"])
+
+    qtbot.keyClick(tabs, Qt.Key_PageDown, Qt.ControlModifier)
+    assert tabs.currentIndex() == 1
+
+    qtbot.keyClick(tabs, Qt.Key_PageDown, Qt.ControlModifier)
+    assert tabs.currentIndex() == 0
+
+    qtbot.keyClick(tabs, Qt.Key_PageUp, Qt.ControlModifier)
+    assert tabs.currentIndex() == 1
+
+
+def test_tabs_registers_switch_tab_shortcuts(qtbot):
+    """Tabs registers configurable shortcuts to switch tabs."""
+    tabs = Tabs(None)
+    qtbot.addWidget(tabs)
+
+    next_tab = tabs._shortcuts[("main", "go to next tab", None)]
+    previous_tab = tabs._shortcuts[("main", "go to previous tab", None)]
+
+    assert next_tab.key().toString() == "Ctrl+Alt+Right"
+    assert previous_tab.key().toString() == "Ctrl+Alt+Left"
+    assert ("editor", "go to next file", None) not in tabs._shortcuts
