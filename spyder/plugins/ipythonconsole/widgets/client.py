@@ -805,7 +805,6 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
         shutdown_kernel = (
             is_last_client
             and (not self.shellwidget.is_external_kernel or self.is_remote())
-            and not self.error_text
         )
 
         self.shellwidget.shutdown(shutdown_kernel)
@@ -1158,7 +1157,7 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def shutdown_remote_kernel(self):
-        if not self._jupyter_api.closed:
+        if self.kernel_id is not None and not self._jupyter_api.closed:
             return await self._jupyter_api.terminate_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
