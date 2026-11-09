@@ -800,7 +800,7 @@ class BaseTabs(QTabWidget):
             QTabWidget.keyPressEvent(self, event)
 
     def tab_navigate(self, delta=1):
-        """Ctrl+Tab"""
+        """Move the current tab by delta, wrapping around at the ends."""
         if delta > 0 and self.currentIndex() == self.count()-1:
             index = delta-1
         elif delta < 0 and self.currentIndex() == 0:
