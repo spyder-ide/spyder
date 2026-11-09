@@ -784,13 +784,13 @@ class BaseTabs(QTabWidget):
         handled = False
         if ctrl and self.count() > 0:
             index = self.currentIndex()
-            if key == Qt.Key_PageUp or key == Qt.Key_8:
+            if key == Qt.Key_PageUp:
                 if index > 0:
                     self.setCurrentIndex(index - 1)
                 else:
                     self.setCurrentIndex(self.count() - 1)
                 handled = True
-            elif key == Qt.Key_PageDown or key == Qt.Key_9:
+            elif key == Qt.Key_PageDown:
                 if index < self.count() - 1:
                     self.setCurrentIndex(index + 1)
                 else:
