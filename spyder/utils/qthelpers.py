@@ -159,7 +159,11 @@ def file_uri(fname):
             return 'file:///' + fname
         # UNC based path
         else:
-            return 'file://' + fname
+            # Convert \\server\share\file to file://server/share/file so that
+            # the server becomes the URL host. QUrl considers URLs like
+            # file://\\server\share\file invalid, so they can't be opened.
+            # Fixes spyder-ide/spyder#26432
+            return 'file:' + fname.replace('\\', '/')
     else:
         return 'file://' + fname
 
