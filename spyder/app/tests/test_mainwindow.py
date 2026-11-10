@@ -532,6 +532,9 @@ def test_get_help_ipython_console_special_characters(
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and running_in_ci(),
                     reason="Times out on Windows")
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 11), reason="Fails with Python 3.10 or older"
+)
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
     shell = main_window.ipyconsole.get_current_shellwidget()
