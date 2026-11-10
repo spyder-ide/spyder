@@ -26,7 +26,7 @@ from spyder.plugins.completion.tests.conftest import (
     completion_plugin_all,
     completion_plugin_all_started,
     language_services_all_started,
-    route_diagnostics,
+    route_to_editor,
     MainWindowMock,
     qtbot_module
 )
@@ -219,7 +219,7 @@ def completions_codeeditor(language_services_all_started, qtbot_module,
 
     # Send editor requests to the language services plugin
     editor.language_services = language_services
-    on_diagnostics = route_diagnostics(language_services, editor)
+    unroute = route_to_editor(language_services, editor)
     editor.register_completion_capabilities(
         language_services.capabilities(Language.PYTHON)
     )
@@ -227,10 +227,11 @@ def completions_codeeditor(language_services_all_started, qtbot_module,
     with qtbot_module.waitSignal(
             editor.completions_response_signal, timeout=30000):
         editor.start_completion_services()
+        editor.document_did_open()
 
     def teardown():
         editor.notify_close()
-        language_services.sig_diagnostics.disconnect(on_diagnostics)
+        unroute()
         editor.completion_widget.hide()
         editor.tooltip_widget.hide()
         editor.hide()

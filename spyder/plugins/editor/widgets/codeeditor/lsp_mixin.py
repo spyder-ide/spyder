@@ -491,15 +491,9 @@ class LSPMixin:
         # Requests sent to a previous server instance will never be answered.
         self._requests_in_flight.clear()
 
-        if self.is_cloned:
-            additional_msg = "cloned editor"
-        else:
-            additional_msg = ""
-            self.document_did_open()
-
         logger.debug(
-            "Completion services available for {0}: {1}".format(
-                additional_msg, self.filename
+            "Completion services available for {0}{1}".format(
+                self.filename, " (cloned editor)" if self.is_cloned else ""
             )
         )
 

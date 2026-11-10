@@ -129,6 +129,16 @@ class LanguageServices(SpyderPluginV2):
     capabilities: lsprotocol.types.ServerCapabilities | None
     """
 
+    sig_documents_requested = Signal(object)
+    """A provider needs the open documents of a language.
+
+    Document owners send ``didOpen`` for each of them.
+
+    Parameters
+    ----------
+    language: Language
+    """
+
     sig_language_stopped = Signal(object)
     """No provider serves a language any more.
 
@@ -175,6 +185,7 @@ class LanguageServices(SpyderPluginV2):
         api.sig_diagnostics.connect(self.sig_diagnostics)
         api.sig_apply_edit.connect(self.sig_apply_edit)
         api.sig_capabilities_changed.connect(self.sig_capabilities_changed)
+        api.sig_documents_requested.connect(self.sig_documents_requested)
         api.sig_language_stopped.connect(self.sig_language_stopped)
         api.sig_provider_status_changed.connect(
             self.sig_provider_status_changed

@@ -17,7 +17,7 @@ from spyder.plugins.editor.tests.conftest import (
 from spyder.plugins.completion.tests.conftest import (
     completion_plugin_all_started,
     language_services_all_started,
-    route_diagnostics,
+    route_to_editor,
     completion_plugin_all,
     qtbot_module,
 )

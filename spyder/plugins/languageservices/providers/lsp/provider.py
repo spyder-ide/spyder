@@ -337,8 +337,14 @@ class LanguageServerClientProvider(LanguageServicesProvider):
 
         state.restart_attempts = 0
         self._set_status(state, ProviderStatus.READY)
-        for language in self._server_languages(state):
+        languages = self._server_languages(state)
+        for language in languages:
             self.sig_capabilities_changed.emit(language)
+
+        # After the capabilities: editors send didOpen only for a language
+        # that has them.
+        for language in languages:
+            self.sig_documents_requested.emit(language)
 
     async def _stop_server(self, name: str) -> None:
         state = self._servers[name]

@@ -1760,10 +1760,11 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         for editor in self.editors_for_language(language):
             editor.register_completion_capabilities(capabilities)
 
-    def start_completion_services(self, language):
-        """Notify language server availability to code editors."""
+    def send_open_documents(self, language):
+        """Send ``didOpen`` for the open documents of ``language``."""
         for editor in self.editors_for_language(language):
-            editor.start_completion_services()
+            if not editor.is_cloned:
+                editor.document_did_open()
 
     def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""

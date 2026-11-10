@@ -16,7 +16,8 @@ import shutil
 import sys
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt
+from lsprotocol import types as lsp
+from qtpy.QtCore import QObject, QSize, Qt, Signal
 from qtpy.QtGui import QColor, QFontMetrics, QPainter
 from qtpy.QtWidgets import QApplication
 import pytest
@@ -31,6 +32,7 @@ from spyder.plugins.editor.widgets.editorstack import (
     editorstack as editor_module,
 )
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.run.api import RunContext
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.sourcecode import get_eol_chars, get_eol_chars_from_os_name
@@ -459,6 +461,47 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
     # Close cloned editorstack to verify that notify_close is not called
     editorstack.close_split()
     assert CodeEditor.notify_close.call_count == 2
+
+
+class _LanguageServicesSignals(QObject):
+    sig_capabilities_changed = Signal(object, object)
+    sig_documents_requested = Signal(object)
+    sig_language_stopped = Signal(object)
+    sig_diagnostics = Signal(object)
+    sig_open_file_requested = Signal(str)
+
+
+def test_documents_request_resends_open_documents(
+    editor_plugin_open_files, mocker
+):
+    """A documents request sends didOpen once per open file, while a
+    capabilities change sends none."""
+    editor, expected_filenames, _ = editor_plugin_open_files(None, None)
+    editor.get_current_editorstack().sig_split_vertically.emit()
+
+    language_services = _LanguageServicesSignals()
+    original_get_plugin = editor.get_plugin
+    mocker.patch.object(
+        editor,
+        "get_plugin",
+        side_effect=lambda name, error=True: (
+            language_services
+            if name == Plugins.LanguageServices
+            else original_get_plugin(name, error)
+        ),
+    )
+    requests_target = editor.get_widget().language_services
+    editor.on_language_services_available()
+    editor.get_widget().set_language_services(requests_target)
+    mocker.patch.object(CodeEditor, "document_did_open")
+
+    language_services.sig_capabilities_changed.emit(
+        Language.PYTHON, lsp.ServerCapabilities()
+    )
+    assert CodeEditor.document_did_open.call_count == 0
+
+    language_services.sig_documents_requested.emit(Language.PYTHON)
+    assert CodeEditor.document_did_open.call_count == len(expected_filenames)
 
 
 @pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])

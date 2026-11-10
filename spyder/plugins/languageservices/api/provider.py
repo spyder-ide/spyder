@@ -273,6 +273,21 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
     language: Language
     """
 
+    sig_documents_requested = Signal(object)
+    """The provider needs the open documents of a language.
+
+    Their owners send ``didOpen`` for each of them, including documents the
+    provider already holds. The language services request them for the
+    languages served after :meth:`start`, and for those gained in
+    :meth:`start_language` without a :attr:`sig_capabilities_changed`.
+    Emit it, after :attr:`sig_capabilities_changed`, when the provider needs
+    them in any other case (e.g. a language server that becomes ready).
+
+    Parameters
+    ----------
+    language: Language
+    """
+
     sig_status_changed = Signal(object, str)
     """Lifecycle status of the provider for a language changed.
 
@@ -364,7 +379,8 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
 
         The result may change while the provider runs (e.g. once a language
         server reports the languages it handles). Emit
-        :attr:`sig_capabilities_changed` when it does.
+        :attr:`sig_capabilities_changed` when it does, then
+        :attr:`sig_documents_requested` for a language it starts serving.
         """
         raise NotImplementedError
 

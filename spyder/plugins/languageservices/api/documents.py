@@ -94,7 +94,7 @@ class OpenDocument:
     """State of a document opened through the language services plugin.
 
     Content is not stored: the editor owns the text and re-sends ``didOpen``
-    when the set of providers changes.
+    when a provider requests the open documents.
     """
 
     uri: str

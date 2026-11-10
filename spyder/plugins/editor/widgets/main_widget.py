@@ -1046,6 +1046,8 @@ class EditorMainWidget(PluginMainWidget):
                 plugin.capabilities(spyder_language)
             )
             codeeditor.start_completion_services()
+            if not codeeditor.is_cloned:
+                codeeditor.document_did_open()
 
     def set_language_services(self, plugin):
         """Set the LanguageServices plugin answering editor requests."""
@@ -1082,12 +1084,11 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.register_completion_capabilities(
                 language, capabilities)
 
-        self.start_completion_services(language)
-
-    def start_completion_services(self, language):
-        """Notify all editorstacks about LSP server availability."""
+    @Slot(object)
+    def send_open_documents(self, language):
+        """Send ``didOpen`` for every open document of ``language``."""
         for editorstack in self.editorstacks:
-            editorstack.start_completion_services(language)
+            editorstack.send_open_documents(language)
 
     @Slot(object)
     def stop_completion_services(self, language):
