@@ -17,9 +17,15 @@ import sys
 import pytest
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QClipboard
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QFileSystemModel, QInputDialog, QMessageBox,
-                            QTextEdit)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFileSystemModel,
+    QInputDialog,
+    QMessageBox,
+    QTextEdit,
+)
 
 # Local imports
 from spyder.plugins.explorer.widgets import explorer, main_widget
@@ -80,7 +86,7 @@ def unwatched_explorer(file_explorer, tmp_path, monkeypatch, qtbot):
     # Resolve the path because getcwd returns it that way (e.g. on macOS)
     folder = tmp_path.resolve()
     (folder / "subdir").mkdir()
-    (folder / "file.txt").write_text("")
+    (folder / "file.txt").touch()
     widget.chdir(str(folder))
     qtbot.waitUntil(lambda: "file.txt" in shown_names(treewidget))
 
@@ -94,6 +100,7 @@ def shown_names(treewidget, folder=None):
         parent = treewidget.rootIndex()
     else:
         parent = model.index(str(folder))
+
     return {
         model.fileName(model.index(row, 0, parent))
         for row in range(model.rowCount(parent))
@@ -526,8 +533,8 @@ def test_refresh_unwatched_folder(unwatched_explorer, qtbot):
     qtbot.wait(500)
 
     # Changes done outside Spyder are not shown
-    (folder / "new.txt").write_text("")
-    (subdir / "new_in_subdir.txt").write_text("")
+    (folder / "new.txt").touch()
+    (subdir / "new_in_subdir.txt").touch()
     qtbot.wait(1000)
     assert "new.txt" not in shown_names(treewidget)
 

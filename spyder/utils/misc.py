@@ -52,12 +52,13 @@ def remove_file(fname):
 def move_file(source, dest):
     """
     Move file or directory from *source* to *dest*
-    If it's a Python script, also remove its .pyc and .pyo files if any
+
+    If it's a Python script, also remove its .pyc and .pyo files, if any.
     """
     import shutil
 
     # Don't rely on the trash to remove the source because it's not
-    # available in network shares.
+    # available on Windows network shares.
     # Fixes spyder-ide/spyder#26432
     shutil.move(source, dest)
     __remove_pyc_pyo(source)

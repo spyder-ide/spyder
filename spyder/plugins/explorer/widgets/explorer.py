@@ -1254,7 +1254,9 @@ class DirView(SpyderWidgetMixin, QTreeView):
                     self.sig_renamed.emit(fname, path)
                 else:
                     self.sig_tree_renamed.emit(fname, path)
+
                 self.refresh_unwatched_folder()
+
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(

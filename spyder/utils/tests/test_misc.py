@@ -54,7 +54,7 @@ def test_move_file(tmp_path, monkeypatch, trash_available):
     # Move a Python file, which also removes its pyc file
     source = tmp_path / "script.py"
     source.write_text("print(1)")
-    (tmp_path / "script.pyc").write_text("")
+    (tmp_path / "script.pyc").touch()
     move_file(str(source), str(dest_dir / "script.py"))
     assert not source.exists()
     assert not (tmp_path / "script.pyc").exists()
