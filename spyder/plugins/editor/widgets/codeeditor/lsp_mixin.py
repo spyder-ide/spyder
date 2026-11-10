@@ -900,14 +900,18 @@ class LSPMixin:
         try:
             content = contents["params"]
 
+            # Emit this signal before the check for no content below so that
+            # the Help pane is updated as expected, even if it was not possible
+            # to retrieve content (in that case we'll show the "No
+            # documentation available" message)
+            self.sig_display_object_info.emit(
+                content, self._request_hover_clicked
+            )
+
             # - Don't display hover if there's no content to display.
             # - Prevent spurious errors when a client returns a list.
             if not content or isinstance(content, list):
                 return
-
-            self.sig_display_object_info.emit(
-                content, self._request_hover_clicked
-            )
 
             if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
