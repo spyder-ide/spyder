@@ -92,28 +92,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     CAN_HANDLE_SEARCH_ACTIONS = True
 
     # Signals
-    sig_append_to_history_requested = Signal(str, str)
+    sig_append_to_history_requested = Signal(object, str)
     """
-    This signal is emitted when the plugin requires to add commands to a
-    history file.
+    This signal is emitted when a command is added to the history of a
+    console.
 
     Parameters
     ----------
-    filename: str
-        History file filename.
-    text: str
-        Text to append to the history file.
-    """
-
-    sig_history_requested = Signal(str)
-    """
-    This signal is emitted when the plugin wants a specific history file
-    to be shown.
-
-    Parameters
-    ----------
-    path: str
-        Path to history file.
+    shellwidget: ShellWidget
+        Shell widget of the console where the command was entered.
+    command: str
+        Command to append to the history.
     """
 
     sig_focus_changed = Signal()
@@ -282,7 +271,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
-        widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_edit_new.connect(self.sig_edit_new)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)

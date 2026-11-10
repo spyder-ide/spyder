@@ -6283,9 +6283,11 @@ def test_history_from_ipyconsole(main_window, qtbot):
     # Check that code is displayed in History
     history = main_window.get_plugin(Plugins.History)
     history.switch_to_plugin()
-    history_editor = history.get_widget().editors[0]
-    text = history_editor.toPlainText()
-    assert text.splitlines()[-1] == code
+    history_editor = history.get_widget_for_shellwidget(shell)
+    qtbot.waitUntil(
+        lambda: history_editor.toPlainText().splitlines()[-1:] == [code],
+        timeout=SHELL_TIMEOUT,
+    )
 
 
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")

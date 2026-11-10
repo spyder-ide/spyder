@@ -7,30 +7,48 @@
 """History Widget."""
 
 # Standard library imports
-import os.path as osp
-import re
 import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QVBoxLayout, QWidget
+from IPython.core.history import HistoryAccessor
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.api.translations import _
-from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.utils import encoding
-from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
-from spyder.widgets.tabs import Tabs
-from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
 
 
 # --- Constants
 # ----------------------------------------------------------------------------
-# Maximum number of lines to show
-MAX_LINES = 1000
+# Maximum number of commands to load from the IPython history
+MAX_HISTORY_ENTRIES = 1000
+
+
+# --- Helpers
+# ----------------------------------------------------------------------------
+def load_ipython_history(max_entries=MAX_HISTORY_ENTRIES):
+    """
+    Return the last `max_entries` commands saved in the IPython history.
+
+    An empty list is returned if the history can't be read.
+    """
+    accessor = None
+    try:
+        accessor = HistoryAccessor()
+        entries = accessor.get_tail(max_entries, include_latest=True)
+        return [source for __, __, source in entries]
+    except Exception:
+        return []
+    finally:
+        if accessor is not None:
+            try:
+                accessor.db.close()
+            except Exception:
+                pass
+
 
 class HistoryWidgetActions:
     # Triggers
@@ -47,7 +65,7 @@ class HistoryWidgetOptionsMenuSections:
 
 # --- Widgets
 # ----------------------------------------------------------------------------
-class HistoryWidget(PluginMainWidget):
+class HistoryWidget(ShellConnectMainWidget):
     """
     History plugin main widget.
     """
@@ -65,52 +83,31 @@ class HistoryWidget(PluginMainWidget):
         super().__init__(name, plugin, parent)
 
         # Attributes
-        self.editors = []
-        self.filenames = []
-        self.tabwidget = None
-        self.dockviewer = None
         self.wrap_action = None
         self.linenumbers_action = None
-        self.filenames = []
         self.font = None
 
+        # Commands to show in each new editor. They are loaded only once, when
+        # the widget is created.
+        self._ipython_history = load_ipython_history()
+
         # Widgets
-        self.tabwidget = Tabs(self)
         self.find_widget = FindReplace(self)
 
         # Setup
-        self.tabwidget.setStyleSheet(self._tabs_stylesheet)
         self.find_widget.hide()
 
         # Layout
-        layout = QVBoxLayout()
+        # The stack (self._stack) and its layout are created by
+        # ShellConnectMainWidget, so we only need to add the find widget.
+        layout = self.layout()
         layout.setSpacing(0)
-
-        # TODO: Move this to the tab container directly
-        if sys.platform == 'darwin':
-            tab_container = QWidget(self)
-            tab_container.setObjectName('tab-container')
-            tab_layout = QVBoxLayout(tab_container)
-            tab_layout.setContentsMargins(0, 0, 0, 0)
-            tab_layout.addWidget(self.tabwidget)
-            layout.addWidget(tab_container)
-        else:
-            layout.addWidget(self.tabwidget)
-
         layout.addWidget(self.find_widget)
-        self.setLayout(layout)
-
-        # Signals
-        self.tabwidget.currentChanged.connect(self.refresh)
-        self.tabwidget.move_data.connect(self.move_tab)
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
         return _('History')
-
-    def get_focus_widget(self):
-        return self.tabwidget.currentWidget()
 
     def setup(self):
         # Actions
@@ -143,12 +140,12 @@ class HistoryWidget(PluginMainWidget):
 
     @on_conf_change(option='wrap')
     def on_wrap_update(self, value):
-        for editor in self.editors:
+        for editor in self._editors():
             editor.toggle_wrap_mode(value)
 
     @on_conf_change(option='line_numbers')
     def on_line_numbers_update(self, value):
-        for editor in self.editors:
+        for editor in self._editors():
             editor.toggle_line_numbers(value)
 
     # --- Public API
@@ -167,178 +164,80 @@ class HistoryWidget(PluginMainWidget):
         self.color_scheme = color_scheme
         self.font = font
 
-        for editor in self.editors:
+        for editor in self._editors():
             editor.set_font(font)
             editor.set_color_scheme(color_scheme)
 
-    def move_tab(self, index_from, index_to):
-        """
-        Move tab.
-
-        Parameters
-        ----------
-        index_from: int
-            Move tab from this index.
-        index_to: int
-            Move tab to this index.
-
-        Notes
-        -----
-        Tabs themselves have already been moved by the history.tabwidget.
-        """
-        filename = self.filenames.pop(index_from)
-        editor = self.editors.pop(index_from)
-
-        self.filenames.insert(index_to, filename)
-        self.editors.insert(index_to, editor)
-
-    def get_filename_text(self, filename):
-        """
-        Read and return content from filename.
-
-        Parameters
-        ----------
-        filename: str
-            The file path to read.
-
-        Returns
-        -------
-        str
-            Content of the filename.
-        """
-        # Avoid a possible error when reading the history file
-        try:
-            text, _ = encoding.read(filename)
-        except (IOError, OSError):
-            text = "# Previous history could not be read from disk, sorry\n\n"
-
-        text = normalize_eols(text)
-        linebreaks = [m.start() for m in re.finditer('\n', text)]
-
-        if len(linebreaks) > MAX_LINES:
-            text = text[linebreaks[-MAX_LINES - 1] + 1:]
-            # Avoid an error when trying to write the trimmed text to disk.
-            # See spyder-ide/spyder#9093.
-            try:
-                encoding.write(text, filename)
-            except (IOError, OSError):
-                pass
-
-        return text
-
-    def add_history(self, filename):
-        """
-        Create a history tab for `filename`.
-
-        Parameters
-        ----------
-        filename: str
-            History filename.
-        """
-
-        filename = encoding.to_unicode_from_fs(filename)
-        if filename in self.filenames:
-            return
-
-        # Widgets
+    # --- ShellConnectMainWidget API
+    # ------------------------------------------------------------------------
+    def create_new_widget(self, shellwidget):
+        """Create the (read-only) editor that shows a console's history."""
         editor = SimpleCodeEditor(self)
-
-        # Setup
-        language = 'py' if osp.splitext(filename)[1] == '.py' else 'bat'
         editor.setup_editor(
             linenumbers=self.get_conf('line_numbers'),
-            language=language,
+            language='py',
             color_scheme=self.get_conf('selected', section='appearance'),
             font=self.font,
             wrap=self.get_conf('wrap'),
         )
         editor.setReadOnly(True)
-        editor.set_text(self.get_filename_text(filename))
+        editor.set_text("\n".join(self._ipython_history))
         editor.set_cursor_position('eof')
+        editor.sig_focus_changed.connect(self.sig_focus_changed)
+        return editor
+
+    def close_widget(self, editor):
+        """Close the editor associated to a console that was closed."""
+        editor.sig_focus_changed.disconnect(self.sig_focus_changed)
+        editor.close()
+        editor.setParent(None)
+
+    def switch_widget(self, editor, old_editor):
+        """Point the find widget to the editor of the current console."""
         self.find_widget.set_editor(editor)
 
-        index = self.tabwidget.addTab(editor, osp.basename(filename))
-        self.filenames.append(filename)
-        self.editors.append(editor)
-        self.tabwidget.setCurrentIndex(index)
-        self.tabwidget.setTabToolTip(index, filename)
-
-        # Hide close button
-        tab_bar = self.tabwidget.tabBar()
-        tab_bar.setTabButton(index, tab_bar.close_btn_side, None)
-
-        # Signals
-        editor.sig_focus_changed.connect(self.sig_focus_changed)
-
-    @Slot(str, str)
-    def append_to_history(self, filename, command):
+    def append_to_history(self, shellwidget, command):
         """
-        Append command to history tab.
+        Append a command to the history of a console.
 
         Parameters
         ----------
-        filename: str
-            History file.
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
+            Shell widget of the console where the command was entered.
         command: str
-            Command to append to history file.
+            Command to append.
         """
-        if not isinstance(filename, str):  # filename is a QString
-            filename = str(filename.toUtf8())
+        editor = self.get_widget_for_shellwidget(shellwidget)
 
-        index = self.filenames.index(filename)
-        command = str(command)
-        self.editors[index].append(command)
+        # The widget can be an error message if the kernel failed to start
+        if not isinstance(editor, SimpleCodeEditor):
+            return
+
+        if not editor.document().isEmpty():
+            command = "\n" + command
+        editor.append(command)
 
         if self.get_conf('go_to_eof'):
-            self.editors[index].set_cursor_position('eof')
-
-        self.tabwidget.setCurrentIndex(index)
+            editor.set_cursor_position('eof')
 
     def refresh(self):
-        """Refresh widget and update find widget on current editor."""
-        if self.tabwidget.count():
-            editor = self.tabwidget.currentWidget()
+        """Update the find widget to use the current editor."""
+        if self.count():
+            self.find_widget.set_editor(self.current_widget())
         else:
-            editor = None
+            self.find_widget.set_editor(None)
 
-        self.find_widget.set_editor(editor)
-
-    @property
-    def _tabs_stylesheet(self):
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _editors(self):
         """
-        Change style of tabs because we don't have a close button here.
+        Return all editors in the stack.
+
+        Error messages shown for consoles whose kernel failed to start are
+        also in the stack, so they are left out.
         """
-        tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
-        css = tabs_stylesheet.get_stylesheet()
-        margin_top = PANES_TABBAR_STYLESHEET.TOP_MARGIN.split('px')[0]
-
-        if WIN:
-            padding = '8px 10px'
-        elif MAC:
-            padding = '6px 10px 7px 10px'
-        else:
-            padding = '6px 10px'
-
-        css['QTabBar::tab'].setValues(
-            marginTop=f'{margin_top}px',
-            padding=f'{padding}',
-        )
-
-        for state in ['selected', 'selected:hover', 'hover']:
-            css[f'QTabBar::tab:{state}'].setValues(
-                padding=f'{padding}',
-            )
-
-        css['QTabWidget::pane'].setValues(
-            border='1px',
-        )
-
-        css['QTabWidget::left-corner'].setValues(
-            left='-1px',
-            right='-1px'
-        )
-
-        return str(tabs_stylesheet)
+        widgets = [self._stack.widget(i) for i in range(self._stack.count())]
+        return [w for w in widgets if isinstance(w, SimpleCodeEditor)]
 
 
 def test():

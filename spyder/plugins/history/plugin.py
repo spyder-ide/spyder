@@ -16,13 +16,13 @@ from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
+from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
-from spyder.config.base import get_conf_path
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
 
 
-class HistoryLog(SpyderDockablePlugin):
+class HistoryLog(SpyderDockablePlugin, ShellConnectPluginMixin):
     """
     History log plugin.
     """
@@ -45,8 +45,12 @@ class HistoryLog(SpyderDockablePlugin):
 
     def __init__(self, parent=None, configuration=None):
         """Initialization."""
-        super().__init__(parent, configuration)
-        self.add_history(get_conf_path('history.py'))
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+
+        # Combined with ShellConnectPluginMixin via multiple inheritance;
+        # set up its state here since SpyderDockablePlugin.__init__ doesn't
+        # reach it.
+        ShellConnectPluginMixin.__init__(self)
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -76,12 +80,6 @@ class HistoryLog(SpyderDockablePlugin):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.connect(self.refresh)
 
-    @on_plugin_available(plugin=Plugins.IPythonConsole)
-    def on_ipyconsole_available(self):
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        ipyconsole.sig_append_to_history_requested.connect(
-            self.append_to_history)
-
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -92,11 +90,17 @@ class HistoryLog(SpyderDockablePlugin):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.disconnect(self.refresh)
 
-    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
-    def on_ipyconsole_teardown(self):
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        ipyconsole.sig_append_to_history_requested.disconnect(
-            self.append_to_history)
+    def register_ipythonconsole(self, ipythonconsole):
+        super().register_ipythonconsole(ipythonconsole)
+        ipythonconsole.sig_append_to_history_requested.connect(
+            self.append_to_history
+        )
+
+    def unregister_ipythonconsole(self, ipythonconsole):
+        super().unregister_ipythonconsole(ipythonconsole)
+        ipythonconsole.sig_append_to_history_requested.disconnect(
+            self.append_to_history
+        )
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
@@ -111,26 +115,15 @@ class HistoryLog(SpyderDockablePlugin):
         """
         self.get_widget().refresh()
 
-    def add_history(self, filename):
+    def append_to_history(self, shellwidget, command):
         """
-        Create history file.
+        Append a command to the history of a console.
 
         Parameters
         ----------
-        filename: str
-            History file.
-        """
-        self.get_widget().add_history(filename)
-
-    def append_to_history(self, filename, command):
-        """
-        Append command to history file.
-
-        Parameters
-        ----------
-        filename: str
-            History file.
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
+            Shell widget of the console where the command was entered.
         command: str
-            Command to append to history file.
+            Command to append.
         """
-        self.get_widget().append_to_history(filename, command)
+        self.get_widget().append_to_history(shellwidget, command)
