@@ -382,7 +382,7 @@ class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
             # otherwise timing issues
             item = self.currentItem()
             if not self.get_conf(
-                'use_enter_for_completions', section='completions'
+                'use_enter_for_completions', section='language_services'
             ) and not key == Qt.Key_Tab:
                 self.hide()
                 self.textedit.keyPressEvent(event)

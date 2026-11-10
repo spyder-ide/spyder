@@ -57,6 +57,13 @@ indent4 = partial(indent, prefix="    ")
 ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 PLATFORM = (PLATFORM + ARCH).replace("x86_64", "64")
 
+# Minimum macOS version supported by the installer. This is used both as the
+# target __osx virtual package when solving with conda-lock and as the
+# install-time check in the pkg/sh installers (constructor's virtual_specs).
+# It must be at least the highest __osx requirement of any bundled package
+# (e.g. moltenvk >=1.4.2, required by qt6-main >=6.11.2, needs __osx >=14.0).
+MACOS_MIN = "14.0"
+
 
 def _process_extra_specs(extra_specs, no_local=False):
     # Default to current scm version, possible release tag.
@@ -73,7 +80,7 @@ def _process_extra_specs(extra_specs, no_local=False):
 
         packages = channel_data.get("packages", {})
         for pkg in (
-            "spyder", "spyder-kernels", "qtconsole", "python-lsp-server"
+            "spyder", "spyder-kernels", "qtconsole-base", "python-lsp-server"
         ):
             version = packages.get(pkg, {}).get("version")
             if version:
@@ -227,6 +234,26 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
         "--platform", PLATFORM
     ]
 
+    if MACOS:
+        # conda-lock solves against its own default virtual packages
+        # (__osx 11.0) rather than the build machine's, so target the
+        # installer's minimum macOS version explicitly. The spec file
+        # replaces conda-lock's defaults for this platform entirely.
+        vpkg_file = BUILD / "virtual-packages.yml"
+        vpkg_spec = {
+            "subdirs": {
+                PLATFORM: {
+                    "packages": {
+                        "__unix": "0",
+                        "__archspec": f"1 {ARCH}",
+                        "__osx": MACOS_MIN,
+                    }
+                }
+            }
+        }
+        yaml.dump(vpkg_spec, vpkg_file)
+        cmd_args.extend(["--virtual-package-spec", str(vpkg_file)])
+
     logger.info(f"Building {lock_file.name}...")
     logger.info(f"Conda lock configuration:\n{env_file.read_text()}\n")
     run(cmd_args, check=True, env=env)
@@ -261,6 +288,7 @@ def _constructor(install_type, spy_ver, debug=False):
             "INSTALL_TYPE": install_type,
             "INSTALL_VER": spy_ver,
             "REPO_PATH": str(SPYREPO),
+            "MACOS_MIN": MACOS_MIN,
             "CONDA_SHORTCUTS": "false", # Don't create shortcuts while building
         }
     )

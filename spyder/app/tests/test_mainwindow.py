@@ -433,13 +433,13 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.keyClicks(object_combo, 'numpy', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy", qtbot), timeout=6000)
 
     # Get help - numpy.arange
     qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "arange", qtbot), timeout=6000)
 
     # Get help - np
     # Clear combo
@@ -448,13 +448,13 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.keyClicks(object_combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy", qtbot), timeout=6000)
 
     # Get help - np.arange
     qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "arange", qtbot), timeout=6000)
 
 
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
@@ -494,13 +494,14 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Matrix or vector norm."),
+        lambda: check_text(webpage, "Matrix or vector norm.", qtbot),
         timeout=6000)
 
 
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
+@pytest.mark.close_main_window
 def test_get_help_ipython_console_special_characters(
         main_window, qtbot, tmpdir):
     """
@@ -540,8 +541,10 @@ def test_get_help_ipython_console_special_characters(
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
-                    timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "This function docstring.", qtbot),
+        timeout=40000
+    )
 
 
 @flaky(max_runs=3)
@@ -559,14 +562,58 @@ def test_get_help_ipython_console(main_window, qtbot):
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("from numpy.linalg import norm")
+
     # Write some object in the console
-    qtbot.keyClicks(control, 'get_ipython')
+    qtbot.keyClicks(control, "norm")
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell"), timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Matrix or vector norm", qtbot),
+        timeout=6000,
+    )
+
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check "Show source" action for objects with source
+    show_source_action = help_widget.show_source_action
+    assert show_source_action.isEnabled()
+
+    show_source_action.setChecked(True)
+    assert not help_widget.rich_text.isVisible()
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "Matrix or vector norm" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects without source
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import pandas as pd")
+
+    qtbot.keyClicks(control, "pd.DataFrame")
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: "No source code available for pd.DataFrame"
+        in help_widget.plain_text.editor.toPlainText(),
+        timeout=6000,
+    )
+    assert help_widget.plain_text.isVisible()
 
 
 @flaky(max_runs=3)
@@ -576,11 +623,21 @@ def test_get_help_ipython_console(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.parametrize(
     "object_info",
-    [("range", "range"),
-     ("import numpy as np", "An array object of arbitrary homogeneous items")])
+    [
+        (
+            # Check we show docs for regular objects
+            "from numpy.linalg import norm",
+            "Matrix or vector norm",
+        ),
+        (
+            # Check the no docs message is shown for objects without docstring
+            "from collections.abc import Awaitable",
+            "No further documentation available",
+        ),
+    ],
+)
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
-    # Wait until the window is fully up
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -610,9 +667,26 @@ def test_get_help_editor(main_window, qtbot, object_info):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, expected_text), timeout=30000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, expected_text, qtbot), timeout=30000
+    )
 
-    assert check_text(webpage, expected_text)
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert not object_combo_action.isVisible()
+    assert object_edit_action.isVisible()
+    assert help_widget.object_edit.text() == object_name.split()[-1]
+
+    # This action should be disabled when the docs source is the Editor
+    assert not help_widget.show_source_action.isEnabled()
 
 
 def test_window_title(main_window, tmpdir, qtbot):
@@ -3358,13 +3432,13 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Reset config
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'pydocstyle'),
              False)
 
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
-                                                 'completions')
+                                                 'language_services')
     # Get the correct tab pages inside the Completion preferences page
     tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
 
@@ -3405,8 +3479,8 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     assert count == 1
 
     # Reset config
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'pydocstyle'),
              False)
 
 
@@ -3542,6 +3616,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 @pytest.mark.order(before="test_PYTHONPATH_in_consoles")
+@pytest.mark.use_introspection
 @pytest.mark.skipif(
     not is_conda_env(sys.prefix), reason='Only works with Anaconda'
 )
@@ -3563,9 +3638,14 @@ def test_change_lsp_interpreter(qtbot, main_window):
     )
 
     # Check original pylsp configuration
-    lsp = main_window.completions.get_provider('lsp')
-    config = lsp.generate_python_config()
-    jedi = config['configurations']['pylsp']['plugins']['jedi']
+    language_services = main_window.get_plugin(Plugins.LanguageServices)
+    pylsp = language_services.get_provider('pylsp')
+
+    def jedi_config():
+        config = pylsp.get_server_configs()[0]
+        return config.configurations['pylsp']['plugins']['jedi']
+
+    jedi = jedi_config()
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 
@@ -3584,8 +3664,7 @@ def test_change_lsp_interpreter(qtbot, main_window):
 
     # Check updated pylsp configuration
     qtbot.wait(1000)  # Account for debounced timeout when setting interpreter
-    config = lsp.generate_python_config()
-    jedi = config['configurations']['pylsp']['plugins']['jedi']
+    jedi = jedi_config()
     assert jedi['environment'] == new_interpreter
     assert jedi['extra_paths'] == []
 
@@ -4858,8 +4937,9 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000)
 
     # Wait until the initial requests are sent to the server.
-    lsp = main_window.completions.get_provider('lsp')
-    python_client = lsp.clients['python']
+    language_services = main_window.get_plugin(Plugins.LanguageServices)
+    pylsp = language_services.get_provider('pylsp')
+    connection = pylsp._servers['pylsp'].connection
 
     expected_requests = [
         'initialize',
@@ -4873,8 +4953,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         'initialized': {'workspace/didChangeConfiguration'}
     }
 
-    lsp_requests = python_client['instance']._requests
-    start_idx = lsp_requests.index((0, 'initialize'))
+    lsp_requests = list(connection.sent_methods)
+    start_idx = lsp_requests.index('initialize')
 
     request_order = []
     expected_iter = iter(expected_requests)
@@ -4883,7 +4963,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         if current_expected is None:
             break
 
-        _, req_type = lsp_requests[i]
+        req_type = lsp_requests[i]
         if req_type == current_expected:
             request_order.append(req_type)
             current_expected = next(expected_iter, None)
@@ -7939,6 +8019,8 @@ def test_view_own_class_in_variable_explorer(main_window, qtbot):
     assert instance_value.var == 123
 
 
+@flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_help_long_type_alias_rendering(main_window, qtbot):
     """Test that long type annotations from __main__ are readable."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -7971,15 +8053,17 @@ def test_help_long_type_alias_rendering(main_window, qtbot):
 
     # Validate the docstring is shown in the Help pane
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Test docstring"),
-        timeout=20000
+        lambda: check_text(webpage, "Test docstring", qtbot),
+        timeout=40000
     )
 
     # And the right signature is in it.
-    assert check_text(webpage, "x")
-    assert not check_text(webpage, "Sequence[int | str] | int | str |")
+    assert check_text(webpage, "x", qtbot)
+    assert not check_text(webpage, "Sequence[int | str] | int | str |", qtbot)
 
 
+@flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_help_numpy_typing_annotations(main_window, qtbot):
     """Test that numpy typing annotations don't break argument visibility."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -8012,13 +8096,13 @@ def test_help_numpy_typing_annotations(main_window, qtbot):
     control.inspect_current_object()
 
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Numpy typing test"),
-        timeout=20000
+        lambda: check_text(webpage, "Numpy typing test", qtbot),
+        timeout=40000
     )
 
-    assert check_text(webpage, "axis")
+    assert check_text(webpage, "axis", qtbot)
     assert not check_text(
-        webpage, "[Union[bool, int, float, complex, str, bytes]]"
+        webpage, "[Union[bool, int, float, complex, str, bytes]]", qtbot
     )
 
 

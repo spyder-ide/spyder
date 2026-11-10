@@ -25,9 +25,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri
-)
+from spyder.plugins.languageservices.api.uri import path_as_uri
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -677,7 +675,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
     completion = code_editor.completion_widget
     snippets = code_editor.editor_extensions.get('SnippetsExtension')
 
-    CONF.set('completions', 'enable_code_snippets', True)
+    CONF.set('language_services', 'enable_code_snippets', True)
     completion_plugin.after_configuration_update([])
 
     code_editor.toggle_automatic_completions(False)
@@ -890,7 +888,7 @@ def test_code_snippets(completions_codeeditor, qtbot):
     text1 = cursor.selectedText()
     assert text1 == 'test_func(longer, y1, some_z)'
 
-    CONF.set('completions', 'enable_code_snippets', False)
+    CONF.set('language_services', 'enable_code_snippets', False)
     completion_plugin.after_configuration_update([])
 
     code_editor.toggle_automatic_completions(True)
@@ -1140,7 +1138,7 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     code_editor.moveCursor(QTextCursor.PreviousCharacter)
     qtbot.wait(500)
 
-    mock_response.side_effect = lambda lang, method, params: [
+    mock_response.side_effect = lambda method, params: [
         lsp.CompletionItem(
             label=f'{filename}',
             kind=lsp.CompletionItemKind.File,
