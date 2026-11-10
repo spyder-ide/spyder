@@ -118,6 +118,9 @@ class ConfigurationManager(object):
         # Mapping for shortcuts that need to be notified
         self._shortcuts_to_notify: Dict[(str, str), Optional[str]] = {}
 
+        # To be able to tell if all observers have been notified
+        self.all_observers_notified: bool = False
+
         # Setup
         self.remove_deprecated_config_locations()
 
@@ -311,6 +314,8 @@ class ConfigurationManager(object):
         """
         for section in self._observers:
             self.notify_section_all_observers(section)
+
+        self.all_observers_notified = True
 
     def notify_observers(
         self,
@@ -695,7 +700,9 @@ class ConfigurationManager(object):
             if section is not None:
                 self.notify_section_all_observers(section)
             else:
+                self.all_observers_notified = False
                 self.notify_all_observers()
+                self.all_observers_notified = True
 
     def reset_manager(self):
         for observer in self._observer_map_keys.copy():

@@ -826,6 +826,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
+        logger.info("*** Start of MainWindow post-visible setup ***")
+
         # This must be run before the main window is shown.
         # Fixes spyder-ide/spyder#12104
         self.layouts.on_mainwindow_visible()
@@ -895,6 +897,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
         self.sig_setup_finished.emit()
+
+        logger.info("*** End of MainWindow post-visible setup ***")
 
     def reopen_last_session(self):
         """
