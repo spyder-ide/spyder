@@ -381,30 +381,58 @@ def test_resolve_routes_to_stamped_provider(api):
     assert asyncio.run(api.resolve_completion_item(unstamped)) is None
 
 
-def test_late_provider_announces_language_for_reopen(api):
-    # A provider that starts serving an already-open document's language must
-    # emit sig_capabilities_changed so document owners re-send didOpen, even
-    # when the merged capabilities do not change.
+def test_late_provider_with_unchanged_merge_requests_documents(api):
+    # The merged capabilities do not change, so only the documents request
+    # gets the open documents to the late provider.
     caps = lsp.ServerCapabilities(hover_provider=True)
     early = FakeProvider("early", capabilities=caps)
     asyncio.run(setup_api(api, early))
     before = api.capabilities(Language.PYTHON)
     changed = Recorder(api.sig_capabilities_changed)
+    requested = Recorder(api.sig_documents_requested)
 
     late = FakeProvider("late", capabilities=caps)
     api.register_provider(late)
     asyncio.run(api.start_provider("late"))
 
-    after = api.capabilities(Language.PYTHON)
-    assert after == before
-    assert (Language.PYTHON, after) in changed.calls
+    assert api.capabilities(Language.PYTHON) == before
+    assert changed.calls == []
+    assert requested.calls == [(Language.PYTHON,)]
 
-    asyncio.run(
-        api.close_document(
-            lsp.DidCloseTextDocumentParams(lsp.TextDocumentIdentifier(URI))
-        )
+
+def test_start_provider_requests_documents_after_capabilities(api):
+    events = []
+    api.sig_capabilities_changed.connect(
+        lambda language, caps: events.append(("capabilities", language))
     )
-    assert api.documents.documents == {}
+    api.sig_documents_requested.connect(
+        lambda language: events.append(("documents", language))
+    )
+
+    asyncio.run(setup_api(api, FakeProvider("a"), open_doc=False))
+
+    assert events == [
+        ("capabilities", Language.PYTHON),
+        ("documents", Language.PYTHON),
+    ]
+
+
+def test_documents_request_relayed_only_while_started(api):
+    provider = api.register_provider(FakeProvider("a"))
+    requested = Recorder(api.sig_documents_requested)
+
+    provider.sig_documents_requested.emit(Language.PYTHON)
+    assert requested.calls == []
+
+    asyncio.run(api.start_provider("a"))
+    requested.calls.clear()
+    provider.sig_documents_requested.emit(Language.PYTHON)
+    assert requested.calls == [(Language.PYTHON,)]
+
+    asyncio.run(api.stop_provider("a"))
+    requested.calls.clear()
+    provider.sig_documents_requested.emit(Language.PYTHON)
+    assert requested.calls == []
 
 
 def test_diagnostics_are_merged_and_cleared(api):

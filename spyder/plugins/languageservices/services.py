@@ -255,11 +255,13 @@ class LanguageServicesAPI(QObject):
     sig_exception_occurred = Signal(dict)
 
     sig_capabilities_changed = Signal(object, object)
-    """``(Language, merged ServerCapabilities | None)``.
+    """``(Language, merged ServerCapabilities | None)``."""
 
-    Also emitted, with unchanged capabilities, when a provider starts serving
-    the language: document owners re-send ``didOpen`` so the new provider
-    receives the open documents.
+    sig_documents_requested = Signal(object)
+    """A provider needs the open documents of a ``Language``.
+
+    Document owners send ``didOpen`` for each of them. Emitted after the
+    ``sig_capabilities_changed`` that announces the language, if any.
     """
 
     sig_language_stopped = Signal(object)
@@ -362,6 +364,12 @@ class LanguageServicesAPI(QObject):
             ),
             direct,
         )
+        provider.sig_documents_requested.connect(
+            lambda language, p=provider: (
+                self._on_provider_documents_requested(p, language)
+            ),
+            direct,
+        )
         provider.sig_status_changed.connect(
             lambda language, status, p=provider: (
                 self.sig_provider_status_changed.emit(p.NAME, language, status)
@@ -382,6 +390,7 @@ class LanguageServicesAPI(QObject):
         for signal in (
             provider.sig_diagnostics,
             provider.sig_capabilities_changed,
+            provider.sig_documents_requested,
             provider.sig_status_changed,
             provider.sig_apply_edit,
             provider.sig_show_message,
@@ -398,8 +407,8 @@ class LanguageServicesAPI(QObject):
     async def start_provider(self, name: str) -> None:
         """Start a registered provider and announce the languages it serves.
 
-        ``sig_capabilities_changed`` fires for each language the provider
-        serves, so document owners re-send ``didOpen`` to it.
+        ``sig_documents_requested`` fires for each of them, after the
+        capabilities are announced.
 
         Exceptions raised by ``provider.start()`` are reported through
         :attr:`sig_exception_occurred` and re-raised. The provider stays
@@ -422,7 +431,7 @@ class LanguageServicesAPI(QObject):
             raise
 
         state.started = True
-        self._announce_languages(state)
+        self._request_documents(self._announce_languages(state))
 
     async def stop_provider(self, name: str) -> None:
         """Stop a provider, clearing its diagnostics and capabilities."""
@@ -440,13 +449,17 @@ class LanguageServicesAPI(QObject):
             self._clear_provider_diagnostics(provider.NAME, None)
 
     async def start_language(self, language: Language) -> None:
-        """Ask every started provider of ``language`` to serve it."""
+        """Ask every started provider of ``language`` to serve it.
+
+        ``sig_documents_requested`` fires for each language a provider starts
+        serving without reporting it through ``sig_capabilities_changed``.
+        """
         for state in self._sorted_states():
             if not state.started:
                 continue
 
             await state.provider.start_language(language)
-            self._announce_languages(state)
+            self._request_documents(self._announce_languages(state))
 
     async def stop_language(self, language: Language) -> None:
         """Ask every started provider to stop serving ``language``."""
@@ -458,10 +471,15 @@ class LanguageServicesAPI(QObject):
             self._clear_provider_diagnostics(state.provider.NAME, {language})
             self._announce_languages(state)
 
+    def _request_documents(self, languages: Iterable[Language]) -> None:
+        for language in languages:
+            self.sig_documents_requested.emit(language)
+
     def _announce_languages(
         self, state: _ProviderState, language: Language | None = None
-    ) -> None:
-        """Bring the merged capabilities in line with what ``state`` serves.
+    ) -> frozenset[Language]:
+        """Bring the merged capabilities in line with what ``state`` serves
+        and return the languages it started serving.
 
         ``language`` is one the provider just reported capabilities for. Other
         languages it keeps serving are left as they are.
@@ -473,6 +491,7 @@ class LanguageServicesAPI(QObject):
                 if state.started
                 else frozenset()
             )
+            gained = served - state.capabilities.keys()
             changed = state.capabilities.keys() ^ served
 
         if language is not None:
@@ -483,16 +502,13 @@ class LanguageServicesAPI(QObject):
         for changed_language in changed:
             self._announce_language(state, changed_language)
 
+        return gained
+
     def _announce_language(
         self, state: _ProviderState, language: Language
     ) -> None:
         """Merge what ``state`` provides for ``language`` now and emit the
-        change.
-
-        A language the provider starts serving emits
-        ``sig_capabilities_changed`` even when the merged capabilities are
-        unchanged, so document owners re-send ``didOpen`` to it.
-        """
+        change."""
         provider = state.provider
         with self._lock:
             if state.started and language in provider.supported_languages():
@@ -522,9 +538,8 @@ class LanguageServicesAPI(QObject):
 
         The caller holds ``self._lock``.
         """
-        gained = language not in state.capabilities
         old = state.capabilities.get(language)
-        if not gained and new == old:
+        if language in state.capabilities and new == old:
             return False
 
         # The provider may change its object in place later.
@@ -551,7 +566,7 @@ class LanguageServicesAPI(QObject):
 
         self._merged_capabilities[language] = merged
 
-        return gained or merged != current
+        return merged != current
 
     def _withdraw(self, state: _ProviderState, language: Language) -> bool:
         """Drop the capabilities of ``state`` for ``language`` and merge
@@ -952,6 +967,15 @@ class LanguageServicesAPI(QObject):
 
         for params in merged:
             self.sig_diagnostics.emit(params)
+
+    def _on_provider_documents_requested(
+        self,
+        provider: LanguageServicesProvider,
+        language: Language,
+    ) -> None:
+        # A provider that is starting gets its documents from start_provider.
+        if self._state(provider.NAME).started:
+            self.sig_documents_requested.emit(language)
 
     def _on_provider_capabilities(
         self,

@@ -20,6 +20,9 @@ import pytest
 from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.languageservices.api.provider import ProviderStatus
 from spyder.plugins.languageservices.api.uri import path_as_uri
+from spyder.plugins.languageservices.providers.lsp import (
+    provider as provider_module,
+)
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
 from spyder.plugins.languageservices.providers.lsp.provider import (
     LanguageServerClientProvider,
@@ -399,6 +402,47 @@ def test_folder_broadcast_restarts_once_per_actual_change():
     )
     asyncio.run(provider.did_change_workspace_folders(removal))
     assert restarts == ["a", "a"]
+
+
+def test_ready_server_requests_documents_after_capabilities(monkeypatch):
+    # The provider keeps no document text: a server that becomes ready asks
+    # the document owners for the open documents instead.
+    _, provider = make_api([])
+    provider._servers["a"] = _ready_state("a", _FakeConnection())
+    provider._servers["b"] = _ServerState(
+        config=ServerConfig(
+            name="b", cmd="server", stdio=True, languages=("python",)
+        )
+    )
+    connections = []
+
+    class Connection(_FakeConnection):
+        def __init__(self, *args, **kwargs):
+            super().__init__()
+            connections.append(self)
+
+        async def start(self):
+            pass
+
+    monkeypatch.setattr(
+        provider_module, "LanguageServerConnection", Connection
+    )
+    events = []
+    provider.sig_capabilities_changed.connect(
+        lambda language: events.append(("capabilities", language))
+    )
+    provider.sig_documents_requested.connect(
+        lambda language: events.append(("documents", language))
+    )
+
+    asyncio.run(provider._start_server("b"))
+
+    assert provider.server_status("b") is ProviderStatus.READY
+    assert events == [
+        ("capabilities", Language.PYTHON),
+        ("documents", Language.PYTHON),
+    ]
+    assert connections[0].notified == []
 
 
 def test_did_open_dedups_per_server_and_reaches_late_server():
