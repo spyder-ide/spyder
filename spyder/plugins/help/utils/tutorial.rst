@@ -364,10 +364,10 @@ Shortcuts for useful functions
 
 .. _cell-shortcut-ref:
 
-* :kbd:`Ctrl-Enter`\* executes the current cell, i.e. the cell where the cursor is located (menu entry :menuselection:`Run --> Run cell`).
+* :kbd:`Ctrl-Enter`\* (menu entry :menuselection:`Run --> Run cell`) executes the current cell, i.e. the cell where the cursor is located.
   Cells are delimited by lines that start with ``#%%`` or ``# %%``.
-  A cell spans from one of these lines to the next one, or to the start or end of the file.
-  If a file has no such lines, it is treated as a single cell, so :kbd:`Ctrl-Enter` executes the whole file.
+  A cell spans from one of these lines to the next one, or to the start or end of the file if no further cell markers are present.
+  If a file has no such lines it is treated as a single cell, so :kbd:`Ctrl-Enter` executes the whole file.
   Lines starting with ``# <codecell>`` or ``# In[``, as found in Python scripts exported from IPython and Jupyter notebooks, are recognized as cell separators too.
 
 * :kbd:`Shift-Enter`\* executes the current cell and advances the cursor to the next cell (menu entry :menuselection:`Run --> Run cell and advance`).
