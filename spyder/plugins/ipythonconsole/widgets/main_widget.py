@@ -122,28 +122,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
     Signal to open the main interpreter preferences.
     """
 
-    sig_append_to_history_requested = Signal(str, str)
+    sig_append_to_history_requested = Signal(object, str)
     """
-    This signal is emitted when the plugin requires to add commands to a
-    history file.
+    This signal is emitted when a command is added to the history of a
+    console.
 
     Parameters
     ----------
-    filename: str
-        History file filename.
-    text: str
-        Text to append to the history file.
-    """
-
-    sig_history_requested = Signal(str)
-    """
-    This signal is emitted when the plugin wants a specific history file
-    to be shown.
-
-    Parameters
-    ----------
-    path: str
-        Path to history file.
+    shellwidget: ShellWidget
+        Shell widget of the console where the command was entered.
+    command: str
+        Command to append to the history.
     """
 
     sig_focus_changed = Signal()
@@ -1215,6 +1204,30 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
     # ---- Private methods
     # -------------------------------------------------------------------------
+    def _on_append_to_history_requested(self, client, filename, text):
+        """
+        Emit sig_append_to_history_requested for the shellwidget of `client`.
+
+        Parameters
+        ----------
+        client: ClientWidget
+            Client that added a command to its history.
+        filename: str
+            History file where the command was saved (not used).
+        text: str
+            Text appended to the history file (not used).
+
+        Notes
+        -----
+        `text` can contain a session separator and starts with a line break,
+        so we use instead the last entry of the client history, which
+        SaveHistoryMixin.add_to_history updates before emitting the signal.
+        """
+        if client.history:
+            self.sig_append_to_history_requested.emit(
+                client.shellwidget, client.history[-1]
+            )
+
     def _create_info_widget(self):
         from spyder.widgets.browser import FrameWebView
 
@@ -2231,9 +2244,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
         # Connect client to history log
-        self.sig_history_requested.emit(client.history_filename)
         client.sig_append_to_history_requested.connect(
-            self.sig_append_to_history_requested)
+            functools.partial(self._on_append_to_history_requested, client)
+        )
 
         # Set font for client
         client.set_font(self._font)
