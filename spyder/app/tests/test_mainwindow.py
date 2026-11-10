@@ -562,16 +562,58 @@ def test_get_help_ipython_console(main_window, qtbot):
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("from numpy.linalg import norm")
+
     # Write some object in the console
-    qtbot.keyClicks(control, 'get_ipython')
+    qtbot.keyClicks(control, "norm")
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "SpyderShell", qtbot), timeout=6000
+        lambda: check_text(webpage, "Matrix or vector norm", qtbot),
+        timeout=6000,
     )
+
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check "Show source" action for objects with source
+    show_source_action = help_widget.show_source_action
+    assert show_source_action.isEnabled()
+
+    show_source_action.setChecked(True)
+    assert not help_widget.rich_text.isVisible()
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "Matrix or vector norm" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects without source
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import pandas as pd")
+
+    qtbot.keyClicks(control, "pd.DataFrame")
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: "No source code available for pd.DataFrame"
+        in help_widget.plain_text.editor.toPlainText(),
+        timeout=6000,
+    )
+    assert help_widget.plain_text.isVisible()
 
 
 @flaky(max_runs=3)
@@ -581,11 +623,21 @@ def test_get_help_ipython_console(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.parametrize(
     "object_info",
-    [("range", "range"),
-     ("import numpy as np", "An array object of arbitrary homogeneous items")])
+    [
+        (
+            # Check we show docs for regular objects
+            "from numpy.linalg import norm",
+            "Matrix or vector norm",
+        ),
+        (
+            # Check the no docs message is shown for objects without docstring
+            "from collections.abc import Awaitable",
+            "No further documentation available",
+        ),
+    ],
+)
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
-    # Wait until the window is fully up
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -619,7 +671,22 @@ def test_get_help_editor(main_window, qtbot, object_info):
         lambda: check_text(webpage, expected_text, qtbot), timeout=30000
     )
 
-    assert check_text(webpage, expected_text, qtbot)
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert not object_combo_action.isVisible()
+    assert object_edit_action.isVisible()
+    assert help_widget.object_edit.text() == object_name.split()[-1]
+
+    # This action should be disabled when the docs source is the Editor
+    assert not help_widget.show_source_action.isEnabled()
 
 
 def test_window_title(main_window, tmpdir, qtbot):

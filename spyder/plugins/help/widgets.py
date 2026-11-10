@@ -12,6 +12,7 @@ import os
 import re
 import socket
 import sys
+import textwrap
 import unicodedata
 
 # Third party imports
@@ -28,6 +29,7 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
+from spyder.config.manager import CONF
 from spyder.plugins.help.utils.sphinxify import (
     generate_context,
     loading,
@@ -307,7 +309,7 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_cb = None
         self.css_path = self.get_conf('css_path', section='appearance')
         self.no_docs = _("No documentation available")
-        self.docstring = True  # TODO: What is this used for?
+        self.docstring = True # Used to tell when to show plain text docstrings
 
         # Widgets
         self._sphinx_thread = SphinxThread(
@@ -338,14 +340,15 @@ class HelpWidget(PluginMainWidget):
 
         # Setup
         self.object_edit.setReadOnly(True)
+        tip = _(
+            "Searches can't be done when the documentation source is the "
+            "Editor"
+        )
+        self.object_edit.setToolTip("\n".join(textwrap.wrap(tip, 50)))
         self.object_combo.setMaxCount(self.get_conf('max_history_entries'))
         self.object_combo.setItemText(0, '')
         self.plain_text.set_wrap_mode(self.get_conf('wrap'))
         self.source_combo.addItems([_("Console"), _("Editor")])
-        if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.11.0')):
-            self.source_combo.hide()
-            self.source_label.hide()
 
         # Layout
         self.stacked_widget = QStackedWidget()
@@ -487,19 +490,9 @@ class HelpWidget(PluginMainWidget):
                 section=HelpWidgetMainToolbarSections.Main,
             )
 
-        self.source_changed()
-        self.switch_to_rich_text()
-        self.show_intro_message()
-
         # Signals
         self.plain_text.sig_custom_context_menu_requested.connect(
             self._show_plain_text_context_menu)
-
-    def _should_display_welcome_page(self):
-        """Determine if the help welcome page should be displayed."""
-        return (self._last_editor_doc is None or
-                self._last_console_cb is None or
-                self._last_editor_cb is None)
 
     @on_conf_change(option='wrap')
     def on_wrap_option_update(self, value):
@@ -521,9 +514,7 @@ class HelpWidget(PluginMainWidget):
     @on_conf_change(option='automatic_import')
     def on_automatic_import_update(self, value):
         self.object_combo.validate_current_text()
-        if self._should_display_welcome_page():
-            self.show_intro_message()
-        else:
+        if CONF.all_observers_notified:
             self.force_refresh()
 
     @on_conf_change(option='rich_mode')
@@ -539,9 +530,7 @@ class HelpWidget(PluginMainWidget):
             self.docstring = value
             self.stacked_widget.setCurrentWidget(self.plain_text)
 
-        if self._should_display_welcome_page():
-            self.show_intro_message()
-        else:
+        if CONF.all_observers_notified:
             self.force_refresh()
 
     @on_conf_change(option='show_source')
@@ -552,9 +541,7 @@ class HelpWidget(PluginMainWidget):
                 False)
 
         self.docstring = not value
-        if self._should_display_welcome_page():
-            self.show_intro_message()
-        else:
+        if CONF.all_observers_notified:
             self.force_refresh()
 
     def update_actions(self):
@@ -624,14 +611,18 @@ class HelpWidget(PluginMainWidget):
 
     def source_changed(self):
         """Handle a source (plain/rich) change."""
+        toolbar = self.get_main_toolbar()
+        object_combo_action = toolbar.action_for_widget(self.object_combo)
+        object_edit_action = toolbar.action_for_widget(self.object_edit)
+
         is_console = self.source_is_console()
         if is_console:
-            self.object_combo.show()
-            self.object_edit.hide()
+            object_combo_action.setVisible(True)
+            object_edit_action.setVisible(False)
         else:
             # Editor
-            self.object_combo.hide()
-            self.object_edit.show()
+            object_combo_action.setVisible(False)
+            object_edit_action.setVisible(True)
 
         self.get_action(HelpWidgetActions.ToggleShowSource).setEnabled(
             is_console)
@@ -965,7 +956,7 @@ class HelpWidget(PluginMainWidget):
 
         self.switch_to_editor_source()
         self._last_editor_doc = help_data
-        self.object_edit.setText(help_data['obj_text'])
+        self.object_edit.setText(help_data['obj_text'] or help_data["name"])
 
         if self.get_conf('rich_mode'):
             self.render_sphinx_doc(help_data)
@@ -1085,17 +1076,13 @@ class HelpWidget(PluginMainWidget):
         elif self.docstring:
             hlp_text = doc
             if hlp_text is None:
-                hlp_text = source_text
-                if hlp_text is None:
-                    return False
+                hlp_text = self.no_docs
         else:
             hlp_text = source_text
             if hlp_text is None:
-                hlp_text = doc
-                if hlp_text is None:
-                    hlp_text = _("No source code available.")
-                    if ignore_unknown:
-                        return False
+                hlp_text = _(f"No source code available for {obj_text}.")
+                if ignore_unknown:
+                    return False
             else:
                 is_code = True
 

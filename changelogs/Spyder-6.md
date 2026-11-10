@@ -174,6 +174,14 @@ In this release 20 pull requests were closed.
 
 ----
 
+## Version 6.1.9 (unreleased)
+
+### API changes
+
+* Add `action_for_widget` method to `SpyderToolbar`.
+
+----
+
 ## Version 6.1.8 (2026-10-21)
 
 ### Important fixes
