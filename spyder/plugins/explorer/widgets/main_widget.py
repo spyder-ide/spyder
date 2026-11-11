@@ -72,6 +72,7 @@ class ExplorerWidget(PluginMainWidget):
     """Explorer widget"""
 
     HELP_URL = "https://docs.spyder-ide.org/current/panes/fileexplorer"
+    SHOW_INFO_MESSAGE = True
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -372,9 +373,26 @@ class ExplorerWidget(PluginMainWidget):
         # Qt doesn't watch UNC paths for changes, so they need to be
         # refreshed manually too.
         local_folder = self.treewidget.get_current_folder() or ""
-        self.refresh_action.setVisible(
-            visible_remote_actions or is_unc_path(local_folder)
+        unwatched_folder = (
+            not visible_remote_actions and is_unc_path(local_folder)
         )
+        self.refresh_action.setVisible(
+            visible_remote_actions or unwatched_folder
+        )
+
+        # Let users know why they need to do that
+        if unwatched_folder:
+            self.set_info_message(
+                _(
+                    "Changes done outside Spyder to files in network shares "
+                    "are not shown automatically. Use the Refresh button to "
+                    "see them."
+                ),
+                "show_network_share_message",
+            )
+        else:
+            # Don't call hide() because it asks to hide the message forever
+            self._info_message.setVisible(False)
         self.remote_treewidget.upload_file_action.setVisible(
             visible_remote_actions
         )

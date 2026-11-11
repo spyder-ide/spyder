@@ -622,6 +622,39 @@ def test_refresh_action_visibility(file_explorer, tmp_path, monkeypatch):
     assert widget.refresh_action.isVisible()
 
 
+def test_network_share_message(file_explorer, tmp_path, monkeypatch):
+    """
+    Test that a message about refreshing manually is shown for UNC paths in
+    the local tree.
+    """
+    widget = file_explorer.explorer
+    info_message = widget._info_message
+    unc_dir = tmp_path / "unc"
+    local_dir = tmp_path / "local"
+    unc_dir.mkdir()
+    local_dir.mkdir()
+    monkeypatch.setattr(
+        main_widget, "is_unc_path", lambda path: path == str(unc_dir)
+    )
+
+    widget.chdir(str(unc_dir))
+    assert not info_message.isHidden()
+    assert "Refresh" in info_message.text()
+
+    widget.treewidget.chdir(str(local_dir))
+    assert info_message.isHidden()
+
+    widget.treewidget.chdir(str(unc_dir))
+    assert not info_message.isHidden()
+
+    # The message is not shown again if users decided to hide it
+    widget.set_conf("show_network_share_message", False)
+    widget.treewidget.chdir(str(local_dir))
+    widget.treewidget.chdir(str(unc_dir))
+    assert info_message.isHidden()
+    widget.set_conf("show_network_share_message", True)
+
+
 def test_refresh_unwatched_folder(unwatched_explorer, qtbot):
     """
     Test that the refresh action reloads folders Qt doesn't watch, including
