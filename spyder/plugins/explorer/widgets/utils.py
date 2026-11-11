@@ -103,6 +103,24 @@ def is_unc_path(path):
     return path.replace('\\', '/').startswith('//')
 
 
+def is_network_path(path):
+    """
+    Check if path is in a network share, either because it's a UNC path or
+    it's in a mapped network drive on Windows.
+    """
+    if is_unc_path(path):
+        return True
+
+    if os.name == 'nt':
+        drive = osp.splitdrive(osp.abspath(path))[0]
+        if drive:
+            from ctypes import windll
+            DRIVE_REMOTE = 4
+            return windll.kernel32.GetDriveTypeW(drive + '\\') == DRIVE_REMOTE
+
+    return False
+
+
 class IconProvider(QFileIconProvider):
     """Project tree widget icon provider"""
 
