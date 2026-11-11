@@ -13,9 +13,10 @@ import os
 
 # Test library imports
 import pytest
+from qtpy.QtCore import QFile
 
 # Local imports
-from spyder.utils.misc import get_common_path
+from spyder.utils.misc import get_common_path, move_file
 
 
 def test_get_common_path():
@@ -32,6 +33,40 @@ def test_get_common_path():
                                 '/Python/spyder/spyder.widgets',
                                 '/Python/spyder-v21/spyder.utils',
                                 ]) == '/Python'
+
+
+@pytest.mark.parametrize("trash_available", [True, False])
+def test_move_file(tmp_path, monkeypatch, trash_available):
+    """
+    Test that moving files and folders doesn't leave the source behind.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    if not trash_available:
+        # Simulate a filesystem without a trash, like Windows network shares
+        monkeypatch.setattr(
+            QFile, "moveToTrash", lambda *args: (False, "")
+        )
+
+    dest_dir = tmp_path / "dest"
+    dest_dir.mkdir()
+
+    # Move a Python file, which also removes its pyc file
+    source = tmp_path / "script.py"
+    source.write_text("print(1)")
+    (tmp_path / "script.pyc").touch()
+    move_file(str(source), str(dest_dir / "script.py"))
+    assert not source.exists()
+    assert not (tmp_path / "script.pyc").exists()
+    assert (dest_dir / "script.py").read_text() == "print(1)"
+
+    # Move a folder
+    folder = tmp_path / "folder"
+    folder.mkdir()
+    (folder / "file.txt").write_text("text")
+    move_file(str(folder), str(dest_dir / "folder"))
+    assert not folder.exists()
+    assert (dest_dir / "folder" / "file.txt").read_text() == "text"
 
 
 if __name__ == "__main__":

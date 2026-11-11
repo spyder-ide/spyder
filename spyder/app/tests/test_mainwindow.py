@@ -36,7 +36,6 @@ from numpy.testing import assert_array_equal
 from packaging.version import parse
 import pylint
 import pytest
-from qtpy import PYQT6
 from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (
@@ -458,7 +457,6 @@ def test_get_help_combo(main_window, qtbot):
 
 
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
@@ -562,16 +560,58 @@ def test_get_help_ipython_console(main_window, qtbot):
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("from numpy.linalg import norm")
+
     # Write some object in the console
-    qtbot.keyClicks(control, 'get_ipython')
+    qtbot.keyClicks(control, "norm")
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "SpyderShell", qtbot), timeout=6000
+        lambda: check_text(webpage, "Matrix or vector norm", qtbot),
+        timeout=6000,
     )
+
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check "Show source" action for objects with source
+    show_source_action = help_widget.show_source_action
+    assert show_source_action.isEnabled()
+
+    show_source_action.setChecked(True)
+    assert not help_widget.rich_text.isVisible()
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "Matrix or vector norm" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects without source
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import pandas as pd")
+
+    qtbot.keyClicks(control, "pd.DataFrame")
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: "No source code available for pd.DataFrame"
+        in help_widget.plain_text.editor.toPlainText(),
+        timeout=6000,
+    )
+    assert help_widget.plain_text.isVisible()
 
 
 @flaky(max_runs=3)
@@ -581,11 +621,21 @@ def test_get_help_ipython_console(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.parametrize(
     "object_info",
-    [("range", "range"),
-     ("import numpy as np", "An array object of arbitrary homogeneous items")])
+    [
+        (
+            # Check we show docs for regular objects
+            "from numpy.linalg import norm",
+            "Matrix or vector norm",
+        ),
+        (
+            # Check the no docs message is shown for objects without docstring
+            "from collections.abc import Awaitable",
+            "No further documentation available",
+        ),
+    ],
+)
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
-    # Wait until the window is fully up
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -619,7 +669,22 @@ def test_get_help_editor(main_window, qtbot, object_info):
         lambda: check_text(webpage, expected_text, qtbot), timeout=30000
     )
 
-    assert check_text(webpage, expected_text, qtbot)
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert not object_combo_action.isVisible()
+    assert object_edit_action.isVisible()
+    assert help_widget.object_edit.text() == object_name.split()[-1]
+
+    # This action should be disabled when the docs source is the Editor
+    assert not help_widget.show_source_action.isEnabled()
 
 
 def test_window_title(main_window, tmpdir, qtbot):
@@ -1263,7 +1328,6 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
      parse(ipy_release.version) == parse('7.11.0')),
@@ -1529,7 +1593,6 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
@@ -1935,7 +1998,6 @@ def test_close_when_file_is_changed(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.qt_no_exception_capture
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working as expected."""
     # Wait until the window is fully up
@@ -3797,7 +3859,6 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
@@ -3865,7 +3926,6 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_remove(main_window, qtbot, tmpdir):
     """
@@ -4605,7 +4665,6 @@ def test_post_mortem(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     """Test that we can run an unsaved file with multiprocessing."""
@@ -6071,7 +6130,6 @@ if __name__ == "__main__":
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     os.name == 'nt',
     reason="ctypes.string_at(0) doesn't segfaults on Windows")
@@ -6221,7 +6279,6 @@ def test_history_from_ipyconsole(main_window, qtbot):
     assert text.splitlines()[-1] == code
 
 
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     os.name != "nt", reason="Fails frequently on Mac and Linux"
 )
@@ -6306,7 +6363,6 @@ def test_out_runfile_runcell(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Does not work on Mac and Windows")
@@ -7245,7 +7301,6 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     not sys.platform.startswith("linux"),
     reason="No quotes on Windows file paths and fails frequently on Mac"
 )
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     """
     Test that we can run files with quotes in name, renamed files,
