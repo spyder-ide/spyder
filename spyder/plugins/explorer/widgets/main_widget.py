@@ -36,6 +36,7 @@ from spyder.plugins.explorer.widgets.explorer import (
     DirViewActions,
     ExplorerTreeWidget,
 )
+from spyder.plugins.explorer.widgets.utils import is_unc_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 
@@ -69,6 +70,8 @@ class ExplorerWidgetActions:
 # ---- Main widget
 class ExplorerWidget(PluginMainWidget):
     """Explorer widget"""
+
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/fileexplorer"
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -212,6 +215,7 @@ class ExplorerWidget(PluginMainWidget):
 
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
+        self.treewidget.sig_dir_opened.connect(self._on_dir_opened)
         self.remote_treewidget.sig_dir_opened.connect(self.sig_dir_opened)
         self.remote_treewidget.sig_start_spinner_requested.connect(
             self.start_spinner
@@ -364,13 +368,25 @@ class ExplorerWidget(PluginMainWidget):
         visible_remote_actions = (
             self.get_current_widget() == self.remote_treewidget
         )
-        self.refresh_action.setVisible(visible_remote_actions)
+
+        # Qt doesn't watch UNC paths for changes, so they need to be
+        # refreshed manually too.
+        local_folder = self.treewidget.get_current_folder() or ""
+        self.refresh_action.setVisible(
+            visible_remote_actions or is_unc_path(local_folder)
+        )
         self.remote_treewidget.upload_file_action.setVisible(
             visible_remote_actions
         )
         self.go_to_dir_of_file_in_editor_action.setVisible(
             not visible_remote_actions
         )
+
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    def _on_dir_opened(self, directory, server_id):
+        """Update actions when the local tree opens a new directory."""
+        self.update_actions()
 
     # ---- Public API
     # ------------------------------------------------------------------------

@@ -20,6 +20,7 @@ import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.help.plugin import Help
 
 
@@ -38,36 +39,34 @@ def help_plugin(qtbot):
                 return Mock()
 
     window = MainMock()
-    help_plugin = Help(parent=window, configuration=None)
+    help_plugin = Help(parent=window, configuration=CONF)
     help_widget = help_plugin.get_widget()
     webview = help_widget.rich_text.webview._webview
 
     window.setCentralWidget(help_widget)
+    help_plugin.on_mainwindow_visible()
 
     if WEBENGINE:
         help_widget._webpage = webview.page()
+        with qtbot.waitSignal(help_widget._webpage.loadFinished):
+            window.show()
     else:
         help_widget._webpage = webview.page().mainFrame()
+        window.show()
 
     qtbot.addWidget(window)
-    window.show()
     return help_plugin
 
 
 # =============================================================================
 # Utility functions
 # =============================================================================
-def check_text(widget, text):
+def check_text(widget, text, qtbot):
     """Check if some text is present in a widget."""
     if WEBENGINE:
-        def callback(data):
-            global html
-            html = data
-        widget.toHtml(callback)
-        try:
-            return text in html
-        except NameError:
-            return False
+        with qtbot.waitCallback(timeout=20000) as cb:
+            widget.toHtml(cb)
+        return text in cb.args[0]
     else:
         return text in widget.toHtml()
 
@@ -81,6 +80,38 @@ def default_info_response():
 # =============================================================================
 # Tests
 # =============================================================================
+def test_plugin_at_startup(help_plugin, qtbot):
+    """Check how the plugin should be displayed at startup."""
+    help_widget = help_plugin.get_widget()
+
+    # Check we show the intro message
+    assert help_widget.rich_text.isVisible()
+
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_widget._webpage,
+            "you can get help of any object",
+            qtbot,
+        ),
+        timeout=20000,
+    )
+
+    # Check state of widgets in Help's toolbar
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check source combobox
+    assert help_widget.source_is_console()
+
+
 @flaky(max_runs=3)
 def test_no_docs_message(help_plugin, qtbot):
     """
@@ -88,9 +119,14 @@ def test_no_docs_message(help_plugin, qtbot):
     can't get any info.
     """
     help_plugin.set_editor_doc(default_info_response())
-    qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No documentation available"),
-                    timeout=4000)
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_plugin.get_widget()._webpage,
+            "No documentation available",
+            qtbot,
+        ),
+        timeout=20000,
+    )
 
 
 @flaky(max_runs=3)
@@ -104,12 +140,17 @@ def test_no_further_docs_message(help_plugin, qtbot):
     info['argspec'] = '(x, y)'
 
     help_plugin.set_editor_doc(info)
-    qtbot.waitUntil(lambda: check_text(help_plugin.get_widget()._webpage,
-                                       "No further documentation available"),
-                    timeout=3000)
+    qtbot.waitUntil(
+        lambda: check_text(
+            help_plugin.get_widget()._webpage,
+            "No further documentation available",
+            qtbot,
+        ),
+        timeout=20000,
+    )
 
 
-def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
+def test_help_opens_when_show_tutorial_unit(help_plugin):
     """
     'Show tutorial' opens the help plugin if closed.
 
@@ -118,6 +159,25 @@ def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
     help_plugin.switch_to_plugin = Mock()
     help_plugin.show_tutorial()
     assert help_plugin.switch_to_plugin.call_count == 1
+
+
+def test_disable_show_source_on_close(help_plugin):
+    """Check we disable the 'Show source' action when the plugin is closed."""
+    widget = help_plugin.get_widget()
+
+    # Enable show_source and check options are set as expected
+    widget.show_source_action.setChecked(True)
+    assert help_plugin.get_conf("show_source")
+    assert help_plugin.get_conf("plain_mode")
+    assert not help_plugin.get_conf("rich_mode")
+
+    # Simulate the plugin was closed
+    help_plugin.on_close()
+
+    # Check options were set as expected
+    assert not help_plugin.get_conf("show_source")
+    assert not help_plugin.get_conf("plain_mode")
+    assert help_plugin.get_conf("rich_mode")
 
 
 if __name__ == "__main__":
