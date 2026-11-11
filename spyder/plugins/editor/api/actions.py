@@ -62,3 +62,8 @@ class EditorWidgetActions:
     Unindent = "unindent_action"
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
+
+    MoveToLeftSplit = "Move to left panel"
+    MoveToRightSplit = "Move to right panel"
+    MoveToUpSplit = "Move to up panel"
+    MoveToDownSplit = "Move to down panel"
