@@ -1430,12 +1430,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 window_action, section=EditorStackMenuSections.WindowSection
             )
 
-        for split_actions in self.__get_split_actions():
-            self.menu.add_action(
-                split_actions,
-                section=EditorStackMenuSections.SplitCloseSection
-            )
-
         if self.data:
             for action in [self.next_tab_action, self.previous_tab_action]:
                 keystr = self.get_shortcut(action.name, context="main")
@@ -1444,6 +1438,12 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                     action,
                     section=EditorStackMenuSections.SwitchTabsSection
                 )
+
+        for split_actions in self.__get_split_actions():
+            self.menu.add_action(
+                split_actions,
+                section=EditorStackMenuSections.SplitCloseSection
+            )
 
         # These actions need to *only* be visible in the main editorstack to
         # avoid confusions when closing a split stack in the main or new
