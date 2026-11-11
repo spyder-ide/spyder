@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-10-08 04:33-0500\n"
-"PO-Revision-Date: 2026-10-08 09:59\n"
+"PO-Revision-Date: 2026-11-11 03:43\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -6944,7 +6944,7 @@ msgstr "更新下载将在后台继续进行。\n"
 
 #: spyder/plugins/updatemanager/widgets/update.py:60
 msgid "Installing Spyder's updater"
-msgstr ""
+msgstr "安装 Spyder 的更新器"
 
 #: spyder/plugins/updatemanager/widgets/update.py:61
 msgid "Downloading update"
@@ -6988,11 +6988,11 @@ msgstr "Spyder 更新"
 
 #: spyder/plugins/updatemanager/widgets/update.py:377
 msgid "Installing Spyder's updater..."
-msgstr ""
+msgstr "正在安装 Spyder 的更新器……"
 
 #: spyder/plugins/updatemanager/widgets/update.py:418
 msgid "Error installing Spyder's updater."
-msgstr ""
+msgstr "安装 Spyder 的更新器时发生错误。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:457
 msgid "Downloading Spyder {} ..."
