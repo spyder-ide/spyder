@@ -1079,29 +1079,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
 
         return True
 
-    def close_focused_plugin(self):
-        """Close the plugin that currently has focus."""
-        focused_widget = QApplication.focusWidget()
-    
-        if focused_widget is None:
-            focused_widget = self.last_focused_widget
-    
-        if focused_widget is None:
-            return
-    
-        for plugin_name, plugin in self.get_dockable_plugins():
-            if not self.is_plugin_available(plugin_name):
-                continue
-            
-            plugin_widget = plugin.get_widget()
-    
-            if (
-                focused_widget is plugin_widget
-                or plugin_widget.isAncestorOf(focused_widget)
-            ):
-                plugin_widget.close_action.trigger()
-                return
-    
     def add_dockwidget(self, plugin):
         """
         Add a plugin QDockWidget to the main window.
