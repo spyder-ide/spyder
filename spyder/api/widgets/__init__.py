@@ -43,3 +43,9 @@ class PluginMainWidgetActions:
 
     LockUnlockPosition: str = "lock_unlock_position"
     """Toggle whether a pane can be freely moved around the Spyder window."""
+
+    GoToNextTab: str = "go to next tab"
+    """Switch to the next tab in panes that have tabs."""
+
+    GoToPreviousTab: str = "go to previous tab"
+    """Switch to the previous tab in panes that have tabs."""

@@ -529,10 +529,12 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         Setup default actions, create options menu, and connect signals.
         """
         # Tabs
+        tabs = None
         children = self.findChildren(Tabs)
         if children:
             for child in children:
                 self._is_tab = True
+                tabs = child
                 # For widgets that use tabs, we add the corner widget using
                 # the setCornerWidget method.
                 child.setCornerWidget(self._corner_widget)
@@ -615,6 +617,9 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
                 section=OptionsMenuSections.Bottom,
             )
 
+        if tabs is not None:
+            self._add_switch_tabs_actions(tabs)
+
         self._options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._update_actions)
 
@@ -630,6 +635,43 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
 
         # Update title
         self.setWindowTitle(self.get_title())
+
+    def _add_switch_tabs_actions(self, tabs: Tabs) -> None:
+        """
+        Add actions to switch tabs to the options menu.
+
+        Parameters
+        ----------
+        tabs: Tabs
+            Tab widget whose tabs the actions switch between.
+
+        Returns
+        -------
+        None
+        """
+        next_tab_action = self.create_action(
+            name=PluginMainWidgetActions.GoToNextTab,
+            text=_("Go to next tab"),
+            icon=self.create_icon("next_wng"),
+            triggered=lambda: tabs.tab_navigate(1),
+            register_shortcut=True,
+            shortcut_context="main",
+        )
+        previous_tab_action = self.create_action(
+            name=PluginMainWidgetActions.GoToPreviousTab,
+            text=_("Go to previous tab"),
+            icon=self.create_icon("prev_wng"),
+            triggered=lambda: tabs.tab_navigate(-1),
+            register_shortcut=True,
+            shortcut_context="main",
+        )
+
+        for action in [next_tab_action, previous_tab_action]:
+            self.add_item_to_menu(
+                action,
+                self._options_menu,
+                section=OptionsMenuSections.SwitchTabs,
+            )
 
     def _update_actions(self) -> None:
         """
