@@ -113,8 +113,8 @@ jobs:
       - name: Show test environment
         shell: bash -l {0}
         run: |
-          conda info
-          conda list
+          micromamba info
+          micromamba list
 
       - name: Run file tests
         shell: bash -l {0}
