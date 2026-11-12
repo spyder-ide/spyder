@@ -14,6 +14,8 @@
   RTF.
 * Make copy/paste text in the Editor to Microsoft Word or similar programs grab
   the syntax highlighting theme too.
+* Add `Ctrl+Alt+Up/Down` shortcuts to move to the next/previous prompt in the
+  IPython console.
 * Add button to close all open viewers to the Variable Explorer and its viewers.
 * Add shortcuts and menu entries to expand/collapse all foldable regions in the
   Editor to the `Source` menu.
@@ -21,7 +23,9 @@
   (i.e. the one to the left of tabs) by keeping `Shift` pressed and dragging its
   entries with the left mouse button.
 * The position for the close button in tabs (left, right or automatic) can be
-  configured in `Preferences > Application > Panes`
+  configured in `Preferences > Application > Panes`.
+* Add `--reset-hdpi-settings` command line option to reset incorrect high
+  resolution screen settings without altering other options.
 * Add support to introduce inline (or ghost) completions to the Editor.
 * Add a `LanguageServices` plugin that merges completions, hover, linting,
   formatting and the other language features from several providers per
@@ -32,9 +36,13 @@
 
 ### Important fixes
 
+* Add support for PyQt6 and drop it for PyQt5.
 * Base the standalone installers in Python 3.13.
 * Sign the Windows standalone installer so it's not flagged as untrusted.
-* The Matplotlib automatic backend works with PyQt6 and PySide6.
+* Greatly improve support to work with Windows network share folders in the
+  Files pane.
+* Make Spyder projects automatically ignore files in `.gitignore` when tracking
+  changes.
 * Add support for PySide6 6.9+.
 * Automatically disable plugins when users disable the ones they depend on (e.g.
   the Variable Explorer, Debugger and Plots will be auto-disabled if the
