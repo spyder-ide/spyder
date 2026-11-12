@@ -784,13 +784,13 @@ class BaseTabs(QTabWidget):
         handled = False
         if ctrl and self.count() > 0:
             index = self.currentIndex()
-            if key == Qt.Key_PageUp or key == Qt.Key_8:
+            if key == Qt.Key_PageUp:
                 if index > 0:
                     self.setCurrentIndex(index - 1)
                 else:
                     self.setCurrentIndex(self.count() - 1)
                 handled = True
-            elif key == Qt.Key_PageDown or key == Qt.Key_9:
+            elif key == Qt.Key_PageDown:
                 if index < self.count() - 1:
                     self.setCurrentIndex(index + 1)
                 else:
@@ -800,7 +800,7 @@ class BaseTabs(QTabWidget):
             QTabWidget.keyPressEvent(self, event)
 
     def tab_navigate(self, delta=1):
-        """Ctrl+Tab"""
+        """Move the current tab by delta, wrapping around at the ends."""
         if delta > 0 and self.currentIndex() == self.count()-1:
             index = delta-1
         elif delta < 0 and self.currentIndex() == 0:
@@ -890,8 +890,8 @@ class Tabs(SpyderShortcutsMixin, BaseTabs):
     def register_shortcuts(self, parent):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ("go to next file", lambda: self.tab_navigate(1), "editor"),
-            ("go to previous file", lambda: self.tab_navigate(-1), "editor"),
+            ("go to next tab", lambda: self.tab_navigate(1), "main"),
+            ("go to previous tab", lambda: self.tab_navigate(-1), "main"),
             (
                 "close file 1",
                 lambda: self.sig_close_tab.emit(self.currentIndex()),

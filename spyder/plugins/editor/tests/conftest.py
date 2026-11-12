@@ -11,6 +11,7 @@
 import os.path as osp
 from unittest.mock import MagicMock, Mock
 
+from lsprotocol import types as lsp
 from qtpy.QtCore import QCoreApplication, Qt
 
 from spyder.api.plugins import Plugins
@@ -87,6 +88,13 @@ def editor_plugin(qtbot, monkeypatch):
     debugger.on_editor_available()
     editor.on_outlineexplorer_available()
 
+    # Language services that consider every language served, so files open
+    # their documents (the requests themselves go to a mock).
+    language_services = Mock()
+    language_services.is_language_supported.return_value = True
+    language_services.capabilities.return_value = lsp.ServerCapabilities()
+    editor.get_widget().set_language_services(language_services)
+
     # Show window
     window.setCentralWidget(editor.get_widget())
     window.resize(640, 480)
@@ -158,20 +166,20 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             'connect/editor': False,
             # From completions:
             (
-                'provider_configuration',
-                'lsp',
+                'providers',
+                'pylsp',
                 'values',
                 'enable_hover_hints'
             ): True,
             (
-                'provider_configuration',
-                'lsp',
+                'providers',
+                'pylsp',
                 'values',
                 'format_on_save'
             ): False,
             (
-                "provider_configuration",
-                "lsp",
+                "providers",
+                "pylsp",
                 "values",
                 "flake8/max_line_length",
             ): 79,

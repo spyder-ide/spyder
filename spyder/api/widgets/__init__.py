@@ -35,8 +35,17 @@ class PluginMainWidgetActions:
     DockPane: str = "dock_pane"
     """Re-dock a popped-out pane to the Spyder main window."""
 
+    HelpPage: str = "help_page"
+    """Open the plugin's help webpage in the default web browser."""
+
     UndockPane: str = "undock_pane"
     """Pop out a plugin's pane into a separate floating window."""
 
     LockUnlockPosition: str = "lock_unlock_position"
     """Toggle whether a pane can be freely moved around the Spyder window."""
+
+    GoToNextTab: str = "go to next tab"
+    """Switch to the next tab in panes that have tabs."""
+
+    GoToPreviousTab: str = "go to previous tab"
+    """Switch to the previous tab in panes that have tabs."""

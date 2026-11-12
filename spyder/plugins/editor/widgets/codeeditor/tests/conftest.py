@@ -9,6 +9,7 @@ Testing utilities for the CodeEditor to be used with pytest.
 """
 
 # Standard library imports
+from contextlib import contextmanager
 import os
 import os.path as osp
 from unittest.mock import Mock
@@ -24,10 +25,13 @@ from spyder.config.manager import CONF
 from spyder.plugins.completion.tests.conftest import (
     completion_plugin_all,
     completion_plugin_all_started,
+    language_services_all_started,
+    route_diagnostics,
     MainWindowMock,
     qtbot_module
 )
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -98,6 +102,27 @@ def get_formatter_values(formatter, newline, range_fmt=False, max_line=False):
     return text, result
 
 
+@contextmanager
+def record_requests(editor):
+    """Record the requests an editor sends while the context is active.
+
+    Yields a list that gains one ``(method, params)`` tuple per
+    :meth:`emit_request` call, then restores the editor's own method.
+    """
+    calls = []
+    original = editor.emit_request
+
+    def emit_request(method, params, requires_response):
+        calls.append((method, params))
+        return original(method, params, requires_response)
+
+    editor.emit_request = emit_request
+    try:
+        yield calls
+    finally:
+        del editor.emit_request
+
+
 # ---- Fixtures for outline functionality
 @pytest.fixture
 def outlineexplorer(qtbot):
@@ -143,7 +168,7 @@ def mock_completions_codeeditor(qtbot_module, request):
     """CodeEditor instance with ability to mock the completions response.
 
     Returns a tuple of (editor, mock_response). Tests using this fixture should
-    set `mock_response.side_effect = lambda lang, method, params: {}`.
+    set `mock_response.side_effect = lambda method, params: {}`.
     """
     # Create a CodeEditor instance
     editor = codeeditor_factory()
@@ -152,12 +177,11 @@ def mock_completions_codeeditor(qtbot_module, request):
 
     mock_response = Mock(return_value=None)
 
-    def perform_request(lang, method, params):
-        resp = mock_response(lang, method, params)
-        print("DEBUG {}".format(resp))
+    def emit_request(method, params, requires_response):
+        resp = mock_response(method, params)
         if resp is not None:
             editor.handle_response(method, resp)
-    editor.sig_perform_completion_request.connect(perform_request)
+    editor.emit_request = emit_request
 
     editor.filename = 'test.py'
     editor.language = 'Python'
@@ -173,23 +197,19 @@ def mock_completions_codeeditor(qtbot_module, request):
 
 
 @pytest.fixture
-def completions_codeeditor(completion_plugin_all_started, qtbot_module,
+def completions_codeeditor(language_services_all_started, qtbot_module,
                            request, capsys, tmp_path):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = codeeditor_factory()
     qtbot_module.addWidget(editor)
 
-    completion_plugin, capabilities = completion_plugin_all_started
+    language_services, completion_plugin, _ = language_services_all_started
     completion_plugin.wait_for_ms = 2000
 
-    CONF.set('completions', 'enable_code_snippets', False)
+    CONF.set('language_services', 'enable_code_snippets', False)
     completion_plugin.after_configuration_update([])
-    CONF.notify_section_all_observers('completions')
-
-    # Redirect editor LSP requests to lsp_manager
-    editor.sig_perform_completion_request.connect(
-        completion_plugin.send_request)
+    CONF.notify_section_all_observers('language_services')
 
     file_path = tmp_path / 'test.py'
     file_path.write_text('')
@@ -197,14 +217,20 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     editor.filename = str(file_path)
     editor.language = 'Python'
 
-    completion_plugin.register_file('python', str(file_path), editor)
-    editor.register_completion_capabilities(capabilities)
+    # Send editor requests to the language services plugin
+    editor.language_services = language_services
+    on_diagnostics = route_diagnostics(language_services, editor)
+    editor.register_completion_capabilities(
+        language_services.capabilities(Language.PYTHON)
+    )
 
     with qtbot_module.waitSignal(
             editor.completions_response_signal, timeout=30000):
         editor.start_completion_services()
 
     def teardown():
+        editor.notify_close()
+        language_services.sig_diagnostics.disconnect(on_diagnostics)
         editor.completion_widget.hide()
         editor.tooltip_widget.hide()
         editor.hide()
