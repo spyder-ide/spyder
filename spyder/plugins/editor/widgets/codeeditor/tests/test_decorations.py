@@ -96,20 +96,14 @@ def test_decorations(codeeditor, qtbot):
 
 
 def test_goto_occurrence(codeeditor, qtbot):
-    """Test occurrence features."""
+    """Test goto occurrence features."""
     editor = codeeditor
-
-    # Set random size
     editor.resize(640, 480)
-
-    # Set cell of different length.
-    base_function = (
+    editor.set_text(
         "def some_function():\n"
         "    some_variable = 1\n"
         "    some_variable += 2\n"
     )
-
-    editor.set_text(base_function)
 
     # Move cursor over 1st 'some_variable'
     editor.go_to_line(2)
