@@ -72,6 +72,47 @@
 
 ----
 
+## Version 6.2.0a4 (2026-11-12)
+
+### Issues Closed
+
+* [Issue 26465](https://github.com/spyder-ide/spyder/issues/26465) - Consolidate shortcuts to switch between tabs ([PR 26509](https://github.com/spyder-ide/spyder/pull/26509) by [@AbhiRKeesara](https://github.com/AbhiRKeesara))
+* [Issue 26163](https://github.com/spyder-ide/spyder/issues/26163) - Add keyboard shortcut to jump to previous prompts in the IPython console ([PR 26204](https://github.com/spyder-ide/spyder/pull/26204) by [@csreddy98](https://github.com/csreddy98))
+* [Issue 25362](https://github.com/spyder-ide/spyder/issues/25362) - Support clicking on hyperlinks in IPython console output ([PR 26489](https://github.com/spyder-ide/spyder/pull/26489) by [@blair49](https://github.com/blair49))
+* [Issue 24910](https://github.com/spyder-ide/spyder/issues/24910) - IPython Console tabs should not move when selected ([PR 26463](https://github.com/spyder-ide/spyder/pull/26463) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20441](https://github.com/spyder-ide/spyder/issues/20441) - `Ctrl+Alt+S` shortcut in the editor prevents writing ś in Polish keyboard ([PR 26380](https://github.com/spyder-ide/spyder/pull/26380) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 20201](https://github.com/spyder-ide/spyder/issues/20201) - Support for Qt6 ([PR 26463](https://github.com/spyder-ide/spyder/pull/26463) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 7997](https://github.com/spyder-ide/spyder/issues/7997) - Add shortcut to "Wrap lines" checkbox in Source menu for easy access ([PR 26398](https://github.com/spyder-ide/spyder/pull/26398) by [@isa-zuluaga](https://github.com/isa-zuluaga))
+* [Issue 5459](https://github.com/spyder-ide/spyder/issues/5459) - Active file tab in editor gets moved to the right when tab bar is wider than editor pane ([PR 26463](https://github.com/spyder-ide/spyder/pull/26463) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 5396](https://github.com/spyder-ide/spyder/issues/5396) - Add a command line option to revert High DPI scaling factor ([PR 26418](https://github.com/spyder-ide/spyder/pull/26418) by [@abhiagx](https://github.com/abhiagx))
+* [Issue 2982](https://github.com/spyder-ide/spyder/issues/2982) - Mark current layout in `Window > Window layouts` ([PR 26371](https://github.com/spyder-ide/spyder/pull/26371) by [@CreatedBySeb](https://github.com/CreatedBySeb))
+
+In this release 10 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26522](https://github.com/spyder-ide/spyder/pull/26522) - PR: Update user facing changelog with changes added in 6.2.0a4, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26509](https://github.com/spyder-ide/spyder/pull/26509) - PR: Consolidate shortcuts to switch between tabs, by [@AbhiRKeesara](https://github.com/AbhiRKeesara) ([26465](https://github.com/spyder-ide/spyder/issues/26465))
+* [PR 26507](https://github.com/spyder-ide/spyder/pull/26507) - PR: Unskip several tests when using PyQt6 (Testing), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26492](https://github.com/spyder-ide/spyder/pull/26492) - PR: Make Files pane work better with Windows network share folders, by [@shivamvishal](https://github.com/shivamvishal)
+* [PR 26489](https://github.com/spyder-ide/spyder/pull/26489) - PR: Support clicking and opening hyperlinks in the IPython console, by [@blair49](https://github.com/blair49) ([25362](https://github.com/spyder-ide/spyder/issues/25362))
+* [PR 26463](https://github.com/spyder-ide/spyder/pull/26463) - PR: Update PyQt dependencies to PyQt6 and make CI use PyQt6, by [@dalthviz](https://github.com/dalthviz) ([5459](https://github.com/spyder-ide/spyder/issues/5459), [24910](https://github.com/spyder-ide/spyder/issues/24910), [20201](https://github.com/spyder-ide/spyder/issues/20201))
+* [PR 26461](https://github.com/spyder-ide/spyder/pull/26461) - PR: Qt6 patches from the Debian team, by [@juliangilbey](https://github.com/juliangilbey) ([](https://github.com/test_save_figure_to_file[image/issues/))
+* [PR 26446](https://github.com/spyder-ide/spyder/pull/26446) - PR: Use Pylint json2 format (Code analysis), by [@CreatedBySeb](https://github.com/CreatedBySeb)
+* [PR 26424](https://github.com/spyder-ide/spyder/pull/26424) - PR: Add Help action to options menu of plugins to show its documentation, by [@jsbautista](https://github.com/jsbautista)
+* [PR 26418](https://github.com/spyder-ide/spyder/pull/26418) - PR: Add command line option to reset high DPI settings (Application), by [@abhiagx](https://github.com/abhiagx) ([5396](https://github.com/spyder-ide/spyder/issues/5396))
+* [PR 26398](https://github.com/spyder-ide/spyder/pull/26398) - PR: Add shortcut to toggle wrap lines (Editor), by [@isa-zuluaga](https://github.com/isa-zuluaga) ([7997](https://github.com/spyder-ide/spyder/issues/7997))
+* [PR 26380](https://github.com/spyder-ide/spyder/pull/26380) - PR: Change shortcut to save all files to avoid conflict with Polish keyboards (Preferences), by [@jsbautista](https://github.com/jsbautista) ([20441](https://github.com/spyder-ide/spyder/issues/20441))
+* [PR 26376](https://github.com/spyder-ide/spyder/pull/26376) - PR: Improve icons to create editor splits, by [@conradolandia](https://github.com/conradolandia)
+* [PR 26374](https://github.com/spyder-ide/spyder/pull/26374) - PR: Allow Spyder projects to consider `gitignore` for files to not watch, by [@hlouzada](https://github.com/hlouzada)
+* [PR 26371](https://github.com/spyder-ide/spyder/pull/26371) - PR: Mark current layout with radio boxes (Layouts), by [@CreatedBySeb](https://github.com/CreatedBySeb) ([2982](https://github.com/spyder-ide/spyder/issues/2982))
+* [PR 26336](https://github.com/spyder-ide/spyder/pull/26336) - PR: Add Language services plugin to replace Completions one, by [@hlouzada](https://github.com/hlouzada)
+* [PR 26204](https://github.com/spyder-ide/spyder/pull/26204) - PR: Add shortcuts to jump to previous/next prompt (IPython console), by [@csreddy98](https://github.com/csreddy98) ([26163](https://github.com/spyder-ide/spyder/issues/26163), [26163](https://github.com/spyder-ide/spyder/issues/26163))
+
+In this release 17 pull requests were closed.
+
+----
+
 ## Version 6.2.0a3 (2026-09-22)
 
 ### Issues Closed
