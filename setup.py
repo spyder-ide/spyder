@@ -328,6 +328,7 @@ install_requires += [
     'qtpy>=2.4.0',
     'rtfunicode>=2.2,<3',
     'rtree>=0.9.7',
+    'ruff>=0.9.8,<1.0.0',
     'sphinx>=7.2.0',
     'spyder-kernels>=3.2.0a2,<3.2.0a3',
     'spyder-themes>=1.0.16,<1.1.0',
@@ -420,6 +421,8 @@ spyder_language_services_entry_points = [
      'LanguageServerClientProvider'),
     ('pylsp = spyder.plugins.languageservices.providers.pylsp.provider:'
      'PylspProvider'),
+    ('ruff = spyder.plugins.languageservices.providers.ruff.provider:'
+     'RuffProvider'),
     ('black = spyder.plugins.languageservices.providers.black.provider:'
      'BlackProvider'),
     ('autopep8 = spyder.plugins.languageservices.providers.autopep8.provider:'

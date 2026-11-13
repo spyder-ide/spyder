@@ -68,6 +68,7 @@ PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=24.0.0'
 QSTYLIZER_REQVER = '>=0.2.2'
+RUFF_REQVER = '>=0.9.8,<1.0.0'
 QTAWESOME_REQVER = '>=1.4.1,<1.5.0'
 QTCONSOLE_REQVER = '>=5.7.2,<5.8.0'
 QTPY_REQVER = '>=2.4.0'
@@ -236,6 +237,10 @@ DESCRIPTIONS = [
      'package_name': 'pyls-spyder',
      'features': _('Spyder plugin for the Python LSP Server'),
      'required_version': PYLS_SPYDER_REQVER},
+    {'modname': 'ruff',
+     'package_name': 'ruff',
+     'features': _("Linting and formatting of Python files in the Editor"),
+     'required_version': RUFF_REQVER},
     {'modname': 'pyuca',
      'package_name': 'pyuca',
      'features': _('Properly sort lists of non-English strings'),
