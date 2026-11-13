@@ -124,6 +124,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         self._interpreter = sys.executable
         self._workspace_folders: dict[str, lsp.WorkspaceFolder] = {}
         self._started = False
+        self._apply_lock = asyncio.Lock()
 
     # ---- Configuration ---------------------------------------------------
     def get_server_configs(self) -> list[ServerConfig]:
@@ -157,7 +158,17 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     async def apply_server_configs(
         self, configs: Iterable[ServerConfig]
     ) -> None:
-        """Reconcile the running servers with ``configs``."""
+        """Start, restart or stop servers to match ``configs``.
+
+        Calls run one at a time. A second call starting while a server is
+        still being stopped or started would interleave with it.
+        """
+        async with self._apply_lock:
+            await self._apply_server_configs(configs)
+
+    async def _apply_server_configs(
+        self, configs: Iterable[ServerConfig]
+    ) -> None:
         wanted = {config.name: config for config in configs}
         for name in list(self._servers):
             if name not in wanted:
