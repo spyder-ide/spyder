@@ -36,6 +36,7 @@ AIOHTTP_REQVER = '>=3.11.2'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 BCRYPT_REQVER = ">=4.3.0"
+BLACK_REQVER = '>=24.1.0,<27.0.0'
 CHARDET_REQVER = '>=5.2.0,<8.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
@@ -119,6 +120,10 @@ DESCRIPTIONS = [
      'package_name': "bcrypt",
      'features': _("Decrypt passphrase of SSH key files"),
      'required_version': BCRYPT_REQVER},
+    {'modname': "black",
+     'package_name': "black",
+     'features': _("Formatting of Python files in the Editor"),
+     'required_version': BLACK_REQVER},
     {'modname': "chardet",
      'package_name': "chardet",
      'features': _("Character encoding auto-detection for the Editor"),
