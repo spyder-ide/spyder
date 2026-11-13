@@ -212,6 +212,10 @@ class LanguageServicesProvider(SpyderConfigurationObserver, QObject):
     PRIORITY: int = 100
     """Merge order of the provider's responses. Lower values merge first."""
 
+    ENABLED_BY_DEFAULT: bool = True
+    """Whether the provider starts when no stored configuration says
+    otherwise."""
+
     CONF_DEFAULTS: list[tuple[Any, Any]] = []
     """``(option, default)`` pairs stored in the provider's namespace."""
 
