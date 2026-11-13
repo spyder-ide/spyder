@@ -48,8 +48,8 @@ def spyder_converter():
 
     Adds a structure hook for ``Optional[Union[str, NotebookDocumentFilter*]]``
     (``NotebookDocumentFilterWithCells.notebook`` in lsprotocol 2025.0.0 has
-    no hook for the Optional variant, which breaks structuring pylsp's
-    ``notebookDocumentSync`` capabilities) and accepts Spyder's extended
+    no hook for the Optional variant, which breaks structuring the
+    ``notebookDocumentSync`` capabilities some servers report) and accepts Spyder's extended
     symbol kinds (cells, block comments) in ``SymbolKind`` fields.
     """
     converter = default_converter()

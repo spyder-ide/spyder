@@ -131,7 +131,7 @@ class LanguageServerConnection:
     def _environment(self) -> dict[str, str]:
         env = dict(os.environ)
         if self.config.python_module:
-            # pylsp picks up random user files named like stdlib modules
+            # Python servers pick up user files named like stdlib modules
             # when started from the user's cwd. Use an empty directory.
             env.setdefault("PYTHONIOENCODING", "utf-8")
 
