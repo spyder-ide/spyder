@@ -1070,8 +1070,7 @@ def is_module_installed(module_name, version=None, interpreter=None,
     given ``version`` in the ``interpreter``'s environment. Otherwise checks
     in Spyder's environment.
 
-    ``distribution_name`` is the distribution name of a package. For instance,
-    for pylsp_black that name is python_lsp_black.
+    ``distribution_name`` is the distribution name of a package.
     """
     if interpreter is not None:
         if is_python_interpreter(interpreter):
@@ -1099,9 +1098,7 @@ def is_module_installed(module_name, version=None, interpreter=None,
         except Exception:
             pass
 
-        # Try to get the module version from its distribution name. For
-        # instance, pylsp_black doesn't have a version but that can be
-        # obtained from its distribution, called python_lsp_black.
+        # Try to get the module version from its distribution name.
         if not module_version and distribution_name:
             module_version = get_package_version(distribution_name)
 
