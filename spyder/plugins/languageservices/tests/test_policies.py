@@ -121,3 +121,16 @@ def test_register_merge_strategy():
     assert merge_strategy(method)([("a", None), ("b", 1)]) == 1
     register_merge_strategy(method, lambda results: len(results))
     assert merge_strategy(method)([("a", None), ("b", 1)]) == 2
+
+
+def test_merge_diagnostics_drops_identical_duplicates():
+    # Two servers reporting the same syntax error must not show it twice.
+    rng = lsp.Range(lsp.Position(0, 4), lsp.Position(0, 5))
+    first = lsp.Diagnostic(range=rng, message="Expected an identifier")
+    second = lsp.Diagnostic(range=rng, message="Expected an identifier")
+    other = lsp.Diagnostic(range=rng, message="Something else")
+    merged = merge_diagnostics([("pyrefly", [first]), ("ruff", [second, other])])
+    assert [(d.message, d.source) for d in merged] == [
+        ("Expected an identifier", "pyrefly"),
+        ("Something else", "ruff"),
+    ]

@@ -200,10 +200,26 @@ def merge_completions(
 def merge_diagnostics(
     results: list[tuple[str, list[lsp.Diagnostic] | None]],
 ) -> list[lsp.Diagnostic]:
-    """Concatenate diagnostics, naming the provider in empty ``source``."""
+    """Concatenate diagnostics, naming the provider in empty ``source``.
+
+    A diagnostic with the same range and message as one already merged is
+    dropped: several servers report the same syntax errors.
+    """
     merged: list[lsp.Diagnostic] = []
+    seen: set[tuple[int, int, int, int, str]] = set()
     for name, diagnostics in results:
         for diagnostic in diagnostics or ():
+            rng = diagnostic.range
+            key = (
+                rng.start.line,
+                rng.start.character,
+                rng.end.line,
+                rng.end.character,
+                diagnostic.message,
+            )
+            if key in seen:
+                continue
+            seen.add(key)
             if not diagnostic.source:
                 diagnostic.source = name
 
