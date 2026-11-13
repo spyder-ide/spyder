@@ -290,6 +290,7 @@ install_requires += [
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'asyncssh>=2.14.0,<3.0.0',
     'bcrypt>=4.3.0',
+    'black>=24.1.0,<27.0.0',
     'chardet>=5.2.0,<8.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
@@ -419,6 +420,8 @@ spyder_language_services_entry_points = [
      'LanguageServerClientProvider'),
     ('pylsp = spyder.plugins.languageservices.providers.pylsp.provider:'
      'PylspProvider'),
+    ('black = spyder.plugins.languageservices.providers.black.provider:'
+     'BlackProvider'),
     ('cells = spyder.plugins.languageservices.providers.cells.provider:'
      'CellsProvider'),
     ('fallback = spyder.plugins.languageservices.providers.fallback.provider:'
