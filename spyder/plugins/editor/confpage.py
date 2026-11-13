@@ -244,12 +244,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         # Disable the fix-on-save options if autoformatting is enabled
-        format_on_save = CONF.get(
-            'language_services',
-            ('providers', 'pylsp', 'values', 'format_on_save'),
-            False,
-        )
-        self.on_format_save_state(format_on_save)
+        self.on_format_save_state(self.get_option('format_on_save'))
 
         whitespace_layout = QVBoxLayout()
         whitespace_layout.addWidget(self.removetrail_box)
@@ -529,18 +524,15 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             ],
         )
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'format_on_save'),
-        section='language_services',
-    )
+    @on_conf_change(option='format_on_save', section='editor')
     def on_format_save_state(self, value):
         """
-        Change options following the `format_on_save` completion option.
+        Change options following the `format_on_save` option.
 
         Parameters
         ----------
         value : bool
-            If the completion `format_on_save` option is enabled or disabled.
+            If the `format_on_save` option is enabled or disabled.
 
         Returns
         -------

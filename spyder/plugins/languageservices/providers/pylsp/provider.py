@@ -54,7 +54,6 @@ class PylspProvider(LanguageServerClientProvider):
         ("ruff", False),
         ("no_linting", False),
         ("formatting", "black"),
-        ("format_on_save", False),
         ("flake8/filename", ""),
         ("flake8/exclude", ""),
         ("flake8/extendSelect", ""),
