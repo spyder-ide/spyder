@@ -277,7 +277,6 @@ class LSPMixin:
         self.formatting_in_progress = False
         self.symbols_sync_version = 0
         self.folding_sync_version = 0
-        self.pyflakes_linting_enabled = True
 
         self._text_version = 0
 
@@ -918,8 +917,9 @@ class LSPMixin:
             if "analysis:ignore" in text:
                 continue
 
-            # This only works for Python and it's only needed with pyflakes.
-            if self.language == "Python" and self.pyflakes_linting_enabled:
+            # Python linters honor noqa comments themselves. Type checkers do
+            # not, so the editor keeps skipping those lines.
+            if self.language == "Python":
                 if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
