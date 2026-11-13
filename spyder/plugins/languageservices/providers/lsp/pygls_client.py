@@ -27,6 +27,22 @@ if TYPE_CHECKING:
     )
 
 
+def configuration_section(settings: Any, section: str | None) -> Any:
+    """Value of a ``workspace/configuration`` item.
+
+    ``section`` is a dotted path into ``settings``. ``None`` selects the
+    whole object and an unknown path has no value, as the LSP specifies.
+    """
+    if section is None:
+        return settings
+    value = settings
+    for key in section.split("."):
+        if not isinstance(value, dict) or key not in value:
+            return None
+        value = value[key]
+    return value
+
+
 def spyder_converter():
     """cattrs converter of pygls extended for Spyder's needs.
 
@@ -118,7 +134,12 @@ class SpyderPyglsClient(JsonRPCClient):
         def on_workspace_configuration(
             params: lsp.ConfigurationParams,
         ) -> list:
-            return [connection.configurations] * len(params.items)
+            # The scope of an item is ignored: every folder gets the same
+            # settings.
+            return [
+                configuration_section(connection.configurations, item.section)
+                for item in params.items
+            ]
 
         @self.feature(lsp.WORKSPACE_APPLY_EDIT)
         def on_apply_edit(
