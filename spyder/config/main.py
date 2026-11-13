@@ -246,6 +246,7 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'line_length': 79,
+              'formatter': 'black',
               'format_on_save': False,
               'enable_hover_hints': True,
               'indent_guides': False,

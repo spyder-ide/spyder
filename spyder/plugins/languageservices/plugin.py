@@ -30,6 +30,7 @@ from qtpy.QtCore import QCoreApplication, QEventLoop, Signal, Slot
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher, DispatcherFuture
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
@@ -37,6 +38,7 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.languageservices.api.policies import feature_name
 from spyder.plugins.languageservices.api.provider import (
     PROVIDERS_ENTRYPOINT,
     LanguageServicesProvider,
@@ -57,6 +59,12 @@ dispatch = AsyncDispatcher(loop=LANGUAGE_SERVICES_LOOP)
 
 FALLBACK_PROVIDERS = frozenset({"fallback", "snippets"})
 """Providers that serve every language without a language server."""
+
+FORMATTING_FEATURES = (
+    feature_name(lsp.TEXT_DOCUMENT_FORMATTING),
+    feature_name(lsp.TEXT_DOCUMENT_RANGE_FORMATTING),
+)
+"""Request policies routed to the editor's ``formatter``."""
 
 
 def wait_for(future: DispatcherFuture, timeout: float = 10.0):
@@ -216,6 +224,7 @@ class LanguageServices(SpyderPluginV2):
         return cls.create_icon("completions")
 
     def on_initialize(self):
+        self._select_formatter(self.get_conf("formatter", section="editor"))
         for name in self.provider_names():
             if self.is_provider_enabled(name):
                 self.start_provider(name)
@@ -523,6 +532,20 @@ class LanguageServices(SpyderPluginV2):
     # ---- Private ---------------------------------------------------------
     def _api_conf(self, option, default):
         return self.get_conf(option, default)
+
+    @on_conf_change(section="editor", option="formatter")
+    def _select_formatter(self, name: str):
+        """Restrict the formatting request policies to the provider
+        ``name``, keeping their other fields."""
+        policies = self.get_conf("request_policies")
+        updated = dict(policies)
+        for feature in FORMATTING_FEATURES:
+            updated[feature] = {
+                **updated.get(feature, {}),
+                "providers": [name],
+            }
+        if updated != policies:
+            self.set_conf("request_policies", updated)
 
     @Slot(str)
     def _on_interpreter_changed(self, interpreter: str):
