@@ -43,7 +43,7 @@ def generate_pylsp_config(get_conf, interpreter: str) -> ServerConfig:
     settings = copy.deepcopy(PYTHON_CONFIG["configurations"])
     plugins = settings["pylsp"]["plugins"]
 
-    max_line_length = get_conf("flake8/max_line_length", 79)
+    max_line_length = get_conf("line_length", 79, section="editor")
     indent = get_conf("indent_chars", "*    *", section="editor").replace(
         "*", ""
     )

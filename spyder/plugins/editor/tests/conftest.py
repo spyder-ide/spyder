@@ -177,12 +177,7 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
                 'values',
                 'format_on_save'
             ): False,
-            (
-                "providers",
-                "pylsp",
-                "values",
-                "flake8/max_line_length",
-            ): 79,
+            'line_length': 79,
         }
 
         if last_focused_filename is not None:

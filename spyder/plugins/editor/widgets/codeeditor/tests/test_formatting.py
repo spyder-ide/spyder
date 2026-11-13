@@ -149,12 +149,7 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
         ('providers', 'pylsp', 'values', 'formatting'),
         formatter
     )
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values',
-         'flake8/max_line_length'),
-        max_line_length
-    )
+    CONF.set('editor', 'line_length', max_line_length)
     # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
     CONF.set(
         'language_services',

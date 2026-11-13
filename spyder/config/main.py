@@ -245,6 +245,7 @@ DEFAULTS = [
               'blank_spaces': False,
               'edge_line': True,
               'edge_line_columns': '79',
+              'line_length': 79,
               'indent_guides': False,
               'code_folding': True,
               'show_code_folding_warning': True,
