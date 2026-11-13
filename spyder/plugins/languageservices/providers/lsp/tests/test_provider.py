@@ -29,6 +29,7 @@ from spyder.plugins.languageservices.providers.lsp.provider import (
     _ServerState,
 )
 from spyder.plugins.languageservices.services import LanguageServicesAPI
+from spyder.utils.programs import get_binary_path
 
 
 pytestmark = pytest.mark.order(3)
@@ -37,11 +38,9 @@ PYREFLY_SETTINGS = {"python": {"pythonPath": sys.executable}}
 
 
 def pyrefly_config(name):
-    from pyrefly.__main__ import get_pyrefly_bin
-
     return ServerConfig(
         name=name,
-        cmd=get_pyrefly_bin(),
+        cmd=get_binary_path("pyrefly"),
         args="lsp",
         stdio=True,
         languages=("python",),

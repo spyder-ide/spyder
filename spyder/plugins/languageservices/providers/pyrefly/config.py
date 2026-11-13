@@ -8,11 +8,9 @@
 
 from __future__ import annotations
 
-# Third party imports
-from pyrefly.__main__ import get_pyrefly_bin
-
 # Local imports
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
+from spyder.utils.programs import get_binary_path
 
 PYREFLY_SERVER_NAME = "pyrefly"
 
@@ -40,7 +38,7 @@ def generate_pyrefly_config(get_conf, interpreter: str) -> ServerConfig:
     }
     return ServerConfig(
         name=PYREFLY_SERVER_NAME,
-        cmd=get_pyrefly_bin(),
+        cmd=get_binary_path("pyrefly"),
         args="lsp",
         stdio=True,
         languages=("python",),
