@@ -137,3 +137,31 @@ def test_diagnostics_bookkeeping():
     assert dict(registry.diagnostics_for("file:///a.py")) == {"p2": [diag]}
     registry.set_diagnostics("file:///a.py", "p2", [])
     assert registry.diagnostics == {}
+
+
+def test_text_store_tracks_content():
+    from spyder.plugins.languageservices.api.documents import TextStore
+
+    store = TextStore()
+    store.open(did_open(text="ab\ncd\n"))
+    assert store.text("file:///a.py") == "ab\ncd\n"
+    assert store.language_id("file:///a.py") == "python"
+    store.change(
+        change(
+            "file:///a.py",
+            2,
+            lsp.TextDocumentContentChangePartial(
+                range=lsp.Range(lsp.Position(1, 0), lsp.Position(1, 2)),
+                text="xy",
+            ),
+        )
+    )
+    assert store.text("file:///a.py") == "ab\nxy\n"
+    item = store.item("file:///a.py")
+    assert (item.version, item.text) == (2, "ab\nxy\n")
+    assert store.uris() == ["file:///a.py"]
+    # Changes to unknown documents are ignored, like servers do
+    store.change(change("file:///other.py", 1, lsp.TextDocumentContentChangeWholeDocument(text="z")))
+    assert store.text("file:///other.py") is None
+    store.close(lsp.DidCloseTextDocumentParams(lsp.TextDocumentIdentifier("file:///a.py")))
+    assert store.text("file:///a.py") is None
