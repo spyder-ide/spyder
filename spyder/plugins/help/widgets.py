@@ -520,13 +520,13 @@ class HelpWidget(PluginMainWidget):
     def on_rich_mode_update(self, value):
         if value:
             # Plain Text OFF / Rich text ON
-            self.docstring = not value
+            self.docstring = False
             self.stacked_widget.setCurrentWidget(self.rich_text)
             self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
                 False)
         else:
             # Plain Text ON / Rich text OFF
-            self.docstring = value
+            self.docstring = True
             self.stacked_widget.setCurrentWidget(self.plain_text)
 
         if CONF.all_observers_notified:

@@ -575,18 +575,35 @@ def test_get_help_ipython_console(main_window, qtbot):
     assert object_combo_action.isVisible()
     assert not object_edit_action.isVisible()
 
-    # Check "Show source" action for objects with source
+    # Check showing docstrings in plain text
+    plain_text_action = help_widget.plain_text_action
+    plain_text_action.setChecked(True)
+
+    assert not help_widget.rich_text.isVisible()
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "====\nnorm\n====" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects with source (return to rich text
+    # first because it's a bit more realistic)
+    help_widget.rich_text_action.setChecked(True)
     show_source_action = help_widget.show_source_action
     assert show_source_action.isEnabled()
 
     show_source_action.setChecked(True)
-    assert not help_widget.rich_text.isVisible()
+    assert "def norm(" in help_widget.plain_text.editor.toPlainText()
+
+    # Check when we disable "Show source"
+    show_source_action.setChecked(False)
     assert help_widget.plain_text.isVisible()
     assert (
-        "Matrix or vector norm" in help_widget.plain_text.editor.toPlainText()
+        "====\nnorm\n====" in help_widget.plain_text.editor.toPlainText()
     )
 
     # Check "Show source" action for objects without source
+    show_source_action.setChecked(True)
+
     with qtbot.waitSignal(shell.executed):
         shell.execute("import pandas as pd")
 
@@ -630,6 +647,7 @@ def test_get_help_editor(main_window, qtbot, object_info):
         timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
+    help_widget = help_plugin.get_widget()
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
@@ -648,6 +666,7 @@ def test_get_help_editor(main_window, qtbot, object_info):
         code_editor.document_did_change()
 
     # Get help
+    help_widget.rich_text_action.setChecked(True)
     with qtbot.waitSignal(code_editor.sig_display_object_info, timeout=30000):
         editorstack.inspect_current_object()
 
@@ -655,7 +674,6 @@ def test_get_help_editor(main_window, qtbot, object_info):
     qtbot.waitUntil(lambda: check_text(webpage, expected_text), timeout=30000)
 
     # Check state of widgets in Help's toolbar
-    help_widget = help_plugin.get_widget()
     help_toolbar = help_widget.get_main_toolbar()
     object_combo_action = help_toolbar.action_for_widget(
         help_widget.object_combo
@@ -664,12 +682,27 @@ def test_get_help_editor(main_window, qtbot, object_info):
         help_widget.object_edit
     )
 
+    object_word = object_name.split()[-1]
     assert not object_combo_action.isVisible()
     assert object_edit_action.isVisible()
-    assert help_widget.object_edit.text() == object_name.split()[-1]
+    assert help_widget.object_edit.text() == object_word
 
     # This action should be disabled when the docs source is the Editor
     assert not help_widget.show_source_action.isEnabled()
+
+    # Check showing docstrings in plain text (only works with pip packages)
+    if not running_in_ci_with_conda():
+        plain_text_action = help_widget.plain_text_action
+        plain_text_action.setChecked(True)
+
+        assert not help_widget.rich_text.isVisible()
+        assert help_widget.plain_text.isVisible()
+        assert (
+            f"{'=' * len(object_word)}"
+            + f"\n{object_word}\n"
+            + f"{'=' * len(object_word)}"
+            in help_widget.plain_text.editor.toPlainText()
+        )
 
 
 def test_window_title(main_window, tmpdir, qtbot):
