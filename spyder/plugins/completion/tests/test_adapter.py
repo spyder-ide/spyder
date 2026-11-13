@@ -31,7 +31,7 @@ def language_services(language_services_all_started):
     return plugin
 
 
-def test_completion_reaches_pylsp(language_services, qtbot, tmp_path):
+def test_completion_reaches_pyrefly(language_services, qtbot, tmp_path):
     filename = str(tmp_path / "adapter_test.py")
     uri = path_as_uri(filename)
     text = "import math\nmath.hyp"
@@ -49,9 +49,10 @@ def test_completion_reaches_pylsp(language_services, qtbot, tmp_path):
         ),
     )
     # The legacy adapter serves no language. No third-party providers here
-    assert language_services.providers_for(Language.PYTHON) == [
-        "pylsp", "fallback", "snippets"
-    ]
+    providers = language_services.providers_for(Language.PYTHON)
+    assert providers[0] == "pyrefly"
+    assert {"ruff", "black", "autopep8", "cells", "fallback", "snippets"} <= set(providers)
+    assert "legacy" not in providers
 
     items = run(
         language_services.services_api.completion,
@@ -64,7 +65,7 @@ def test_completion_reaches_pylsp(language_services, qtbot, tmp_path):
     assert any(label.startswith("hypot") for label in labels)
 
     providers = {item.data["provider"] for item in items}
-    assert "pylsp" in providers
+    assert "pyrefly" in providers
     assert all(item.data["uri"] == uri for item in items)
 
     hover = run(
@@ -77,7 +78,7 @@ def test_completion_reaches_pylsp(language_services, qtbot, tmp_path):
     assert isinstance(hover, lsp.Hover)
     assert "math" in LSPMixin.hover_text(hover)
 
-    # Diagnostics pushed by pylsp are routed through the plugin
+    # Diagnostics pushed by the servers are routed through the plugin
     run(
         language_services.services_api.change_document,
         lsp.DidChangeTextDocumentParams(
