@@ -92,7 +92,7 @@ def test_merge_diagnostics_names_source():
     named = lsp.Diagnostic(
         range=diag.range, message="n", source="pyflakes"
     )
-    merged = merge_diagnostics([("pylsp", [named]), ("other", [diag])])
+    merged = merge_diagnostics([("pyrefly", [named]), ("other", [diag])])
     assert [d.source for d in merged] == ["pyflakes", "other"]
 
 
