@@ -31,17 +31,7 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
     text, expected = get_formatter_values(formatter, newline)
 
     # Set formatter
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
-    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'ruff'),
-        formatter == 'ruff'
-    )
+    CONF.set('editor', 'formatter', formatter)
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
@@ -87,11 +77,7 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
     text, expected = get_formatter_values(formatter, newline, range_fmt=True)
 
     # Set formatter
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
+    CONF.set('editor', 'formatter', formatter)
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
@@ -135,18 +121,8 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
     max_line_length = 20
 
     # Set formatter and max line length options
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
+    CONF.set('editor', 'formatter', formatter)
     CONF.set('editor', 'line_length', max_line_length)
-    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'ruff'),
-        formatter == 'ruff'
-    )
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
