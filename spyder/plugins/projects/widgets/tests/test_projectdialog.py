@@ -145,5 +145,86 @@ def test_directory_is_writable(tmp_path):
         read_only_dir.chmod(0o644)
 
 
+
+def _make_interpreter(folder):
+    """Create a fake .venv interpreter in folder."""
+    bin_dir = folder / ".venv" / ("Scripts" if os.name == "nt" else "bin")
+    bin_dir.mkdir(parents=True)
+    interpreter = bin_dir / ("python.exe" if os.name == "nt" else "python")
+    interpreter.touch()
+    return str(interpreter)
+
+
+def test_interpreter_is_detected_in_existing_directory(
+    projects_dialog, tmp_path
+):
+    """The interpreter field is filled when the directory has an env."""
+    dlg = projects_dialog
+    dlg.set_current_index(1)
+    page = dlg.get_page()
+
+    interpreter = _make_interpreter(tmp_path)
+    page._location.textbox.setText(str(tmp_path))
+    assert page.interpreter == os.path.normpath(interpreter)
+
+    # It's cleared again if the user selects a directory without one
+    other = tmp_path / "other"
+    other.mkdir()
+    page._location.textbox.setText(str(other))
+    assert page.interpreter == ""
+
+
+def test_detected_interpreter_keeps_user_choice(projects_dialog, tmp_path):
+    """A user-selected interpreter is never replaced by a detected one."""
+    dlg = projects_dialog
+    dlg.set_current_index(1)
+    page = dlg.get_page()
+
+    chosen = tmp_path / "my_python"
+    chosen.touch()
+    page._interpreter.textbox.setText(str(chosen))
+
+    _make_interpreter(tmp_path)
+    page._location.textbox.setText(str(tmp_path))
+    assert page.interpreter == os.path.normpath(str(chosen))
+
+
+def test_interpreter_is_validated(projects_dialog, tmp_path, qtbot):
+    """The interpreter is optional, but it must exist when it's set."""
+    dlg = projects_dialog
+    dlg.set_current_index(1)
+    page = dlg.get_page()
+    page._location.textbox.setText(str(tmp_path))
+
+    # Empty is fine
+    assert page.validate_page()
+
+    # A file that doesn't exist is not
+    page._interpreter.textbox.setText(str(tmp_path / "missing" / "python"))
+    assert not page.validate_page()
+    assert page._validation_label.text() == (
+        "The Python interpreter you selected doesn't exist."
+    )
+
+    # An existing file is
+    existing = tmp_path / "python"
+    existing.touch()
+    page._interpreter.textbox.setText(str(existing))
+    assert page.validate_page()
+
+
+def test_interpreter_is_part_of_project_data(projects_dialog, tmp_path):
+    """The selected interpreter is passed on to create the project."""
+    dlg = projects_dialog
+    dlg.set_current_index(1)
+    page = dlg.get_page()
+
+    interpreter = _make_interpreter(tmp_path)
+    page._location.textbox.setText(str(tmp_path))
+    dlg.create_project()
+
+    assert dlg.project_data["interpreter"] == os.path.normpath(interpreter)
+
+    
 if __name__ == "__main__":
     pytest.main()

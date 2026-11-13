@@ -41,6 +41,7 @@ from spyder.plugins.projects.widgets.projectdialog import (
     is_writable,
     ProjectDialog,
 )
+from spyder.plugins.projects.widgets.configdialog import ConfigDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
 from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
@@ -67,6 +68,7 @@ class ProjectsActions:
     DeleteProject = 'delete_project_action'
     ClearRecentProjects = 'clear_recent_projects_action'
     MaxRecent = 'max_recent_action'
+    ProjectSettings = 'project_settings_action'
 
 
 class ProjectsMenuSubmenus:
@@ -172,6 +174,17 @@ class ProjectExplorerWidget(PluginMainWidget):
         Parameters of the notification.
     """
 
+    sig_project_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active project is
+    changed in Project Settings.
+
+    Parameters
+    ----------
+    project_path: str
+        Path of the project whose interpreter changed.
+    """
+
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin=plugin, parent=parent)
 
@@ -266,6 +279,12 @@ class ProjectExplorerWidget(PluginMainWidget):
             icon=self.create_icon("transparent"),
             triggered=self.change_max_recent_projects)
 
+        self.project_settings_action = self.create_action(
+            ProjectsActions.ProjectSettings,
+            text=_("Project Settings ..."),
+            icon=self.create_icon("project_preferences"),
+            triggered=self.change_settings)
+
         self.recent_project_menu = self.create_menu(
             ProjectsMenuSubmenus.RecentProjects,
             _("Recent Projects"),
@@ -320,12 +339,22 @@ class ProjectExplorerWidget(PluginMainWidget):
         data = dlg.project_data
         root_path = data.get("root_path", None)
         project_type = data.get("project_type", EmptyProject.ID)
+        interpreter = data.get("interpreter", "")
 
         if result:
             logger.debug(f'Creating a project at {root_path}')
-            self.create_project(root_path, project_type_id=project_type)
+            self.create_project(
+                root_path,
+                project_type_id=project_type,
+                interpreter=interpreter,
+            )
 
-    def create_project(self, root_path, project_type_id=EmptyProject.ID):
+    def create_project(
+            self,
+            root_path,
+            project_type_id=EmptyProject.ID,
+            interpreter=""
+            ):
         """Create a new project."""
         project_types = self.get_project_types()
         if project_type_id in project_types:
@@ -340,6 +369,11 @@ class ProjectExplorerWidget(PluginMainWidget):
                 QMessageBox.warning(self, "Project creation", message)
                 shutil.rmtree(root_path, ignore_errors=True)
                 return
+
+            # This needs to be set before opening the project, so the
+            # interpreter is used when the project is loaded.
+            if interpreter:
+                project_type.set_option("interpreter", interpreter)
 
             self.sig_project_created.emit(root_path, project_type_id)
             self.open_project(path=root_path, project_type=project_type)
@@ -453,6 +487,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         if not open_successfully:
             QMessageBox.warning(self, "Project open", message)
 
+
     def close_project(self):
         """
         Close current project and return to a window without an active
@@ -554,6 +589,21 @@ class ProjectExplorerWidget(PluginMainWidget):
             if max_projects < len(self.recent_projects):
                 self.recent_projects = self._get_valid_recent_projects(
                     self.recent_projects)[:max_projects]
+
+    def change_settings(self):
+        """Open the project settings dialog."""
+        if self.current_active_project is None:
+            return
+
+        self._unmaximize()
+        dlg = ConfigDialog(self, self.current_active_project)
+        if dlg.exec_():
+            dlg.save_configuration()
+            self.sig_project_interpreter_changed.emit(
+                self.current_active_project.root_path
+            )
+
+
 
     def reopen_last_project(self, working_directory, restart_console):
         """
