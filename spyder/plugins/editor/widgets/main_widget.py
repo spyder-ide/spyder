@@ -598,11 +598,7 @@ class EditorMainWidget(PluginMainWidget):
         )
 
         # Autofix actions
-        formatter = self.get_conf(
-            ('providers', 'pylsp', 'values', 'formatting'),
-            default='',
-            section='language_services'
-        )
+        formatter = self.get_conf('formatter')
         self.formatting_action = self.create_action(
             EditorWidgetActions.FormatCode,
             text=_('Format file or selection with {0}').format(
@@ -1762,10 +1758,7 @@ class EditorMainWidget(PluginMainWidget):
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'formatting'),
-        section='language_services',
-    )
+    @on_conf_change(option='formatter')
     def refresh_formatter_name(self, value):
         self.formatting_action.setText(
             _("Format file or selection with {0}").format(value.capitalize())
