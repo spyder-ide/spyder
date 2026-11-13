@@ -26,11 +26,14 @@ from collections.abc import Callable
 from typing import Any
 
 # Third party imports
+import attrs
 from lsprotocol import types as lsp
+from lsprotocol.converters import get_converter
 
 # Local imports
 from spyder.config.base import DEV, get_conf_path, get_debug_level
 from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.languageservices.api.provider import CAPABILITY_ATTRIBUTES
 from spyder.plugins.languageservices.api.uri import path_as_uri
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
 from spyder.plugins.languageservices.providers.lsp.pygls_client import (
@@ -44,6 +47,7 @@ logger = logging.getLogger(__name__)
 TRACE = lsp.TraceValue.Verbose if DEV else lsp.TraceValue.Messages
 TCP_CONNECT_RETRIES = 20
 TCP_CONNECT_DELAY = 0.5
+_CONVERTER = get_converter()
 
 
 class ServerDownError(RuntimeError):
@@ -82,6 +86,13 @@ class LanguageServerConnection:
 
         self.initialized = False
         self.capabilities: lsp.ServerCapabilities | None = None
+        """
+        Capabilities of the ``initialize`` result extended by the active
+        ``client/registerCapability`` registrations.
+        """
+        self._initialize_capabilities: lsp.ServerCapabilities | None = None
+        self._registrations: dict[str, tuple[str, Any]] = {}
+        """Registration id -> (method, register options)."""
         self.registered_languages: set[str] = set()
         """
         ``languageId``\\s of the document selectors the server registered
@@ -226,7 +237,7 @@ class LanguageServerConnection:
             )
         )
 
-        self.capabilities = result.capabilities
+        self.set_initialize_capabilities(result.capabilities)
         encoding = self.capabilities.position_encoding
         if encoding is not None and encoding != lsp.PositionEncodingKind.Utf16:
             raise ValueError(
@@ -380,12 +391,56 @@ class LanguageServerConnection:
                 if language:
                     self.registered_languages.add(language)
 
+            self._registrations[registration.id] = (
+                registration.method,
+                registration.register_options,
+            )
+
+        self._update_capabilities()
         self._on_notification(lsp.CLIENT_REGISTER_CAPABILITY, params)
 
     def on_unregister_capability(
         self, params: lsp.UnregistrationParams
     ) -> None:
+        for unregistration in params.unregisterations:
+            self._registrations.pop(unregistration.id, None)
+
+        self._update_capabilities()
         self._on_notification(lsp.CLIENT_UNREGISTER_CAPABILITY, params)
+
+    # ---- Server capabilities ---------------------------------------------
+    def set_initialize_capabilities(
+        self, capabilities: lsp.ServerCapabilities
+    ) -> None:
+        """Set the capabilities of the ``initialize`` result."""
+        self._initialize_capabilities = capabilities
+        self._update_capabilities()
+
+    def _update_capabilities(self) -> None:
+        if self._initialize_capabilities is None:
+            return
+
+        # Document selectors are not applied per language: every
+        # registration counts for all the languages the server serves.
+        changes = {}
+        for method, options in self._registrations.values():
+            attribute = CAPABILITY_ATTRIBUTES.get(method)
+            if attribute is None or method == lsp.COMPLETION_ITEM_RESOLVE:
+                continue
+
+            options_type = lsp.METHOD_TO_TYPES[method][3]
+            if options is None or options_type is None:
+                changes[attribute] = True
+            elif isinstance(options, dict):
+                changes[attribute] = _CONVERTER.structure(
+                    options, options_type
+                )
+            else:
+                changes[attribute] = options
+
+        self.capabilities = attrs.evolve(
+            self._initialize_capabilities, **changes
+        )
 
     # ---- Client capabilities ---------------------------------------------
     @staticmethod
