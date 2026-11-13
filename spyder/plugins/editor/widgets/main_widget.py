@@ -1231,7 +1231,7 @@ class EditorMainWidget(PluginMainWidget):
             action.setChecked(self.get_conf(conf_name))
         else:
             opt = self.get_conf(
-                ('providers', 'pylsp', 'values', conf_name),
+                ('providers', 'ruff', 'values', conf_name),
                 default=False,
                 section='language_services'
             )
@@ -1246,7 +1246,7 @@ class EditorMainWidget(PluginMainWidget):
         """
         Handle the toogle of a checkable action.
 
-        Update editorstacks, PyLS and CONF.
+        Update editorstacks, language services providers and CONF.
 
         Args:
             checked (bool): State of the action.
@@ -1267,7 +1267,7 @@ class EditorMainWidget(PluginMainWidget):
         else:
             if conf_name in ('pydocstyle'):
                 self.set_conf(
-                    ('providers', 'pylsp', 'values', conf_name),
+                    ('providers', 'ruff', 'values', conf_name),
                     checked,
                     section='language_services'
                 )
@@ -3092,7 +3092,7 @@ class EditorMainWidget(PluginMainWidget):
         # See: spyder-ide/spyder#9915
 
     @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'pydocstyle'),
+        option=('providers', 'ruff', 'values', 'pydocstyle'),
         section='language_services'
     )
     def on_completions_checkable_action_change(self, value):

@@ -3366,7 +3366,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     # Reset config
     CONF.set('language_services',
-             ('providers', 'pylsp', 'values', 'pydocstyle'),
+             ('providers', 'ruff', 'values', 'pydocstyle'),
              False)
 
     # Open completion prefences and update options
@@ -3413,7 +3413,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     # Reset config
     CONF.set('language_services',
-             ('providers', 'pylsp', 'values', 'pydocstyle'),
+             ('providers', 'ruff', 'values', 'pydocstyle'),
              False)
 
 
