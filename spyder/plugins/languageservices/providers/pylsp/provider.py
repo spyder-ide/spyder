@@ -60,7 +60,6 @@ class PylspProvider(LanguageServerClientProvider):
         ("flake8/exclude", ""),
         ("flake8/extendSelect", ""),
         ("flake8/extendIgnore", "E,W,C90"),
-        ("flake8/max_line_length", 79),
         ("ruff/exclude", ""),
         ("ruff/extendSelect", ""),
         ("ruff/extendIgnore", "E"),
@@ -104,6 +103,10 @@ class PylspProvider(LanguageServerClientProvider):
 
     @on_conf_change(option="__section")
     def _on_options_changed(self, options):
+        self._reconfigure()
+
+    @on_conf_change(section="editor", option="line_length")
+    def _on_line_length_changed(self, value):
         self._reconfigure()
 
     @on_conf_change(

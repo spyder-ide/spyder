@@ -1462,12 +1462,7 @@ class EditorMainWidget(PluginMainWidget):
             section='language_services'
         )
 
-        edge_line_columns = self.get_conf(
-            ('providers', 'pylsp', 'values',
-             'flake8/max_line_length'),
-            default=79,
-            section='language_services'
-        )
+        edge_line_columns = self.get_conf('line_length', default=79)
 
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)

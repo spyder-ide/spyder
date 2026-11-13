@@ -31,8 +31,8 @@ class FormattingConfigTab(SpyderPreferencesTab):
 
         self.code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
-            'flake8/max_line_length', min_=10, max_=500, step=1,
-            tip=_("Default is 79"))
+            'line_length', min_=10, max_=500, step=1,
+            tip=_("Default is 79"), section='editor')
 
         vertical_line_box = newcb(
             _("Show vertical line at that length"), 'edge_line',

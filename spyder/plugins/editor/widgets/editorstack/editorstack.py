@@ -903,11 +903,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.edge_line.set_enabled(state)
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values',
-                'flake8/max_line_length'),
-        section='language_services'
-    )
+    @on_conf_change(option='line_length')
     def set_edgeline_columns(self, columns):
         logger.debug(f"Set edge line columns to {columns}")
         self.edgeline_columns = columns
