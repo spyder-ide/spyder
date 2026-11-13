@@ -223,7 +223,8 @@ DESCRIPTIONS = [
      'required_version': PYLINT_VENV_REQVER},
     {'modname': 'pylsp',
      'package_name': 'python-lsp-server',
-     'features': _("Code completion and linting for the Editor"),
+     'features': _("Code completion and linting for the Editor (deprecated "
+                   "in favor of Pyrefly and Ruff)"),
      'required_version': PYLSP_REQVER},
     {'modname': 'pylsp_black',
      'package_name': 'python-lsp-black',

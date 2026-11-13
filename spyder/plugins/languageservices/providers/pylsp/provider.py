@@ -35,12 +35,17 @@ class PylspProvider(LanguageServerClientProvider):
     """pylsp (with ``pyls_spyder``) preconfigured from Spyder's Python
     preferences.
 
+    Deprecated in favor of the pyrefly, ruff, black, autopep8 and
+    cells
+    providers, so it is disabled by default.
+
     The single server is named ``"pylsp"``. The ``advanced/*`` options
     replace the generic servers table.
     """
 
     NAME = "pylsp"
-    PRIORITY = 0
+    PRIORITY = 1
+    ENABLED_BY_DEFAULT = False
     CONF_DEFAULTS = [
         ("show_lsp_down_warning", True),
         ("code_completion", True),
