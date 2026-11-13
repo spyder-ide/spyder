@@ -356,7 +356,8 @@ class LanguageServices(SpyderPluginV2):
         return self.services_api.provider_names()
 
     def is_provider_enabled(self, name: str) -> bool:
-        return bool(self.get_conf(("providers", name, "enable"), True))
+        default = self.get_provider(name).ENABLED_BY_DEFAULT
+        return bool(self.get_conf(("providers", name, "enable"), default))
 
     def is_provider_started(self, name: str) -> bool:
         return self.services_api.is_started(name)
@@ -608,8 +609,10 @@ class LanguageServices(SpyderPluginV2):
 
         New options are added with their defaults. A minor version bump
         overwrites values whose default changed. A major version bump also
-        drops options no longer declared. The stored entry has the keys
-        ``version``, ``values``, ``defaults`` and ``enable``.
+        drops options no longer declared. A change of
+        ``Provider.ENABLED_BY_DEFAULT`` overwrites ``enable`` once. The stored
+        entry has the keys ``version``, ``values``, ``defaults``, ``enable``
+        and ``enable_default``.
         """
         defaults = dict(Provider.CONF_DEFAULTS)
         entry = provider_configurations.get(Provider.NAME)
@@ -618,12 +621,20 @@ class LanguageServices(SpyderPluginV2):
                 "version": Provider.CONF_VERSION,
                 "values": dict(defaults),
                 "defaults": dict(defaults),
-                "enable": True,
+                "enable": Provider.ENABLED_BY_DEFAULT,
+                "enable_default": Provider.ENABLED_BY_DEFAULT,
             }
             provider_configurations[Provider.NAME] = entry
             return entry
 
-        entry.setdefault("enable", True)
+        entry.setdefault("enable", Provider.ENABLED_BY_DEFAULT)
+
+        # Entries written before "enable_default" was stored were created
+        # enabled.
+        if entry.get("enable_default", True) != Provider.ENABLED_BY_DEFAULT:
+            entry["enable"] = Provider.ENABLED_BY_DEFAULT
+        entry["enable_default"] = Provider.ENABLED_BY_DEFAULT
+
         values = entry.setdefault("values", {})
         current_defaults = entry.setdefault("defaults", {})
         for key in defaults.keys() - values.keys():

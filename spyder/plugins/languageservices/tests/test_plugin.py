@@ -146,6 +146,7 @@ def test_merge_default_configurations():
     assert entry == {
         "version": "0.1.0", "values": {"a": 1, "b": 2},
         "defaults": {"a": 1, "b": 2}, "enable": True,
+        "enable_default": True,
     }
 
     # User value survives a new option and an unchanged version
@@ -165,6 +166,76 @@ def test_merge_default_configurations():
     P.CONF_VERSION = "1.0.0"
     entry = LanguageServices._merge_default_configurations(P, confs)
     assert entry["values"] == {"a": 5} and entry["defaults"] == {"a": 5}
+
+
+def test_merge_keeps_disabled_by_default():
+    class P(LanguageServicesProvider):
+        NAME = "p"
+        ENABLED_BY_DEFAULT = False
+
+    confs = {}
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is False
+
+    # The user's choice survives later merges
+    entry["enable"] = True
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is True
+
+    # An entry stored without the key gets the provider's default
+    del entry["enable"]
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is False
+
+
+def test_merge_applies_changed_enable_default():
+    class P(LanguageServicesProvider):
+        NAME = "p"
+        ENABLED_BY_DEFAULT = False
+
+    # Entries stored before the key existed were created enabled
+    confs = {"p": {"version": "0.1.0", "values": {}, "defaults": {},
+                   "enable": True}}
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is False
+    assert entry["enable_default"] is False
+
+    # The reset happens once: the user can enable the provider again
+    entry["enable"] = True
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is True
+
+    # A provider that becomes enabled by default is turned on
+    P.ENABLED_BY_DEFAULT = True
+    entry["enable"] = False
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is True
+
+
+def test_disabled_by_default_provider_does_not_start(language_services, qtbot):
+    class Dormant(EchoProvider):
+        NAME = "dormant"
+        ENABLED_BY_DEFAULT = False
+
+    provider = language_services.register_provider(Dormant)
+    try:
+        assert not language_services.is_provider_enabled("dormant")
+        assert not language_services.is_provider_started("dormant")
+        assert not provider.running
+
+        language_services.set_conf(("providers", "dormant", "enable"), True)
+        language_services.after_configuration_update(
+            [("providers", "dormant", "enable")]
+        )
+        qtbot.waitUntil(
+            lambda: language_services.is_provider_started("dormant")
+        )
+        assert provider.running
+    finally:
+        language_services.unregister_provider("dormant")
+        providers = CONF.get("language_services", "providers")
+        providers.pop("dormant", None)
+        CONF.set("language_services", "providers", providers)
 
 
 class FakeFormatter(LanguageServicesProvider):
