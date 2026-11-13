@@ -13,6 +13,7 @@ import pytest
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.editor.plugin import Editor
 from spyder.plugins.preferences.tests.conftest import config_dialog
 
@@ -43,3 +44,23 @@ def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()
     assert configpage
     configpage.save_to_conf()
+
+
+@pytest.mark.parametrize(
+    'config_dialog',
+    [[MainWindowMock, [], [Editor]]],
+    indirect=True)
+def test_formatter_choice(config_dialog):
+    configpage = config_dialog.get_page()
+    titles = [
+        configpage.tabs.tabText(i) for i in range(configpage.tabs.count())
+    ]
+    assert "Code formatting" in titles
+
+    combobox = configpage.formatter_combobox.combobox
+    try:
+        combobox.setCurrentIndex(combobox.findData("ruff"))
+        configpage.save_to_conf()
+        assert CONF.get('editor', 'formatter') == "ruff"
+    finally:
+        CONF.set('editor', 'formatter', CONF.get_default('editor', 'formatter'))
