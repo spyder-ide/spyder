@@ -107,7 +107,7 @@ def editor_splitter_lsp(qtbot_module, language_services_all_started, request):
             unroute()
 
     request.addfinalizer(teardown)
-    return editorsplitter, language_services.get_provider('pylsp')
+    return editorsplitter, language_services.get_provider('pyrefly')
 
 
 @pytest.fixture
@@ -417,7 +417,7 @@ def test_lsp_splitter_close(editor_splitter_lsp):
     # The document is open once in the server no matter how many
     # editorstacks show it.
     def open_documents():
-        return lsp_manager._servers['pylsp'].documents
+        return lsp_manager._servers['pyrefly'].documents
 
     assert path in open_documents()
 
