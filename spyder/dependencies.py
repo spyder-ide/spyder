@@ -48,6 +48,7 @@ KEYRING_REQVER = '>=17.0.0'
 LSPROTOCOL_REQVER = '>=2025.0.0,<2026.0.0'
 LXML_REQVER = ">=4.9.0"
 MARKDOWN_IT_REQVER = ">=3.0.0"
+MCP_REQVER = '>=2.3.0,<3.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 OPENPYXL_REQVER = '>=3.0.0'
@@ -169,6 +170,10 @@ DESCRIPTIONS = [
      'package_name': "markdown-it-py",
      'features': _("Render markdown content to HTML"),
      'required_version': MARKDOWN_IT_REQVER},
+    {'modname': "mcp",
+     'package_name': "mcp",
+     'features': _("Let AI agents work with Spyder (MCP server)"),
+     'required_version': MCP_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
