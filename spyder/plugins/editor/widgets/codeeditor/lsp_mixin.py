@@ -807,6 +807,11 @@ class LSPMixin:
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
+        # Providers answer one after the other, so a pass may still be
+        # running. Starting the thread again would be a no-op and the running
+        # pass would restore markers the cleanup below removes.
+        if self.update_diagnostics_thread.isRunning():
+            self.update_diagnostics_thread.wait()
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
 
