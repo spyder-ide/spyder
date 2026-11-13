@@ -115,7 +115,7 @@ def test_config_dialog(tabbed_entry_point, config_dialog):
         "formatting": {
             "enabled": True,
             "providers": ["tabbed"],
-            "timeout_ms": None,
+            "timeout_ms": 30000,
         }
     }
 

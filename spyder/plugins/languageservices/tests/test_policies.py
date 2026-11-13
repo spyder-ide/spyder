@@ -134,3 +134,11 @@ def test_merge_diagnostics_drops_identical_duplicates():
         ("Expected an identifier", "pyrefly"),
         ("Something else", "ruff"),
     ]
+
+
+def test_formatting_default_policy_has_long_timeout():
+    # Formatters run external processes over whole files.
+    for method in (lsp.TEXT_DOCUMENT_FORMATTING, lsp.TEXT_DOCUMENT_RANGE_FORMATTING):
+        policy = DEFAULT_FEATURE_POLICIES[method]
+        assert policy.mode is RequestMode.EXCLUSIVE
+        assert policy.timeout_ms is not None and policy.timeout_ms >= 30000
