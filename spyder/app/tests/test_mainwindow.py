@@ -3570,17 +3570,17 @@ def test_change_lsp_interpreter(qtbot, main_window):
         timeout=SHELL_TIMEOUT,
     )
 
-    # Check original pylsp configuration
+    # Check original pyrefly configuration
     language_services = main_window.get_plugin(Plugins.LanguageServices)
-    pylsp = language_services.get_provider('pylsp')
+    pyrefly = language_services.get_provider('pyrefly')
 
-    def jedi_config():
-        config = pylsp.get_server_configs()[0]
-        return config.configurations['pylsp']['plugins']['jedi']
+    def python_config():
+        config = pyrefly.get_server_configs()[0]
+        return config.configurations['python']
 
-    jedi = jedi_config()
-    assert jedi['environment'] == sys.executable
-    assert jedi['extra_paths'] == []
+    python = python_config()
+    assert python['pythonPath'] == sys.executable
+    assert python['pyrefly']['extraSearchPaths'] == []
 
     # Get new interpreter to use
     new_interpreter = get_list_conda_envs()['Conda: jedi-test-env'][0]
@@ -3595,11 +3595,11 @@ def test_change_lsp_interpreter(qtbot, main_window):
             new_interpreter
         )
 
-    # Check updated pylsp configuration
-    qtbot.wait(1000)  # Account for debounced timeout when setting interpreter
-    jedi = jedi_config()
-    assert jedi['environment'] == new_interpreter
-    assert jedi['extra_paths'] == []
+    # Check updated pyrefly configuration
+    qtbot.waitUntil(
+        lambda: python_config()['pythonPath'] == new_interpreter, timeout=5000
+    )
+    assert python_config()['pyrefly']['extraSearchPaths'] == []
 
 
 @pytest.mark.skipif(sys.platform.startswith('linux'),
@@ -4871,8 +4871,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 
     # Wait until the initial requests are sent to the server.
     language_services = main_window.get_plugin(Plugins.LanguageServices)
-    pylsp = language_services.get_provider('pylsp')
-    connection = pylsp._servers['pylsp'].connection
+    pyrefly = language_services.get_provider('pyrefly')
+    connection = pyrefly._servers['pyrefly'].connection
 
     expected_requests = [
         'initialize',
