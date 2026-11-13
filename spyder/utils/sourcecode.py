@@ -13,11 +13,9 @@ import re
 import os
 import sys
 
-# Third-part imports
-from pylsp._utils import get_eol_chars as _get_eol_chars
-
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
+EOL_REGEX = re.compile(r'(\r\n|\r|\n)')
 CAMEL_CASE_RE = re.compile(r'(?<!^)(?=[A-Z])')
 
 
@@ -38,7 +36,8 @@ def get_eol_chars(text):
     eol: str or None
         Eol found in ``text``.
     """
-    eol_chars = _get_eol_chars(text)
+    match = EOL_REGEX.search(text)
+    eol_chars = match.group(0) if match else None
 
     if not eol_chars:
         if os.name == 'nt':
