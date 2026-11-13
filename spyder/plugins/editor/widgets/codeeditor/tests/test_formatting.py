@@ -17,17 +17,16 @@ from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     black,
     get_formatter_values,
     ruff,
-    yapf,
 )
 
 
 # ---- Tests
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, yapf, black, ruff])
+@pytest.mark.parametrize('formatter', [autopep8, black, ruff])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_formatting(formatter, newline, completions_codeeditor,
                              qtbot):
-    """Validate text autoformatting via autopep8, yapf, black or ruff."""
+    """Validate text autoformatting via autopep8, black or ruff."""
     code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter, newline)
 
@@ -76,14 +75,6 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
             "ruff",
             marks=pytest.mark.xfail(
                 reason="Range formatting is not supported by python-lsp-ruff"
-            ),
-        ),
-        pytest.param(
-            "yapf",
-            marks=(
-                pytest.mark.xfail(
-                    reason="Broken in PyLSP 1.5.0. We need to investigate why."
-                ),
             ),
         ),
     ],

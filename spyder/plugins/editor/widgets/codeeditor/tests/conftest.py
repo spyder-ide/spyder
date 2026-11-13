@@ -62,14 +62,6 @@ autopep8 = pytest.param(
     )
 )
 
-yapf = pytest.param(
-    'yapf',
-    marks=pytest.mark.skipif(
-        is_module_installed('yapf', '<0.32.0'),
-        reason='Versions older than 0.32 produce different outputs'
-    )
-)
-
 black = pytest.param(
     'black',
     marks=pytest.mark.skipif(
