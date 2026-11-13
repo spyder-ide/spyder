@@ -42,6 +42,7 @@ dependencies:
 - pyls-spyder >=0.4.0
 - pyqt6 >=6.9,<7
 - pyqt6-webengine >=6.9,<7
+- pyrefly >=1.4.0,<2.0.0
 - python-lsp-black >=2.0.0,<3.0.0
 - python-lsp-ruff >=2.3.0,<3.0.0
 - python-lsp-server >=1.14.0,<1.15.0
