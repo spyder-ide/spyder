@@ -56,19 +56,7 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
 
 
 @pytest.mark.order(1)
-@pytest.mark.parametrize(
-    "formatter",
-    [
-        autopep8,
-        black,
-        pytest.param(
-            "ruff",
-            marks=pytest.mark.xfail(
-                reason="Range formatting is not supported by python-lsp-ruff"
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("formatter", [autopep8, black, ruff])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_range_formatting(formatter, newline, completions_codeeditor,
                                    qtbot):
