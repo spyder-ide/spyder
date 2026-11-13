@@ -35,7 +35,6 @@ from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
-from spyder.utils.programs import is_module_installed
 from spyder.widgets.findreplace import FindReplace
 
 
@@ -62,13 +61,7 @@ autopep8 = pytest.param(
     )
 )
 
-black = pytest.param(
-    'black',
-    marks=pytest.mark.skipif(
-        is_module_installed('python-lsp-black', '<2.0.0'),
-        reason='Versions older than 2.0 use a different entrypoint name'
-    )
-)
+black = pytest.param('black')
 
 ruff = pytest.param("ruff")
 
