@@ -44,3 +44,10 @@ def test_needs_restart():
     assert base.needs_restart(base.with_changes(cmd="b"))
     assert base.needs_restart(base.with_changes(port=1))
     assert not base.needs_restart(base.with_changes(languages=("go",)))
+
+
+def test_initialization_options_change_restarts():
+    # They are only delivered with the initialize request.
+    base = ServerConfig(name="x", cmd="a", initialization_options={"k": 1})
+    assert base.needs_restart(base.with_changes(initialization_options={"k": 2}))
+    assert not base.needs_restart(base.with_changes(initialization_options={"k": 1}))

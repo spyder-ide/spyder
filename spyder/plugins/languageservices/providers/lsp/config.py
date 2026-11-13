@@ -16,7 +16,15 @@ from typing import Any
 AUTO_LANGUAGES = "auto"
 """``languages`` value for auto-detection, see :class:`LanguageServerClientProvider`."""
 
-RESTART_FIELDS = ("cmd", "args", "host", "port", "external", "stdio")
+RESTART_FIELDS = (
+    "cmd",
+    "args",
+    "host",
+    "port",
+    "external",
+    "stdio",
+    "initialization_options",
+)
 """Fields whose change requires restarting the server."""
 
 
