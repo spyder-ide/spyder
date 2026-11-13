@@ -1450,11 +1450,7 @@ class EditorMainWidget(PluginMainWidget):
             self.get_conf('connect/editor', section='help')
         )
 
-        hover_hints = self.get_conf(
-            ('providers', 'pylsp', 'values', 'enable_hover_hints'),
-            default=True,
-            section='language_services'
-        )
+        hover_hints = self.get_conf('enable_hover_hints', default=True)
 
         format_on_save = self.get_conf(
             ('providers', 'pylsp', 'values', 'format_on_save'),

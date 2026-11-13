@@ -42,7 +42,6 @@ class PylspProvider(LanguageServerClientProvider):
     NAME = "pylsp"
     PRIORITY = 0
     CONF_DEFAULTS = [
-        ("enable_hover_hints", True),
         ("show_lsp_down_warning", True),
         ("code_completion", True),
         ("jedi_definition", True),
