@@ -1067,11 +1067,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.set_completions_hint_after_ms(ms)
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values',
-                'enable_hover_hints'),
-        section='language_services'
-    )
+    @on_conf_change(option='enable_hover_hints')
     def set_hover_hints_enabled(self, state):
         logger.debug(f"Set hover hints to {state}")
         self.hover_hints_enabled = state

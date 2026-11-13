@@ -164,13 +164,7 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             'bookmarks': {},
             # From help section:
             'connect/editor': False,
-            # From completions:
-            (
-                'providers',
-                'pylsp',
-                'values',
-                'enable_hover_hints'
-            ): True,
+            'enable_hover_hints': True,
             (
                 'providers',
                 'pylsp',
