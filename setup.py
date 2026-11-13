@@ -317,6 +317,7 @@ install_requires += [
     'pylint>=3.1,<5',
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
+    'pyrefly>=1.4.0,<2.0.0',
     'python-lsp-black>=2.0.0,<3.0.0',
     'python-lsp-ruff>=2.3.0,<3.0.0',
     'python-lsp-server[all]>=1.14.0,<1.15.0',
@@ -419,6 +420,8 @@ spyder_completions_entry_points = []
 spyder_language_services_entry_points = [
     ('lsp = spyder.plugins.languageservices.providers.lsp.provider:'
      'LanguageServerClientProvider'),
+    ('pyrefly = spyder.plugins.languageservices.providers.pyrefly.provider:'
+     'PyreflyProvider'),
     ('pylsp = spyder.plugins.languageservices.providers.pylsp.provider:'
      'PylspProvider'),
     ('ruff = spyder.plugins.languageservices.providers.ruff.provider:'

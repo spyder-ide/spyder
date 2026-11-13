@@ -64,6 +64,7 @@ PYLSP_REQVER = '>=1.14.0,<1.15.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
 PYLSP_RUFF_REQVER = '>=2.3.0,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
+PYREFLY_REQVER = '>=1.4.0,<2.0.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=24.0.0'
@@ -237,6 +238,11 @@ DESCRIPTIONS = [
      'package_name': 'pyls-spyder',
      'features': _('Spyder plugin for the Python LSP Server'),
      'required_version': PYLS_SPYDER_REQVER},
+    {'modname': 'pyrefly',
+     'package_name': 'pyrefly',
+     'features': _("Code completion, type checking and symbols for Python "
+                   "files in the Editor"),
+     'required_version': PYREFLY_REQVER},
     {'modname': 'ruff',
      'package_name': 'ruff',
      'features': _("Linting and formatting of Python files in the Editor"),
