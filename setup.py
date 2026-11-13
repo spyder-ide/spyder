@@ -422,6 +422,8 @@ spyder_language_services_entry_points = [
      'PylspProvider'),
     ('black = spyder.plugins.languageservices.providers.black.provider:'
      'BlackProvider'),
+    ('autopep8 = spyder.plugins.languageservices.providers.autopep8.provider:'
+     'Autopep8Provider'),
     ('cells = spyder.plugins.languageservices.providers.cells.provider:'
      'CellsProvider'),
     ('fallback = spyder.plugins.languageservices.providers.fallback.provider:'
