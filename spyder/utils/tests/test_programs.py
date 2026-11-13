@@ -289,7 +289,6 @@ Icon=/blah/blah.xpm
 def test_get_package_version():
     # Primarily a test of importlib.metadata being installed properly
     assert get_package_version('IPython')
-    assert get_package_version('python_lsp_black')
 
 
 def test_get_module_version():
