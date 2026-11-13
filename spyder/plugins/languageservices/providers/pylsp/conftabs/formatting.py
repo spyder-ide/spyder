@@ -72,19 +72,11 @@ class FormattingConfigTab(SpyderPreferencesTab):
             "formatting",
         )
 
-        # Autoformat on save
-        format_on_save_box = newcb(
-            _("Autoformat files on save"),
-            'format_on_save',
-            tip=_("If enabled, autoformatting will take place when "
-                  "saving a file"))
-
         # Code formatting layout
         code_fmt_group = QGroupBox(_("Code formatting"))
         code_fmt_layout = QVBoxLayout()
         code_fmt_layout.addWidget(code_fmt_label)
         code_fmt_layout.addWidget(self.code_fmt_provider)
-        code_fmt_layout.addWidget(format_on_save_box)
         code_fmt_group.setLayout(code_fmt_layout)
 
         code_style_fmt_layout = QVBoxLayout()

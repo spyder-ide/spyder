@@ -1075,10 +1075,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_hover_hints(state)
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'format_on_save'),
-        section='language_services'
-    )
+    @on_conf_change(option='format_on_save')
     def set_format_on_save(self, state):
         logger.debug(f"Set format on save to {state}")
         self.format_on_save = state

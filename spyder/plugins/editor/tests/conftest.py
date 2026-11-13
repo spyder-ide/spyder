@@ -165,13 +165,8 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             # From help section:
             'connect/editor': False,
             'enable_hover_hints': True,
-            (
-                'providers',
-                'pylsp',
-                'values',
-                'format_on_save'
-            ): False,
             'line_length': 79,
+            'format_on_save': False,
         }
 
         if last_focused_filename is not None:

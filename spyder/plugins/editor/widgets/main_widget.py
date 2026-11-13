@@ -1452,11 +1452,7 @@ class EditorMainWidget(PluginMainWidget):
 
         hover_hints = self.get_conf('enable_hover_hints', default=True)
 
-        format_on_save = self.get_conf(
-            ('providers', 'pylsp', 'values', 'format_on_save'),
-            default=False,
-            section='language_services'
-        )
+        format_on_save = self.get_conf('format_on_save')
 
         edge_line_columns = self.get_conf('line_length', default=79)
 
