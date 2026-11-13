@@ -345,6 +345,83 @@ def test_language_detection_from_registrations(tmp_path):
     asyncio.run(scenario())
 
 
+DYNAMIC_FORMATTING_SERVER = '''
+from lsprotocol import types
+from pygls.lsp.server import LanguageServer
+
+server = LanguageServer("dynamic", "0.1")
+
+
+def on_formatting(params):
+    return [
+        types.TextEdit(
+            range=types.Range(types.Position(0, 0), types.Position(0, 0)),
+            new_text="# formatted\\n",
+        )
+    ]
+
+
+@server.feature(types.INITIALIZED)
+async def on_initialized(params):
+    # The initialize result is already sent, so formatting is announced
+    # only through the registration below.
+    server.feature(types.TEXT_DOCUMENT_FORMATTING)(on_formatting)
+    await server.client_register_capability_async(
+        types.RegistrationParams(
+            registrations=[
+                types.Registration(
+                    id="format",
+                    method=types.TEXT_DOCUMENT_FORMATTING,
+                    register_options=types.DocumentFormattingRegistrationOptions(
+                        document_selector=[
+                            types.TextDocumentFilterLanguage(language="python")
+                        ],
+                    ),
+                )
+            ]
+        )
+    )
+
+
+server.start_io()
+'''
+
+
+def test_dynamically_registered_formatting(tmp_path):
+    script = tmp_path / "dynamic_server.py"
+    script.write_text(DYNAMIC_FORMATTING_SERVER)
+    config = ServerConfig(
+        name="dynamic",
+        cmd=sys.executable,
+        args=str(script),
+        stdio=True,
+        languages=("python",),
+    )
+    api, provider = make_api([config])
+    uri = path_as_uri(str(tmp_path / "main.py"))
+
+    async def scenario():
+        await api.start_provider(provider.NAME)
+        await api.start_language(Language.PYTHON)
+        await wait_until(
+            lambda: api.capabilities(
+                Language.PYTHON
+            ).document_formatting_provider
+        )
+
+        await api.open_document(did_open(uri, "x = 1\n"))
+        edits = await api.formatting(
+            lsp.DocumentFormattingParams(
+                text_document=lsp.TextDocumentIdentifier(uri),
+                options=lsp.FormattingOptions(tab_size=4, insert_spaces=True),
+            )
+        )
+        assert [edit.new_text for edit in edits] == ["# formatted\n"]
+        await api.stop_provider(provider.NAME)
+
+    asyncio.run(scenario())
+
+
 class _FakeConnection:
 
     def __init__(self):
