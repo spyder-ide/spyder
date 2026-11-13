@@ -153,13 +153,14 @@ def language_services_all_started(
     providers = [
         language_services.get_provider(name)
         for name in language_services.provider_names()
+        if language_services.is_provider_enabled(name)
     ]
     for provider in providers:
         wait_for(language_services.start_provider(provider.NAME), 30)
 
     wait_for(language_services.start_language(Language.PYTHON), 60)
     qtbot_module.waitUntil(
-        lambda: "pylsp" in language_services.providers_for(Language.PYTHON),
+        lambda: "pyrefly" in language_services.providers_for(Language.PYTHON),
         timeout=30000,
     )
     capabilities = language_services.capabilities(Language.PYTHON)
