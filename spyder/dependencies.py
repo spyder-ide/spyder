@@ -9,6 +9,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import subprocess
 import sys
 
 # Local imports
@@ -243,11 +244,13 @@ DESCRIPTIONS = [
      'package_name': 'pyrefly',
      'features': _("Code completion, type checking and symbols for Python "
                    "files in the Editor"),
-     'required_version': PYREFLY_REQVER},
+     'required_version': PYREFLY_REQVER,
+     'binary': True},
     {'modname': 'ruff',
      'package_name': 'ruff',
      'features': _("Linting and formatting of Python files in the Editor"),
-     'required_version': RUFF_REQVER},
+     'required_version': RUFF_REQVER,
+     'binary': True},
     {'modname': 'pyuca',
      'package_name': 'pyuca',
      'features': _('Properly sort lists of non-English strings'),
@@ -363,18 +366,24 @@ class Dependency(object):
     Spyder's dependency
 
     Version may starts with =, >=, > or < to specify the exact requirement;
-    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')"""
+    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')
+
+    A ``binary`` dependency is the executable of the same name as its
+    package. Its version is the one the executable reports, because some
+    packages (e.g. ruff on conda-forge) install it without a Python module.
+    """
 
     OK = 'OK'
     NOK = 'NOK'
 
     def __init__(self, modname, package_name, features, required_version,
-                 installed_version=None, kind=MANDATORY):
+                 installed_version=None, kind=MANDATORY, binary=False):
         self.modname = modname
         self.package_name = package_name
         self.features = features
         self.required_version = required_version
         self.kind = kind
+        self.binary_name = package_name if binary else None
 
         # Although this is not necessarily the case, it's customary that a
         # package's distribution name be it's name on PyPI with hyphens
@@ -384,7 +393,13 @@ class Dependency(object):
         # * Distribution name: python_lsp_black
         self.distribution_name = self.package_name.replace('-', '_')
 
-        if installed_version is None:
+        if installed_version is None and self.binary_name:
+            try:
+                self.installed_version = programs.get_binary_version(
+                    self.binary_name)
+            except (OSError, subprocess.SubprocessError, ValueError):
+                self.installed_version = None
+        elif installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
                 if not self.installed_version:
@@ -406,6 +421,12 @@ class Dependency(object):
         if self.modname == 'spyder_kernels':
             # TODO: Remove when spyder-kernels 3 is released!
             return True
+        if self.required_version and self.binary_name:
+            return (
+                self.installed_version is not None
+                and programs.check_version_range(
+                    self.installed_version, self.required_version)
+            )
         if self.required_version:
             installed = programs.is_module_installed(
                 self.modname,
@@ -435,7 +456,7 @@ DEPENDENCIES = []
 
 
 def add(modname, package_name, features, required_version,
-        installed_version=None, kind=MANDATORY):
+        installed_version=None, kind=MANDATORY, binary=False):
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
@@ -449,7 +470,7 @@ def add(modname, package_name, features, required_version,
 
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
-                                installed_version, kind)]
+                                installed_version, kind, binary)]
 
 
 def check(modname):
@@ -518,4 +539,5 @@ def declare_dependencies():
         if dep.get('display', True):
             add(dep['modname'], dep['package_name'],
                 dep['features'], dep['required_version'],
-                kind=dep.get('kind', MANDATORY))
+                kind=dep.get('kind', MANDATORY),
+                binary=dep.get('binary', False))
