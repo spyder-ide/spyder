@@ -82,9 +82,15 @@ def test_ruff_lints_and_formats(tmp_path):
         await api.start_provider(provider.NAME)
         await api.start_language(Language.PYTHON)
         assert provider.server_status("ruff") is ProviderStatus.READY
+        # Ruff 0.17 registers formatting with client/registerCapability
+        # after initialization.
+        await wait_until(
+            lambda: api.capabilities(
+                Language.PYTHON
+            ).document_range_formatting_provider
+        )
         capabilities = api.capabilities(Language.PYTHON)
         assert capabilities.document_formatting_provider
-        assert capabilities.document_range_formatting_provider
         assert not capabilities.hover_provider
 
         await api.open_document(
