@@ -74,7 +74,7 @@ class PylspProvider(LanguageServerClientProvider):
         ("advanced/external", False),
         ("advanced/stdio", False),
     ]
-    CONF_VERSION = "1.1.0"
+    CONF_VERSION = "2.0.0"
     CONF_TABS = TABS
 
     def get_server_configs(self):
