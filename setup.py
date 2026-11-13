@@ -419,6 +419,8 @@ spyder_language_services_entry_points = [
      'LanguageServerClientProvider'),
     ('pylsp = spyder.plugins.languageservices.providers.pylsp.provider:'
      'PylspProvider'),
+    ('cells = spyder.plugins.languageservices.providers.cells.provider:'
+     'CellsProvider'),
     ('fallback = spyder.plugins.languageservices.providers.fallback.provider:'
      'FallbackProvider'),
     ('snippets = spyder.plugins.languageservices.providers.snippets.provider:'
