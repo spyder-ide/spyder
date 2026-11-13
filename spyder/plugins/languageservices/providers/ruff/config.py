@@ -8,11 +8,9 @@
 
 from __future__ import annotations
 
-# Third party imports
-from ruff import find_ruff_bin
-
 # Local imports
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
+from spyder.utils.programs import get_binary_path
 
 RUFF_SERVER_NAME = "ruff"
 
@@ -51,7 +49,7 @@ def generate_ruff_config(get_conf) -> ServerConfig:
         }
     return ServerConfig(
         name=RUFF_SERVER_NAME,
-        cmd=find_ruff_bin(),
+        cmd=get_binary_path("ruff"),
         args="server",
         stdio=True,
         languages=("python",),
