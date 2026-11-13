@@ -732,10 +732,21 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             self.sig_log_message.emit(params)
         elif method == lsp.WORKSPACE_APPLY_EDIT:
             self.sig_apply_edit.emit(params)
-        elif method == lsp.CLIENT_REGISTER_CAPABILITY:
-            if state.config.auto_languages and state.ready:
+        elif method in (
+            lsp.CLIENT_REGISTER_CAPABILITY,
+            lsp.CLIENT_UNREGISTER_CAPABILITY,
+        ):
+            if not state.ready:
+                # Reaching READY announces the capabilities.
+                return
+
+            if state.config.auto_languages:
                 # A registered document selector can narrow the served set,
                 # so languages the server no longer serves need the update
                 # too.
-                for language in Language:
-                    self.sig_capabilities_changed.emit(language)
+                languages = frozenset(Language)
+            else:
+                languages = self._server_languages(state)
+
+            for language in languages:
+                self.sig_capabilities_changed.emit(language)
