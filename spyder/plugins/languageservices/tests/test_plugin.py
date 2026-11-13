@@ -238,6 +238,16 @@ def test_disabled_by_default_provider_does_not_start(language_services, qtbot):
         CONF.set("language_services", "providers", providers)
 
 
+def test_pylsp_provider_is_disabled_by_default():
+    from spyder.plugins.languageservices.providers.pylsp import PylspProvider
+
+    confs = {}
+    entry = LanguageServices._merge_default_configurations(
+        PylspProvider, confs
+    )
+    assert entry["enable"] is False
+
+
 class FakeFormatter(LanguageServicesProvider):
     PRIORITY = 2
 
