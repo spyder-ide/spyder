@@ -27,6 +27,18 @@ TEXT = ("def some_function():\n"
         "undefined_function()")  # Undefined name 'undefined_function', W292
 
 
+def current_warnings(editor):
+    """
+    Editor warnings as ``[message, line]`` pairs, keeping only the first
+    line of each message. Ruff appends a ``help:`` paragraph to some
+    messages.
+    """
+    return [
+        [message.splitlines()[0], line]
+        for message, line in editor.get_current_warnings()
+    ]
+
+
 @pytest.fixture
 def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     editor, completion_plugin = completions_codeeditor
@@ -73,7 +85,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
 
     # Get current warnings
     qtbot.wait(2500)
-    warnings = editor.get_current_warnings()
+    warnings = current_warnings(editor)
 
     expected = [["Could not find name `s`", 5],
                 ["Undefined name `s`", 5],
@@ -170,7 +182,7 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
     qtbot.wait(2000)
 
     # Get current warnings
-    warnings = editor.get_current_warnings()
+    warnings = current_warnings(editor)
 
     expected = [["Blank line contains whitespace", 2],
                 ["Could not find name `s`", 5],
@@ -215,7 +227,7 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
                 ["Undefined name `undefined_function`", 6],
                 ["No newline at end of file", 6]]
 
-    assert editor.get_current_warnings() == expected
+    assert current_warnings(editor) == expected
 
 
 @pytest.mark.order(2)
@@ -315,6 +327,8 @@ def test_ignore_warnings_with_comments(
     """
     editor, _ = completions_codeeditor_linting
 
+    # Ruff may report more rules on these lines (B018 since 0.17), so only
+    # the undefined names and the set of reported lines are checked.
     if ignore_comment == '# no-work':
         expected = [
             ['Could not find name `foo`', 1],
@@ -322,9 +336,11 @@ def test_ignore_warnings_with_comments(
             ['Could not find name `bar`', 2],
             ['Undefined name `bar`', 2],
         ]
+        expected_lines = {1, 2}
     else:
         expected = [['Could not find name `bar`', 2],
                     ['Undefined name `bar`', 2]]
+        expected_lines = {2}
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -336,4 +352,6 @@ def test_ignore_warnings_with_comments(
     # Wait for linting info to arrive
     qtbot.wait(2000)
 
-    assert editor.get_current_warnings() == expected
+    warnings = current_warnings(editor)
+    assert all(warning in warnings for warning in expected)
+    assert {line for _, line in warnings} == expected_lines
