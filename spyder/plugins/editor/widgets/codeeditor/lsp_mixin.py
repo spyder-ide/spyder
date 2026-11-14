@@ -277,7 +277,6 @@ class LSPMixin:
         self.formatting_in_progress = False
         self.symbols_sync_version = 0
         self.folding_sync_version = 0
-        self.pyflakes_linting_enabled = True
 
         self._text_version = 0
 
@@ -491,15 +490,9 @@ class LSPMixin:
         # Requests sent to a previous server instance will never be answered.
         self._requests_in_flight.clear()
 
-        if self.is_cloned:
-            additional_msg = "cloned editor"
-        else:
-            additional_msg = ""
-            self.document_did_open()
-
         logger.debug(
-            "Completion services available for {0}: {1}".format(
-                additional_msg, self.filename
+            "Completion services available for {0}{1}".format(
+                self.filename, " (cloned editor)" if self.is_cloned else ""
             )
         )
 
@@ -813,6 +806,11 @@ class LSPMixin:
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
+        # Providers answer one after the other, so a pass may still be
+        # running. Starting the thread again would be a no-op and the running
+        # pass would restore markers the cleanup below removes.
+        if self.update_diagnostics_thread.isRunning():
+            self.update_diagnostics_thread.wait()
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
 
@@ -919,8 +917,9 @@ class LSPMixin:
             if "analysis:ignore" in text:
                 continue
 
-            # This only works for Python and it's only needed with pyflakes.
-            if self.language == "Python" and self.pyflakes_linting_enabled:
+            # Python linters honor noqa comments themselves. Type checkers do
+            # not, so the editor keeps skipping those lines.
+            if self.language == "Python":
                 if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
@@ -1343,18 +1342,7 @@ class LSPMixin:
     # -------------------------------------------------------------------------
     def format_document_or_range(self):
         """Format current document or selected text."""
-        formatter = self.get_conf(
-            ("providers", "pylsp", "values", "formatting"),
-            default="",
-            section="language_services",
-        )
-        is_ruff = formatter == "ruff"
-
-        if (
-            self.has_selected_text()
-            and self.range_formatting_enabled
-            and not is_ruff
-        ):
+        if self.has_selected_text() and self.range_formatting_enabled:
             self.format_document_range()
         else:
             self.format_document()

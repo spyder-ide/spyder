@@ -340,14 +340,15 @@ def main_window(request, tmpdir, qtbot):
     # (it's faster and less memory consuming not to use it!)
     use_introspection = request.node.get_closest_marker('use_introspection')
 
-    if use_introspection:
-        CONF.set('language_services', ('providers', 'pylsp', 'enable'), True)
-        CONF.set('language_services', ('providers', 'fallback', 'enable'), True)
-        CONF.set('language_services', ('providers', 'snippets', 'enable'), True)
-    else:
-        CONF.set('language_services', ('providers', 'pylsp', 'enable'), False)
-        CONF.set('language_services', ('providers', 'fallback', 'enable'), False)
-        CONF.set('language_services', ('providers', 'snippets', 'enable'), False)
+    for provider in (
+        'pyrefly', 'ruff', 'black', 'autopep8', 'cells', 'fallback',
+        'snippets',
+    ):
+        CONF.set(
+            'language_services',
+            ('providers', provider, 'enable'),
+            bool(use_introspection),
+        )
 
     # Only use single_instance mode for tests that require it
     single_instance = request.node.get_closest_marker('single_instance')

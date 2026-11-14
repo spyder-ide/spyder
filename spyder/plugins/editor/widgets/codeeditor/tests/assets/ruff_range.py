@@ -5,8 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 
-import os
-import sys
+import os;import sys
 
 
 # %% functions

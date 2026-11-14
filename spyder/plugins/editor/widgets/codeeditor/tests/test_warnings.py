@@ -18,21 +18,34 @@ from qtpy.QtCore import Qt
 from spyder.config.manager import CONF
 
 
-TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
-        "    \n"  # W293 trailing spaces
-        "    a = 1 # a comment\n"  # E261 two spaces before inline comment
+TEXT = ("def some_function():\n"
+        "    \n"  # W293 blank line with whitespace
+        "    a = 1 # a comment\n"
         "\n"
         "    a += s\n"  # Undefined variable s
         "    return a\n"
-        "undefined_function()")  # Undefined name 'undefined_function'
+        "undefined_function()")  # Undefined name 'undefined_function', W292
+
+
+def current_warnings(editor):
+    """
+    Editor warnings as ``[message, line]`` pairs, keeping only the first
+    line of each message. Ruff appends a ``help:`` paragraph to some
+    messages.
+    """
+    return [
+        [message.splitlines()[0], line]
+        for message, line in editor.get_current_warnings()
+    ]
 
 
 @pytest.fixture
 def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     editor, completion_plugin = completions_codeeditor
+    # Style rules on top of ruff's defaults, like flake8 reported.
     CONF.set('language_services',
-             ('providers', 'pylsp', 'values', 'flake8'),
-             True)
+             ('providers', 'ruff', 'values', 'extend_select'),
+             'E, W')
 
     # After this call the manager needs to be reinitialized
     completion_plugin.after_configuration_update([])
@@ -40,8 +53,8 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
 
     def teardown():
         CONF.set('language_services',
-                 ('providers', 'pylsp', 'values', 'flake8'),
-                 False)
+                 ('providers', 'ruff', 'values', 'extend_select'),
+                 '')
 
         # After this call the manager needs to be reinitialized
         completion_plugin.after_configuration_update([])
@@ -59,8 +72,8 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     editor, completion_plugin = completions_codeeditor_linting
 
     CONF.set('language_services',
-             ('providers', 'pylsp', 'values', 'flake8/extendIgnore'),
-             'E261')
+             ('providers', 'ruff', 'values', 'ignore'),
+             'W293')
 
     # After this call the manager needs to be reinitialized
     completion_plugin.after_configuration_update([])
@@ -72,19 +85,16 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
 
     # Get current warnings
     qtbot.wait(2500)
-    warnings = editor.get_current_warnings()
+    warnings = current_warnings(editor)
 
-    expected = [['W293 blank line contains whitespace', 2],
-                ["undefined name 's'", 5],
-                ["F821 undefined name 's'", 5],
-                ["undefined name 'undefined_function'", 7],
-                ["F821 undefined name 'undefined_function'", 7],
-                ["""E305 expected 2 blank lines after class or """
-                 """function definition, found 0""", 7],
-                ["W292 no newline at end of file", 7],]
+    expected = [["Could not find name `s`", 5],
+                ["Undefined name `s`", 5],
+                ["Could not find name `undefined_function`", 7],
+                ["Undefined name `undefined_function`", 7],
+                ["No newline at end of file", 7]]
 
     CONF.set('language_services',
-             ('providers', 'pylsp', 'values', 'flake8/extendIgnore'),
+             ('providers', 'ruff', 'values', 'ignore'),
              '')
 
     completion_plugin.after_configuration_update([])
@@ -115,11 +125,10 @@ def test_adding_warnings(qtbot, completions_codeeditor_linting):
                 warnings.append((i+1, analysis[-1]))
         block = block.next()
 
-    expected_warnings = {1: ['D100', 'D103'],
-                         2: ['W293'],
-                         3: ['E261'],
-                         5: ['undefined name'],
-                         7: ['undefined name', 'W292', 'E305']}
+    expected_warnings = {2: ['Blank line contains whitespace'],
+                         5: ['Could not find name', 'Undefined name'],
+                         7: ['Could not find name', 'Undefined name',
+                             'No newline at end of file']}
     for i, warning in warnings:
         assert any([expected in warning for expected in expected_warnings[i]])
 
@@ -141,6 +150,9 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
 
     # Move between warnings
     editor.go_to_next_warning()
+    assert 2 == editor.get_cursor_line_number()
+
+    editor.go_to_next_warning()
     assert 5 == editor.get_cursor_line_number()
 
     editor.go_to_next_warning()
@@ -149,7 +161,7 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
     # Test cycling behaviour
     editor.go_to_line(7)
     editor.go_to_next_warning()
-    assert 5 == editor.get_cursor_line_number()
+    assert 2 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
     assert 7 == editor.get_cursor_line_number()
@@ -170,12 +182,14 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
     qtbot.wait(2000)
 
     # Get current warnings
-    warnings = editor.get_current_warnings()
+    warnings = current_warnings(editor)
 
-    expected = [["undefined name 's'", 5],
-                ["F821 undefined name 's'", 5],
-                ["undefined name 'undefined_function'", 7],
-                ["F821 undefined name 'undefined_function'", 7]]
+    expected = [["Blank line contains whitespace", 2],
+                ["Could not find name `s`", 5],
+                ["Undefined name `s`", 5],
+                ["Could not find name `undefined_function`", 7],
+                ["Undefined name `undefined_function`", 7],
+                ["No newline at end of file", 7]]
 
     assert warnings == expected
 
@@ -207,12 +221,13 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
     qtbot.waitSignal(editor.completions_response_signal, timeout=30000)
 
     # Assert that the W293 warning is gone.
-    expected = [["undefined name 's'", 4],
-                ["F821 undefined name 's'", 4],
-                ["undefined name 'undefined_function'", 6],
-                ["F821 undefined name 'undefined_function'", 6]]
+    expected = [["Could not find name `s`", 4],
+                ["Undefined name `s`", 4],
+                ["Could not find name `undefined_function`", 6],
+                ["Undefined name `undefined_function`", 6],
+                ["No newline at end of file", 6]]
 
-    assert editor.get_current_warnings() == expected
+    assert current_warnings(editor) == expected
 
 
 @pytest.mark.order(2)
@@ -227,12 +242,13 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
     """
     editor, _ = completions_codeeditor_linting
 
-    if sys.version_info >= (3, 12):
-        expected = [
-            ['unterminated string literal (detected at line 1)', 1]
-        ]
-    else:
-        expected = [['unterminated string literal (detected at line 1)',1]]
+    # Pyrefly and ruff both report the error, with different messages
+    expected = [
+        ['Parse error: missing closing quote in string literal', 1],
+        ['missing closing quote in string literal', 1],
+        ['Parse error: unexpected EOF while parsing', 2],
+        ['unexpected EOF while parsing', 2],
+    ]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -268,10 +284,10 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     """
     editor, _ = completions_codeeditor_linting
 
-    if sys.version_info >= (3, 12):
-        expected = [["'(' was never closed", 1]]
-    else:
-        expected = [["'(' was never closed", 1]]
+    expected = [
+        ['Parse error: unexpected EOF while parsing', 2],
+        ['unexpected EOF while parsing', 2],
+    ]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -311,16 +327,20 @@ def test_ignore_warnings_with_comments(
     """
     editor, _ = completions_codeeditor_linting
 
+    # Ruff may report more rules on these lines (B018 since 0.17), so only
+    # the undefined names and the set of reported lines are checked.
     if ignore_comment == '# no-work':
         expected = [
-            ["undefined name 'foo'", 1],
-            ["F821 undefined name 'foo'", 1],
-            ["undefined name 'bar'", 2],
-            ["F821 undefined name 'bar'", 2]
+            ['Could not find name `foo`', 1],
+            ['Undefined name `foo`', 1],
+            ['Could not find name `bar`', 2],
+            ['Undefined name `bar`', 2],
         ]
+        expected_lines = {1, 2}
     else:
-        expected = [["undefined name 'bar'", 2],
-                    ["F821 undefined name 'bar'", 2]]
+        expected = [['Could not find name `bar`', 2],
+                    ['Undefined name `bar`', 2]]
+        expected_lines = {2}
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -332,4 +352,6 @@ def test_ignore_warnings_with_comments(
     # Wait for linting info to arrive
     qtbot.wait(2000)
 
-    assert editor.get_current_warnings() == expected
+    warnings = current_warnings(editor)
+    assert all(warning in warnings for warning in expected)
+    assert {line for _, line in warnings} == expected_lines

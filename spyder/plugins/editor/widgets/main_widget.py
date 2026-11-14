@@ -598,11 +598,7 @@ class EditorMainWidget(PluginMainWidget):
         )
 
         # Autofix actions
-        formatter = self.get_conf(
-            ('providers', 'pylsp', 'values', 'formatting'),
-            default='',
-            section='language_services'
-        )
+        formatter = self.get_conf('formatter')
         self.formatting_action = self.create_action(
             EditorWidgetActions.FormatCode,
             text=_('Format file or selection with {0}').format(
@@ -1046,6 +1042,8 @@ class EditorMainWidget(PluginMainWidget):
                 plugin.capabilities(spyder_language)
             )
             codeeditor.start_completion_services()
+            if not codeeditor.is_cloned:
+                codeeditor.document_did_open()
 
     def set_language_services(self, plugin):
         """Set the LanguageServices plugin answering editor requests."""
@@ -1082,12 +1080,11 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.register_completion_capabilities(
                 language, capabilities)
 
-        self.start_completion_services(language)
-
-    def start_completion_services(self, language):
-        """Notify all editorstacks about LSP server availability."""
+    @Slot(object)
+    def send_open_documents(self, language):
+        """Send ``didOpen`` for every open document of ``language``."""
         for editorstack in self.editorstacks:
-            editorstack.start_completion_services(language)
+            editorstack.send_open_documents(language)
 
     @Slot(object)
     def stop_completion_services(self, language):
@@ -1234,7 +1231,7 @@ class EditorMainWidget(PluginMainWidget):
             action.setChecked(self.get_conf(conf_name))
         else:
             opt = self.get_conf(
-                ('providers', 'pylsp', 'values', conf_name),
+                ('providers', 'ruff', 'values', conf_name),
                 default=False,
                 section='language_services'
             )
@@ -1249,7 +1246,7 @@ class EditorMainWidget(PluginMainWidget):
         """
         Handle the toogle of a checkable action.
 
-        Update editorstacks, PyLS and CONF.
+        Update editorstacks, language services providers and CONF.
 
         Args:
             checked (bool): State of the action.
@@ -1270,7 +1267,7 @@ class EditorMainWidget(PluginMainWidget):
         else:
             if conf_name in ('pydocstyle'):
                 self.set_conf(
-                    ('providers', 'pylsp', 'values', conf_name),
+                    ('providers', 'ruff', 'values', conf_name),
                     checked,
                     section='language_services'
                 )
@@ -1449,24 +1446,11 @@ class EditorMainWidget(PluginMainWidget):
             self.get_conf('connect/editor', section='help')
         )
 
-        hover_hints = self.get_conf(
-            ('providers', 'pylsp', 'values', 'enable_hover_hints'),
-            default=True,
-            section='language_services'
-        )
+        hover_hints = self.get_conf('enable_hover_hints', default=True)
 
-        format_on_save = self.get_conf(
-            ('providers', 'pylsp', 'values', 'format_on_save'),
-            default=False,
-            section='language_services'
-        )
+        format_on_save = self.get_conf('format_on_save')
 
-        edge_line_columns = self.get_conf(
-            ('providers', 'pylsp', 'values',
-             'flake8/max_line_length'),
-            default=79,
-            section='language_services'
-        )
+        edge_line_columns = self.get_conf('line_length', default=79)
 
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
@@ -1774,10 +1758,7 @@ class EditorMainWidget(PluginMainWidget):
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'formatting'),
-        section='language_services',
-    )
+    @on_conf_change(option='formatter')
     def refresh_formatter_name(self, value):
         self.formatting_action.setText(
             _("Format file or selection with {0}").format(value.capitalize())
@@ -3111,7 +3092,7 @@ class EditorMainWidget(PluginMainWidget):
         # See: spyder-ide/spyder#9915
 
     @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'pydocstyle'),
+        option=('providers', 'ruff', 'values', 'pydocstyle'),
         section='language_services'
     )
     def on_completions_checkable_action_change(self, value):

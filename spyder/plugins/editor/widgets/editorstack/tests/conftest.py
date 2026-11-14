@@ -27,7 +27,7 @@ from spyder.plugins.completion.tests.conftest import (
     completion_plugin_all_started,
     completion_plugin_all,
     language_services_all_started,
-    route_diagnostics,
+    route_to_editor,
 )
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
@@ -80,7 +80,7 @@ def completions_editor(
     file_path = tmp_path / "test.py"
     editorstack.set_language_services(language_services)
     editor = editorstack.new(str(file_path), "utf-8", "").editor
-    on_diagnostics = route_diagnostics(language_services, editor)
+    unroute = route_to_editor(language_services, editor)
     editor.register_completion_capabilities(
         language_services.capabilities(Language.PYTHON)
     )
@@ -89,9 +89,10 @@ def completions_editor(
         editor.completions_response_signal, timeout=30000
     ):
         editor.start_completion_services()
+        editor.document_did_open()
 
     def teardown():
-        language_services.sig_diagnostics.disconnect(on_diagnostics)
+        unroute()
         editor.completion_widget.hide()
         editor.tooltip_widget.hide()
         editor.hide()

@@ -290,6 +290,7 @@ install_requires += [
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'asyncssh>=2.14.0,<3.0.0',
     'bcrypt>=4.3.0',
+    'black>=24.1.0,<27.0.0',
     'chardet>=5.2.0,<8.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
@@ -316,6 +317,7 @@ install_requires += [
     'pylint>=3.1,<5',
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
+    'pyrefly>=1.4.0,<2.0.0',
     'python-lsp-black>=2.0.0,<3.0.0',
     'python-lsp-ruff>=2.3.0,<3.0.0',
     'python-lsp-server[all]>=1.14.0,<1.15.0',
@@ -327,6 +329,7 @@ install_requires += [
     'qtpy>=2.4.0',
     'rtfunicode>=2.2,<3',
     'rtree>=0.9.7',
+    'ruff>=0.9.8,<1.0.0',
     'sphinx>=7.2.0',
     'spyder-kernels>=3.2.0a2,<3.2.0a3',
     'spyder-themes>=1.0.16,<1.1.0',
@@ -417,8 +420,18 @@ spyder_completions_entry_points = []
 spyder_language_services_entry_points = [
     ('lsp = spyder.plugins.languageservices.providers.lsp.provider:'
      'LanguageServerClientProvider'),
+    ('pyrefly = spyder.plugins.languageservices.providers.pyrefly.provider:'
+     'PyreflyProvider'),
     ('pylsp = spyder.plugins.languageservices.providers.pylsp.provider:'
      'PylspProvider'),
+    ('ruff = spyder.plugins.languageservices.providers.ruff.provider:'
+     'RuffProvider'),
+    ('black = spyder.plugins.languageservices.providers.black.provider:'
+     'BlackProvider'),
+    ('autopep8 = spyder.plugins.languageservices.providers.autopep8.provider:'
+     'Autopep8Provider'),
+    ('cells = spyder.plugins.languageservices.providers.cells.provider:'
+     'CellsProvider'),
     ('fallback = spyder.plugins.languageservices.providers.fallback.provider:'
      'FallbackProvider'),
     ('snippets = spyder.plugins.languageservices.providers.snippets.provider:'

@@ -153,13 +153,14 @@ def language_services_all_started(
     providers = [
         language_services.get_provider(name)
         for name in language_services.provider_names()
+        if language_services.is_provider_enabled(name)
     ]
     for provider in providers:
         wait_for(language_services.start_provider(provider.NAME), 30)
 
     wait_for(language_services.start_language(Language.PYTHON), 60)
     qtbot_module.waitUntil(
-        lambda: "pylsp" in language_services.providers_for(Language.PYTHON),
+        lambda: "pyrefly" in language_services.providers_for(Language.PYTHON),
         timeout=30000,
     )
     capabilities = language_services.capabilities(Language.PYTHON)
@@ -185,8 +186,10 @@ def language_services_all_started(
     return language_services, completion_plugin, capabilities
 
 
-def route_diagnostics(language_services, editor):
-    """Connect the plugin diagnostics to ``editor`` (returns the slot)."""
+def route_to_editor(language_services, editor):
+    """Connect the plugin diagnostics and documents requests to ``editor``,
+    as the Editor plugin does. Returns a function that disconnects them."""
+    from spyder.plugins.languageservices.api.languages import Language
     from spyder.plugins.languageservices.api.uri import uri_as_path
 
     def on_diagnostics(params):
@@ -195,5 +198,17 @@ def route_diagnostics(language_services, editor):
                 lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, params.diagnostics
             )
 
+    def on_documents_requested(language):
+        if language is Language.find(name=editor.language):
+            editor.document_did_open()
+
     language_services.sig_diagnostics.connect(on_diagnostics)
-    return on_diagnostics
+    language_services.sig_documents_requested.connect(on_documents_requested)
+
+    def disconnect():
+        language_services.sig_diagnostics.disconnect(on_diagnostics)
+        language_services.sig_documents_requested.disconnect(
+            on_documents_requested
+        )
+
+    return disconnect

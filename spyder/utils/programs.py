@@ -17,8 +17,10 @@ import itertools
 import os
 import os.path as osp
 import re
+import shutil
 import subprocess
 import sys
+import sysconfig
 import tempfile
 from textwrap import dedent
 import threading
@@ -146,6 +148,67 @@ def find_program(basename, extra_paths=None):
         path = is_program_installed(name, extra_paths)
         if path:
             return path
+
+
+def get_binary_path(name):
+    """
+    Return the path of the ``name`` binary installed with Spyder's Python.
+
+    Wheels install it in the scripts directory. conda-forge packages carry
+    only the binary, in ``Library\bin`` on Windows. Then the user scripts
+    directory and ``PATH`` are searched.
+
+    Raises ``FileNotFoundError`` listing the searched locations when the
+    binary is in none of them.
+    """
+    executable = name + (sysconfig.get_config_var("EXE") or "")
+    directories = [sysconfig.get_path("scripts")]
+    if os.name == "nt":
+        directories.append(osp.join(sys.prefix, "Library", "bin"))
+    directories.append(
+        sysconfig.get_path(
+            "scripts", scheme=sysconfig.get_preferred_scheme("user")
+        )
+    )
+    for directory in directories:
+        path = osp.join(directory, executable)
+        if osp.isfile(path):
+            return path
+
+    path = shutil.which(name)
+    if path is not None:
+        return path
+
+    locations = "\n".join(f" - {d}" for d in directories + ["PATH"])
+    raise FileNotFoundError(
+        f"Could not find the {name} binary in any of these locations:\n"
+        f"{locations}"
+    )
+
+
+def get_binary_version(name):
+    """
+    Return the version that ``<name> --version`` prints.
+
+    The binary is located with ``get_binary_path``. Raises
+    ``subprocess.CalledProcessError`` when the command fails and
+    ``ValueError`` when its output holds no version.
+    """
+    path = get_binary_path(name)
+    output = subprocess.run(
+        [path, "--version"],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=10,
+        **alter_subprocess_kwargs_by_platform(),
+    ).stdout
+    match = re.search(r"\d+(\.\d+)+[^\s()]*", output)
+    if match is None:
+        raise ValueError(
+            f"No version in the output of {path} --version: {output!r}"
+        )
+    return match.group()
 
 
 def get_full_command_for_program(path):
@@ -1070,8 +1133,7 @@ def is_module_installed(module_name, version=None, interpreter=None,
     given ``version`` in the ``interpreter``'s environment. Otherwise checks
     in Spyder's environment.
 
-    ``distribution_name`` is the distribution name of a package. For instance,
-    for pylsp_black that name is python_lsp_black.
+    ``distribution_name`` is the distribution name of a package.
     """
     if interpreter is not None:
         if is_python_interpreter(interpreter):
@@ -1099,9 +1161,7 @@ def is_module_installed(module_name, version=None, interpreter=None,
         except Exception:
             pass
 
-        # Try to get the module version from its distribution name. For
-        # instance, pylsp_black doesn't have a version but that can be
-        # obtained from its distribution, called python_lsp_black.
+        # Try to get the module version from its distribution name.
         if not module_version and distribution_name:
             module_version = get_package_version(distribution_name)
 

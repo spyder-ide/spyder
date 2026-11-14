@@ -92,7 +92,7 @@ def test_merge_diagnostics_names_source():
     named = lsp.Diagnostic(
         range=diag.range, message="n", source="pyflakes"
     )
-    merged = merge_diagnostics([("pylsp", [named]), ("other", [diag])])
+    merged = merge_diagnostics([("pyrefly", [named]), ("other", [diag])])
     assert [d.source for d in merged] == ["pyflakes", "other"]
 
 
@@ -121,3 +121,24 @@ def test_register_merge_strategy():
     assert merge_strategy(method)([("a", None), ("b", 1)]) == 1
     register_merge_strategy(method, lambda results: len(results))
     assert merge_strategy(method)([("a", None), ("b", 1)]) == 2
+
+
+def test_merge_diagnostics_drops_identical_duplicates():
+    # Two servers reporting the same syntax error must not show it twice.
+    rng = lsp.Range(lsp.Position(0, 4), lsp.Position(0, 5))
+    first = lsp.Diagnostic(range=rng, message="Expected an identifier")
+    second = lsp.Diagnostic(range=rng, message="Expected an identifier")
+    other = lsp.Diagnostic(range=rng, message="Something else")
+    merged = merge_diagnostics([("pyrefly", [first]), ("ruff", [second, other])])
+    assert [(d.message, d.source) for d in merged] == [
+        ("Expected an identifier", "pyrefly"),
+        ("Something else", "ruff"),
+    ]
+
+
+def test_formatting_default_policy_has_long_timeout():
+    # Formatters run external processes over whole files.
+    for method in (lsp.TEXT_DOCUMENT_FORMATTING, lsp.TEXT_DOCUMENT_RANGE_FORMATTING):
+        policy = DEFAULT_FEATURE_POLICIES[method]
+        assert policy.mode is RequestMode.EXCLUSIVE
+        assert policy.timeout_ms is not None and policy.timeout_ms >= 30000

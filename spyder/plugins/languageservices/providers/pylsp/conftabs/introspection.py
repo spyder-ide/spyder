@@ -44,6 +44,7 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
             'enable_hover_hints',
+            section='editor',
             tip=_("If enabled, hovering the mouse pointer over an object "
                   "name will display that object's signature and/or "
                   "docstring (if present)."))

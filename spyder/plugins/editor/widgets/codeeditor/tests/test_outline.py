@@ -216,7 +216,7 @@ def test_outline_ignores_superseded_symbols(
     root_tree = get_tree_elements(treewidget)
     assert root_tree == {
         'test.py': [
-            {'Class1': [{'__init__': [{'x': []}, {'y': []}]}]}
+            {'Class1': [{'__init__': []}]}
         ]
     }
 

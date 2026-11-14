@@ -17,32 +17,21 @@ from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     black,
     get_formatter_values,
     ruff,
-    yapf,
 )
 
 
 # ---- Tests
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, yapf, black, ruff])
+@pytest.mark.parametrize('formatter', [autopep8, black, ruff])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_formatting(formatter, newline, completions_codeeditor,
                              qtbot):
-    """Validate text autoformatting via autopep8, yapf, black or ruff."""
+    """Validate text autoformatting via autopep8, black or ruff."""
     code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter, newline)
 
     # Set formatter
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
-    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'ruff'),
-        formatter == 'ruff'
-    )
+    CONF.set('editor', 'formatter', formatter)
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
@@ -67,27 +56,7 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
 
 
 @pytest.mark.order(1)
-@pytest.mark.parametrize(
-    "formatter",
-    [
-        autopep8,
-        black,
-        pytest.param(
-            "ruff",
-            marks=pytest.mark.xfail(
-                reason="Range formatting is not supported by python-lsp-ruff"
-            ),
-        ),
-        pytest.param(
-            "yapf",
-            marks=(
-                pytest.mark.xfail(
-                    reason="Broken in PyLSP 1.5.0. We need to investigate why."
-                ),
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("formatter", [autopep8, black, ruff])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
 def test_document_range_formatting(formatter, newline, completions_codeeditor,
                                    qtbot):
@@ -96,11 +65,7 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
     text, expected = get_formatter_values(formatter, newline, range_fmt=True)
 
     # Set formatter
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
+    CONF.set('editor', 'formatter', formatter)
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
@@ -144,23 +109,8 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
     max_line_length = 20
 
     # Set formatter and max line length options
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values',
-         'flake8/max_line_length'),
-        max_line_length
-    )
-    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'ruff'),
-        formatter == 'ruff'
-    )
+    CONF.set('editor', 'formatter', formatter)
+    CONF.set('editor', 'line_length', max_line_length)
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 

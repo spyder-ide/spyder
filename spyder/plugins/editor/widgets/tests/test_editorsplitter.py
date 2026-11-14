@@ -21,7 +21,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.completion.tests.conftest import route_diagnostics
+from spyder.plugins.completion.tests.conftest import route_to_editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
@@ -54,17 +54,18 @@ def editor_splitter_lsp(qtbot_module, language_services_all_started, request):
     """
     language_services, completions, _ = language_services_all_started
     capabilities = language_services.capabilities(Language.PYTHON)
-    slots = []
+    unroutes = []
 
     def report_file_open(options):
         callback = options['codeeditor']
         callback.language_services = language_services
-        slots.append(route_diagnostics(language_services, callback))
+        unroutes.append(route_to_editor(language_services, callback))
         callback.register_completion_capabilities(capabilities)
 
         with qtbot_module.waitSignal(
                 callback.completions_response_signal, timeout=30000):
             callback.start_completion_services()
+            callback.document_did_open()
 
     def register_editorstack(editorstack):
         editorstack.set_language_services(language_services)
@@ -102,11 +103,11 @@ def editor_splitter_lsp(qtbot_module, language_services_all_started, request):
     def teardown():
         editorsplitter.hide()
         editorsplitter.close()
-        for slot in slots:
-            language_services.sig_diagnostics.disconnect(slot)
+        for unroute in unroutes:
+            unroute()
 
     request.addfinalizer(teardown)
-    return editorsplitter, language_services.get_provider('pylsp')
+    return editorsplitter, language_services.get_provider('pyrefly')
 
 
 @pytest.fixture
@@ -416,7 +417,7 @@ def test_lsp_splitter_close(editor_splitter_lsp):
     # The document is open once in the server no matter how many
     # editorstacks show it.
     def open_documents():
-        return lsp_manager._servers['pylsp'].documents
+        return lsp_manager._servers['pyrefly'].documents
 
     assert path in open_documents()
 

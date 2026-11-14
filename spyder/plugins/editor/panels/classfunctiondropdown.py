@@ -174,10 +174,10 @@ class ClassFunctionDropdown(Panel):
                 r = _symbol_range(item)
                 begin = r.start.line
                 end = r.end.line
-                possible_parents = sorted(self._tree.overlap(begin, end),
+                possible_parents = sorted(self._tree.overlap(begin, end + 1),
                                           reverse=True)
                 for iv in possible_parents:
-                    if iv.begin == begin and iv.end == end:
+                    if iv.data is item:
                         continue
 
                     # Check if it is a real parent
@@ -239,7 +239,7 @@ class ClassFunctionDropdown(Panel):
             # The symbol finder returns classes in import statements as well
             # so we filter them out
             if line_start != line_end and ' import ' not in line_text:
-                self._tree[line_start:line_end] = item
+                self._tree[line_start:line_end + 1] = item
 
                 if kind in [lsp.SymbolKind.Class]:
                     self.classes.append(item)

@@ -124,6 +124,7 @@ class LanguageServerClientProvider(LanguageServicesProvider):
         self._interpreter = sys.executable
         self._workspace_folders: dict[str, lsp.WorkspaceFolder] = {}
         self._started = False
+        self._apply_lock = asyncio.Lock()
 
     # ---- Configuration ---------------------------------------------------
     def get_server_configs(self) -> list[ServerConfig]:
@@ -157,7 +158,17 @@ class LanguageServerClientProvider(LanguageServicesProvider):
     async def apply_server_configs(
         self, configs: Iterable[ServerConfig]
     ) -> None:
-        """Reconcile the running servers with ``configs``."""
+        """Start, restart or stop servers to match ``configs``.
+
+        Calls run one at a time. A second call starting while a server is
+        still being stopped or started would interleave with it.
+        """
+        async with self._apply_lock:
+            await self._apply_server_configs(configs)
+
+    async def _apply_server_configs(
+        self, configs: Iterable[ServerConfig]
+    ) -> None:
         wanted = {config.name: config for config in configs}
         for name in list(self._servers):
             if name not in wanted:
@@ -337,8 +348,14 @@ class LanguageServerClientProvider(LanguageServicesProvider):
 
         state.restart_attempts = 0
         self._set_status(state, ProviderStatus.READY)
-        for language in self._server_languages(state):
+        languages = self._server_languages(state)
+        for language in languages:
             self.sig_capabilities_changed.emit(language)
+
+        # After the capabilities: editors send didOpen only for a language
+        # that has them.
+        for language in languages:
+            self.sig_documents_requested.emit(language)
 
     async def _stop_server(self, name: str) -> None:
         state = self._servers[name]
@@ -715,10 +732,21 @@ class LanguageServerClientProvider(LanguageServicesProvider):
             self.sig_log_message.emit(params)
         elif method == lsp.WORKSPACE_APPLY_EDIT:
             self.sig_apply_edit.emit(params)
-        elif method == lsp.CLIENT_REGISTER_CAPABILITY:
-            if state.config.auto_languages and state.ready:
+        elif method in (
+            lsp.CLIENT_REGISTER_CAPABILITY,
+            lsp.CLIENT_UNREGISTER_CAPABILITY,
+        ):
+            if not state.ready:
+                # Reaching READY announces the capabilities.
+                return
+
+            if state.config.auto_languages:
                 # A registered document selector can narrow the served set,
                 # so languages the server no longer serves need the update
                 # too.
-                for language in Language:
-                    self.sig_capabilities_changed.emit(language)
+                languages = frozenset(Language)
+            else:
+                languages = self._server_languages(state)
+
+            for language in languages:
+                self.sig_capabilities_changed.emit(language)

@@ -200,10 +200,26 @@ def merge_completions(
 def merge_diagnostics(
     results: list[tuple[str, list[lsp.Diagnostic] | None]],
 ) -> list[lsp.Diagnostic]:
-    """Concatenate diagnostics, naming the provider in empty ``source``."""
+    """Concatenate diagnostics, naming the provider in empty ``source``.
+
+    A diagnostic with the same range and message as one already merged is
+    dropped: several servers report the same syntax errors.
+    """
     merged: list[lsp.Diagnostic] = []
+    seen: set[tuple[int, int, int, int, str]] = set()
     for name, diagnostics in results:
         for diagnostic in diagnostics or ():
+            rng = diagnostic.range
+            key = (
+                rng.start.line,
+                rng.start.character,
+                rng.end.line,
+                rng.end.character,
+                diagnostic.message,
+            )
+            if key in seen:
+                continue
+            seen.add(key)
             if not diagnostic.source:
                 diagnostic.source = name
 
@@ -262,6 +278,7 @@ register_merge_strategy(lsp.WORKSPACE_SYMBOL, concatenate)
 
 _EXCLUSIVE = RequestPolicy(mode=RequestMode.EXCLUSIVE)
 _MERGE = RequestPolicy(mode=RequestMode.MERGE)
+_EXCLUSIVE_SLOW = RequestPolicy(mode=RequestMode.EXCLUSIVE, timeout_ms=30000)
 
 DEFAULT_FEATURE_POLICIES: dict[str, RequestPolicy] = {
     lsp.TEXT_DOCUMENT_COMPLETION: _MERGE,
@@ -272,8 +289,8 @@ DEFAULT_FEATURE_POLICIES: dict[str, RequestPolicy] = {
     lsp.TEXT_DOCUMENT_REFERENCES: _MERGE,
     lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL: _MERGE,
     lsp.TEXT_DOCUMENT_FOLDING_RANGE: _MERGE,
-    lsp.TEXT_DOCUMENT_FORMATTING: _EXCLUSIVE,
-    lsp.TEXT_DOCUMENT_RANGE_FORMATTING: _EXCLUSIVE,
+    lsp.TEXT_DOCUMENT_FORMATTING: _EXCLUSIVE_SLOW,
+    lsp.TEXT_DOCUMENT_RANGE_FORMATTING: _EXCLUSIVE_SLOW,
     lsp.TEXT_DOCUMENT_CODE_ACTION: _MERGE,
     lsp.TEXT_DOCUMENT_RENAME: _EXCLUSIVE,
     lsp.WORKSPACE_SYMBOL: _MERGE,

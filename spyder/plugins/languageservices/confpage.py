@@ -185,7 +185,7 @@ class LanguageServicesConfigPage(PluginConfigPage):
                 newcb(
                     _("Enable {0} provider").format(name),
                     ("providers", name, "enable"),
-                    default=True,
+                    default=plugin.get_provider(name).ENABLED_BY_DEFAULT,
                 ),
                 row,
                 0,
