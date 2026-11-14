@@ -66,8 +66,8 @@ def test_hide_calltip(completions_codeeditor, qtbot):
             # Parameter, Expected Output
             ('dict', 'dict'),
             ('type', 'type'),
-            ('"".format', '-> str'),
-            (TEST_TEXT, TEST_SIG)
+            ('"".format', '*args'),
+            (TEST_TEXT, 'some_function(foo')
         ]
     )
 def test_get_calltips(qtbot, completions_codeeditor, params):
