@@ -1067,6 +1067,13 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     assert "flask" in [x.label for x in sig.args[0]]
+
+    # Select `flask` from the completion list if multiple available
+    if completion.isVisible():
+        labels = displayed_labels(completion)
+        assert "flask" in labels
+        completion.setCurrentRow(labels.index("flask"))
+        qtbot.keyPress(completion, Qt.Key_Tab)
     assert code_editor.toPlainText() == 'import flask'
 
     set_executable_helper(completion_plugin)
