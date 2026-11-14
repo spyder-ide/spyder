@@ -40,6 +40,14 @@ def set_executable_helper(completion_plugin, executable=None):
         completion_plugin._sig_interpreter_changed.emit(executable)
 
 
+def displayed_labels(completion):
+    """Labels of the items the completion widget currently displays."""
+    return [
+        completion.item(i).data(Qt.UserRole).label
+        for i in range(completion.count())
+    ]
+
+
 @pytest.mark.order(1)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
@@ -429,11 +437,11 @@ def test_completions(completions_codeeditor, qtbot, request):
     code_editor, completion_plugin = completions_codeeditor
     completion = code_editor.completion_widget
 
-    # This test asserts on the exact set of completions returned by the Python
-    # language server (exactly Jedi's six ``math.f*`` functions and the
-    # single-match auto-insert for ``math.h``). The fallback (buffer words and
-    # keywords) and snippet providers race with file registration on the shared
-    # completion plugin and also adds items to member-access popups.
+    # This test asserts on the completions returned by the Python language
+    # server (the ``math.f*`` functions and the single-match auto-insert for
+    # ``math.h``). The fallback (buffer words and keywords) and snippet
+    # providers race with file registration on the shared completion plugin
+    # and also add items to member-access popups.
     language_status = completion_plugin.language_status['python']
     saved_status = dict(language_status)
     for provider in ('fallback', 'snippets'):
@@ -549,9 +557,11 @@ def test_completions(completions_codeeditor, qtbot, request):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "asin" in [x.label for x in sig.args[0]]
-    # Test if the list is updated
-    assert "acos" == completion.completion_list[0].label
+    # Test if the list is updated. The server ranks recently resolved items
+    # first, so only membership of the displayed labels is checked.
+    assert {"acos", "asin"} <= set(displayed_labels(completion))
     qtbot.keyClicks(completion, 's')
+    assert "acos" not in displayed_labels(completion)
     data = completion.item(0).data(Qt.UserRole)
     assert "asin" == data.insert_text
     qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
@@ -570,14 +580,13 @@ def test_completions(completions_codeeditor, qtbot, request):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    # The number of `math.f*` functions varies depending on the
-    # Python and jedi versions.
-    # `math.fma` exists in Python 3.13 but is only in the stubs
-    # shipped by Jedi 0.20+.
+    # Later Python versions add ``math.f*`` functions and the stubs re-export
+    # names such as ``Final`` that pass the prefix filter, so the count is
+    # only used as the baseline for the round trip below.
+    assert {"fabs", "factorial", "floor", "fmod", "frexp", "fsum"} <= set(
+        displayed_labels(completion)
+    )
     math_f_count = completion.count()
-    assert math_f_count in (6, 7)
-
-    assert "floor" in [x.label for x in sig.args[0]]
     qtbot.keyClicks(completion, 'l')
     assert completion.count() == 1
     qtbot.keyPress(completion, Qt.Key_Backspace)
