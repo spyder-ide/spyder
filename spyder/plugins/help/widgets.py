@@ -345,6 +345,9 @@ class HelpWidget(PluginMainWidget):
             "Editor"
         )
         self.object_edit.setToolTip("\n".join(textwrap.wrap(tip, 50)))
+        self.object_edit.setPlaceholderText(
+            _("Searching is not possible when the Editor is set as source")
+        )
         self.object_combo.setMaxCount(self.get_conf('max_history_entries'))
         self.object_combo.setItemText(0, '')
         self.plain_text.set_wrap_mode(self.get_conf('wrap'))
