@@ -26,7 +26,7 @@ import unicodedata
 import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QFontMetrics, QTextCursor
+from qtpy.QtGui import QFontMetrics, QKeySequence, QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
                             QToolBar, QToolButton)
@@ -36,6 +36,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import Plugins
 from spyder.api.translations import _
+from spyder.api.widgets import PluginMainWidgetActions
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.config.utils import (
@@ -99,6 +100,7 @@ class EditorStackMenuSections:
     SwitcherSection = "switcher_path_section"
     CloseOrderSection = "close_order_section"
     SplitCloseSection = "split_close_section"
+    SwitchTabsSection = "switch_tabs_section"
     WindowSection = "window_section"
     MainWidgetSection = "main_widget_section"
 
@@ -294,6 +296,20 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             EditorStackActions.SortTabs,
             text=_("Sort tabs alphabetically"),
             triggered=self.sort_file_tabs_alphabetically,
+            register_action=False
+        )
+        self.next_tab_action = self.create_action(
+            PluginMainWidgetActions.GoToNextTab,
+            text=_("Go to next tab"),
+            icon=self.create_icon("next_wng"),
+            triggered=lambda: self.tabs.tab_navigate(1),
+            register_action=False
+        )
+        self.previous_tab_action = self.create_action(
+            PluginMainWidgetActions.GoToPreviousTab,
+            text=_("Go to previous tab"),
+            icon=self.create_icon("prev_wng"),
+            triggered=lambda: self.tabs.tab_navigate(-1),
             register_action=False
         )
 
@@ -515,6 +531,17 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
+
+        self.register_shortcut_for_widget(
+            name=PluginMainWidgetActions.GoToNextTab,
+            triggered=lambda: self.tabs.tab_navigate(1),
+            context="main",
+        )
+        self.register_shortcut_for_widget(
+            name=PluginMainWidgetActions.GoToPreviousTab,
+            triggered=lambda: self.tabs.tab_navigate(-1),
+            context="main",
+        )
 
         # Register shortcuts for run actions
         for action_id in [
@@ -1402,6 +1429,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             self.menu.add_action(
                 window_action, section=EditorStackMenuSections.WindowSection
             )
+
+        if self.data:
+            for action in [self.next_tab_action, self.previous_tab_action]:
+                keystr = self.get_shortcut(action.name, context="main")
+                action.setShortcut(QKeySequence(keystr))
+                self.menu.add_action(
+                    action,
+                    section=EditorStackMenuSections.SwitchTabsSection
+                )
 
         for split_actions in self.__get_split_actions():
             self.menu.add_action(

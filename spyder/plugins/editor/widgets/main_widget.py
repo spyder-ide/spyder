@@ -3269,15 +3269,17 @@ class EditorMainWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     @Slot()
     def go_to_next_file(self):
-        """Switch to next file tab on the current editor stack."""
-        editorstack = self.get_current_editorstack()
-        editorstack.tabs.tab_navigate(+1)
+        """Switch to next file tab on the focused editor stack."""
+        editorstack = self.__get_focused_editorstack()
+        if editorstack is not None:
+            editorstack.tabs.tab_navigate(+1)
 
     @Slot()
     def go_to_previous_file(self):
-        """Switch to previous file tab on the current editor stack."""
-        editorstack = self.get_current_editorstack()
-        editorstack.tabs.tab_navigate(-1)
+        """Switch to previous file tab on the focused editor stack."""
+        editorstack = self.__get_focused_editorstack()
+        if editorstack is not None:
+            editorstack.tabs.tab_navigate(-1)
 
     # ---- CodeEditor context menu
     # -------------------------------------------------------------------------

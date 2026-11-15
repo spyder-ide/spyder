@@ -159,13 +159,13 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.2.0a3 is released!
+**Subject**: [ANN] Spyder 6.2.0a4 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the third alpha of our next minor version: Spyder **6.2**.
+I'm pleased to announce the fourth alpha of our next minor version: Spyder **6.2**.
 
 We've been working on this version for more than ten months and we encourage all people
 who like the bleeding edge to give it a try.
@@ -183,6 +183,8 @@ Spyder 6.2 comes with the following interesting new features and fixes:
       RTF.
     * Make copy/paste text in the Editor to Microsoft Word or similar programs grab
       the syntax highlighting theme too.
+    * Add `Ctrl+Alt+Up/Down` shortcuts to move to the next/previous prompt in the
+      IPython console.
     * Add button to close all open viewers to the Variable Explorer and its viewers.
     * Add shortcuts and menu entries to expand/collapse all foldable regions in the
       Editor to the `Source` menu.
@@ -190,13 +192,25 @@ Spyder 6.2 comes with the following interesting new features and fixes:
       (i.e. the one to the left of tabs) by keeping `Shift` pressed and dragging its
       entries with the left mouse button.
     * The position for the close button in tabs (left, right or automatic) can be
-      configured in `Preferences > Application > Panes`
+      configured in `Preferences > Application > Panes`.
+    * Add `--reset-hdpi-settings` command line option to reset incorrect high
+      resolution screen settings without altering other options.
     * Add support to introduce inline (or ghost) completions to the Editor.
+    * Add a `LanguageServices` plugin that merges completions, hover, linting,
+      formatting and the other language features from several providers per
+      language, with per-feature request policies configurable in
+      `Preferences > Completion and linting`. Its LSP client provider runs any
+      number of language servers described only by configuration and detects the
+      languages a server registers.
 
 - Important fixes
+    * Add support for PyQt6 and drop it for PyQt5.
     * Base the standalone installers in Python 3.13.
     * Sign the Windows standalone installer so it's not flagged as untrusted.
-    * The Matplotlib automatic backend works with PyQt6 and PySide6.
+    * Greatly improve support to work with Windows network share folders in the
+      Files pane.
+    * Make Spyder projects automatically ignore files in `.gitignore` when tracking
+      changes.
     * Add support for PySide6 6.9+.
     * Automatically disable plugins when users disable the ones they depend on (e.g.
       the Variable Explorer, Debugger and Plots will be auto-disabled if the
@@ -207,13 +221,25 @@ Spyder 6.2 comes with the following interesting new features and fixes:
     - Editor
         * Add `add_extension`, `add_panel` and `add_shortcut` methods to register
   extensions, panels and shortcuts.
+    - Language services
+        * Add the `LanguageServices` plugin (`Plugins.LanguageServices`) with a typed,
+          asynchronous API based on `lsprotocol` (`completion`, `hover`,
+          `document_symbol`, `formatting`, ...). Providers subclass
+          `spyder.plugins.languageservices.api.LanguageServicesProvider` and register
+          through the `spyder.language_services` entry point. New languages are
+          registered with `Language.register`.
+        * The Editor, Outline Explorer and Projects plugins use `LanguageServices`
+          instead of `Completions`.
+        * Deprecate the `Completions` plugin, `SpyderCompletionProvider` and the
+          `spyder.completions` entry point. Third-party providers registered there
+          keep working through an adapter, but they cannot report diagnostics.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_dev -c conda-forge spyder=6.2.0a3
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_dev -c conda-forge spyder=6.2.0a4
 
 Or you can use pip with this command:
 
