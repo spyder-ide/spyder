@@ -1206,6 +1206,10 @@ class DirView(SpyderWidgetMixin, QTreeView):
 
             # Network shares don't have a trash, so let users delete files
             # permanently there, as Windows Explorer does.
+            # Note: We check is_network_path instead of is_unc_path (used for
+            # refreshing) because drive letters mapped to a network share
+            # (e.g. Z: -> \\server\share) don't have a trash either, although
+            # Qt watches them for changes.
             # Fixes spyder-ide/spyder#26432
             if not removed:
                 if not is_network_path(fname):
