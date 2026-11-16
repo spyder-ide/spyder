@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 3.2.0a3 (2026/11/13)
+
+### Pull Requests Merged
+
+* [PR 611](https://github.com/spyder-ide/spyder-kernels/pull/611) - PR: Fix setting traceback syntax highlighting for IPython 9.18+, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.2.0a2 (2026/09/22)
 
 ### Pull Requests Merged
@@ -27,6 +37,16 @@ In this release 1 issue was closed.
 * [PR 581](https://github.com/spyder-ide/spyder-kernels/pull/581) - PR: Support Polars series, by [@jitseniesen](https://github.com/jitseniesen)
 
 In this release 4 pull requests were closed.
+
+----
+
+## Version 3.1.7 (2026/11/02)
+
+### Pull Requests Merged
+
+* [PR 611](https://github.com/spyder-ide/spyder-kernels/pull/611) - PR: Fix setting traceback syntax highlighting for IPython 9.18+, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
 
 ----
 
