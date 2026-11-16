@@ -207,9 +207,12 @@ class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
 
         If no items are left on the list the autocompletion should stop
         """
+        # Reset the index first: under PySide6, clear() emits
+        # currentRowChanged with a valid row while the old rows still map
+        # into the previous completion_list.
+        self.display_index = []
         self.clear()
 
-        self.display_index = []
         height = self.item_height
 
         # This heuristics tells us if the amount of items is taller than the
@@ -343,6 +346,7 @@ class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
         """Override Qt method."""
         self.completion_position = None
         self.completion_list = []
+        self.display_index = []
         self._item_points = {}
         self.clear()
 
