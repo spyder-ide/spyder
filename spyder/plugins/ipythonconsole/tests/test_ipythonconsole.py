@@ -19,7 +19,7 @@ import re
 import shutil
 import sys
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -30,8 +30,14 @@ import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy import PYQT6
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QTextCursor
+from qtpy.QtCore import QEvent, QPoint, QPointF, Qt, QUrl
+from qtpy.QtGui import (
+    QKeySequence, 
+    QMouseEvent, 
+    QShortcut, 
+    QTextCursor,
+)
+from qtpy.QtWidgets import QApplication
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -50,9 +56,15 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     SHELL_TIMEOUT,
 )
 from spyder.utils.programs import run_shell_command
+from spyder.plugins.ipythonconsole.api import (
+    ClientContextMenuActions,
+    ClientContextMenuSections,
+)
 from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
+from spyder.plugins.ipythonconsole.widgets.shell import PROMPT_BLOCK_RE
 from spyder.utils.conda import get_list_conda_envs, find_pixi
 from spyder.utils.theme_manager import THEME_MANAGER
+from spyder.widgets import mixins
 
 
 @flaky(max_runs=3)
@@ -1015,6 +1027,99 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
+def test_kernel_shuts_down_when_closing_client_after_startup_warning(
+    ipyconsole, qtbot
+):
+    # Start a console with its own kernel, before its kernel is connected.
+    ipyconsole.create_new_client()
+    client = ipyconsole.get_current_client()
+    assert client.kernel_handler is None
+
+    # Emit a startup warning as kernel stderr while the console is connecting.
+    client.shellwidget.sig_shellwidget_created.connect(
+        lambda shellwidget: shellwidget.kernel_handler.sig_stderr.emit(
+            "C:\\env\\lib\\module.py:12: UserWarning: harmless warning\n"
+            "  warnings.warn(msg)\n"
+        )
+    )
+    qtbot.waitSignal(
+        client.shellwidget.sig_prompt_ready, timeout=SHELL_TIMEOUT
+    ).wait()
+
+    kernel_handler = client.kernel_handler
+    kernel_manager = kernel_handler.kernel_manager
+
+    try:
+        # Close the console and assert its kernel was shut down.
+        ipyconsole.get_widget().close_client(client=client, ask_recursive=False)
+        assert not kernel_manager.is_alive()
+    finally:
+        # Forcefully shut down the kernel if it wasn't shut down normally.
+        if kernel_manager.is_alive():
+            kernel_manager.shutdown_kernel(now=True)
+
+        # Wait for the threads to finish to avoid Qt crashing upon GC.
+        kernel_handler.close_std_threads()
+
+
+def test_kernel_shuts_down_on_startup_error(ipyconsole, qtbot):
+    # Start a console with its own kernel, before its kernel is connected.
+    ipyconsole.create_new_client()
+    client = ipyconsole.get_current_client()
+    assert client.kernel_handler is None
+
+    # Emit a startup error as kernel stderr while the console is connecting.
+    with qtbot.waitSignal(client.shellwidget.sig_shellwidget_errored):
+        client.shellwidget.sig_shellwidget_created.connect(
+            lambda shellwidget: shellwidget.kernel_handler.sig_stderr.emit(
+                "Traceback (most recent call last):\n"
+                '  File "C:\\env\\lib\\module.py", line 12, in <module>\n'
+                "RuntimeError: kernel startup failed\n"
+            )
+        )
+
+    kernel_handler = client.kernel_handler
+    kernel_manager = kernel_handler.kernel_manager
+
+    try:
+        assert not kernel_manager.is_alive()
+    finally:
+        # Forcefully shut down the kernel if it wasn't shut down normally.
+        if kernel_manager.is_alive():
+            kernel_manager.shutdown_kernel(now=True)
+
+        # Wait for the threads to finish to avoid Qt crashing upon GC.
+        kernel_handler.close_std_threads()
+
+        ipyconsole.get_widget().close_client(client=client, ask_recursive=False)
+
+
+@pytest.mark.parametrize(
+    "stop_kernel",
+    [
+        pytest.param(
+            lambda client: client.disconnect_kernel(shutdown_kernel=True),
+            id="no-kernel",
+        ),
+        pytest.param(
+            lambda client: client.kernel_handler.close(),
+            id="kernel-already-shut-down",
+        ),
+    ],
+)
+def test_shellwidget_shutdown_is_idempotent(ipyconsole, stop_kernel):
+    """Test that shutting down ShellWidget again after it's been shut down has no effect."""
+    client = ipyconsole.get_current_client()
+    shell = client.shellwidget
+    kernel_manager = shell.kernel_handler.kernel_manager
+    stop_kernel(client)
+    assert not kernel_manager.is_alive()
+
+    shell.shutdown()
+    # Second call should be idempotent and not raise an exception.
+    shell.shutdown()
+
+
 @flaky(max_runs=3)
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
@@ -1091,7 +1196,7 @@ def test_kernel_crash(ipyconsole, qtbot):
             webpage = webview.page().mainFrame()
 
         qtbot.waitUntil(
-            lambda: check_text(webpage, "Bad config encountered"),
+            lambda: check_text(webpage, "Bad config encountered", qtbot),
             timeout=6000)
 
         # Wait until the error has been received by the cached kernel_handler
@@ -1525,7 +1630,7 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
     # Evaluate an expression to be sure the restart was successful
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
-    assert shell.is_defined('a')
+    qtbot.waitUntil(lambda: shell.is_defined('a'))
 
     # Wait until the comm replies
     open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
@@ -2368,10 +2473,11 @@ def test_old_kernel_version(ipyconsole, qtbot):
     info_page = w.get_current_client().infowidget.page()
 
     qtbot.waitUntil(
-        lambda: check_text(info_page, "1.0.0"), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "1.0.0", qtbot), timeout=SHELL_TIMEOUT
     )
     qtbot.waitUntil(
-        lambda: check_text(info_page, "pip install spyder"), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "pip install spyder", qtbot),
+        timeout=SHELL_TIMEOUT,
     )
 
 
@@ -2447,7 +2553,8 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     qtbot.waitUntil(
         lambda: check_text(
             info_page,
-            "The Python environment or installation"
+            "The Python environment or installation",
+            qtbot,
         ),
         timeout=6000
     )
@@ -2801,6 +2908,237 @@ def test_add_tab_give_focus(ipyconsole, qtbot, mocker):
     widget.clients.remove(mock_client)
 
 
+@flaky(max_runs=3)
+def test_jump_to_prompt(ipyconsole, qtbot):
+    """
+    Test that jump_to_previous_prompt/jump_to_next_prompt move the cursor
+    between the blocks where "In" prompts are shown.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2", "c = 3"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    # There should be at least one prompt block per statement executed above,
+    # plus the initial one.
+    assert len(shell._prompt_blocks) >= 4
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    last_block = control.textCursor().blockNumber()
+
+    # Jump backwards twice
+    shell.jump_to_previous_prompt()
+    after_first_jump = control.textCursor().blockNumber()
+    assert after_first_jump < last_block
+
+    # The cursor should land right after the prompt (e.g. "In [3]: ")
+    cursor = control.textCursor()
+    block_text = cursor.block().text()
+    assert cursor.positionInBlock() > 0
+    assert block_text[:cursor.positionInBlock()].endswith(": ")
+
+    shell.jump_to_previous_prompt()
+    after_second_jump = control.textCursor().blockNumber()
+    assert after_second_jump < after_first_jump
+
+    # Jump forward and check we're back to where the first jump left us
+    shell.jump_to_next_prompt()
+    assert control.textCursor().blockNumber() == after_first_jump
+
+    # Jumping past the first/last prompt should be a no-op
+    for __ in range(10):
+        shell.jump_to_previous_prompt()
+    first_jump_block = control.textCursor().blockNumber()
+
+    shell.jump_to_previous_prompt()
+    assert control.textCursor().blockNumber() == first_jump_block
+
+
+def test_valid_prompt_blocks_discards_stale_entries(ipyconsole, qtbot):
+    """
+    Test that ShellWidget._valid_prompt_blocks() drops tracked blocks that
+    are no longer shown as prompts (e.g. after the console is cleared),
+    keeping only those whose text still starts with a prompt.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    tracked = shell._valid_prompt_blocks()
+    assert len(tracked) >= 3
+    assert all(PROMPT_BLOCK_RE.match(block.text()) for block in tracked)
+
+    # Add a block whose text isn't a prompt: it must be discarded.
+    non_prompt_block = control.document().firstBlock()
+    assert not PROMPT_BLOCK_RE.match(non_prompt_block.text())
+    shell._prompt_blocks.append(non_prompt_block)
+    assert non_prompt_block not in shell._valid_prompt_blocks()
+
+
+@flaky(max_runs=3)
+def test_jump_to_prompt_after_clear(ipyconsole, qtbot):
+    """
+    Test that clearing the console discards the stale tracked prompt blocks,
+    so jump_to_previous_prompt/jump_to_next_prompt don't land on positions
+    left over from before the console was cleared.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    # Clear the console and wait until only the post-clear prompt remains.
+    shell.clear_console()
+    qtbot.waitUntil(lambda: control.toPlainText().count("In [") == 1)
+
+    for code in ["c = 3", "d = 4"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    prev = control.textCursor().blockNumber()
+
+    # Every backwards jump must land on a real prompt line in the post-clear
+    # content, never on a stale position at the top of the document.
+    stops = 0
+    for __ in range(10):
+        shell.jump_to_previous_prompt()
+        current = control.textCursor().blockNumber()
+        if current == prev:
+            break
+        assert current > 0
+        block_text = control.document().findBlockByNumber(current).text()
+        assert PROMPT_BLOCK_RE.match(block_text)
+        prev = current
+        stops += 1
+
+    assert stops >= 2
+
+
+@flaky(max_runs=3)
+def test_jump_to_prompt_while_debugging(ipyconsole, qtbot):
+    """
+    Test that jump_to_previous_prompt/jump_to_next_prompt also navigate
+    debugging prompts ("IPdb [ ]: "), which are shown through a different
+    code path (_show_prompt) than regular ones (_show_interpreter_prompt).
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+
+    # Produce a few IPdb prompts without leaving the debugger.
+    for __ in range(3):
+        with qtbot.waitSignal(shell.executed):
+            shell.pdb_execute("!pass")
+
+    qtbot.waitUntil(lambda: control.toPlainText().count("IPdb [") >= 3)
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    last_block = control.textCursor().blockNumber()
+
+    shell.jump_to_previous_prompt()
+    first = control.textCursor().blockNumber()
+    assert first < last_block
+    assert control.document().findBlockByNumber(first).text().startswith("IPdb [")
+
+    shell.jump_to_previous_prompt()
+    second = control.textCursor().blockNumber()
+    assert second < first
+    assert control.document().findBlockByNumber(second).text().startswith(
+        "IPdb ["
+    )
+
+    # Quit debugging for a clean teardown.
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
+
+
+def test_jump_to_prompt_context_menu_actions(ipyconsole, qtbot):
+    """
+    Test that the "Move to previous/next prompt" actions are present in the
+    console context menu, in their own section right above "Inspect current
+    object".
+    """
+    shell = ipyconsole.get_current_shellwidget()
+
+    context_menu = shell._context_menu_make(QPoint(0, 0))
+    sections = context_menu.get_sections()
+    assert sections.index(ClientContextMenuSections.Navigation) == (
+        sections.index(ClientContextMenuSections.Edit) + 1
+    )
+    assert sections.index(ClientContextMenuSections.Navigation) == (
+        sections.index(ClientContextMenuSections.Inspect) - 1
+    )
+
+    previous_action = shell.get_action(
+        ClientContextMenuActions.MoveToPreviousPrompt
+    )
+    next_action = shell.get_action(ClientContextMenuActions.MoveToNextPrompt)
+    assert previous_action.text() == "Move to previous prompt"
+    assert next_action.text() == "Move to next prompt"
+    assert previous_action in context_menu.get_actions()
+    assert next_action in context_menu.get_actions()
+
+
+def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):
+    """
+    Test that the "go to previous/next prompt" shortcuts are registered and
+    correctly wired to ShellWidget.jump_to_previous_prompt/jump_to_next_prompt.
+
+    Note: this triggers the registered QShortcut objects directly (i.e. the
+    same connection a real key press would activate) instead of simulating
+    key presses, since delivering those depends on the window actually
+    being focused/active, which isn't reliable in headless CI environments.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+
+    before = control.textCursor().blockNumber()
+
+    shortcuts = shell.findChildren(QShortcut)
+
+    def shortcut_for(keystr):
+        matches = [
+            s for s in shortcuts
+            if s.key().toString() == QKeySequence(keystr).toString()
+        ]
+        assert len(matches) == 1
+        return matches[0]
+
+    prev_keystr = shell.get_shortcut('go to previous prompt')
+    next_keystr = shell.get_shortcut('go to next prompt')
+
+    shortcut_for(prev_keystr).activated.emit()
+    after_previous = control.textCursor().blockNumber()
+    assert after_previous < before
+
+    shortcut_for(next_keystr).activated.emit()
+    assert control.textCursor().blockNumber() > after_previous
+
+
 @pytest.mark.order(1)
 @pytest.mark.skipif(not running_in_ci(), reason="Only works on CIs")
 @pytest.mark.skipif(not find_pixi(), reason="Needs Pixi to work")
@@ -2940,6 +3278,49 @@ def test_umr(ipyconsole, qtbot, tmp_path):
         shell.execute(f"%runfile {fname}")
 
     assert "Reloaded modules" in control.toPlainText()
+
+
+def test_click_url_in_output(ipyconsole, qtbot, monkeypatch):
+    """Check that urls printed in the console can be opend by clicking."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    open_url = Mock()
+    monkeypatch.setattr(mixins.QDesktopServices, "openUrl", open_url)
+
+    # Print a url
+    url = "https://www.spyde-ide.org"
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"print('Visit {url}')")
+
+    # Get coordinates on top of the url in the output
+    cursor = control.document().find(f"Visit {url}")
+    cursor.setPosition(cursor.selectionStart() + len("Visit ") + 3)
+    rect = control.cursorRect(cursor)
+    pos = QPoint(rect.left() + 2, rect.center().y())
+
+    def send_mouse_event(event_type, button, buttons):
+        event = QMouseEvent(
+            event_type,
+            QPointF(pos),
+            QPointF(control.viewport().mapToGlobal(pos)),
+            button,
+            buttons,
+            Qt.NoModifier,
+        )
+        QApplication.sendEvent(control.viewport(), event)
+
+    # Hover over the url and check it's detected
+    send_mouse_event(QEvent.MouseMove, Qt.NoButton, Qt.NoButton)
+    assert control.anchor == url
+
+    # Click on it and check it's opened
+    send_mouse_event(QEvent.MouseButtonPress, Qt.LeftButton, Qt.LeftButton)
+    send_mouse_event(QEvent.MouseButtonRelease, Qt.LeftButton, Qt.NoButton)
+    open_url.assert_called_once_with(QUrl(url))
 
 
 if __name__ == "__main__":

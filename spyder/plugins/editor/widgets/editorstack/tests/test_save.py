@@ -18,16 +18,12 @@ from unittest.mock import Mock
 from flaky import flaky
 from lsprotocol import types as lsp
 import pytest
-from qtpy import PYQT6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
-from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri,
-)
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -71,6 +67,8 @@ def editor_bot(base_editor_bot, request):
 
     qtbot.addWidget(editor_stack)
     add_files(editor_stack)
+    editor_stack.show()
+
     return editor_stack, qtbot
 
 
@@ -218,7 +216,6 @@ def test_save(editor_bot, mocker):
     editor_stack.file_saved = save_file_saved
 
 
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_file_saved_in_other_editorstack(editor_splitter_layout_bot):
     """Test EditorStack.file_saved_in_other_editorstack()."""
     es = editor_splitter_layout_bot
@@ -438,6 +435,7 @@ def test_save_all(editor_bot, mocker):
     editor_stack, qtbot = editor_bot
     save_all = editor_stack.save_all
     mocker.patch.object(editor_stack, 'save')
+
     # Save return value isn't used in save_all.
     editor_stack.save.return_value = False
 
@@ -446,8 +444,66 @@ def test_save_all(editor_bot, mocker):
     editor_stack.save.assert_any_call(0, save_new_files=True)
     editor_stack.save.assert_any_call(1, save_new_files=True)
     editor_stack.save.assert_any_call(2, save_new_files=True)
+
     with pytest.raises(AssertionError):
         editor_stack.save.assert_any_call(3, save_new_files=True)
+
+
+def test_save_all_when_overwriting(base_editor_bot, mocker, tmp_path):
+    """
+    Test EditorStack.save_all() when new files are saved with the same name
+    of open ones.
+
+    This is a regression test for spyder-ide/spytder#26382
+    """
+    editor_stack, qtbot = base_editor_bot
+    mocker.patch.object(editor, 'getsavefilename')
+
+    # Auxiliary function
+    def create_pair_saved_new(index, index_name):
+        file_to_save = tmp_path / f"saved-file-{index_name}.py"
+        editor.getsavefilename.side_effect = [(file_to_save, "")]
+
+        # Save file
+        editor_stack.new(
+            str(file_to_save), "utf-8", f"# Saved file {index_name}"
+        )
+        editor_stack.save(index=index)
+
+        editor_stack.new(
+            str(tmp_path / f"new-file-{index_name}.py"),
+            "utf-8",
+            f"# New file {index_name}",
+        )
+
+    # Create saved and new files
+    for index, index_name in [(0, "one"), (2, "two")]:
+        create_pair_saved_new(index, index_name)
+
+    editor_stack.show()
+
+    assert editor_stack.get_stack_count() == 4
+
+    # Save all files. The new ones should overwrite to the saved ones due to
+    # the mocking done below
+    editor.getsavefilename.side_effect = [
+        (tmp_path / "saved-file-one.py", ""),
+        (tmp_path / "saved-file-two.py", "")
+    ]
+    editor_stack.save_all(save_new_files=True)
+    assert editor_stack.get_stack_count() == 2
+
+    # Check that the filename and text for the saved files are the expected
+    # ones
+    for index in range(2):
+        editor_stack.set_stack_index(index)
+        codeeditor = editor_stack.get_current_editor()
+
+        index_name = "one" if index == 0 else "two"
+        assert codeeditor.filename == str(
+            tmp_path / f"saved-file-{index_name}.py"
+        )
+        assert codeeditor.toPlainText() == f"# New file {index_name}\n"
 
 
 @pytest.mark.show_save_dialog
@@ -487,6 +543,31 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     assert editorstack.sig_open_file.emit.called == 1
 
 
+@pytest.mark.show_save_dialog
+def test_save_as_emits_resolved_language(editor_bot, mocker, tmpdir):
+    """
+    Save-as across file types must announce the resolved language name,
+    not the raw extension as report_open_file looks languages up by name.
+    """
+    editorstack, qtbot = editor_bot
+
+    editorstack.tabs.setCurrentIndex(1)
+    editor = editorstack.get_current_editor()
+    mocker.patch.object(editor, 'notify_close')
+    editorstack.sig_open_file = Mock()
+
+    new_filename = osp.join(tmpdir.strpath, 'foo.tsx')
+    mocker.patch.object(
+        editorstack, "select_savename", return_value=new_filename
+    )
+    assert editorstack.save_as() is True
+
+    assert editor.language == 'TypeScript'
+    options = editorstack.sig_open_file.emit.call_args[0][0]
+    assert options['language'] == 'TypeScript'
+    assert options['filename'] == new_filename
+
+
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
@@ -505,7 +586,6 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
 
     code_editor.set_text('some = 0\nsomething = 1\n')
     editorstack.save(force=True)
-    cursor = code_editor.textCursor()
     code_editor.moveCursor(QTextCursor.End)
 
     # Complete some -> [some, something]
@@ -614,12 +694,12 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # First call: notify_close() must have been called
     call = code_editor.emit_request.call_args_list[0]
     assert call.args[0] == 'textDocument/didClose'
-    assert call.args[1]['file'].endswith('test.py')
+    assert call.args[1].text_document.uri.endswith('test.py')
 
     # Second call: document_did_open() must have been called
     call = code_editor.emit_request.call_args_list[1]
     assert call.args[0] == 'textDocument/didOpen'
-    assert call.args[1]['file'].endswith('new_filename.py')
+    assert call.args[1].text_document.uri.endswith('new_filename.py')
 
     # === Append new text
     code_editor.append(dedent("""

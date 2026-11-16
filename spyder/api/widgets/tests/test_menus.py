@@ -10,7 +10,13 @@
 Tests for menus.py .
 """
 
-from spyder.api.widgets.menus import MENU_SEPARATOR, SpyderAction, SpyderMenu
+from spyder.api.widgets.menus import (
+    MENU_SEPARATOR,
+    OptionsMenuSections,
+    PluginMainWidgetOptionsMenu,
+    SpyderAction,
+    SpyderMenu,
+)
 
 
 def test_add_action_with_before_section(qtbot):
@@ -41,3 +47,22 @@ def test_add_action_with_before_section(qtbot):
         MENU_SEPARATOR
     ]
     assert result == expected
+
+
+def test_options_menu_switch_tabs_section_above_bottom(qtbot):
+    """
+    Check that the switch tabs section is rendered between the plugin
+    sections and the bottom section, regardless of the order it was added.
+    """
+    bottom = SpyderAction('bottom', action_id='bottom')
+    switch = SpyderAction('switch', action_id='switch')
+    plugin = SpyderAction('plugin', action_id='plugin')
+
+    menu = PluginMainWidgetOptionsMenu()
+    menu.add_action(bottom, section=OptionsMenuSections.Bottom)
+    menu.add_action(switch, section=OptionsMenuSections.SwitchTabs)
+    menu.add_action(plugin, section='plugin_section')
+    menu.render()
+
+    result = [action for action in menu.actions() if not action.isSeparator()]
+    assert result == [plugin, switch, bottom]

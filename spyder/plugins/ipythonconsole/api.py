@@ -69,10 +69,6 @@ class IPythonConsoleWidgetActions:
     ConsoleHelp = 'console help'
     QuickReference = 'quick reference'
 
-    # Navigation
-    NextConsole = "switch to next console"
-    PreviousConsole = "switch to previous console"
-
 
 class IPythonConsoleWidgetMenus:
     SpecialConsoles = 'special_consoles_submenu'
@@ -85,7 +81,6 @@ class IPythonConsoleWidgetMenus:
 class IPythonConsoleWidgetOptionsMenuSections:
     Edit = 'edit_section'
     View = 'view_section'
-    Switch = 'switch_section'
 
 
 class IPythonConsoleWidgetTabsContextMenuSections:
@@ -95,6 +90,7 @@ class IPythonConsoleWidgetTabsContextMenuSections:
 
 class ClientContextMenuSections:
     Edit = 'edit'
+    Navigation = 'navigation'
     Inspect = 'inspect'
     Array = 'array'
     Export = 'export'
@@ -111,6 +107,10 @@ class ClientContextMenuActions:
     CopyRaw = 'copy_raw'
     Paste = 'paste'
     SelectAll = 'select_all'
+
+    # Navigation section
+    MoveToPreviousPrompt = 'go to previous prompt'
+    MoveToNextPrompt = 'go to next prompt'
 
     # Inspect section
     InspectObject = 'Inspect current object'

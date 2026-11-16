@@ -389,5 +389,33 @@ def test_update_matches_without_editor(findreplace_editor, qtbot):
     findreplace.update_matches()
 
 
+def test_set_editor_after_previous_was_deleted(findreplace_editor, qtbot):
+    """
+    Test that setting an editor works when the previous one was deleted.
+
+    This happens when the Editor closes a file because it was moved or
+    removed outside Spyder and then loads another one.
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+
+    # Set an editor and delete it, as closing its file does
+    old_editor = CodeEditor(parent=None)
+    old_editor.setup_editor(
+        color_scheme='spyder_themes.spyder/dark',
+        font=QFont("Courier New", 10)
+    )
+    findreplace.set_editor(old_editor)
+    n_connections = get_text_changed_receivers(editor)
+    with qtbot.waitSignal(old_editor.destroyed):
+        old_editor.deleteLater()
+
+    # Should not raise
+    findreplace.set_editor(editor)
+
+    assert findreplace.editor is editor
+    assert get_text_changed_receivers(editor) == n_connections + 1
+
+
 if __name__ == "__main__":
     pytest.main([os.path.basename(__file__)])

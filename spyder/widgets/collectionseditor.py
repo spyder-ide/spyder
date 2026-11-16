@@ -70,7 +70,6 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import mimedata2url
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate,
@@ -734,7 +733,6 @@ class BaseTableView(SpyderWidgetMixin, QTableView):
     """Base collection editor table view"""
     CONF_SECTION = 'variable_explorer'
 
-    sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
@@ -768,7 +766,6 @@ class BaseTableView(SpyderWidgetMixin, QTableView):
         self.delegate = None
         self.proxy_model = None
         self.source_model = None
-        self.setAcceptDrops(True)
         self.automatic_column_width = True
 
         # Headder attributes
@@ -1230,31 +1227,6 @@ class BaseTableView(SpyderWidgetMixin, QTableView):
         else:
             self.empty_ws_menu.popup(event.globalPos())
             event.accept()
-
-    def dragEnterEvent(self, event):
-        """Allow user to drag files"""
-        if mimedata2url(event.mimeData()):
-            event.accept()
-        else:
-            event.ignore()
-
-    def dragMoveEvent(self, event):
-        """Allow user to move files"""
-        if mimedata2url(event.mimeData()):
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        """Allow user to drop supported files"""
-        urls = mimedata2url(event.mimeData())
-        if urls:
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-            self.sig_files_dropped.emit(urls)
-        else:
-            event.ignore()
 
     def leaveEvent(self, event):
         """Actions to take when the mouse leaves the widget."""
