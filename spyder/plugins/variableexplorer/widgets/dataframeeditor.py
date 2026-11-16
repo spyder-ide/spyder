@@ -590,7 +590,9 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
                 # Update index list
                 self.recalculate_index()
                 # To sort by index
-                self.df.sort_index(key=self.natural_order, inplace=True, ascending=ascending)
+                self.df.sort_index(
+                    key=self.natural_order, inplace=True, ascending=ascending
+                )
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
@@ -606,8 +608,12 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
         missing labels last. Indexes of other dtypes (numbers, dates) are
         returned unchanged, so they keep the default order.
         """
-        if not pd.api.types.is_object_dtype(index.dtype) and not pd.api.types.is_string_dtype(index.dtype):
+        if (
+            not pd.api.types.is_object_dtype(index.dtype)
+            and not pd.api.types.is_string_dtype(index.dtype)
+            ):
             return index
+
         numeric = pd.to_numeric(index, errors='coerce')
         keys = []
         for number, label in zip(numeric, index):
@@ -617,10 +623,12 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
                 keys.append((1, 0, str(label)))
             else:
                 keys.append((0, number, ''))
+
         order = sorted(range(len(keys)), key=keys.__getitem__)
         ranks = [0] * len(keys)
         for rank, position in enumerate(order):
             ranks[position] = rank
+
         return pd.Index(ranks)
 
     def flags(self, index):
@@ -928,8 +936,13 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
             and not self.readonly
         )
 
-        for action in [self.copy_action, self.remove_row_action,
-                       self.remove_col_action, self.histogram_action, self.scatterplot_action]:
+        for action in [
+            self.copy_action,
+            self.remove_row_action,
+            self.remove_col_action,
+            self.histogram_action,
+            self.scatterplot_action
+        ]:
             action.setEnabled(condition_copy_remove)
 
         # Enable/disable action for plot
@@ -1650,7 +1663,9 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
             cols = list(set(cols))  # Remove duplicates
             model = self.model()
             col_labels = [model.header(0, col) for col in cols]
-            col_labels =  self.plottable_cols(model, col_labels, graph_type='scatter')
+            col_labels =  self.plottable_cols(
+                model, col_labels, graph_type='scatter'
+            )
 
             if col_labels:
                 if self.namespacebrowser is None:
@@ -1667,18 +1682,23 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
         """
         if model is None or not cols or graph_type is None:
             return []
+
         new_cols = cols[:]
         try:
             for col in cols:
                 if graph_type == 'hist':
-                    if not pd.api.types.is_numeric_dtype(model.df[col]) and \
-                    not pd.api.types.is_datetime64_any_dtype(model.df[col]):
+                    if not pd.api.types.is_numeric_dtype(
+                        model.df[col]
+                    ) and not pd.api.types.is_datetime64_any_dtype(
+                        model.df[col]
+                    ):
                         new_cols.remove(col)
                 elif graph_type == 'scatter':
                     if not pd.api.types.is_numeric_dtype(model.df[col]):
                         new_cols.remove(col)
-        except:
+        except Exception:
             return []
+
         return new_cols
 
 class DataFrameHeaderModel(SpyderFontsMixin, QAbstractTableModel):

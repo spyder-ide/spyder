@@ -539,9 +539,11 @@ class NamespaceBrowser(
         Make a plot and display it in a new Qt window.
         """
         import spyder.pyplot as plt
+
         if parent is not None:
-            #close plot window if spyder is closed.
+            # Close plot window if parent is closed.
             parent.destroyed.connect(lambda: plt.close(fig))
+
         fig = plt.figure()
         plot_function(fig)
         fig.show()

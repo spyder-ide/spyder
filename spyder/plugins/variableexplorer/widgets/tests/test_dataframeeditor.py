@@ -1180,7 +1180,9 @@ def test_dataframeeditor_plot():
     plot_function = mock_namespacebrowser.plot.call_args.args[0]
     with patch.object(test_df, 'plot') as mock_scatter:
         plot_function(mock_figure)
-    mock_scatter.line.assert_called_once_with(ax=axis, y=['first', 'second'], marker="o")
+    mock_scatter.line.assert_called_once_with(
+        ax=axis, y=['first', 'second'], marker="o"
+    )
 
 def test_dataframeeditor_readonly(qtbot):
     """

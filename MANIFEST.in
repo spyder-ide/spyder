@@ -9,4 +9,3 @@ include AUTHORS.txt
 include NOTICE.txt
 include bootstrap.py
 include install_dev_repos.py
-include *.md
