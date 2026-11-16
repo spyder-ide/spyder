@@ -602,3 +602,37 @@ def test_document_did_change_typing_across_newline_in_crlf_document(qtbot):
         replay_content_changes("import mat", changes, "\r\n")
         == editor.get_text_with_eol()
     )
+
+
+@pytest.mark.parametrize("whole_document", [True, False])
+def test_formatting_request_sends_pending_edit_first(qtbot, whole_document):
+    # A keystroke stays as a pending edit until its commit timer fires, and
+    # that commit cancels any formatting in flight. Formatting must commit the
+    # pending edit itself so the server formats the current text and the
+    # later timer has nothing left to cancel the formatting with.
+    editor = create_lsp_editor(qtbot, "import os;import sys\n")
+    editor.formatting_enabled = True
+    editor.range_formatting_enabled = True
+
+    set_cursor(editor, block_position(editor, 0, len("import os;import sys")))
+    type_chars(editor, qtbot, " ")
+    editor._server_requests_timer.stop()
+
+    if whole_document:
+        method = lsp.TEXT_DOCUMENT_FORMATTING
+    else:
+        method = lsp.TEXT_DOCUMENT_RANGE_FORMATTING
+        set_cursor(editor, block_position(editor, 1), anchor=0)
+
+    with record_requests(editor) as requests:
+        editor.format_document_or_range()
+        editor._process_server_requests()
+
+    assert [sent for sent, _ in requests] == [
+        lsp.TEXT_DOCUMENT_DID_CHANGE,
+        method,
+    ]
+
+    # The commit timer firing now must not cancel the formatting.
+    editor._commit_pending_edit()
+    assert editor.formatting_in_progress

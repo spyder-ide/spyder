@@ -1358,6 +1358,10 @@ class LSPMixin:
             # Already waiting for a formatting
             return
 
+        # Committing the pending edit sends didChange, which cancels any
+        # formatting in flight, so it must run before the flag is set.
+        self._commit_pending_edit()
+
         params = lsp.DocumentFormattingParams(
             text_document=lsp.TextDocumentIdentifier(uri=self.document_uri),
             options=self._formatting_options(),
@@ -1399,6 +1403,10 @@ class LSPMixin:
         if self.formatting_in_progress:
             # Already waiting for a formatting
             return
+
+        # Committing the pending edit sends didChange, which cancels any
+        # formatting in flight, so it must run before the flag is set.
+        self._commit_pending_edit()
 
         start, end = self.get_selection_start_end()
         start_line, start_col = start
