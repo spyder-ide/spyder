@@ -1213,7 +1213,16 @@ class DirView(SpyderWidgetMixin, QTreeView):
             # Fixes spyder-ide/spyder#26432
             if not removed:
                 if not is_network_path(fname):
-                    raise OSError(_("It couldn't be moved to the trash can"))
+                    QMessageBox.critical(
+                        self,
+                        _("Delete"),
+                        _(
+                            "It was not possible to remove the selected file "
+                            "or directory. Please use your operating system "
+                            "facilities to do it."
+                        ),
+                    )
+                    return False
 
                 answer = self._ask_to_delete_permanently(fname, multiple)
                 if answer == QMessageBox.Cancel:
@@ -1250,19 +1259,24 @@ class DirView(SpyderWidgetMixin, QTreeView):
             return QMessageBox.Yes
 
         if multiple:
-            buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
-                       QMessageBox.No | QMessageBox.Cancel)
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.Cancel
+            )
         else:
             buttons = QMessageBox.Yes | QMessageBox.No
 
         answer = QMessageBox.warning(
             self,
             _("Delete"),
-            _("<b>%s</b> can't be moved to the trash can because it's in a "
-              "network location."
-              "<br><br>"
-              "Do you want to delete it permanently? This can't be undone."
-              ) % osp.basename(fname),
+            _(
+                "<b>%s</b> can't be moved to the trash can because it's in a "
+                "network location."
+                "<br><br>"
+                "Do you want to delete it permanently? This can't be undone."
+            ) % osp.basename(fname),
             buttons
         )
 

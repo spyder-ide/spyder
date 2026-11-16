@@ -393,6 +393,7 @@ class ExplorerWidget(PluginMainWidget):
         else:
             # Don't call hide() because it asks to hide the message forever
             self._info_message.setVisible(False)
+
         self.remote_treewidget.upload_file_action.setVisible(
             visible_remote_actions
         )

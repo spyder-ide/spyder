@@ -286,9 +286,11 @@ def test_delete_without_trash_outside_network(explorer_with_files, mocker):
 
     treewidget.delete(fnames=[top_folder])
 
-    # Only the first dialog is shown, followed by an error
+    # Only the first dialog is shown, followed by an error that asks users to
+    # remove it with their OS
     assert warning.call_count == 1
     assert critical.call_count == 1
+    assert "operating system" in critical.call_args[0][2]
     assert osp.exists(top_folder)
     assert not tree_removed.called
 

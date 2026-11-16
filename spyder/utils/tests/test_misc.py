@@ -103,7 +103,7 @@ def test_remove_file(tmp_path, monkeypatch):
     """
     fname = tmp_path / "script.py"
     fname.write_text("print(1)")
-    (tmp_path / "script.pyc").write_text("")
+    (tmp_path / "script.pyc").touch()
 
     # Simulate a filesystem without a trash, like Windows network shares
     monkeypatch.setattr(QFile, "moveToTrash", lambda *args: (False, ""))
