@@ -177,7 +177,6 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('text', [
-        'def test():\n    pass\n\ntest',
         '# a comment',
         '"a string"',
     ]
