@@ -357,8 +357,9 @@ def test_completion_hints(qtbot, completions_codeeditor):
     # the cursor is put on top of the tested word.
     qtbot.mouseMove(code_editor, QPoint(400, 400))
 
-    # Set text in editor
-    code_editor.set_text("import pandas as pd\npd.")
+    # Set text in editor. Pyrefly attaches docstrings to str methods but not
+    # to names re-exported by packages such as pandas.
+    code_editor.set_text('s = "spam"\ns.')
 
     # Wait a bit in case the window manager repositions the window.
     qtbot.wait(1000)
