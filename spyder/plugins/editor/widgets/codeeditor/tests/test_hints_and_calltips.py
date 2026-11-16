@@ -224,9 +224,9 @@ def test_get_hints_not_triggered(qtbot, completions_codeeditor, text):
 @pytest.mark.parametrize(
     "params",
     [
-        ("an_int = 10", "This is an integer"),
-        ("a_dict = {1: 2}", "This is a dictionary"),
-        ('a_string = "foo"', "This is a string"),
+        ("an_int = 10", "an_int: Literal[10]"),
+        ("a_dict = {1: 2}", "a_dict: dict[int, int]"),
+        ('a_string = "foo"', "a_string: Literal['foo']"),
     ],
 )
 def test_get_hints_for_builtins(qtbot, completions_codeeditor, params):
