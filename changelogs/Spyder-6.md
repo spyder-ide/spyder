@@ -91,6 +91,8 @@ In this release 10 issues were closed.
 
 ### Pull Requests Merged
 
+* [PR 26529](PR: Update `spyder-kernels` to 3.2.0a3 (for Spyder 6.2.0a4), by [@dalthviz](https://github.com/dalthviz) ([26529](https://github.com/spyder-ide/spyder/issues/26529))
+* [PR 26523](https://github.com/spyder-ide/spyder/pull/26523) - PR: Update Changelog and Announcements for 6.2.0a4, by [@dalthviz](https://github.com/dalthviz) ([26519](https://github.com/spyder-ide/spyder/issues/26519))
 * [PR 26522](https://github.com/spyder-ide/spyder/pull/26522) - PR: Update user facing changelog with changes added in 6.2.0a4, by [@ccordoba12](https://github.com/ccordoba12)
 * [PR 26509](https://github.com/spyder-ide/spyder/pull/26509) - PR: Consolidate shortcuts to switch between tabs, by [@AbhiRKeesara](https://github.com/AbhiRKeesara) ([26465](https://github.com/spyder-ide/spyder/issues/26465))
 * [PR 26507](https://github.com/spyder-ide/spyder/pull/26507) - PR: Unskip several tests when using PyQt6 (Testing), by [@dalthviz](https://github.com/dalthviz)
@@ -109,7 +111,7 @@ In this release 10 issues were closed.
 * [PR 26336](https://github.com/spyder-ide/spyder/pull/26336) - PR: Add Language services plugin to replace Completions one, by [@hlouzada](https://github.com/hlouzada)
 * [PR 26204](https://github.com/spyder-ide/spyder/pull/26204) - PR: Add shortcuts to jump to previous/next prompt (IPython console), by [@csreddy98](https://github.com/csreddy98) ([26163](https://github.com/spyder-ide/spyder/issues/26163), [26163](https://github.com/spyder-ide/spyder/issues/26163))
 
-In this release 17 pull requests were closed.
+In this release 19 pull requests were closed.
 
 ----
 
