@@ -405,7 +405,12 @@ class FileComboBox(PathComboBox):
         """Return True if string is valid."""
         if qstr is None:
             qstr = self.currentText()
-        valid = osp.isfile(str(qstr)) or osp.isdir(str(qstr))
+
+        # Ignore surrounding whitespace, e.g. a trailing newline in a pasted
+        # path, so the text is not reset when the widget loses focus.
+        # Fixes spyder-ide/spyder#24955
+        qstr = str(qstr).strip()
+        valid = osp.isfile(qstr) or osp.isdir(qstr)
         return valid
 
     def tab_complete(self):

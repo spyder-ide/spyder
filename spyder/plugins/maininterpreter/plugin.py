@@ -113,6 +113,11 @@ class MainInterpreter(SpyderPluginV2):
     # -------------------------------------------------------------------------
     def set_custom_interpreter(self, interpreter):
         """Set given interpreter as the current selected one."""
+        # Remove surrounding whitespace so it's not saved in the config.
+        # Fixes spyder-ide/spyder#24955
+        if isinstance(interpreter, str):
+            interpreter = interpreter.strip()
+
         self.get_container().add_to_custom_interpreters(interpreter)
         self.set_conf("default", False)
         self.set_conf("custom", True)
