@@ -60,7 +60,8 @@ def is_acceptable(page, text):
 @pytest.mark.parametrize(
     'config_dialog',
     [[MainWindowMock, [], [Application]]],
-    indirect=True)
+    indirect=True
+)
 @pytest.mark.parametrize(
     "text, acceptable",
     [
@@ -109,7 +110,8 @@ def test_custom_scale_factor_validator(
 @pytest.mark.parametrize(
     'config_dialog',
     [[MainWindowMock, [], [Application]]],
-    indirect=True)
+    indirect=True
+)
 def test_custom_scale_factor_typing(
     delete_container, config_dialog, qtbot  # noqa
 ):
@@ -144,7 +146,8 @@ def test_custom_scale_factor_typing(
 @pytest.mark.parametrize(
     'config_dialog',
     [[MainWindowMock, [], [Application]]],
-    indirect=True)
+    indirect=True
+)
 @pytest.mark.parametrize('custom_scale_factor', ["99.0"], indirect=True)
 def test_custom_scale_factor_saved_above_max(
     custom_scale_factor, delete_container, config_dialog  # noqa

@@ -271,9 +271,11 @@ class ApplicationConfigPage(PluginConfigPage):
         self.custom_scaling_edit = self.create_lineedit(
             "",
             'high_dpi_custom_scale_factors',
-            tip=_("Enter values between 1 and {max_factor} for different "
-                  "screens separated by semicolons ';'. Float values are "
-                  "supported").format(max_factor=MAX_CUSTOM_SCALE_FACTOR),
+            tip=_(
+                "Enter values between 1 and {max_factor} for different "
+                "screens separated by semicolons ';'. Float values are "
+                "supported"
+            ).format(max_factor=MAX_CUSTOM_SCALE_FACTOR),
             alignment=Qt.Horizontal,
             regex=rf"{scale_factor_regex}(?:;{scale_factor_regex})*",
             restart=True
