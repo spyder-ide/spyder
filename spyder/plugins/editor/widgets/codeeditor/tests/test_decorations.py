@@ -147,7 +147,7 @@ def test_goto_occurrence(codeeditor, qtbot):
     # cursor still has selection
     assert editor.textCursor().hasSelection()
     
-    #reverse the selection direction
+    # reverse the selection direction
     cursor = editor.textCursor()
     anchor = cursor.anchor()
     cursor.clearSelection()

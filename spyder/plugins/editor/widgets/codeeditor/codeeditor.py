@@ -2274,14 +2274,14 @@ class CodeEditor(
                 if start <= cursor.position() <= end:
                     return i
             else:
-                return None  #not found
+                return None  # not found
 
     def _copy_occurrence_selection_position(self, cursor, src, dst):
         """
         Adjust position or selection direction of destination cursor based on 
         relative position of cursor to src or selection direction of cursor.
         """
-        #don't edit cursor owned by TextDecoration
+        # Don't edit cursor owned by TextDecoration
         new_cursor = QTextCursor(dst)
         if cursor.hasSelection():
             # dst should have same selection. check selection direction.
@@ -2293,6 +2293,7 @@ class CodeEditor(
             offset = cursor.position() - src.position()
             new_pos = new_cursor.position() + offset
             new_cursor.setPosition(new_pos)
+
         return new_cursor
     
     def go_to_previous_occurrence(self):
@@ -2311,10 +2312,12 @@ class CodeEditor(
                 )
                 self.merge_extra_cursors(True)
                 self.ensureCursorVisible()
-                # return previous cursor to be used by multicursor 
+
+                # Return previous cursor to be used by multicursor 
                 # add_cursor_previous_occurrence
                 return cursor
-        # return None to be used by multicursor add_cursor_previous_occurrence
+
+        # Return None to be used by multicursor add_cursor_previous_occurrence
         # to indicate cursor was not moved
         return None
     
@@ -2326,8 +2329,8 @@ class CodeEditor(
             current_occurrence = self._get_current_occurrence(cursor)
             last_occurrence = len(occurrences) - 1
             if (
-                    current_occurrence is not None 
-                    and current_occurrence < last_occurrence
+                current_occurrence is not None 
+                and current_occurrence < last_occurrence
             ):
                 self.setTextCursor(
                     self._copy_occurrence_selection_position(
@@ -2339,6 +2342,7 @@ class CodeEditor(
                 self.merge_extra_cursors(True)
                 self.ensureCursorVisible()
                 return cursor
+
         return None
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):

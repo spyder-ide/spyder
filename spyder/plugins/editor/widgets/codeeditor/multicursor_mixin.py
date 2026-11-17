@@ -171,7 +171,8 @@ class MultiCursorMixin:
             self.setTextCursor(cursor_for_pos)
             self.extra_cursors.append(old_cursor)
             self.merge_extra_cursors(True)
-            # process event to allow dragging a selection on new cursor
+
+            # Process event to allow dragging a selection on new cursor
             QPlainTextEdit.mousePressEvent(self, event)
 
         self.multi_cursor_ignore_history = False
@@ -209,7 +210,8 @@ class MultiCursorMixin:
     def add_cursor_previous_occurrence(self):
         if self.multi_cursor_enabled:
             previous_cursor = self.go_to_previous_occurrence()
-            # merge already called in go_to_XX_occurrence
+
+            # Merge already called in go_to_XX_occurrence
             if previous_cursor is not None:
                 self.extra_cursors.append(previous_cursor)
     
