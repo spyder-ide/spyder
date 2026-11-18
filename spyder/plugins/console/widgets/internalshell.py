@@ -28,6 +28,7 @@ from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
 # Local imports
 from spyder import get_versions
 from spyder.api.translations import _
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.plugins.console.utils.interpreter import Interpreter
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
@@ -99,7 +100,6 @@ class WidgetProxy(QObject):
         # External editor
         self._gotoline = None
         self._path = None
-        self._standard_streams = True
         self.input_data = None
         self.input_condition = input_condition
 
@@ -127,7 +127,7 @@ class WidgetProxy(QObject):
         self.input_condition.release()
 
 
-class InternalShell(PythonShellWidget):
+class InternalShell(PythonShellWidget, SpyderConfigurationAccessor):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
 
     # --- Signals
@@ -195,7 +195,7 @@ class InternalShell(PythonShellWidget):
                                        get_debug_level())
 
         connection_type = (
-            Qt.QueuedConnection if self._standard_streams
+            Qt.QueuedConnection if self.get_conf("standard_streams")
             else Qt.AutoConnection
         )
         self.interpreter.stdout_write.data_avail.connect(
@@ -501,7 +501,3 @@ class InternalShell(PythonShellWidget):
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         return self.interpreter.is_defined(objtxt, force_import)
-
-    def toggle_standard_streams(self, enable):
-        """Enable/disable standard streams redirection"""
-        self._standard_streams = enable
