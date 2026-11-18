@@ -63,6 +63,7 @@ class ConsoleWidgetActions:
     # Toggles
     ToggleCodeCompletion = 'toggle_code_completion_action'
     ToggleWrap = 'toggle_wrap_action'
+    ToggleStandardStreams = 'toggle_standard_streams_action'
 
 
 class ConsoleWidgetMenus:
@@ -224,6 +225,12 @@ class ConsoleWidget(PluginMainWidget):
             toggled=lambda val: self.set_conf('wrap', val),
             initial=self.get_conf('wrap'),
         )
+        standard_streams_action = self.create_action(
+            ConsoleWidgetActions.ToggleStandardStreams,
+            text=_("Redirect standard streams"),
+            toggled=lambda val: self.set_conf('standard_streams', val),
+            initial=self.get_conf('standard_streams'),
+        )
         codecompletion_action = self.create_action(
             ConsoleWidgetActions.ToggleCodeCompletion,
             text=_("Automatic code completion"),
@@ -237,8 +244,8 @@ class ConsoleWidget(PluginMainWidget):
             _('Internal console settings'),
             icon=self.create_icon('tooloptions'),
         )
-        for item in [buffer_action, wrap_action, codecompletion_action,
-                     exteditor_action]:
+        for item in [buffer_action, wrap_action, standard_streams_action,
+                     codecompletion_action, exteditor_action]:
             self.add_item_to_menu(
                 item,
                 menu=internal_settings_menu,
@@ -271,6 +278,10 @@ class ConsoleWidget(PluginMainWidget):
     @on_conf_change(option='wrap')
     def wrap_mode_update(self, value):
         self.shell.toggle_wrap_mode(value)
+
+    @on_conf_change(option='standard_streams')
+    def standard_streams_update(self, value):
+        self.shell.toggle_standard_streams(value)
 
     @on_conf_change(option='external_editor/path')
     def external_editor_update(self, value):
