@@ -34,7 +34,7 @@ SKIP_ON_FIRST_CI_RUN = ["test_mainwindow.py::test_update_outline"]
 # the textual log, where e.g. a Qt warning on Windows can split the node id
 # from its PASSED marker and prevent the test from ever being recorded
 # (so it re-runs, and may re-flake, forever).
-PASSED_TESTS_FILE = "passed_tests.txt"
+PASSED_TESTS_FILE = osp.join(osp.dirname(osp.abspath(__file__)), "passed_tests.txt")
 
 
 # ---- Pytest adjustments

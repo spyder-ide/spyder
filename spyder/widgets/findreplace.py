@@ -343,6 +343,8 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
         )
 
         for name, callback, widget in shortcuts:
+            if not self.enable_replace and name in ('replace text', 'replace all'):
+                continue
             self.register_shortcut_for_widget(
                 name=name, triggered=callback, widget=widget
             )

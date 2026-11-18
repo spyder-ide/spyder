@@ -521,10 +521,9 @@ class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
                     # see spyder-ide/spyder#4139.
                     return to_qvariant(format(value, DEFAULT_FORMAT))
             elif type(value) in [str, bytes]:
-                # Don't perform any conversion on strings
-                # because it leads to differences between
-                # the data present in the dataframe and
-                # what is shown by Spyder
+                # Bound Qt text layout without truncating edits or stored data.
+                if role == Qt.DisplayRole and type(value) is str and len(value) > 300:
+                    return value[:300] + '…'
                 return value
             else:
                 try:
@@ -792,6 +791,23 @@ class DataFrameView(SpyderWidgetMixin, QTableView):
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+
+    def mouseDoubleClickEvent(self, event):
+        """Inspect long text and nested cells, including read-only frames."""
+        from spyder.plugins.variableexplorer.widgets.cellviewer import (
+            CellViewer, is_structured)
+        index = self.indexAt(event.pos())
+        if event.button() == Qt.LeftButton and index.isValid():
+            value = self.model().get_value(index.row(), index.column())
+            if (is_structured(value) or
+                    isinstance(value, str) and
+                    (len(value) > 80 or '\n' in value or
+                     value.lstrip().startswith(('{', '[')))):
+                title = f'{self.model().df.columns[index.column()]} · {index.row()}'
+                CellViewer(value, title, self).show()
+                event.accept()
+                return
+        super().mouseDoubleClickEvent(event)
 
     def _load_more_columns(self, value):
         """Load more columns to display."""
