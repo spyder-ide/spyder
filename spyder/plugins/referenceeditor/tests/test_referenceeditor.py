@@ -7,6 +7,25 @@ from qtpy.QtCore import QCoreApplication, QEvent, Qt
 from spyder.config.manager import CONF
 
 
+def test_tab_actions_skip_transferred_views(reference, editor_plugin, tmp_path):
+    """Native next/previous actions must not activate a hidden document view."""
+    filenames = []
+    for name in ('first.py', 'hidden.py', 'last.py'):
+        filename = tmp_path / name
+        filename.write_text('value = 1\n', encoding='utf-8')
+        filenames.append(str(filename))
+    manager = editor_plugin.get_widget()
+    manager.load(filenames)
+    primary = manager.editorstacks[0]
+    primary.set_current_filename(filenames[1])
+    reference.transfer_tab(primary)
+    primary.set_current_filename(filenames[0])
+    primary.next_tab_action.trigger()
+    assert primary.get_current_filename() == filenames[2]
+    primary.previous_tab_action.trigger()
+    assert primary.get_current_filename() == filenames[0]
+
+
 def test_master_extensions_and_shared_history(reference, editor_plugin, tmp_path):
     """Master's extension API and document versions survive lazy cloning."""
     from qtpy.QtCore import QSize

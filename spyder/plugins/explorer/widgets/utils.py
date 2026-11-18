@@ -91,6 +91,18 @@ def has_subdirectories(path, include, exclude):
         return False
 
 
+def is_unc_path(path):
+    """
+    Check if path is a UNC one (e.g. \\\\server\\share on Windows).
+
+    Notes
+    -----
+    QFileSystemModel doesn't watch these paths for changes, so they need to
+    be refreshed manually.
+    """
+    return path.replace('\\', '/').startswith('//')
+
+
 class IconProvider(QFileIconProvider):
     """Project tree widget icon provider"""
 

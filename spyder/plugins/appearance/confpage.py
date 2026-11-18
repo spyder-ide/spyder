@@ -319,7 +319,7 @@ class AppearanceConfigPage(PluginConfigPage):
         self.app_font.sizebox.valueChanged.connect(
             lambda value: self.update_interface_preview()
         )
-        system_font_checkbox.checkbox.stateChanged.connect(
+        system_font_checkbox.checkbox.checkStateChanged.connect(
             self.update_app_font_group
         )
 

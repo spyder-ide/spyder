@@ -7,6 +7,42 @@ from qtpy.QtCore import QCoreApplication, QEvent, Qt
 from qtpy.QtWidgets import QApplication
 
 
+@pytest.mark.parametrize('hide_primary', [False, True])
+def test_language_services_target_sources_with_preview_tabs(
+        reference, editor_plugin, qtbot, tmp_path, hide_primary):
+    """Language services use canonical sources, not rendered tab containers."""
+    from lsprotocol import types as lsp
+    from spyder.plugins.languageservices.api.languages import Language
+
+    filename = tmp_path / 'diagnostics.md'
+    filename.write_text('# Heading\n', encoding='utf-8')
+    manager = editor_plugin.get_widget()
+    manager.load(str(filename))
+    primary = manager.editorstacks[0]
+    source = primary.get_current_editor()
+    primary.set_markdown_preview(True)
+    reference.load(str(filename))
+    secondary = reference.splitter.editorstack
+    secondary.set_markdown_preview(True)
+    if hide_primary:
+        primary.set_tab_visible(primary.has_filename(str(filename)), False)
+    for stack in (primary, secondary):
+        assert stack.data[stack.has_filename(str(filename))].editor in stack.editors_for_language(
+            Language.find(name='markdown'))
+    diagnostic = lsp.Diagnostic(
+        range=lsp.Range(lsp.Position(0, 0), lsp.Position(0, 1)),
+        message='review diagnostic', severity=lsp.DiagnosticSeverity.Warning)
+    params = lsp.PublishDiagnosticsParams(uri=source.document_uri, diagnostics=[diagnostic])
+    with qtbot.waitSignal(source.sig_process_code_analysis):
+        manager.on_diagnostics(params)
+    data = source.document().firstBlock().userData()
+    assert data.code_analysis[0][3] == 'review diagnostic'
+    params.diagnostics = []
+    with qtbot.waitSignal(source.sig_process_code_analysis):
+        manager.on_diagnostics(params)
+    assert not data.code_analysis
+
+
 def test_preview_tab_focus_updates_its_native_outline(reference, editor_plugin, qtbot, tmp_path):
     from spyder.config.manager import CONF
     from spyder.plugins.referenceeditor.outline import ReferenceOutline

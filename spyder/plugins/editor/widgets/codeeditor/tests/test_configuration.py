@@ -44,12 +44,14 @@ def test_clone_diagnostics_keep_shared_error_markers(configured_editor, qtbot, c
 
 def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot):
     """Actual pylsp notifications update and clear the secondary gutter."""
-    editor, completion = completions_codeeditor
+    from spyder.plugins.completion.tests.conftest import route_diagnostics
+
+    editor, _completion = completions_codeeditor
     clone = CodeEditor(None)
     clone.setup_editor(language='Python', cloned_from=editor, font=editor.font())
     clone.filename = editor.filename
-    clone.sig_perform_completion_request.connect(completion.send_request)
-    completion.register_file('python', editor.filename, clone)
+    clone.language_services = editor.language_services
+    diagnostics_slot = route_diagnostics(editor.language_services, clone)
     clone.completions_available = True
     def has_error_marker():
         data = clone.document().firstBlock().userData()
@@ -65,6 +67,7 @@ def test_language_server_diagnostics_in_clone(completions_codeeditor, qtbot):
         data = clone.document().firstBlock().userData()
         assert data is None or not data.code_analysis
     finally:
+        editor.language_services.sig_diagnostics.disconnect(diagnostics_slot)
         editor.notify_close()
         assert editor.update_diagnostics_thread.wait(5000)
         assert editor.update_folding_thread.wait(5000)

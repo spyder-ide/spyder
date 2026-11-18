@@ -17,7 +17,7 @@ import os.path as osp
 # Third party imports
 import qstylizer.style
 from qtpy import QT6
-from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize, QSignalBlocker
 from qtpy.QtGui import QFontMetrics, QPainter, QPen
 from qtpy.QtWidgets import (
     QApplication,
@@ -335,6 +335,23 @@ class TabBar(QTabBar):
     def refresh_style(self):
         """Refresh the widget style."""
         self._on_tab_changed(self.currentIndex())
+
+    def tabLayoutChange(self):
+        """Keep hidden tab geometry adjacent for Qt's native scroll bounds."""
+        super().tabLayoutChange()
+        if getattr(self, '_repairing_hidden_tabs', False):
+            return
+        self._repairing_hidden_tabs = True
+        try:
+            with QSignalBlocker(self):
+                for index in range(1, self.count()):
+                    if not self.isTabVisible(index):
+                        # Qt5 resets hidden rects to zero. Moving the zero-width
+                        # tab out and back restores its extent, not its order.
+                        self.moveTab(index, 0)
+                        self.moveTab(0, index)
+        finally:
+            self._repairing_hidden_tabs = False
 
     def _on_tab_changed(self, index):
         """Actions to take when the current tab has changed."""
@@ -783,31 +800,22 @@ class BaseTabs(QTabWidget):
         key = event.key()
         handled = False
         if ctrl and self.count() > 0:
-            index = self.currentIndex()
-            if key == Qt.Key_PageUp or key == Qt.Key_8:
-                if index > 0:
-                    self.setCurrentIndex(index - 1)
-                else:
-                    self.setCurrentIndex(self.count() - 1)
+            if key == Qt.Key_PageUp:
+                self.tab_navigate(-1)
                 handled = True
-            elif key == Qt.Key_PageDown or key == Qt.Key_9:
-                if index < self.count() - 1:
-                    self.setCurrentIndex(index + 1)
-                else:
-                    self.setCurrentIndex(0)
+            elif key == Qt.Key_PageDown:
+                self.tab_navigate(1)
                 handled = True
         if not handled:
             QTabWidget.keyPressEvent(self, event)
 
     def tab_navigate(self, delta=1):
-        """Ctrl+Tab"""
-        if delta > 0 and self.currentIndex() == self.count()-1:
-            index = delta-1
-        elif delta < 0 and self.currentIndex() == 0:
-            index = self.count()+delta
-        else:
-            index = self.currentIndex()+delta
-        self.setCurrentIndex(index)
+        """Move the current tab by delta, wrapping around at the ends."""
+        visible = [index for index in range(self.count()) if self.isTabVisible(index)]
+        if visible:
+            current = self.currentIndex()
+            position = visible.index(current) if current in visible else -1
+            self.setCurrentIndex(visible[(position + delta) % len(visible)])
 
     def set_close_function(self, func):
         """Setting Tabs close function
@@ -890,8 +898,8 @@ class Tabs(SpyderShortcutsMixin, BaseTabs):
     def register_shortcuts(self, parent):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ("go to next file", lambda: self.tab_navigate(1), "editor"),
-            ("go to previous file", lambda: self.tab_navigate(-1), "editor"),
+            ("go to next tab", lambda: self.tab_navigate(1), "main"),
+            ("go to previous tab", lambda: self.tab_navigate(-1), "main"),
             (
                 "close file 1",
                 lambda: self.sig_close_tab.emit(self.currentIndex()),

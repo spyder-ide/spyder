@@ -229,8 +229,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # Disable the fix-on-save options if autoformatting is enabled
         format_on_save = CONF.get(
-            'completions',
-            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            'language_services',
+            ('providers', 'pylsp', 'values', 'format_on_save'),
             False,
         )
         self.on_format_save_state(format_on_save)
@@ -514,8 +514,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
-        section='completions',
+        option=('providers', 'pylsp', 'values', 'format_on_save'),
+        section='language_services',
     )
     def on_format_save_state(self, value):
         """

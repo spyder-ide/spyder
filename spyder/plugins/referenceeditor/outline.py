@@ -5,6 +5,7 @@
 from spyder.api.plugin_registration.decorators import on_plugin_available, on_plugin_teardown
 from spyder.api.plugins import Plugins
 from spyder.api.translations import _
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.outlineexplorer.main_widget import (
     OutlineExplorerActions, OutlineExplorerWidget)
 from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
@@ -36,7 +37,7 @@ class ReferenceOutline(OutlineExplorer):
 
     NAME = 'reference_outline'
     CONF_SECTION = NAME
-    REQUIRES = [Plugins.Completions, Plugins.Editor, Plugins.ReferenceEditor]
+    REQUIRES = [Plugins.LanguageServices, Plugins.Editor, Plugins.ReferenceEditor]
     TABIFY = [Plugins.Editor]
     WIDGET_CLASS = ReferenceOutlineWidget
 
@@ -55,10 +56,11 @@ class ReferenceOutline(OutlineExplorer):
         pane.set_outlineexplorer(widget)
         widget.edit.connect(self._load_editor)
         widget.edit_goto.connect(self._load_editor)
-        manager = self.get_plugin(Plugins.Editor).get_widget()
-        for language, capabilities in manager.completion_capabilities.items():
-            if language not in widget.get_supported_languages():
-                self.start_symbol_services(capabilities, language)
+        services = self.get_plugin(Plugins.LanguageServices, error=False)
+        if services is not None:
+            for language in Language.all():
+                if services.is_language_supported(language):
+                    self.start_symbol_services(language, services.capabilities(language))
 
     @on_plugin_teardown(plugin=Plugins.ReferenceEditor)
     def on_editor_teardown(self):

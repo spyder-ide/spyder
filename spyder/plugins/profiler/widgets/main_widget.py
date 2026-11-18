@@ -87,6 +87,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         "longest to run and were called the most, and find out where to "
         "optimize it."
     )
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/profiler"
 
     # Other
     TIP_CALLERS = _("Show functions or modules that call the root item")

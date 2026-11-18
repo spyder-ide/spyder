@@ -418,6 +418,33 @@ def test_wrap_lines_shortcut(editorstack, qtbot):
     assert editor.lineWrapMode() == QPlainTextEdit.WidgetWidth
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and running_in_ci(),
+    reason="It fails on Linux due to the lack of a proper X server."
+)
+def test_go_to_next_and_previous_tab_shortcuts(editorstack, qtbot):
+    """
+    Test that the shortcuts to go to the next and previous tab work in the
+    Editor and wrap around.
+    """
+    editorstack.new('bar.py', 'utf-8', 'Line5\nLine6\nLine7\nLine8')
+    editorstack.tabs.setCurrentIndex(0)
+    assert CONF.get_shortcut('main', 'go to next tab') == 'Ctrl+Alt+Right'
+
+    editor = editorstack.get_current_editor()
+    modifier = Qt.ControlModifier | Qt.AltModifier
+    qtbot.keyClick(editor, Qt.Key_Right, modifier=modifier)
+    assert editorstack.tabs.currentIndex() == 1
+
+    editor = editorstack.get_current_editor()
+    qtbot.keyClick(editor, Qt.Key_Right, modifier=modifier)
+    assert editorstack.tabs.currentIndex() == 0
+
+    editor = editorstack.get_current_editor()
+    qtbot.keyClick(editor, Qt.Key_Left, modifier=modifier)
+    assert editorstack.tabs.currentIndex() == 1
+
+
 if __name__ == "__main__":
     import os
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])

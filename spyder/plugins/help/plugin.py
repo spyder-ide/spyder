@@ -205,8 +205,37 @@ class Help(SpyderDockablePlugin):
         widget.set_rich_text_font(app_font, font)
         widget.set_plain_text_color_scheme(color_scheme)
 
+    def on_mainwindow_visible(self):
+        widget = self.get_widget()
+
+        # Show intro message
+        widget.show_intro_message()
+
+        # Make sure the Console source is always visible at startup
+        widget.switch_to_console_source()
+
+        # Hide this widget because it's not needed when Console is the source
+        widget.get_main_toolbar().action_for_widget(
+            widget.object_edit
+        ).setVisible(False)
+
     def on_close(self, cancelable=False):
         self.save_history()
+
+        # Disable these options so no UI changes are triggered when closing the
+        # app
+        for option in ["show_source", "rich_mode", "plain_mode"]:
+            self.disable_conf(option)
+
+        # Don't leave show_source on True because next session an error will be
+        # raised due to that.
+        self.set_conf("show_source", False)
+
+        # Set rich_mode to True so the intro message is always shown at startup
+        # in the next session
+        self.set_conf("rich_mode", True)
+        self.set_conf("plain_mode", False)
+
         return True
 
     def apply_conf(self, options_set, notify=False):
