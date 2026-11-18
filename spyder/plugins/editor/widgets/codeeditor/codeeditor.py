@@ -712,13 +712,6 @@ class CodeEditor(
                 self.enter_array_table)),
             ('add cursor up', self.add_cursor_up),
             ('add cursor down', self.add_cursor_down),
-            ('go to previous occurrence', self.go_to_previous_occurrence),
-            ('go to next occurrence', self.go_to_next_occurrence),
-            (
-                'add cursor previous occurrence', 
-                self.add_cursor_previous_occurrence
-            ),
-            ('add cursor next occurrence', self.add_cursor_next_occurrence),
             (
                 'fold or unfold current region',
                 self.collapse_expand_current_region,
