@@ -48,6 +48,12 @@ class Exited(Exception):
 
 
 @pytest.fixture(autouse=True)
+def unchecked_conf_dirs(monkeypatch):
+    """Forget the config dirs checked by other tests, as at startup."""
+    monkeypatch.setattr(spyder.config.base, '_CHECKED_CONF_DIRS', set())
+
+
+@pytest.fixture(autouse=True)
 def shown_messages(monkeypatch, capsys):
     """
     Never show a real message or exit the test process if a test reaches
@@ -219,6 +225,71 @@ def test_get_conf_path_default_dir_is_file(
         assert created_apps == []
     else:
         assert created_apps == [['Spyder', '--no-sandbox'], 'Spyder']
+
+
+@pytest.mark.parametrize('location', ['default', 'custom'])
+@pytest.mark.parametrize('startup', ['created', 'existing', 'raced'])
+def test_get_conf_path_not_a_folder_after_startup(
+    tmp_path, monkeypatch, request, not_a_folder_error, location, startup
+):
+    """
+    Test that get_conf_path raises an error instead of exiting if the config
+    dir is replaced by a file after Spyder started.
+
+    That way Spyder doesn't close without asking to save files.
+    """
+    if location == 'default':
+        use_default_conf_dir(monkeypatch, str(tmp_path))
+        if sys.platform.startswith('linux'):
+            os.makedirs(tmp_path / '.config')
+            conf_dir = tmp_path / '.config'
+        else:
+            conf_dir = tmp_path
+        conf_dir = conf_dir / spyder.config.base.get_conf_subfolder()
+    else:
+        conf_dir = tmp_path / 'conf'
+        monkeypatch.setenv('SPYDER_CONFDIR', str(conf_dir))
+
+    # Spyder starts fine, after creating the config dir, finding it, or
+    # finding that another Spyder process just created it
+    if startup == 'existing':
+        conf_dir.mkdir()
+    elif startup == 'raced':
+        racing_mkdir = request.getfixturevalue('racing_mkdir')
+
+    assert spyder.config.base.get_conf_path() == str(conf_dir)
+    if startup == 'raced':
+        assert str(conf_dir) in racing_mkdir
+
+    # The config dir is replaced by a file while Spyder is running
+    conf_dir.rmdir()
+    conf_dir.touch()
+
+    with pytest.raises(FileExistsError):
+        spyder.config.base.get_conf_path('autosave')
+
+    assert not_a_folder_error == []
+
+
+def test_get_conf_path_custom_dir_is_file_at_startup(
+    tmp_path, monkeypatch, not_a_folder_error
+):
+    """
+    Test that get_conf_path shows an error message and exits if a custom
+    config dir (e.g. given with --conf-dir) is a file, even if another config
+    dir was already used at startup.
+    """
+    monkeypatch.setenv('SPYDER_CONFDIR', str(tmp_path / 'other'))
+    assert osp.isdir(spyder.config.base.get_conf_path())
+
+    conf_dir = tmp_path / 'conf'
+    conf_dir.touch()
+    monkeypatch.setenv('SPYDER_CONFDIR', str(conf_dir))
+
+    with pytest.raises(Exited) as excinfo:
+        spyder.config.base.get_conf_path()
+
+    check_not_a_folder_error(not_a_folder_error, excinfo, conf_dir)
 
 
 def fake_stat_error(monkeypatch, path, make_error):

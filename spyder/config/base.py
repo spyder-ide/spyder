@@ -366,12 +366,23 @@ def _is_not_a_folder(path):
         )
 
 
+# Config dirs that were already found or created in this session. If one of
+# them is not a folder anymore, Spyder is already running, so we raise an
+# error instead of exiting. Otherwise, Spyder would close without asking to
+# save files.
+# Note: This works because the config dir doesn't change after startup, i.e.
+# SPYDER_CONFDIR and SPYDER_SAFE_MODE are only set in spyder/app/start.py (and
+# the first is made absolute by get_custom_conf_dir).
+_CHECKED_CONF_DIRS = set()
+
+
 def _create_conf_dir(path, parents=True):
     """
     Create the config dir `path` if it doesn't exist.
 
-    If something that is not a folder is in the way, show an error message
-    and exit, except when running tests, where the error is raised.
+    If something that is not a folder is in the way the first time `path` is
+    checked, which is at startup, show an error message and exit. That error
+    is raised instead after startup and when running tests.
 
     Parameters
     ----------
@@ -381,6 +392,7 @@ def _create_conf_dir(path, parents=True):
         Whether to create missing parent folders too. Default is True.
     """
     if osp.isdir(path):
+        _CHECKED_CONF_DIRS.add(path)
         return
 
     try:
@@ -392,6 +404,7 @@ def _create_conf_dir(path, parents=True):
         # Another Spyder process could create it at the same time, so we
         # don't fail if it already exists. See spyder-ide/spyder#26494
         if osp.isdir(path):
+            _CHECKED_CONF_DIRS.add(path)
             return
 
         # Look for the entry that is in the way, which can be a parent of
@@ -408,11 +421,18 @@ def _create_conf_dir(path, parents=True):
             blocking_path = parent
 
         # Raise the error if nothing is in the way (e.g. a missing parent or
-        # drive, or a folder that can't be accessed) or when running our tests
-        if running_under_pytest() or not _is_not_a_folder(blocking_path):
+        # drive, or a folder that can't be accessed), after startup or when
+        # running our tests
+        if (
+            running_under_pytest()
+            or path in _CHECKED_CONF_DIRS
+            or not _is_not_a_folder(blocking_path)
+        ):
             raise
 
         _show_not_a_folder_error(blocking_path)
+
+    _CHECKED_CONF_DIRS.add(path)
 
 
 def get_conf_path(filename=None):
