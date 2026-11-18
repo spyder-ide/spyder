@@ -22,10 +22,10 @@ def test_inapp_appeal(qtbot):  # noqa
     widget.set_message(appeal=True)
 
     for text in ["independent project", "support", "NumFOCUS"]:
-        qtbot.waitUntil(lambda: check_text(webpage, text), timeout=6000)
+        qtbot.waitUntil(lambda: check_text(webpage, text, qtbot), timeout=6000)
 
     # Check text in Changelog view
     widget.set_message(appeal=False)
 
     for text in ["Changes in version", "Important fixes", "Full changelog"]:
-        qtbot.waitUntil(lambda: check_text(webpage, text), timeout=6000)
+        qtbot.waitUntil(lambda: check_text(webpage, text, qtbot), timeout=6000)

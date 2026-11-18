@@ -60,7 +60,12 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.plugins.explorer.widgets.utils import (
-    create_script, fixpath, IconProvider, show_in_external_file_explorer)
+    create_script,
+    fixpath,
+    IconProvider,
+    is_unc_path,
+    show_in_external_file_explorer,
+)
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
@@ -1158,6 +1163,14 @@ class DirView(SpyderWidgetMixin, QTreeView):
         while osp.exists(dirname):
             QFile.moveToTrash(dirname)
 
+    def refresh_unwatched_folder(self):
+        """
+        Refresh the current folder if Qt doesn't watch it for changes.
+
+        Reimplemented in the file explorer widget.
+        """
+        pass
+
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
         if multiple:
@@ -1241,6 +1254,9 @@ class DirView(SpyderWidgetMixin, QTreeView):
                     self.sig_renamed.emit(fname, path)
                 else:
                     self.sig_tree_renamed.emit(fname, path)
+
+                self.refresh_unwatched_folder()
+
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(
@@ -1310,6 +1326,8 @@ class DirView(SpyderWidgetMixin, QTreeView):
                       "<br><br>Error message:<br>%s"
                       ) % (basename, str(error)))
 
+        self.refresh_unwatched_folder()
+
     def create_new_folder(self, current_path, title, subtitle, is_package):
         """Create new folder"""
         if current_path is None:
@@ -1350,6 +1368,8 @@ class DirView(SpyderWidgetMixin, QTreeView):
                             )
                             % (fname, str(error)),
                         )
+
+            self.refresh_unwatched_folder()
 
     def get_selected_dir(self):
         """ Get selected dir
@@ -1402,6 +1422,7 @@ class DirView(SpyderWidgetMixin, QTreeView):
         if fname and valid:
             try:
                 create_func(fname)
+                self.refresh_unwatched_folder()
                 return fname
             except EnvironmentError as error:
                 QMessageBox.critical(
@@ -1575,6 +1596,8 @@ class DirView(SpyderWidgetMixin, QTreeView):
                                                  _("Unsupported copy"
                                                    " operation. The error was:"
                                                    "\n\n") + str(e))
+
+                self.refresh_unwatched_folder()
             else:
                 QMessageBox.critical(self, _("No file in clipboard"),
                                      _("No file in the clipboard. Please copy"
@@ -1929,6 +1952,33 @@ class ExplorerTreeWidget(DirView):
     def get_current_folder(self):
         return self.__last_folder
 
+    def refresh_unwatched_folder(self):
+        """Refresh the current folder if Qt doesn't watch it for changes."""
+        folder = self.get_current_folder()
+        if folder is not None and is_unc_path(folder):
+            self.refresh(new_path=folder, force_current=True)
+
+    def _reload_current_folder(self):
+        """
+        Force the model to read again the current folder and its expanded
+        subfolders.
+
+        Notes
+        -----
+        QFileSystemModel doesn't have an API to do this. But when its root
+        path changes, it marks the previous one as not populated, so it's
+        read again the next time it's set as root path.
+        """
+        expanded_folders = {
+            self.get_filename(index)
+            for index in self.fsmodel.persistentIndexList()
+            if self.isExpanded(index)
+        }
+
+        for folder in expanded_folders:
+            self.fsmodel.setRootPath(folder)
+        self.fsmodel.setRootPath('')
+
     def refresh(self, new_path=None, force_current=False):
         """
         Refresh widget
@@ -1943,6 +1993,8 @@ class ExplorerTreeWidget(DirView):
         if new_path is None:
             new_path = getcwd_or_home()
         if force_current:
+            if new_path == self.get_current_folder() and is_unc_path(new_path):
+                self._reload_current_folder()
             index = self.set_current_folder(new_path)
             self.expand(index)
             self.setCurrentIndex(index)

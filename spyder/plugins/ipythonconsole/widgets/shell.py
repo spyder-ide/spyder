@@ -353,6 +353,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_client = None
         self.kernel_manager = None
         self.kernel_handler = None
+        self.is_kernel_configured = False
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""

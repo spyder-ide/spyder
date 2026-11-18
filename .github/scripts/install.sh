@@ -23,12 +23,6 @@ fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
-    if [ -n "$SPYDER_QT_BINDING" ]; then
-        # conda has no PyQt6 package
-        echo "Cannot use Qt 6 with Conda" 1>&2
-        exit 1
-    fi
-
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
         micromamba install --file requirements/windows.yml
@@ -121,7 +115,7 @@ else
     if [ "$RUN_SLOW" = "false" ]; then
         if [ "$OS" = "linux" ]; then
             curl https://pyenv.run | bash
-            $HOME/.pyenv/bin/pyenv install 3.12.8
+            $HOME/.pyenv/bin/pyenv install 3.13.18
         fi
     fi
 fi
