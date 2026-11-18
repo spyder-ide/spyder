@@ -1096,7 +1096,9 @@ def test_kernel_shuts_down_on_startup_error(ipyconsole, qtbot):
     ],
 )
 def test_shellwidget_shutdown_is_idempotent(ipyconsole, stop_kernel):
-    """Test that shutting down ShellWidget again after it's been shut down has no effect."""
+    """
+    Test that shutting down a shut down ShellWidget has no effect.
+    """
     client = ipyconsole.get_current_client()
     shell = client.shellwidget
     kernel_manager = shell.kernel_handler.kernel_manager
