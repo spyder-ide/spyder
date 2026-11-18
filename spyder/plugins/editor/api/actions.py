@@ -31,7 +31,7 @@ class EditorWidgetActions:
     GoToNextCursorPosition = "Next cursor position"
     GoToPreviousOccurrence = "go to previous occurrence"
     GoToNextOccurrence = "go to next occurrence"
-    AddCursorPreviousOccurrernce = "add cursor previous occurrence"
+    AddCursorPreviousOccurrence = "add cursor previous occurrence"
     AddCursorNextOccurrence = "add cursor next occurrence"
 
     WinEOL = "win_eol_action"
