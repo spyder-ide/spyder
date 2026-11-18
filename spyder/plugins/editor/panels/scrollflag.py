@@ -122,6 +122,8 @@ class ScrollFlagArea(Panel):
         return self.editor.verticalScrollBar().isVisible()
 
     def closeEvent(self, event):
+        self._on_close = True
+        self.update_flags.cancel()
         self._update_flags_thread.quit()
         self._update_flags_thread.wait()
         super().closeEvent(event)
@@ -142,6 +144,8 @@ class ScrollFlagArea(Panel):
     @qdebounced(timeout=REFRESH_RATE)
     def update_flags(self):
         """Update flags list in a thread."""
+        if self._on_close:
+            return
         logger.debug("Updating current flags")
 
         self._dict_flag_list = {

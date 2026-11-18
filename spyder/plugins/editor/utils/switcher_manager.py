@@ -94,7 +94,7 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
         )
 
         editorstack = self._editorstack()
-        editor_list = editorstack.data.copy()
+        editor_list = [editorstack.data[index] for index in editorstack.visible_tab_indexes()]
         paths = [data.filename for data in editor_list]
         save_statuses = [data.newly_created for data in editor_list]
         short_paths = shorten_paths(paths, save_statuses)
@@ -124,6 +124,8 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
     def create_line_switcher(self):
         """Populate switcher with line info."""
         editor = self._editor()
+        if editor is None:
+            return
         editorstack = self._editorstack()
         self._current_line = editor.get_cursor_line_number()
         self._switcher.clear()
@@ -147,6 +149,8 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
         editor = self._editor()
+        if editor is None:
+            return
         language = editor.language
         editor.update_whitespace_count(0, 0)
 

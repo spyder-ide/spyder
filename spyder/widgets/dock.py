@@ -282,6 +282,8 @@ class SpyderDockWidget(QDockWidget):
         self.dockLocationChanged.connect(
             lambda area: self.install_tab_event_filter()
         )
+        # Initially hidden tab groups are created only when a pane is shown.
+        self.visibilityChanged.connect(self.install_tab_event_filter)
 
     def closeEvent(self, event):
         """Send a signal on close so that the "Panes" menu can be updated."""

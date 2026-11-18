@@ -42,6 +42,7 @@ class TextDecorationsManager(Manager, QObject):
     """
     def __init__(self, editor):
         super().__init__(editor)
+        self._closed = False
         self._decorations = {"misc": []}
 
         # Timer to not constantly update decorations.
@@ -129,7 +130,13 @@ class TextDecorationsManager(Manager, QObject):
         UPDATE_TIMEOUT has passed. That avoids multiple calls to
         _update in a very short amount of time.
         """
-        self.update_timer.start()
+        if not self._closed:
+            self.update_timer.start()
+
+    def close(self):
+        """Stop view-local work before the shared document can be released."""
+        self._closed = True
+        self.update_timer.stop()
 
     @Slot()
     def _update(self):
@@ -138,6 +145,8 @@ class TextDecorationsManager(Manager, QObject):
         NOTE: Update TextDecorations to use editor font, using a different
         font family and point size could cause unwanted behaviors.
         """
+        if self._closed:
+            return
         editor = self.editor
         if editor is None:
             return

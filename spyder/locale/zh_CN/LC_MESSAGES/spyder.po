@@ -7821,3 +7821,88 @@ msgstr "浏览标签"
 msgid "Close current tab"
 msgstr "关闭当前标签"
 
+#: spyder/plugins/referenceeditor/plugin.py:35
+#: spyder/plugins/referenceeditor/plugin.py:138
+msgid "Secondary editor"
+msgstr "辅助编辑器"
+
+#: spyder/plugins/referenceeditor/plugin.py:143
+msgid "View and edit files alongside the primary editor."
+msgstr "在主编辑器旁查看和编辑文件。"
+
+#: spyder/plugins/referenceeditor/confpage.py
+msgid "Use primary editor settings"
+msgstr "跟随主编辑器设置"
+
+#: spyder/plugins/referenceeditor/confpage.py
+msgid "Disable this option to customize the secondary editor."
+msgstr "关闭此选项后，可单独调整辅助编辑器。"
+
+#: spyder/plugins/referenceeditor/confpage.py
+msgid "Show edge line"
+msgstr "显示列宽参考线"
+
+#: spyder/plugins/referenceeditor/confpage.py
+msgid "Behavior"
+msgstr "行为"
+
+#: spyder/plugins/referenceeditor/confpage.py
+msgid "Restore previously opened reference files"
+msgstr "恢复上次打开的辅助文件"
+
+#: spyder/plugins/referenceeditor/confpage.py
+msgid "Font, colors, line wrapping and source-editing rules are shared with the primary editor."
+msgstr "字体、配色、自动换行及源码编辑规则与主编辑器保持一致。"
+
+#: spyder/plugins/referenceeditor/outline.py
+msgid "Secondary outline"
+msgstr "辅助大纲"
+
+#: spyder/plugins/referenceeditor/outline.py
+msgid "Explore the structure of files in the secondary editor."
+msgstr "浏览辅助编辑器中的文件结构。"
+
+#: spyder/plugins/referenceeditor/plugin.py
+msgid "Move to primary editor"
+msgstr "移动到主编辑器"
+
+#: spyder/plugins/referenceeditor/plugin.py
+msgid "Copy to primary editor"
+msgstr "复制到主编辑器"
+
+#: spyder/plugins/referenceeditor/plugin.py
+msgid "Move to secondary editor"
+msgstr "移动到辅助编辑器"
+
+#: spyder/plugins/referenceeditor/plugin.py
+msgid "Copy to secondary editor"
+msgstr "复制到辅助编辑器"
+
+#: spyder/plugins/editor/widgets/editorstack/editorstack.py
+msgid "Markdown preview"
+msgstr "Markdown 预览"
+
+#: spyder/plugins/editor/widgets/editorstack/editorstack.py
+msgid "Switch between Markdown source and preview"
+msgstr "切换 Markdown 源码与预览"
+
+#: spyder/plugins/editor/widgets/markdown.py
+msgid "Page %s"
+msgstr "第 %s 页"
+
+#: spyder/plugins/editor/widgets/markdown.py
+msgid "Paged Markdown may split syntax across pages. Source contains the complete original text."
+msgstr "分页预览可能拆分跨页的 Markdown 语法。源码保留完整原文。"
+
+#: spyder/plugins/outlineexplorer/markdown.py
+msgid "Additional headings (open source)"
+msgstr "更多标题（打开源码）"
+
+#: spyder/plugins/editor/widgets/markdown.py
+msgid "Preview theme"
+msgstr "预览主题"
+
+#: spyder/plugins/editor/widgets/markdown.py
+msgid "Follow Spyder"
+msgstr "跟随 Spyder"
+

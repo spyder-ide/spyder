@@ -40,6 +40,12 @@ class DockablePlugins:
     Editor = "editor"
     """The Spyder Editor plugin."""
 
+    ReferenceEditor = "reference_editor"
+    """A dockable secondary view of the Spyder Editor."""
+
+    ReferenceOutline = "reference_outline"
+    """The outline belonging to the secondary editor."""
+
     Explorer = "explorer"
     """The Spyder Files plugin."""
 

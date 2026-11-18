@@ -47,6 +47,7 @@ class OutlineExplorerWidget(PluginMainWidget):
 
     ENABLE_SPINNER = True
     CONF_SECTION = 'outline_explorer'
+    TREE_CLASS = OutlineExplorerTreeWidget
     HELP_URL = "https://docs.spyder-ide.org/current/panes/outline"
 
     def __init__(self, name, plugin, parent=None, context=None):
@@ -57,7 +58,7 @@ class OutlineExplorerWidget(PluginMainWidget):
 
         self.in_maximized_editor = False
 
-        self.treewidget = OutlineExplorerTreeWidget(self)
+        self.treewidget = self.TREE_CLASS(self)
         self.treewidget.sig_display_spinner.connect(self.start_spinner)
         self.treewidget.sig_hide_spinner.connect(self.stop_spinner)
         self.treewidget.sig_update_configuration.connect(
