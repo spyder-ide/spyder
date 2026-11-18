@@ -340,11 +340,11 @@ class HelpWidget(PluginMainWidget):
 
         # Setup
         self.object_edit.setReadOnly(True)
-        tip = _(
-            "Searches can't be done when the documentation source is the "
-            "Editor"
-        )
+        tip = _("Search is disabled when the Help source is the Editor")
         self.object_edit.setToolTip("\n".join(textwrap.wrap(tip, 50)))
+        self.object_edit.setPlaceholderText(
+            _("Select Console as Source to search")
+        )
         self.object_combo.setMaxCount(self.get_conf('max_history_entries'))
         self.object_combo.setItemText(0, '')
         self.plain_text.set_wrap_mode(self.get_conf('wrap'))
