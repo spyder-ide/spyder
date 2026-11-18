@@ -33,8 +33,9 @@ from spyder.utils.conda import get_list_conda_envs
 # ============================================================================
 def use_default_conf_dir(monkeypatch, home):
     """Make get_conf_path use its default location under `home`."""
-    monkeypatch.setattr(spyder.config.base, 'running_under_pytest',
-                        lambda: False)
+    monkeypatch.setattr(
+        spyder.config.base, 'running_under_pytest', lambda: False
+    )
     monkeypatch.setattr(spyder.config.base, 'get_safe_mode', lambda: False)
     monkeypatch.setattr(spyder.config.base, 'get_home_dir', lambda: home)
     monkeypatch.delenv('SPYDER_CONFDIR', raising=False)
@@ -68,8 +69,9 @@ def test_get_conf_path(monkeypatch, use_dev_config_dir):
     reload(spyder.config.base)
 
 
-def test_get_conf_path_concurrent_creation(tmp_path, monkeypatch,
-                                           racing_mkdir):
+def test_get_conf_path_concurrent_creation(
+    tmp_path, monkeypatch, racing_mkdir
+):
     """
     Test that get_conf_path doesn't fail if another Spyder process creates
     the config dir at the same time.
@@ -85,10 +87,12 @@ def test_get_conf_path_concurrent_creation(tmp_path, monkeypatch,
 
     # Clean location (tests and safe mode), created with os.makedirs
     clean_dir = str(tmp_path / 'clean' / 'conf')
-    monkeypatch.setattr(spyder.config.base, 'running_under_pytest',
-                        lambda: True)
-    monkeypatch.setattr(spyder.config.base, 'get_clean_conf_dir',
-                        lambda: clean_dir)
+    monkeypatch.setattr(
+        spyder.config.base, 'running_under_pytest', lambda: True
+    )
+    monkeypatch.setattr(
+        spyder.config.base, 'get_clean_conf_dir', lambda: clean_dir
+    )
     assert spyder.config.base.get_conf_path() == clean_dir
     assert clean_dir in racing_mkdir
 
@@ -124,14 +128,16 @@ def test_get_conf_path_default_dir_is_file(tmp_path, monkeypatch):
         spyder.config.base.get_conf_path()
 
 
-def test_get_conf_paths_concurrent_creation(tmp_path, monkeypatch,
-                                            racing_mkdir):
+def test_get_conf_paths_concurrent_creation(
+    tmp_path, monkeypatch, racing_mkdir
+):
     """
     Test that get_conf_paths doesn't fail if another process creates the test
     site config dirs at the same time.
     """
-    monkeypatch.setattr(spyder.config.base.tempfile, 'gettempdir',
-                        lambda: str(tmp_path))
+    monkeypatch.setattr(
+        spyder.config.base.tempfile, 'gettempdir', lambda: str(tmp_path)
+    )
     paths = spyder.config.base.get_conf_paths()
     assert len(paths) == 3
     assert all(path in racing_mkdir for path in paths)

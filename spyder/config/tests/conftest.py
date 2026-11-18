@@ -155,7 +155,7 @@ def racing_mkdir(tmp_path, monkeypatch):
     """
     Simulate another Spyder process creating folders at the same time.
 
-    Every folder this test tries to create under `tmp_path` is created first
+    Every folder fixture test tries to create under `tmp_path` is created first
     by a "concurrent process", i.e. right after the caller checked that it
     didn't exist and right before it creates it.
 

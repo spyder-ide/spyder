@@ -458,8 +458,11 @@ def test_userconfig_concurrent_creation_of_dirs(tmp_path, racing_mkdir):
     )
 
     # The backups and defaults dirs are created when loading the config
-    for folder in [path, osp.join(path, 'backups'),
-                   osp.join(path, 'defaults')]:
+    for folder in [
+        path,
+        osp.join(path, 'backups'),
+        osp.join(path, 'defaults'),
+    ]:
         assert folder in racing_mkdir
         assert osp.isdir(folder)
 

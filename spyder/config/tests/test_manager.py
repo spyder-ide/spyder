@@ -155,8 +155,9 @@ def test_secure_options():
     clear_site_config()
 
 
-def test_concurrent_creation_of_config_dirs(tmp_path, monkeypatch,
-                                            racing_mkdir):
+def test_concurrent_creation_of_config_dirs(
+    tmp_path, monkeypatch, racing_mkdir
+):
     """
     Test that ConfigurationManager doesn't fail if another Spyder process
     creates its config dirs at the same time.
