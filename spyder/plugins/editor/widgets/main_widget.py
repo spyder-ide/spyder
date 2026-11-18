@@ -558,7 +558,7 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetActions.GoToNextOccurrence,
             text=_("Next occurrence"),
             tip=_("Go to next occurrence"),
-            triggered=self.goto_next_occurrnece,
+            triggered=self.goto_next_occurrence,
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
@@ -566,7 +566,7 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetActions.GoToPreviousOccurrence,
             text=_("Previous occurrence"),
             tip=_("Go to previous occurrence"),
-            triggered=self.goto_previous_occurrnece,
+            triggered=self.goto_previous_occurrence,
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
@@ -574,15 +574,15 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetActions.AddCursorNextOccurrence,
             text=_("Add next"),
             tip=_("Add cursor at next occurrence"),
-            triggered=self.add_cursor_next_occurrnece,
+            triggered=self.add_cursor_next_occurrence,
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
         self.add_cursor_previous_occurrnece_action = self.create_action(
-            EditorWidgetActions.AddCursorPreviousOccurrernce,
+            EditorWidgetActions.AddCursorPreviousOccurrence,
             text=_("Add previous"),
             tip=_("Add cursor at previous occurrence"),
-            triggered=self.add_cursor_previous_occurrnece,
+            triggered=self.add_cursor_previous_occurrence,
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
