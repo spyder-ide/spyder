@@ -883,6 +883,16 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
             plugin.change_visibility(True, force_focus=force_focus)
             self.main.activateWindow()
 
+    def close_plugin(self, plugin):
+        """
+        Close `plugin`.
+
+        Notes
+        -----
+        This operation closes the plugin.
+        """
+        plugin.toggle_view_action.setChecked(False)
+    
     # ---- Menus and actions
     # -------------------------------------------------------------------------
     @Slot()

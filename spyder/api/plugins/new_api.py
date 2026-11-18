@@ -1476,7 +1476,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     if ``False``, keep them enabled.
     """
 
-    RAISE_AND_FOCUS: bool = True
+    RAISE_AND_FOCUS: bool = False
     """
     Give the plugin focus on switch to plugin calls.
 
