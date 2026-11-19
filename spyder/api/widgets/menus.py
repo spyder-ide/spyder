@@ -51,6 +51,9 @@ class OptionsMenuSections:
     Top: str = "top_section"
     """The top section of the options menu."""
 
+    SwitchTabs: str = "switch_tabs_section"
+    """The section with actions to switch tabs, shown above the bottom one."""
+
     Bottom: str = "bottom_section"
     """The bottom section of the options menu."""
 
@@ -662,7 +665,7 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
 
     def render(self) -> None:
         """
-        Render the menu's bottom section as expected.
+        Render the menu's switch tabs and bottom sections as expected.
 
         Returns
         -------
@@ -672,14 +675,22 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
             self.clear()
             self._add_missing_actions()
 
+            switch_tabs = OptionsMenuSections.SwitchTabs
             bottom = OptionsMenuSections.Bottom
             actions = []
             for section in self._sections:
                 for sec, action in self._actions:
-                    if sec == section and sec != bottom:
+                    if sec == section and sec not in (switch_tabs, bottom):
                         actions.append(action)
 
                 actions.append(MENU_SEPARATOR)
+
+            # Add switch tabs actions
+            for sec, action in self._actions:
+                if sec == switch_tabs:
+                    actions.append(action)
+
+            actions.append(MENU_SEPARATOR)
 
             # Add bottom actions
             for sec, action in self._actions:

@@ -65,6 +65,11 @@ def parse_spyder_dependencies():
         if ver:
             ver = str(SpecifierSet(ver))
 
+        # Transform pypi to conda name
+        # TODO: Remove this when qtconsole is made to depend on PyQt6.
+        if dep['package_name'].lower() == 'qtconsole':
+            dep['package_name'] = 'qtconsole-base'
+
         deps[dep['package_name'].lower()] = ver
 
     return deps
@@ -90,7 +95,7 @@ def parse_setup_install_requires(fpath):
                 # Add dependency
                 deps_list.append(line.strip().strip(',').strip("'"))
         if (
-            line.strip() in ("'pyqt5': [", "install_requires += [")
+            line.strip() in ("'pyqt6': [", "install_requires += [")
             and not is_dep_line
         ):
             # Depencies begin on next line
@@ -102,8 +107,8 @@ def parse_setup_install_requires(fpath):
         req = Requirement(dep)
 
         # Transform pypi to conda name
-        if req.name == 'pyqt5':
-            req.name = 'pyqt'
+        if req.name == 'qtconsole':
+            req.name = 'qtconsole-base'
 
         if req.specifier:
             deps[req.name] = str(req.specifier)
@@ -139,8 +144,9 @@ def parse_setup_extra_requires(fpath):
         req = Requirement(dep)
 
         # Transform pypi to conda name
-        if req.name == 'pyqt5':
-            req.name = 'pyqt'
+        # TODO: Remove this when qtconsole is made to depend on PyQt6.
+        if req.name == 'qtconsole':
+            req.name = 'qtconsole-base'
 
         if req.marker:
             # Skip dependencies with environment markers (e.g.
@@ -191,7 +197,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     full_reqs.update(linux_reqs)
 
     # These packages are not declared in our dependencies dialog
-    for dep in ['pyqt', 'pyqtwebengine', 'python.app', 'fzf', 'fcitx-qt5']:
+    for dep in ['pyqt6', 'pyqt6-webengine', 'python.app', 'fzf']:
         full_reqs.pop(dep)
 
     assert spyder_deps == full_reqs
@@ -214,7 +220,7 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     full_reqs.update(linux_reqs)
 
     # We can't declare these as dependencies in setup.py
-    for dep in ['python.app', 'fzf', 'fcitx-qt5']:
+    for dep in ['python.app', 'fzf']:
         full_reqs.pop(dep)
 
     assert spyder_setup == full_reqs

@@ -19,7 +19,7 @@ import re
 import shutil
 import sys
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -30,8 +30,14 @@ import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy import PYQT6
-from qtpy.QtCore import QPoint, Qt
-from qtpy.QtGui import QKeySequence, QShortcut, QTextCursor
+from qtpy.QtCore import QEvent, QPoint, QPointF, Qt, QUrl
+from qtpy.QtGui import (
+    QKeySequence, 
+    QMouseEvent, 
+    QShortcut, 
+    QTextCursor,
+)
+from qtpy.QtWidgets import QApplication
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -58,6 +64,7 @@ from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
 from spyder.plugins.ipythonconsole.widgets.shell import PROMPT_BLOCK_RE
 from spyder.utils.conda import get_list_conda_envs, find_pixi
 from spyder.utils.theme_manager import THEME_MANAGER
+from spyder.widgets import mixins
 
 
 @flaky(max_runs=3)
@@ -1020,6 +1027,101 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
+def test_kernel_shuts_down_when_closing_client_after_startup_warning(
+    ipyconsole, qtbot
+):
+    # Start a console with its own kernel, before its kernel is connected.
+    ipyconsole.create_new_client()
+    client = ipyconsole.get_current_client()
+    assert client.kernel_handler is None
+
+    # Emit a startup warning as kernel stderr while the console is connecting.
+    client.shellwidget.sig_shellwidget_created.connect(
+        lambda shellwidget: shellwidget.kernel_handler.sig_stderr.emit(
+            "C:\\env\\lib\\module.py:12: UserWarning: harmless warning\n"
+            "  warnings.warn(msg)\n"
+        )
+    )
+    qtbot.waitSignal(
+        client.shellwidget.sig_prompt_ready, timeout=SHELL_TIMEOUT
+    ).wait()
+
+    kernel_handler = client.kernel_handler
+    kernel_manager = kernel_handler.kernel_manager
+
+    try:
+        # Close the console and assert its kernel was shut down.
+        ipyconsole.get_widget().close_client(client=client, ask_recursive=False)
+        assert not kernel_manager.is_alive()
+    finally:
+        # Forcefully shut down the kernel if it wasn't shut down normally.
+        if kernel_manager.is_alive():
+            kernel_manager.shutdown_kernel(now=True)
+
+        # Wait for the threads to finish to avoid Qt crashing upon GC.
+        kernel_handler.close_std_threads()
+
+
+def test_kernel_shuts_down_on_startup_error(ipyconsole, qtbot):
+    # Start a console with its own kernel, before its kernel is connected.
+    ipyconsole.create_new_client()
+    client = ipyconsole.get_current_client()
+    assert client.kernel_handler is None
+
+    # Emit a startup error as kernel stderr while the console is connecting.
+    with qtbot.waitSignal(client.shellwidget.sig_shellwidget_errored):
+        client.shellwidget.sig_shellwidget_created.connect(
+            lambda shellwidget: shellwidget.kernel_handler.sig_stderr.emit(
+                "Traceback (most recent call last):\n"
+                '  File "C:\\env\\lib\\module.py", line 12, in <module>\n'
+                "RuntimeError: kernel startup failed\n"
+            )
+        )
+
+    kernel_handler = client.kernel_handler
+    kernel_manager = kernel_handler.kernel_manager
+
+    try:
+        assert not kernel_manager.is_alive()
+    finally:
+        # Forcefully shut down the kernel if it wasn't shut down normally.
+        if kernel_manager.is_alive():
+            kernel_manager.shutdown_kernel(now=True)
+
+        # Wait for the threads to finish to avoid Qt crashing upon GC.
+        kernel_handler.close_std_threads()
+
+        ipyconsole.get_widget().close_client(client=client, ask_recursive=False)
+
+
+@pytest.mark.parametrize(
+    "stop_kernel",
+    [
+        pytest.param(
+            lambda client: client.disconnect_kernel(shutdown_kernel=True),
+            id="no-kernel",
+        ),
+        pytest.param(
+            lambda client: client.kernel_handler.close(),
+            id="kernel-already-shut-down",
+        ),
+    ],
+)
+def test_shellwidget_shutdown_is_idempotent(ipyconsole, stop_kernel):
+    """
+    Test that shutting down a shut down ShellWidget has no effect.
+    """
+    client = ipyconsole.get_current_client()
+    shell = client.shellwidget
+    kernel_manager = shell.kernel_handler.kernel_manager
+    stop_kernel(client)
+    assert not kernel_manager.is_alive()
+
+    shell.shutdown()
+    # Second call should be idempotent and not raise an exception.
+    shell.shutdown()
+
+
 @flaky(max_runs=3)
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
@@ -1096,7 +1198,7 @@ def test_kernel_crash(ipyconsole, qtbot):
             webpage = webview.page().mainFrame()
 
         qtbot.waitUntil(
-            lambda: check_text(webpage, "Bad config encountered"),
+            lambda: check_text(webpage, "Bad config encountered", qtbot),
             timeout=6000)
 
         # Wait until the error has been received by the cached kernel_handler
@@ -1530,7 +1632,7 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
     # Evaluate an expression to be sure the restart was successful
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
-    assert shell.is_defined('a')
+    qtbot.waitUntil(lambda: shell.is_defined('a'))
 
     # Wait until the comm replies
     open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
@@ -2373,10 +2475,11 @@ def test_old_kernel_version(ipyconsole, qtbot):
     info_page = w.get_current_client().infowidget.page()
 
     qtbot.waitUntil(
-        lambda: check_text(info_page, "1.0.0"), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "1.0.0", qtbot), timeout=SHELL_TIMEOUT
     )
     qtbot.waitUntil(
-        lambda: check_text(info_page, "pip install spyder"), timeout=SHELL_TIMEOUT
+        lambda: check_text(info_page, "pip install spyder", qtbot),
+        timeout=SHELL_TIMEOUT,
     )
 
 
@@ -2452,7 +2555,8 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     qtbot.waitUntil(
         lambda: check_text(
             info_page,
-            "The Python environment or installation"
+            "The Python environment or installation",
+            qtbot,
         ),
         timeout=6000
     )
@@ -3176,6 +3280,49 @@ def test_umr(ipyconsole, qtbot, tmp_path):
         shell.execute(f"%runfile {fname}")
 
     assert "Reloaded modules" in control.toPlainText()
+
+
+def test_click_url_in_output(ipyconsole, qtbot, monkeypatch):
+    """Check that urls printed in the console can be opend by clicking."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    open_url = Mock()
+    monkeypatch.setattr(mixins.QDesktopServices, "openUrl", open_url)
+
+    # Print a url
+    url = "https://www.spyde-ide.org"
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"print('Visit {url}')")
+
+    # Get coordinates on top of the url in the output
+    cursor = control.document().find(f"Visit {url}")
+    cursor.setPosition(cursor.selectionStart() + len("Visit ") + 3)
+    rect = control.cursorRect(cursor)
+    pos = QPoint(rect.left() + 2, rect.center().y())
+
+    def send_mouse_event(event_type, button, buttons):
+        event = QMouseEvent(
+            event_type,
+            QPointF(pos),
+            QPointF(control.viewport().mapToGlobal(pos)),
+            button,
+            buttons,
+            Qt.NoModifier,
+        )
+        QApplication.sendEvent(control.viewport(), event)
+
+    # Hover over the url and check it's detected
+    send_mouse_event(QEvent.MouseMove, Qt.NoButton, Qt.NoButton)
+    assert control.anchor == url
+
+    # Click on it and check it's opened
+    send_mouse_event(QEvent.MouseButtonPress, Qt.LeftButton, Qt.LeftButton)
+    send_mouse_event(QEvent.MouseButtonRelease, Qt.LeftButton, Qt.NoButton)
+    open_url.assert_called_once_with(QUrl(url))
 
 
 if __name__ == "__main__":

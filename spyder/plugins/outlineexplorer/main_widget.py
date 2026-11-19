@@ -47,6 +47,7 @@ class OutlineExplorerWidget(PluginMainWidget):
 
     ENABLE_SPINNER = True
     CONF_SECTION = 'outline_explorer'
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/outline"
 
     def __init__(self, name, plugin, parent=None, context=None):
         if context is not None:

@@ -704,12 +704,10 @@ class SpyderKernel(IPythonKernel):
     def set_traceback_syntax_highlighting(self, syntax_style):
         """Set the traceback syntax highlighting style."""
         # Create spyder theme definition and set it
-        import IPython.utils.PyColorize
-        from IPython.utils.PyColorize import (
-            Theme,
-            linux_theme,
-            neutral_theme,
-        )
+        from IPython.utils.PyColorize import Theme, theme_table
+
+        linux_theme = theme_table["linux"]
+        neutral_theme = theme_table["neutral"]
 
         base = "default"
         extra_style = neutral_theme.extra_style
@@ -719,7 +717,12 @@ class SpyderKernel(IPythonKernel):
 
         extra_style.update(create_pygments_dict(syntax_style))
         theme = Theme("spyder_theme", base, extra_style)
-        IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
+
+        if ipython_release.version_info[:3] >= (9, 18, 0):
+            theme_table._by_name["spyder_theme"] = theme
+        else:
+            theme_table["spyder_theme"] = theme
+
         self.shell.run_line_magic("colors", "spyder_theme")
 
     @kernel_config("update_gui")

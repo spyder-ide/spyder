@@ -218,6 +218,7 @@ class SpyderToolbar(QToolBar):
         self._pending_items: dict[str, list[ToolbarItemEntry]] = {}
         self._default_section = "default_section"
         self._filter = None
+        self._actions_for_widgets: dict[QWidget, QAction] = {}
 
         self.setWindowTitle(title)
 
@@ -405,11 +406,10 @@ class SpyderToolbar(QToolBar):
 
         for sec, item in sec_items:
             if isinstance(item, QAction):
-                add_method = super().addAction
+                super().addAction(item)
             else:
-                add_method = super().addWidget
-
-            add_method(item)
+                widget_action = super().addWidget(item)
+                self._actions_for_widgets[item] = widget_action
 
             if isinstance(item, QAction):
                 widget = self.widgetForAction(item)
@@ -425,6 +425,22 @@ class SpyderToolbar(QToolBar):
                     widget.setCheckable(True)
 
         self.sig_is_rendered.emit()
+
+    def action_for_widget(self, widget: QWidget) -> QAction:
+        """
+        Get the action associated to a given widget in the toolbar.
+
+        Qt doesn't allow certain operations on widgets added to toolbars
+        directly, e.g. changing its visibility. Instead, this method must be
+        used to get the QAction associated to the widget and perform the
+        operation on it.
+
+        Parameters
+        ----------
+        widget: QWidget
+            Widget for which its associated toolbar QAction will be retrieved.
+        """
+        return self._actions_for_widgets.get(widget)
 
 
 class ApplicationToolbar(SpyderToolbar):

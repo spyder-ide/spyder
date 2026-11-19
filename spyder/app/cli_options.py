@@ -35,6 +35,14 @@ def get_options(argv=None):
         help="Remove all configuration files!"
     )
     parser.add_argument(
+        '--reset-hdpi-settings',
+        dest="reset_hdpi_settings",
+        action='store_true',
+        default=False,
+        help="Reset high DPI scaling settings to their defaults. Use this "
+             "if a wrong scale factor makes Spyder unusable"
+    )
+    parser.add_argument(
         '--optimize',
         action='store_true',
         default=False,
@@ -126,7 +134,7 @@ def get_options(argv=None):
         default='',
         help="Comma-separated module name hierarchies whose log "
              "messages should be shown. e.g., "
-             "spyder.plugins.completion,spyder.plugins.editor"
+             "spyder.plugins.languageservices,spyder.plugins.editor"
     )
     parser.add_argument(
         '--safe-mode',

@@ -126,6 +126,7 @@ DEFAULTS = [
               }),
             ('quick_layouts',
              {
+              'current_layout': 'Spyder Default Layout',
               'place_holder': '',
               'names': [],
               'order': [],
@@ -354,6 +355,7 @@ DEFAULTS = [
               'type_column': False,
               'date_column': False,
               'search_files_in_switcher': True,
+              'follow_gitignore': True,
               }),
             ('explorer',
              {
@@ -391,6 +393,15 @@ DEFAULTS = [
                'provider_configuration': {},
                'request_priorities': {},
                'use_enter_for_completions': True
+             }),
+            ('language_services',
+             {
+               'enable': True,
+               'enable_code_snippets': True,
+               'request_timeout_ms': 5000,
+               'providers': {},
+               'request_policies': {},
+               'use_enter_for_completions': True,
              }),
             ('profiler',
              {
@@ -447,6 +458,8 @@ DEFAULTS = [
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",
               'main/close all': "Ctrl+Shift+W",
+              'main/go to next tab': "Ctrl+Alt+Right",
+              'main/go to previous tab': "Ctrl+Alt+Left",
               # -- Edit menu --
               # (intended context for these is plugins that support them)
               'main/undo': 'Ctrl+Z',
@@ -558,6 +571,7 @@ DEFAULTS = [
               'editor/fold or unfold current region': 'Ctrl+H',
               'editor/fold all regions': 'Ctrl+J',
               'editor/unfold all regions': 'Ctrl+K',
+              'editor/wrap lines': "Alt+Z",
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",
@@ -581,8 +595,6 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              'ipython_console/switch to next console': "Shift+Alt+Right",
-              'ipython_console/switch to previous console': "Shift+Alt+Left",
               'ipython_console/go to previous prompt': "Ctrl+Alt+Up",
               'ipython_console/go to next prompt': "Ctrl+Alt+Down",
               # -- Variable explorer --
@@ -757,4 +769,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '89.1.0'
+CONF_VERSION = '90.0.0'
