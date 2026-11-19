@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 3.1.7 (2026/11/02)
+
+### Pull Requests Merged
+
+* [PR 611](https://github.com/spyder-ide/spyder-kernels/pull/611) - PR: Fix setting traceback syntax highlighting for IPython 9.18+, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.1.6 (2026/08/26)
 
 ### Pull Requests Merged
