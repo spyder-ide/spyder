@@ -645,9 +645,9 @@ def test_get_help_ipython_console(main_window, qtbot):
             "Matrix or vector norm",
         ),
         (
-            # Check the no docs message is shown for objects without docstring
+            # Check we show docs for classes imported from a stub
             "from collections.abc import Awaitable",
-            "No further documentation available",
+            "A generic version of collections.abc.Awaitable",
         ),
     ],
 )
