@@ -1087,7 +1087,9 @@ class HelpWidget(PluginMainWidget):
         else:
             hlp_text = source_text
             if hlp_text is None:
-                hlp_text = _(f"No source code available for {obj_text}.")
+                hlp_text = _(
+                  "No source code available for {obj_text}."
+                ).format(obj_text=obj_text)
                 if ignore_unknown:
                     return False
             else:
