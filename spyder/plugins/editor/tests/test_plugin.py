@@ -197,6 +197,39 @@ def test_open_untitled_files(editor_plugin_open_files):
     assert 'untitled5.py' in new_filename
 
 
+def test_new_untitled_file_name_exists_in_basedir(
+    editor_plugin, tmp_path, monkeypatch
+):
+    """
+    Test that new untitled files don't take the name of a file that already
+    exists in the directory where they'll be saved.
+
+    Regression test for spyder-ide/spyder#5037
+    """
+    editor = editor_plugin
+    main_widget = editor.get_widget()
+
+    # The working directory is different from the directory where the new
+    # file will be saved (e.g. the active project).
+    cwd = tmp_path / "cwd"
+    project = tmp_path / "project"
+    cwd.mkdir()
+    project.mkdir()
+    (project / "untitled0.py").write_text("# Existing file\n")
+
+    monkeypatch.chdir(cwd)
+    monkeypatch.setattr(main_widget, "untitled_num", 0)
+    monkeypatch.setattr(
+        main_widget, "get_active_project_path", lambda: str(project)
+    )
+
+    editor.new()
+
+    new_filename = editor.get_current_editorstack().get_current_filename()
+    assert osp.dirname(new_filename) == str(project)
+    assert osp.basename(new_filename) != "untitled0.py"
+
+
 def test_renamed_tree(editor_plugin, mocker):
     """Test editor.renamed_tree().
 
