@@ -5,15 +5,15 @@ from qtconsole.client import QtKernelClient
 
 from spyder.plugins.ipythonconsole.utils.client import (
     SpyderKernelClient,
-    _detach_channels,
 )
 
 
 def test_detach_channels_drains_pending_events():
     """Channel receivers detach before pending I/O loop events are drained."""
     events = []
-    ioloop_thread = IOLoopThread()
-    ioloop_thread.start()
+    client = SpyderKernelClient()
+    client.ioloop_thread = IOLoopThread()
+    client.ioloop_thread.start()
     channels = []
 
     for channel_name in ["shell", "iopub", "stdin", "control"]:
@@ -21,18 +21,25 @@ def test_detach_channels_drains_pending_events():
 
         def stop_receiving(_callback, name=channel_name):
             events.append(f"stop_receiving_{name}")
-            ioloop_thread.ioloop.add_callback(
+            client.ioloop.add_callback(
                 lambda name=name: events.append(f"pending_event_{name}")
             )
 
         channel.stream.on_recv.side_effect = stop_receiving
         channels.append(channel)
 
+    (
+        client._shell_channel,
+        client._iopub_channel,
+        client._stdin_channel,
+        client._control_channel,
+    ) = channels
+
     try:
-        _detach_channels(ioloop_thread.ioloop, channels)
+        client._detach_channels()
         events.append("detached")
     finally:
-        ioloop_thread.stop()
+        client.ioloop_thread.stop()
 
     for channel_name in ["shell", "iopub", "stdin", "control"]:
         assert events.index(f"stop_receiving_{channel_name}") < events.index(
