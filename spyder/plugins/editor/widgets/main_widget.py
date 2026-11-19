@@ -553,6 +553,40 @@ class EditorMainWidget(PluginMainWidget):
             register_shortcut=True
         )
 
+        # Occurrences actions
+        self.goto_next_occurrnece_action = self.create_action(
+            EditorWidgetActions.GoToNextOccurrence,
+            text=_("Next occurrence"),
+            tip=_("Go to next occurrence"),
+            triggered=self.goto_next_occurrence,
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+        self.goto_previous_occurrnece_action = self.create_action(
+            EditorWidgetActions.GoToPreviousOccurrence,
+            text=_("Previous occurrence"),
+            tip=_("Go to previous occurrence"),
+            triggered=self.goto_previous_occurrence,
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+        self.add_cursor_next_occurrnece_action = self.create_action(
+            EditorWidgetActions.AddCursorNextOccurrence,
+            text=_("Add next"),
+            tip=_("Add cursor at next occurrence"),
+            triggered=self.add_cursor_next_occurrence,
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+        self.add_cursor_previous_occurrnece_action = self.create_action(
+            EditorWidgetActions.AddCursorPreviousOccurrence,
+            text=_("Add previous"),
+            tip=_("Add cursor at previous occurrence"),
+            triggered=self.add_cursor_previous_occurrence,
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+
         # EOL menu
         self.win_eol_action = self.create_action(
             EditorWidgetActions.WinEOL,
@@ -2483,6 +2517,30 @@ class EditorMainWidget(PluginMainWidget):
         filename = self.get_current_filename()
         cursor = editor.textCursor()
         self.add_cursor_to_history(filename, cursor)
+
+    @Slot()
+    def goto_next_occurrence(self):
+        self.switch_to_plugin()
+        editor = self.get_current_editor()
+        editor.go_to_next_occurrence()
+        
+    @Slot()
+    def goto_previous_occurrence(self):
+        self.switch_to_plugin()
+        editor = self.get_current_editor()
+        editor.go_to_previous_occurrence()
+        
+    @Slot()
+    def add_cursor_next_occurrence(self):
+        self.switch_to_plugin()
+        editor = self.get_current_editor()
+        editor.add_cursor_next_occurrence()
+        
+    @Slot()
+    def add_cursor_previous_occurrence(self):
+        self.switch_to_plugin()
+        editor = self.get_current_editor()
+        editor.add_cursor_previous_occurrence()
 
     def toggle_eol_chars(self, os_name, checked):
         if checked:

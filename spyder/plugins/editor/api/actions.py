@@ -24,9 +24,16 @@ class EditorWidgetActions:
     ShowCodeAnalysisList = "show_code_analaysis_action"
     GoToPreviousWarning = "Previous warning"
     GoToNextWarning = "Next warning"
+
+    # Search actions
     GoToLastEditLocation = "Last edit location"
     GoToPreviousCursorPosition = "Previous cursor position"
     GoToNextCursorPosition = "Next cursor position"
+    GoToPreviousOccurrence = "go to previous occurrence"
+    GoToNextOccurrence = "go to next occurrence"
+    AddCursorPreviousOccurrence = "add cursor previous occurrence"
+    AddCursorNextOccurrence = "add cursor next occurrence"
+
     WinEOL = "win_eol_action"
     LinuxEOL = "linux_eol_action"
     MacEOL = "mac_eol_action"
