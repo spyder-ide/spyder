@@ -1466,7 +1466,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self, cache, path_to_custom_interpreter, client, future
     ):
         """Connect kernel to client after environment variables are obtained"""
-        if self.mainwindow_close:
+        # Environment discovery can finish after a console/project is closed.
+        # close_client() removes the client before teardown, so ignore its
+        # result even when the main window is still open.
+        if self.mainwindow_close or client not in self.clients:
             return
 
         try:
