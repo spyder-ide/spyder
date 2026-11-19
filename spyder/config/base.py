@@ -15,12 +15,15 @@ sip API incompatibility issue in spyder's non-gui modules)
 from __future__ import annotations
 
 from collections.abc import Callable
+import errno
 from glob import glob
+import html
 import locale
 import os
 import os.path as osp
 import re
 import shutil
+import stat
 import sys
 import tempfile
 import uuid
@@ -242,6 +245,196 @@ def get_custom_conf_dir():
         return custom_dir
 
 
+def _can_show_message():
+    """
+    Check if we can show a graphical message that users can close.
+
+    Qt aborts the process if there's no display on Linux, and nobody can
+    close a message shown with the offscreen or minimal platforms.
+    """
+    qt_platform = os.environ.get('QT_QPA_PLATFORM', '').lower()
+    if qt_platform.startswith(('offscreen', 'minimal')):
+        return False
+
+    if not sys.platform.startswith('linux'):
+        return True
+
+    if qt_platform.startswith('xcb'):
+        return bool(os.environ.get('DISPLAY'))
+    elif qt_platform.startswith('wayland'):
+        return bool(os.environ.get('WAYLAND_DISPLAY'))
+    elif qt_platform:
+        # Other platforms (e.g. eglfs or vnc) don't need a display server
+        return True
+    else:
+        return bool(
+            os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')
+        )
+
+
+def _show_not_a_folder_error(path):
+    """
+    Tell users that `path` exists but is not a folder, and exit.
+
+    Spyder can't save its settings in that case, and it's usually launched
+    from the Start menu or Spotlight, so we need to show a graphical message
+    about it.
+
+    Notes
+    -----
+    * The message is not translated because translations need the config dir
+      to work.
+    * We exit instead of returning because all callers expect a path.
+    * Qt is only imported here, when Spyder can't start anyway, so the rest
+      of this module stays free of GUI imports.
+    """
+    # Print the error first, before any Qt call, so it's also shown when
+    # Spyder is started from a terminal or without a display.
+    try:
+        print(
+            f"Error: {path} exists but is not a folder, so Spyder can't save "
+            "its settings in it. Please rename or remove it.",
+            file=sys.stderr,
+            flush=True,
+        )
+    except Exception:
+        # E.g. if stderr is closed
+        pass
+
+    if _can_show_message():
+        try:
+            from qtpy.QtWidgets import QApplication, QMessageBox
+
+            # Create app, if there's none, in order to display the message
+            # below.
+            # NOTE: Don't use the functions we have to create a QApplication
+            # here because they need the config dir.
+            app = QApplication.instance()
+            if app is None:
+                app = QApplication(['Spyder', '--no-sandbox'])
+                app.setApplicationName('Spyder')
+
+            QMessageBox.critical(
+                None,
+                "Spyder",
+                (
+                    f"<b>{html.escape(path)}</b> exists in your system but "
+                    "it's not a folder, so Spyder can't save its settings in "
+                    "it."
+                    "<br><br>"
+                    "Please rename or remove it to fix this problem."
+                ),
+                QMessageBox.Ok,
+            )
+        except Exception:
+            # The error was already printed above, so exit anyway
+            pass
+
+    os._exit(1)
+
+
+def _is_not_a_folder(path):
+    """
+    Check if `path` exists but is not a folder.
+
+    This is the case for files, broken symlinks (or junctions on Windows, with
+    Python 3.12+) and symlink loops, but not for a folder (or a symlink to
+    one) that can't be accessed, e.g. due to permissions or a network error.
+
+    Note: A symlink to a folder that doesn't exist right now (e.g. on a
+    network share that is down) can't be told apart from a broken one, so
+    it's reported as not a folder.
+    """
+    if not osp.lexists(path):
+        return False
+
+    try:
+        return not stat.S_ISDIR(os.stat(path).st_mode)
+    except (FileNotFoundError, NotADirectoryError):
+        # Broken symlink or junction, e.g. to a missing folder or to one inside
+        # a file
+        is_junction = getattr(osp, 'isjunction', lambda path: False)
+        return osp.islink(path) or is_junction(path)
+    except OSError as error:
+        # Symlink loop
+        return (
+            error.errno == errno.ELOOP
+            # ERROR_CANT_RESOLVE_FILENAME, which is what Windows gives for it.
+            # Note: Its errno is EINVAL, but that's also used for many other
+            # errors on Windows, e.g. network ones.
+            or getattr(error, 'winerror', None) == 1921
+        )
+
+
+# Config dirs that were already found or created in this session. If one of
+# them is not a folder anymore, Spyder is already running, so we raise an
+# error instead of exiting. Otherwise, Spyder would close without asking to
+# save files.
+# Note: This works because the config dir doesn't change after startup, i.e.
+# SPYDER_CONFDIR and SPYDER_SAFE_MODE are only set in spyder/app/start.py (and
+# the first is made absolute by get_custom_conf_dir).
+_CHECKED_CONF_DIRS = set()
+
+
+def _create_conf_dir(path, parents=True):
+    """
+    Create the config dir `path` if it doesn't exist.
+
+    If something that is not a folder is in the way the first time `path` is
+    checked, which is at startup, show an error message and exit. That error
+    is raised instead after startup and when running tests.
+
+    Parameters
+    ----------
+    path: str
+        Folder to create.
+    parents: bool, optional
+        Whether to create missing parent folders too. Default is True.
+    """
+    if osp.isdir(path):
+        _CHECKED_CONF_DIRS.add(path)
+        return
+
+    try:
+        if parents:
+            os.makedirs(path, exist_ok=True)
+        else:
+            os.mkdir(path)
+    except OSError:
+        # Another Spyder process could create it at the same time, so we
+        # don't fail if it already exists. See spyder-ide/spyder#26494
+        if osp.isdir(path):
+            _CHECKED_CONF_DIRS.add(path)
+            return
+
+        # Look for the entry that is in the way, which can be a parent of
+        # `path`.
+        # Note: The error depends on what is in the way and on the OS (e.g.
+        # creating a folder inside a file gives a FileNotFoundError on
+        # Windows, which is also what we get if a parent is really missing),
+        # so we check the file system instead.
+        blocking_path = path
+        while not osp.lexists(blocking_path):
+            parent = osp.dirname(blocking_path)
+            if parent == blocking_path:
+                break
+            blocking_path = parent
+
+        # Raise the error if nothing is in the way (e.g. a missing parent or
+        # drive, or a folder that can't be accessed), after startup or when
+        # running our tests
+        if (
+            running_under_pytest()
+            or path in _CHECKED_CONF_DIRS
+            or not _is_not_a_folder(blocking_path)
+        ):
+            raise
+
+        _show_not_a_folder_error(blocking_path)
+
+    _CHECKED_CONF_DIRS.add(path)
+
+
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
@@ -259,19 +452,18 @@ def get_conf_path(filename=None):
         if not xdg_config_home:
             xdg_config_home = osp.join(get_home_dir(), '.config')
 
-        if not osp.isdir(xdg_config_home):
-            os.makedirs(xdg_config_home)
+        _create_conf_dir(xdg_config_home)
 
         conf_dir = osp.join(xdg_config_home, get_conf_subfolder())
     else:
         conf_dir = osp.join(get_home_dir(), get_conf_subfolder())
 
     # Create conf_dir
-    if not osp.isdir(conf_dir):
-        if running_under_pytest() or get_safe_mode() or get_custom_conf_dir():
-            os.makedirs(conf_dir)
-        else:
-            os.mkdir(conf_dir)
+    if running_under_pytest() or get_safe_mode() or get_custom_conf_dir():
+        _create_conf_dir(conf_dir)
+    else:
+        # Don't create missing parent dirs for the default location
+        _create_conf_dir(conf_dir, parents=False)
 
     if filename is None:
         return conf_dir
@@ -308,8 +500,7 @@ def get_conf_paths():
         tmpfolder = str(tempfile.gettempdir())
         for i in range(3):
             path = os.path.join(tmpfolder, 'site-config-' + str(i))
-            if not os.path.isdir(path):
-                os.makedirs(path)
+            os.makedirs(path, exist_ok=True)
             search_paths.append(path)
         SEARCH_PATH = tuple(search_paths)
 
