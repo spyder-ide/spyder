@@ -17,6 +17,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.manager import CONF
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
 
 
@@ -77,3 +78,76 @@ def test_internal_interpreter(maininterpreter, qtbot, mocker):
     container.envs = {name: (interpreter, version)}
     container.path_to_env = {interpreter: name}
     assert 'system: (Python 3.6.6)' == container._get_env_info(interpreter)
+
+
+@pytest.fixture
+def maininterpreter_with_conf(qtbot):
+    """
+    Set up the plugin using Spyder's configuration.
+
+    The main interpreter options changed by a test are restored afterwards.
+    """
+    section = "main_interpreter"
+    options = [
+        "default",
+        "custom",
+        "custom_interpreter",
+        "custom_interpreters_list",
+        "executable",
+    ]
+    previous = {
+        opt: CONF.get(section, opt)
+        for opt in options
+        if CONF.has_option(section, opt)
+    }
+
+    plugin = MainInterpreter(None, configuration=CONF)
+    qtbot.addWidget(plugin.get_container())
+
+    yield plugin
+
+    for opt in options:
+        if opt in previous:
+            CONF.set(section, opt, previous[opt])
+        elif CONF.has_option(section, opt):
+            CONF.remove_option(section, opt)
+
+
+def test_set_custom_interpreter_surrounding_whitespace(
+    maininterpreter_with_conf
+):
+    """
+    Check that whitespace around an interpreter set by other plugins is
+    removed before saving it.
+
+    This is a regression test for spyder-ide/spyder#24955
+    """
+    plugin = maininterpreter_with_conf
+    plugin.set_custom_interpreter(sys.executable + "\n")
+
+    assert plugin.get_conf("custom_interpreter") == sys.executable
+    assert plugin.get_conf("executable") == sys.executable
+    assert (
+        sys.executable + "\n"
+        not in plugin.get_conf("custom_interpreters_list")
+    )
+
+
+def test_custom_interpreter_option_surrounding_whitespace(
+    maininterpreter_with_conf
+):
+    """
+    Check that whitespace around the custom interpreter option is removed
+    before using it as the main interpreter.
+
+    This is a regression test for spyder-ide/spyder#24955
+    """
+    plugin = maininterpreter_with_conf
+    plugin.set_conf("executable", "")
+    plugin.set_conf("default", False)
+    plugin.set_conf("custom", True)
+
+    # This calls the container's on_interpreter_changed method
+    plugin.set_conf("custom_interpreter", sys.executable + "\n")
+
+    assert plugin.get_conf("executable") == sys.executable

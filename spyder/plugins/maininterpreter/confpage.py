@@ -28,6 +28,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
     def __init__(self, plugin, parent):
         super().__init__(plugin, parent)
+        self.pre_apply_callback = self.strip_custom_interpreter
         self.apply_callback = self.perform_adjustments
         self.plugin_container = plugin.get_container()
 
@@ -237,6 +238,22 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 namelist = []
 
             self.set_option('umr/namelist', namelist)
+
+    def strip_custom_interpreter(self):
+        """
+        Remove whitespace around the custom interpreter path before saving it.
+
+        That whitespace is accepted by `programs.is_python_interpreter` when
+        validating the page, but it would make the saved path invalid.
+        Fixes spyder-ide/spyder#24955
+        """
+        text = self.pyexec_edit.text()
+        stripped_text = text.strip()
+
+        # Whitespace-only text is left untouched because a single space is
+        # used as a placeholder value for this option.
+        if stripped_text and stripped_text != text:
+            self.pyexec_edit.setText(stripped_text)
 
     def perform_adjustments(self):
         """Perform some adjustments to the page after applying preferences."""

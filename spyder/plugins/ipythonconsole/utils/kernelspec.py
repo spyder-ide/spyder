@@ -115,6 +115,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             pyexec = self.get_conf('executable', section='main_interpreter')
             if self.path_to_custom_interpreter:
                 pyexec = self.path_to_custom_interpreter
+
+            # Remove surrounding whitespace so that the interpreter that is
+            # validated below is the same one used to start the kernel.
+            # Fixes spyder-ide/spyder#24955
+            if isinstance(pyexec, str):
+                pyexec = pyexec.strip()
+
             if not has_spyder_kernels(pyexec):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(
