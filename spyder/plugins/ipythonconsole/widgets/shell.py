@@ -19,6 +19,7 @@ from textwrap import dedent
 import typing
 
 # Third party imports
+from qtpy.compat import isalive
 from qtpy.QtCore import Qt, Signal, QEvent
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
@@ -361,7 +362,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # pending events are processed while closing a client), in which case
         # we must not set up the kernel or show the banner (the latter makes
         # a blocking kernel call that would never be answered).
-        if self.shutting_down:
+        if self.shutting_down or not isalive(self._control):
             return
 
         if (
@@ -369,7 +370,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             KernelConnectionState.SpyderKernelReady
         ):
             self.setup_spyder_kernel()
+
+            # Kernel setup can process pending events, including teardown.
+            if self.shutting_down or not isalive(self._control):
+                return
+
             self._show_banner()
+
+            # Banner generation can process console teardown events and return
+            # early. Do not announce readiness for a console that has closed.
+            if self.shutting_down or not isalive(self._control):
+                return
+
             self.sig_kernel_is_ready.emit()
 
     def handle_kernel_connection_error(self):
@@ -1304,6 +1316,11 @@ overrided by the Sympy module (e.g. plot)
             banner = self.long_banner()
         else:
             banner = self.short_banner()
+
+        # Both banner methods make a blocking kernel call that processes Qt
+        # events. The console may have closed while waiting for the result.
+        if self.shutting_down or not isalive(self._control):
+            return
 
         # Move cursor to first position and insert banner
         cursor = self._control.textCursor()

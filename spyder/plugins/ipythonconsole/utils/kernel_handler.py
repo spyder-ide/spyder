@@ -149,7 +149,7 @@ class KernelHandler(QObject):
     """
 
     _shutdown_thread_list = []
-    """List of running shutdown threads"""
+    """List of running shutdown threads and their kernel handlers."""
 
     _shutdown_thread_list_lock = Lock()
     """
@@ -556,6 +556,12 @@ class KernelHandler(QObject):
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
         self.close_comm()
+        if (
+            self.kernel_client is not None
+            and self.kernel_client.channels_running
+        ):
+            self.kernel_client.stop_channels()
+
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
@@ -573,17 +579,7 @@ class KernelHandler(QObject):
                 shutdown_thread.finished.connect(self.after_shutdown)
                 shutdown_thread.start()
                 with self._shutdown_thread_list_lock:
-                    self._shutdown_thread_list.append(shutdown_thread)
-
-        if (
-            self.kernel_client is not None
-            and self.kernel_client.channels_running
-        ):
-            # FIXME: Race condition with self.close_comm(). If comms have not
-            # completed closing, then stop_channels here results in
-            # [WARNING] [tornado.general] -> Got events for closed stream
-            #     <zmq.eventloop.zmqstream.ZMQStream object at ...>
-            self.kernel_client.stop_channels()
+                    self._shutdown_thread_list.append((shutdown_thread, self))
 
     def after_shutdown(self):
         """Cleanup after shutdown"""
@@ -608,14 +604,15 @@ class KernelHandler(QObject):
     def wait_all_shutdown_threads(cls):
         """Wait shutdown thread."""
         with cls._shutdown_thread_list_lock:
-            for thread in cls._shutdown_thread_list:
+            for thread, handler in cls._shutdown_thread_list:
                 if thread.isRunning():
                     try:
-                        thread.kernel_manager._kill_kernel()
+                        handler.kernel_manager._kill_kernel()
                     except Exception:
                         pass
                     thread.quit()
                     thread.wait()
+                handler.close_std_threads()
             cls._shutdown_thread_list = []
 
     def copy(self):
