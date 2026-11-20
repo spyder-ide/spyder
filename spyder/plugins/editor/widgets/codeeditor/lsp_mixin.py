@@ -910,6 +910,12 @@ class LSPMixin:
             )
 
             block = document.findBlockByNumber(start_pos.line)
+            # Servers may place a diagnostic one line past the last one, which
+            # yields an invalid block. setUserData on it attaches nothing but
+            # still hands the data to C++ under PySide, so the data and the
+            # editor it references are never freed.
+            if not block.isValid():
+                continue
             text = block.text()
 
             # Skip messages according to certain criteria.

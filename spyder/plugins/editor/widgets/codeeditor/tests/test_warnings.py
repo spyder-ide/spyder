@@ -355,3 +355,47 @@ def test_ignore_warnings_with_comments(
     warnings = current_warnings(editor)
     assert all(warning in warnings for warning in expected)
     assert {line for _, line in warnings} == expected_lines
+
+
+def test_diagnostic_past_last_line_is_dropped(qtbot, codeeditor):
+    """A diagnostic on a line the document does not have leaves no data behind.
+
+    Servers answer for the version they last saw, which can have more lines
+    than the current text. Under PySide, attaching data to the invalid block
+    such a line yields would pin the data and the editor forever.
+    """
+    import gc
+
+    from lsprotocol import types as lsp
+
+    from spyder.plugins.editor.utils.editor import BlockUserData
+
+    codeeditor.set_text("aaa")
+    assert codeeditor.blockCount() == 1
+
+    def data_for_editor():
+        gc.collect()
+        return [
+            obj for obj in gc.get_objects()
+            if isinstance(obj, BlockUserData) and obj.editor is codeeditor
+        ]
+
+    attached_before = len(list(codeeditor.blockuserdata_list()))
+    diagnostic = lsp.Diagnostic(
+        range=lsp.Range(
+            start=lsp.Position(line=1, character=0),
+            end=lsp.Position(line=1, character=3),
+        ),
+        message="stale",
+        severity=lsp.DiagnosticSeverity.Warning,
+        source="test",
+    )
+    codeeditor.process_code_analysis([diagnostic])
+    qtbot.waitUntil(
+        lambda: not codeeditor.update_diagnostics_thread.isRunning(),
+        timeout=5000,
+    )
+
+    assert len(list(codeeditor.blockuserdata_list())) == attached_before
+    assert len(data_for_editor()) == attached_before
+    assert codeeditor.get_current_warnings() == []
