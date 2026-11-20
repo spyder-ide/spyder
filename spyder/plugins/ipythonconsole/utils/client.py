@@ -9,8 +9,6 @@
 """Kernel Client subclass."""
 
 # Standard library imports
-from concurrent.futures import Future, wait
-import logging
 import socket
 
 # Third party imports
@@ -23,9 +21,6 @@ from traitlets import Type
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.plugins.ipythonconsole import SpyderKernelError
-
-
-logger = logging.getLogger(__name__)
 
 
 def _close_channel_streams(client):
@@ -110,61 +105,10 @@ class SpyderKernelClient(QtKernelClient):
     sig_spyder_kernel_info = Signal(object)
 
     def stop_channels(self):
-        """Stop channels after pending stream events have finished."""
-        if self.ioloop_thread and self.ioloop_thread.is_alive():
-            self._detach_channels()
-
+        """Close channel streams before stopping their I/O loop."""
         _close_channel_streams(self)
 
         super().stop_channels()
-
-    def _detach_channels(self, timeout_seconds: float = 5) -> None:
-        """Detach channel receivers and drain pending I/O loop events."""
-        futures = []
-        for channel in (
-            self._shell_channel,
-            self._iopub_channel,
-            self._stdin_channel,
-            self._control_channel,
-        ):
-            if channel is None or channel.stream is None:
-                continue
-
-            future = Future()
-            stream = channel.stream
-
-            def stop_receiving(stream=stream, future=future):
-                try:
-                    stream.on_recv(None)
-                except Exception as error:
-                    future.set_exception(error)
-                else:
-                    future.set_result(None)
-
-            self.ioloop.add_callback(stop_receiving)
-            futures.append(future)
-
-        done, pending = wait(futures, timeout=timeout_seconds)
-        for future in done:
-            try:
-                future.result()
-            except Exception as error:
-                logger.warning(
-                    "Error quiescing kernel channel stream: %s", error
-                )
-        if pending:
-            logger.warning("Timed out quiescing kernel channel streams")
-
-        if futures:
-            # Add a marker in ioloop.
-            drained = Future()
-            self.ioloop.add_callback(drained.set_result, None)
-            try:
-                drained.result(timeout=timeout_seconds)
-            except Exception as error:
-                logger.warning(
-                    "Error draining kernel channel events: %s", error
-                )
 
     def _handle_kernel_info_reply(self, rep):
         """Check spyder-kernels version."""
