@@ -88,13 +88,67 @@ def apply_content_change(
     return text[:start] + change.text + text[end:]
 
 
+class TextStore:
+    """Text of open documents, for providers answering from the content.
+
+    The registry below stores no content, so such providers keep their own
+    copy and feed it the document notifications they receive.
+    """
+
+    def __init__(self):
+        self._documents: dict[str, lsp.TextDocumentItem] = {}
+
+    def open(self, params: lsp.DidOpenTextDocumentParams) -> None:
+        item = params.text_document
+        self._documents[item.uri] = lsp.TextDocumentItem(
+            uri=item.uri,
+            language_id=item.language_id,
+            version=item.version,
+            text=item.text,
+        )
+
+    def change(self, params: lsp.DidChangeTextDocumentParams) -> None:
+        """Apply the changes to a known document (unknown ones are ignored)."""
+        uri = params.text_document.uri
+        item = self._documents.get(uri)
+        if item is None:
+            return
+        for change in params.content_changes:
+            item.text = apply_content_change(item.text, change)
+        item.version = params.text_document.version
+
+    def close(self, params: lsp.DidCloseTextDocumentParams) -> None:
+        self._documents.pop(params.text_document.uri, None)
+
+    def clear(self) -> None:
+        self._documents.clear()
+
+    def text(self, uri: str) -> str | None:
+        item = self._documents.get(uri)
+        return None if item is None else item.text
+
+    def language_id(self, uri: str) -> str | None:
+        item = self._documents.get(uri)
+        return None if item is None else item.language_id
+
+    def item(self, uri: str) -> lsp.TextDocumentItem | None:
+        """Current state of the document as a ``didOpen`` item."""
+        return self._documents.get(uri)
+
+    def uris(self) -> list[str]:
+        return list(self._documents)
+
+    def __contains__(self, uri: str) -> bool:
+        return uri in self._documents
+
+
 # ---- Documents -------------------------------------------------------------
 @dataclass
 class OpenDocument:
     """State of a document opened through the language services plugin.
 
     Content is not stored: the editor owns the text and re-sends ``didOpen``
-    when the set of providers changes.
+    when a provider requests the open documents.
     """
 
     uri: str

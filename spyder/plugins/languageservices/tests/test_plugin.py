@@ -146,6 +146,7 @@ def test_merge_default_configurations():
     assert entry == {
         "version": "0.1.0", "values": {"a": 1, "b": 2},
         "defaults": {"a": 1, "b": 2}, "enable": True,
+        "enable_default": True,
     }
 
     # User value survives a new option and an unchanged version
@@ -165,3 +166,186 @@ def test_merge_default_configurations():
     P.CONF_VERSION = "1.0.0"
     entry = LanguageServices._merge_default_configurations(P, confs)
     assert entry["values"] == {"a": 5} and entry["defaults"] == {"a": 5}
+
+
+def test_merge_keeps_disabled_by_default():
+    class P(LanguageServicesProvider):
+        NAME = "p"
+        ENABLED_BY_DEFAULT = False
+
+    confs = {}
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is False
+
+    # The user's choice survives later merges
+    entry["enable"] = True
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is True
+
+    # An entry stored without the key gets the provider's default
+    del entry["enable"]
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is False
+
+
+def test_merge_applies_changed_enable_default():
+    class P(LanguageServicesProvider):
+        NAME = "p"
+        ENABLED_BY_DEFAULT = False
+
+    # Entries stored before the key existed were created enabled
+    confs = {"p": {"version": "0.1.0", "values": {}, "defaults": {},
+                   "enable": True}}
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is False
+    assert entry["enable_default"] is False
+
+    # The reset happens once: the user can enable the provider again
+    entry["enable"] = True
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is True
+
+    # A provider that becomes enabled by default is turned on
+    P.ENABLED_BY_DEFAULT = True
+    entry["enable"] = False
+    entry = LanguageServices._merge_default_configurations(P, confs)
+    assert entry["enable"] is True
+
+
+def test_disabled_by_default_provider_does_not_start(language_services, qtbot):
+    class Dormant(EchoProvider):
+        NAME = "dormant"
+        ENABLED_BY_DEFAULT = False
+
+    provider = language_services.register_provider(Dormant)
+    try:
+        assert not language_services.is_provider_enabled("dormant")
+        assert not language_services.is_provider_started("dormant")
+        assert not provider.running
+
+        language_services.set_conf(("providers", "dormant", "enable"), True)
+        language_services.after_configuration_update(
+            [("providers", "dormant", "enable")]
+        )
+        qtbot.waitUntil(
+            lambda: language_services.is_provider_started("dormant")
+        )
+        assert provider.running
+    finally:
+        language_services.unregister_provider("dormant")
+        providers = CONF.get("language_services", "providers")
+        providers.pop("dormant", None)
+        CONF.set("language_services", "providers", providers)
+
+
+def test_pylsp_provider_is_disabled_by_default():
+    from spyder.plugins.languageservices.providers.pylsp import PylspProvider
+
+    confs = {}
+    entry = LanguageServices._merge_default_configurations(
+        PylspProvider, confs
+    )
+    assert entry["enable"] is False
+
+
+class FakeFormatter(LanguageServicesProvider):
+    PRIORITY = 2
+
+    def supported_languages(self):
+        return frozenset({Language.PYTHON})
+
+    def capabilities(self, language):
+        return lsp.ServerCapabilities(
+            document_formatting_provider=True,
+            document_range_formatting_provider=True,
+        )
+
+    async def formatting(self, params):
+        return [lsp.TextEdit(lsp.Range(lsp.Position(0, 0), lsp.Position(0, 0)), self.NAME)]
+
+    async def range_formatting(self, params):
+        return await self.formatting(params)
+
+
+class FormatterA(FakeFormatter):
+    NAME = "formatter_a"
+
+
+class FormatterB(FakeFormatter):
+    NAME = "formatter_b"
+
+
+@pytest.fixture
+def restore_formatter():
+    yield
+    CONF.set("editor", "formatter", CONF.get_default("editor", "formatter"))
+    CONF.set("language_services", "request_policies", {})
+
+
+def test_formatter_option_selects_formatting_provider(
+    language_services, restore_formatter, qtbot
+):
+    # Startup routes formatting to the configured formatter
+    CONF.set("language_services", "request_policies", {})
+    language_services.on_initialize()
+    policies = CONF.get("language_services", "request_policies")
+    default = CONF.get_default("editor", "formatter")
+    assert policies["formatting"]["providers"] == [default]
+    assert policies["range_formatting"]["providers"] == [default]
+
+    for Provider in (FormatterA, FormatterB):
+        language_services.register_provider(Provider)
+        qtbot.waitUntil(
+            lambda: language_services.is_provider_started(Provider.NAME)
+        )
+    run(
+        language_services.services_api.open_document,
+        lsp.DidOpenTextDocumentParams(
+            text_document=lsp.TextDocumentItem(
+                uri=URI, language_id="python", version=1, text="x\n"
+            )
+        ),
+    )
+    options = lsp.FormattingOptions(tab_size=4, insert_spaces=True)
+    formatting = lsp.DocumentFormattingParams(
+        text_document=lsp.TextDocumentIdentifier(URI), options=options
+    )
+    range_formatting = lsp.DocumentRangeFormattingParams(
+        text_document=lsp.TextDocumentIdentifier(URI),
+        range=lsp.Range(lsp.Position(0, 0), lsp.Position(1, 0)),
+        options=options,
+    )
+
+    def answering():
+        edits = run(language_services.services_api.formatting, formatting)
+        range_edits = run(
+            language_services.services_api.range_formatting, range_formatting
+        )
+        return (
+            None if edits is None else edits[0].new_text,
+            None if range_edits is None else range_edits[0].new_text,
+        )
+
+    # No provider of the default formatter is registered here
+    assert answering() == (None, None)
+
+    # Other policy fields survive a formatter change
+    CONF.set(
+        "language_services",
+        "request_policies",
+        {"formatting": {"enabled": True, "providers": [], "timeout_ms": 1234}},
+    )
+    CONF.set("editor", "formatter", "formatter_b")
+    assert answering() == ("formatter_b", "formatter_b")
+    policies = CONF.get("language_services", "request_policies")
+    assert policies["formatting"]["timeout_ms"] == 1234
+
+    CONF.set("editor", "formatter", "formatter_a")
+    assert answering() == ("formatter_a", "formatter_a")
+
+    run(
+        language_services.services_api.close_document,
+        lsp.DidCloseTextDocumentParams(lsp.TextDocumentIdentifier(URI)),
+    )
+    for Provider in (FormatterA, FormatterB):
+        language_services.unregister_provider(Provider.NAME)

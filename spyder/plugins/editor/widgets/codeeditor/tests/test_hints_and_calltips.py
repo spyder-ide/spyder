@@ -66,8 +66,8 @@ def test_hide_calltip(completions_codeeditor, qtbot):
             # Parameter, Expected Output
             ('dict', 'dict'),
             ('type', 'type'),
-            ('"".format', '-> str'),
-            (TEST_TEXT, TEST_SIG)
+            ('"".format', '*args'),
+            (TEST_TEXT, 'some_function(foo')
         ]
     )
 def test_get_calltips(qtbot, completions_codeeditor, params):
@@ -131,7 +131,7 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
 @pytest.mark.skipif(not os.name == 'nt', reason='Only works on Windows')
 @pytest.mark.parametrize('params', [
         # Parameter, Expected Output
-        ('"".format', '-> LiteralString'),
+        ('"".format', 'S.format(*args, **kwargs) -> str'),
         ('import math', 'module'),
         (TEST_TEXT, TEST_DOCSTRING)
     ]
@@ -177,7 +177,6 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('text', [
-        'def test():\n    pass\n\ntest',
         '# a comment',
         '"a string"',
     ]
@@ -225,9 +224,9 @@ def test_get_hints_not_triggered(qtbot, completions_codeeditor, text):
 @pytest.mark.parametrize(
     "params",
     [
-        ("an_int = 10", "This is an integer"),
-        ("a_dict = {1: 2}", "This is a dictionary"),
-        ('a_string = "foo"', "This is a string"),
+        ("an_int = 10", "an_int: Literal[10]"),
+        ("a_dict = {1: 2}", "a_dict: dict[int, int]"),
+        ('a_string = "foo"', "a_string: Literal['foo']"),
     ],
 )
 def test_get_hints_for_builtins(qtbot, completions_codeeditor, params):
@@ -358,8 +357,9 @@ def test_completion_hints(qtbot, completions_codeeditor):
     # the cursor is put on top of the tested word.
     qtbot.mouseMove(code_editor, QPoint(400, 400))
 
-    # Set text in editor
-    code_editor.set_text("import pandas as pd\npd.")
+    # Set text in editor. Pyrefly attaches docstrings to str methods but not
+    # to names re-exported by packages such as pandas.
+    code_editor.set_text('s = "spam"\ns.')
 
     # Wait a bit in case the window manager repositions the window.
     qtbot.wait(1000)

@@ -7,6 +7,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import re
 import sys
 
 # Third party impors
@@ -23,7 +24,8 @@ from spyder.utils.programs import (_clean_win_application_path, check_version,
                                    open_files_with_application,
                                    parse_linux_desktop_entry,
                                    run_python_script_in_terminal, shell_split,
-                                   get_package_version, get_module_version)
+                                   get_package_version, get_module_version,
+                                   get_binary_path, get_binary_version)
 
 if os.name == 'nt':
     python_dir = 'C:\\Miniconda\\'
@@ -169,6 +171,49 @@ def test_find_program():
     assert find_program('git')
 
 
+@pytest.mark.parametrize("name", ["ruff", "pyrefly"])
+def test_get_binary_path(name):
+    path = get_binary_path(name)
+    assert osp.isfile(path)
+    assert path.startswith(sys.prefix)
+
+
+def test_get_binary_path_missing():
+    with pytest.raises(
+        FileNotFoundError,
+        match="Could not find the spyder-no-such-binary binary",
+    ):
+        get_binary_path("spyder-no-such-binary")
+
+
+@pytest.mark.parametrize("name", ["ruff", "pyrefly"])
+def test_get_binary_version(name):
+    assert re.fullmatch(r"\d+(\.\d+)+", get_binary_version(name))
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Uses a shell script")
+@pytest.mark.parametrize(
+    "output, expected",
+    [("tool 1.2.3\n", "1.2.3"), ("tool 0.10.0rc1 (abc 2024-01-01)\n", "0.10.0rc1")],
+)
+def test_get_binary_version_output(tmp_path, monkeypatch, output, expected):
+    binary = tmp_path / "spyder-fake-binary"
+    binary.write_text(f"#!/bin/sh\nprintf '{output}'\n")
+    binary.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path), prepend=os.pathsep)
+    assert get_binary_version("spyder-fake-binary") == expected
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Uses a shell script")
+def test_get_binary_version_without_version(tmp_path, monkeypatch):
+    binary = tmp_path / "spyder-fake-binary"
+    binary.write_text("#!/bin/sh\necho unknown\n")
+    binary.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path), prepend=os.pathsep)
+    with pytest.raises(ValueError, match="No version in the output"):
+        get_binary_version("spyder-fake-binary")
+
+
 def test_shell_split():
     """Test if the text can be split using shell-like syntax."""
     assert shell_split('-q -o -a') == ['-q', '-o', '-a']
@@ -289,7 +334,6 @@ Icon=/blah/blah.xpm
 def test_get_package_version():
     # Primarily a test of importlib.metadata being installed properly
     assert get_package_version('IPython')
-    assert get_package_version('python_lsp_black')
 
 
 def test_get_module_version():

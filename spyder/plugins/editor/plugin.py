@@ -681,6 +681,8 @@ class Editor(SpyderDockablePlugin):
 
         language_services.sig_capabilities_changed.connect(
             widget.register_completion_capabilities)
+        language_services.sig_documents_requested.connect(
+            widget.send_open_documents)
         language_services.sig_language_stopped.connect(
             widget.stop_completion_services)
         language_services.sig_diagnostics.connect(widget.on_diagnostics)
@@ -697,6 +699,8 @@ class Editor(SpyderDockablePlugin):
 
         language_services.sig_capabilities_changed.disconnect(
             widget.register_completion_capabilities)
+        language_services.sig_documents_requested.disconnect(
+            widget.send_open_documents)
         language_services.sig_language_stopped.disconnect(
             widget.stop_completion_services)
         language_services.sig_diagnostics.disconnect(widget.on_diagnostics)

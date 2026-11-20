@@ -31,8 +31,8 @@ class FormattingConfigTab(SpyderPreferencesTab):
 
         self.code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
-            'flake8/max_line_length', min_=10, max_=500, step=1,
-            tip=_("Default is 79"))
+            'line_length', min_=10, max_=500, step=1,
+            tip=_("Default is 79"), section='editor')
 
         vertical_line_box = newcb(
             _("Show vertical line at that length"), 'edge_line',
@@ -72,19 +72,11 @@ class FormattingConfigTab(SpyderPreferencesTab):
             "formatting",
         )
 
-        # Autoformat on save
-        format_on_save_box = newcb(
-            _("Autoformat files on save"),
-            'format_on_save',
-            tip=_("If enabled, autoformatting will take place when "
-                  "saving a file"))
-
         # Code formatting layout
         code_fmt_group = QGroupBox(_("Code formatting"))
         code_fmt_layout = QVBoxLayout()
         code_fmt_layout.addWidget(code_fmt_label)
         code_fmt_layout.addWidget(self.code_fmt_provider)
-        code_fmt_layout.addWidget(format_on_save_box)
         code_fmt_group.setLayout(code_fmt_layout)
 
         code_style_fmt_layout = QVBoxLayout()

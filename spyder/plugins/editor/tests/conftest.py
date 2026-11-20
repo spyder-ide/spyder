@@ -164,25 +164,9 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             'bookmarks': {},
             # From help section:
             'connect/editor': False,
-            # From completions:
-            (
-                'providers',
-                'pylsp',
-                'values',
-                'enable_hover_hints'
-            ): True,
-            (
-                'providers',
-                'pylsp',
-                'values',
-                'format_on_save'
-            ): False,
-            (
-                "providers",
-                "pylsp",
-                "values",
-                "flake8/max_line_length",
-            ): 79,
+            'enable_hover_hints': True,
+            'line_length': 79,
+            'format_on_save': False,
         }
 
         if last_focused_filename is not None:
