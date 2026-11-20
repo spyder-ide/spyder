@@ -132,6 +132,20 @@ def test_open_project(projects, tmpdir, test_directory):
     # Close project
     projects.close_project()
 
+def test_create_project_with_interpreter(projects, tmpdir):
+    """Test that the interpreter given when creating a project is saved."""
+    path = str(tmpdir.mkdir("project_with_interpreter"))
+    interpreter = tmpdir.join("python")
+    interpreter.write("")
+
+    projects.get_widget().create_project(path, interpreter=str(interpreter))
+
+    project = projects.get_active_project()
+    assert project.root_path == path
+    assert project.get_option("interpreter") == str(interpreter)
+
+    projects.close_project()
+
 
 @pytest.mark.parametrize("test_directory", [u'測試', u'اختبار', u"test_dir"])
 def test_delete_project(projects, tmpdir, mocker, test_directory):

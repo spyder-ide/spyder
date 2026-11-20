@@ -10,10 +10,12 @@ Main interpreter Plugin.
 """
 
 # Standard library imports
+import logging
 import os.path as osp
 
 # Third-party import
 from qtpy.QtCore import Signal
+
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
@@ -23,6 +25,13 @@ from spyder.api.translations import _
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
 from spyder.utils.misc import get_python_executable
+from spyder.utils.conda import find_local_venv_interpreter
+
+
+logger = logging.getLogger(__name__)
+
+# Project option (in the workspace section) that stores the interpreter path
+PROJECT_INTERPRETER_OPTION = "interpreter"
 
 
 class MainInterpreter(SpyderPluginV2):
@@ -32,11 +41,13 @@ class MainInterpreter(SpyderPluginV2):
 
     NAME = "main_interpreter"
     REQUIRES = [Plugins.Preferences]
+    OPTIONAL = [Plugins.Projects]
     CONTAINER_CLASS = MainInterpreterContainer
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
     CAN_BE_DISABLED = False
+    _global_interpreter = None
 
     # ---- Signals
     # -------------------------------------------------------------------------
@@ -97,6 +108,27 @@ class MainInterpreter(SpyderPluginV2):
                 self.set_conf('default', True)
                 self.set_conf('executable', get_python_executable())
 
+    def on_close(self, cancelable=False):
+        self._restore_global_interpreter()
+
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(self._on_project_loaded)
+        projects.sig_project_closed.connect(self._on_project_closed)
+        projects.sig_project_interpreter_changed.connect(
+            self._on_project_interpreter_changed
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._on_project_loaded)
+        projects.sig_project_closed.disconnect(self._on_project_closed)
+        projects.sig_project_interpreter_changed.disconnect(
+            self._on_project_interpreter_changed
+        )
+        
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         # Register conf page
@@ -118,3 +150,61 @@ class MainInterpreter(SpyderPluginV2):
         self.set_conf("custom", True)
         self.set_conf("custom_interpreter", interpreter)
         self.set_conf("executable", interpreter)
+
+        # ---- Private API
+    # -------------------------------------------------------------------------
+    def _get_global_executable(self):
+        """Interpreter selected in Preferences."""
+        if self.get_conf("default"):
+            return get_python_executable()
+        return self.get_conf("custom_interpreter")
+
+    def _on_project_loaded(self, project_path):
+        self._use_project_interpreter(detect=True)
+
+    def _on_project_closed(self, project_path):
+        self._restore_global_interpreter()
+
+    def _on_project_interpreter_changed(self, project_path):
+        self._use_project_interpreter(detect=False)
+
+    def _use_project_interpreter(self, detect):
+        """Use the project interpreter if set, else the global one."""
+        self._restore_global_interpreter()
+
+        projects = self.get_plugin(Plugins.Projects)
+        project = projects.get_active_project()
+        if project is None:
+            return
+
+        interpreter = project.get_option(PROJECT_INTERPRETER_OPTION)
+        if not interpreter and detect:
+            interpreter = self._detect_project_interpreter(project)
+
+        if interpreter:
+            self._apply_project_interpreter(interpreter)
+
+    def _detect_project_interpreter(self, project):
+        """Find an interpreter in the project folder and save it."""
+        interpreter = find_local_venv_interpreter(project.root_path)
+        if interpreter is None:
+            return None
+
+        project.set_option(PROJECT_INTERPRETER_OPTION, interpreter)
+        return interpreter
+
+    def _apply_project_interpreter(self, interpreter):
+        """Use the project interpreter for new consoles (not saved globally)."""
+        if not osp.isfile(interpreter):
+            logger.warning(
+                "The project interpreter %s doesn't exist, so the global "
+                "one will be used",
+                interpreter,
+            )
+            return
+
+        self.set_conf("executable", interpreter)
+
+    def _restore_global_interpreter(self):
+        """Go back to the interpreter selected in Preferences."""
+        self.set_conf("executable", self._get_global_executable())
