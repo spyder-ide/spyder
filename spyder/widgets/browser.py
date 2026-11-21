@@ -254,9 +254,9 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
             findflag = QWebEnginePage.FindFlag(0)
 
         if not forward:
-            findflag = findflag | QWebEnginePage.FindBackward
+            findflag = findflag | QWebEnginePage.FindFlag.FindBackward
         if case:
-            findflag = findflag | QWebEnginePage.FindCaseSensitively
+            findflag = findflag | QWebEnginePage.FindFlag.FindCaseSensitively
 
         return self.findText(text, findflag)
 
