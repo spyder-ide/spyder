@@ -525,7 +525,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
         self.matches_string = ""
         self.messages_action.setVisible(False)
         self.number_matches_text.hide()
-        if self.is_code_editor:
+        if hasattr(self.editor, "clear_found_results"):
             self.editor.clear_found_results()
 
     def find(self, changed=True, forward=True, rehighlight=True,
