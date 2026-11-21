@@ -674,7 +674,10 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
             'nthreads cannot be larger than environment variable '
             '"NUMEXPR_MAX_THREADS"',
             # Window class already registered warning shown while running tests
-            'qt.qpa.windowclass'
+            'qt.qpa.windowclass',
+            # Warning about directory without SSL certificates, see
+            # spyder-ide/spyder#26434
+            "WARN ignoring `SSL_CERT_DIR`: no certificates found",
         ]
 
         return any([err in error for err in benign_errors])
