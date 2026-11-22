@@ -677,6 +677,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             # Numexpr unknown error, see spyder-ide/spyder#25815
             'nthreads cannot be larger than environment variable '
             '"NUMEXPR_MAX_THREADS"',
+            # Warning about directory without SSL certificates, see
+            # spyder-ide/spyder#26434
+            "WARN ignoring `SSL_CERT_DIR`: no certificates found",
         ]
 
         return any([err in error for err in benign_errors])
