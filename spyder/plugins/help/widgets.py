@@ -340,11 +340,11 @@ class HelpWidget(PluginMainWidget):
 
         # Setup
         self.object_edit.setReadOnly(True)
-        tip = _(
-            "Searches can't be done when the documentation source is the "
-            "Editor"
-        )
+        tip = _("Search is disabled when the Help source is the Editor")
         self.object_edit.setToolTip("\n".join(textwrap.wrap(tip, 50)))
+        self.object_edit.setPlaceholderText(
+            _("Select Console as Source to search")
+        )
         self.object_combo.setMaxCount(self.get_conf('max_history_entries'))
         self.object_combo.setItemText(0, '')
         self.plain_text.set_wrap_mode(self.get_conf('wrap'))
@@ -521,13 +521,13 @@ class HelpWidget(PluginMainWidget):
     def on_rich_mode_update(self, value):
         if value:
             # Plain Text OFF / Rich text ON
-            self.docstring = not value
+            self.docstring = False
             self.stacked_widget.setCurrentWidget(self.rich_text)
             self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
                 False)
         else:
             # Plain Text ON / Rich text OFF
-            self.docstring = value
+            self.docstring = True
             self.stacked_widget.setCurrentWidget(self.plain_text)
 
         if CONF.all_observers_notified:
@@ -1080,7 +1080,9 @@ class HelpWidget(PluginMainWidget):
         else:
             hlp_text = source_text
             if hlp_text is None:
-                hlp_text = _(f"No source code available for {obj_text}.")
+                hlp_text = _(
+                  "No source code available for {obj_text}."
+                ).format(obj_text=obj_text)
                 if ignore_unknown:
                     return False
             else:
