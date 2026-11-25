@@ -23,7 +23,7 @@ import sys
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QAction, QInputDialog, QLineEdit, QVBoxLayout
-from qtpy import PYSIDE2, PYSIDE6
+from qtpy import PYSIDE2, PYSIDE6, QtWidgets
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -228,7 +228,7 @@ class ConsoleWidget(PluginMainWidget):
         standard_streams_action = self.create_action(
             ConsoleWidgetActions.ToggleStandardStreams,
             text=_("Redirect standard streams"),
-            toggled=lambda val: self.set_conf('standard_streams', val),
+            toggled=lambda val: self.standard_streams_update(val),
             initial=self.get_conf('standard_streams'),
         )
         codecompletion_action = self.create_action(
@@ -244,8 +244,12 @@ class ConsoleWidget(PluginMainWidget):
             _('Internal console settings'),
             icon=self.create_icon('tooloptions'),
         )
-        for item in [buffer_action, wrap_action, standard_streams_action,
-                     codecompletion_action, exteditor_action]:
+        for item in [
+            buffer_action,
+            wrap_action,
+            standard_streams_action,
+            codecompletion_action,
+            exteditor_action]:
             self.add_item_to_menu(
                 item,
                 menu=internal_settings_menu,
@@ -271,6 +275,15 @@ class ConsoleWidget(PluginMainWidget):
         self.shell.set_external_editor(
             self.get_conf('external_editor/path'), '')
 
+    def standard_streams_update(self, value):
+            buttons = QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            result = QtWidgets.QMessageBox.question(self, 'Restart Spyder?',
+                                                "Do you want to restart Spyder?", buttons)
+            do_restart = result == QtWidgets.QMessageBox.Yes
+            if do_restart:
+                self.set_conf('standard_streams', value)
+                self.sig_restart_requested.emit()
+
     @on_conf_change(option='max_line_count')
     def max_line_count_update(self, value):
         self.shell.setMaximumBlockCount(value)
@@ -278,10 +291,6 @@ class ConsoleWidget(PluginMainWidget):
     @on_conf_change(option='wrap')
     def wrap_mode_update(self, value):
         self.shell.toggle_wrap_mode(value)
-
-    @on_conf_change(option='standard_streams')
-    def standard_streams_update(self, value):
-        self.shell.toggle_standard_streams(value)
 
     @on_conf_change(option='external_editor/path')
     def external_editor_update(self, value):
