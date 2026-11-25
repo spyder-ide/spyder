@@ -580,7 +580,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("undock"),
             triggered=self.create_window,
         )
-        self.close_menu = self.create_menu("close_menu", text=_("Close"))
+        self.close_menu = self.create_menu("close_menu", title=_("Close"))
 
         self.close_menu.aboutToShow.connect(
             self.update_close_menu
@@ -648,7 +648,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         Populate close menu with the close action of each visible pane.
         """
         self.close_menu.clear()
-        
+
         order = [
             "editor",
             "ipython_console",
