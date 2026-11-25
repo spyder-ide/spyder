@@ -136,7 +136,7 @@ DEFAULTS = [
             ('internal_console',
              {
               'max_line_count': 300,
-              'standard_streams': True,
+              'redirect_standard_streams': True,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
               'wrap': True,

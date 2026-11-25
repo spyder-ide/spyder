@@ -236,7 +236,7 @@ class ConsoleWidget(PluginMainWidget):
             ConsoleWidgetActions.ToggleStandardStreams,
             text=_("Redirect standard streams"),
             toggled=lambda val: self.update_standard_streams(val),
-            initial=self.get_conf('standard_streams'),
+            initial=self.get_conf("redirect_standard_streams"),
         )
         codecompletion_action = self.create_action(
             ConsoleWidgetActions.ToggleCodeCompletion,
@@ -301,7 +301,7 @@ class ConsoleWidget(PluginMainWidget):
         )
         do_restart = result == QMessageBox.Yes
         if do_restart:
-            self.set_conf('standard_streams', value)
+            self.set_conf("redirect_standard_streams", value)
             self.sig_restart_requested.emit()
 
     @on_conf_change(option='max_line_count')

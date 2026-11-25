@@ -195,7 +195,7 @@ class InternalShell(PythonShellWidget, SpyderConfigurationAccessor):
                                        get_debug_level())
 
         connection_type = (
-            Qt.QueuedConnection if self.get_conf("standard_streams")
+            Qt.QueuedConnection if self.get_conf("redirect_standard_streams")
             else Qt.AutoConnection
         )
         self.interpreter.stdout_write.data_avail.connect(
