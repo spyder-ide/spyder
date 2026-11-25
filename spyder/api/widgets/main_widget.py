@@ -647,6 +647,8 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         """
         Populate close menu with the close action of each visible pane.
         """
+        self.close_menu.clear()
+        
         order = [
             "editor",
             "ipython_console",

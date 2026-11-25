@@ -493,7 +493,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 QKeySequence(), self, lambda: self.close_plugin(plugin)
             )
             sc.setContext(Qt.ApplicationShortcut)
-            plugin._switch_to_shortcut = sc
+            plugin._close_shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
                 self.register_shortcut(sc, context, name)
