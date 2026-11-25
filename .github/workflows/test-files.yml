@@ -10,10 +10,10 @@ on:
       - '.github/scripts/modules_test.sh'
       - '.github/workflows/test-files.yml'
       - 'requirements/*.yml'
+      - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
-      - '**.sh'
       - '!installers-conda/**'
 
   pull_request:
@@ -25,10 +25,10 @@ on:
       - '.github/scripts/modules_test.sh'
       - '.github/workflows/test-files.yml'
       - 'requirements/*.yml'
+      - 'spyder/plugins/updatemanager/scripts/updater.sh'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
-      - '**.sh'
       - '!installers-conda/**'
 
   workflow_call:
@@ -89,7 +89,8 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 libxcb-cursor0 xterm --fix-missing
+          sudo apt install --only-upgrade libexpat1
       - name: Cache pip
         uses: actions/cache@v5
         with:
@@ -112,8 +113,8 @@ jobs:
       - name: Show test environment
         shell: bash -l {0}
         run: |
-          conda info
-          conda list
+          micromamba info
+          micromamba list
 
       - name: Run file tests
         shell: bash -l {0}

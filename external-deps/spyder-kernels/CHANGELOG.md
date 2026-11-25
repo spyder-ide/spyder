@@ -1,5 +1,26 @@
 # History of changes
 
+## Version 3.2.0a3 (2026/11/13)
+
+### Pull Requests Merged
+
+* [PR 611](https://github.com/spyder-ide/spyder-kernels/pull/611) - PR: Fix setting traceback syntax highlighting for IPython 9.18+, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.2.0a2 (2026/09/22)
+
+### Pull Requests Merged
+
+* [PR 603](https://github.com/spyder-ide/spyder-kernels/pull/603) - PR: Remove using environment variables for kernel configuration, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 600](https://github.com/spyder-ide/spyder-kernels/pull/600) - PR: Add other Qt bindings to automatic backend detection, by [@larsoner](https://github.com/larsoner)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.2.0a1 (2026/07/08)
 
 ### Issues Closed
@@ -16,6 +37,27 @@ In this release 1 issue was closed.
 * [PR 581](https://github.com/spyder-ide/spyder-kernels/pull/581) - PR: Support Polars series, by [@jitseniesen](https://github.com/jitseniesen)
 
 In this release 4 pull requests were closed.
+
+----
+
+## Version 3.1.7 (2026/11/02)
+
+### Pull Requests Merged
+
+* [PR 611](https://github.com/spyder-ide/spyder-kernels/pull/611) - PR: Fix setting traceback syntax highlighting for IPython 9.18+, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.1.6 (2026/08/26)
+
+### Pull Requests Merged
+
+* [PR 604](https://github.com/spyder-ide/spyder-kernels/pull/604) - PR: Prevent error when running `test_dask_multiprocessing`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 601](https://github.com/spyder-ide/spyder-kernels/pull/601) - PR: Replace `_merge` method by `merge` one when merging Jupyter configs, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
 
 ----
 

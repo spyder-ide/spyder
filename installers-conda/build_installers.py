@@ -12,6 +12,7 @@ Create a Spyder installer using `constructor`.
 from argparse import ArgumentParser
 from datetime import timedelta
 from functools import partial
+from importlib.resources import files
 import json
 import os
 from packaging.version import parse
@@ -56,6 +57,13 @@ indent4 = partial(indent, prefix="    ")
 ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 PLATFORM = (PLATFORM + ARCH).replace("x86_64", "64")
 
+# Minimum macOS version supported by the installer. This is used both as the
+# target __osx virtual package when solving with conda-lock and as the
+# install-time check in the pkg/sh installers (constructor's virtual_specs).
+# It must be at least the highest __osx requirement of any bundled package
+# (e.g. moltenvk >=1.4.2, required by qt6-main >=6.11.2, needs __osx >=14.0).
+MACOS_MIN = "14.0"
+
 
 def _process_extra_specs(extra_specs, no_local=False):
     # Default to current scm version, possible release tag.
@@ -72,7 +80,7 @@ def _process_extra_specs(extra_specs, no_local=False):
 
         packages = channel_data.get("packages", {})
         for pkg in (
-            "spyder", "spyder-kernels", "qtconsole", "python-lsp-server"
+            "spyder", "spyder-kernels", "qtconsole-base", "python-lsp-server"
         ):
             version = packages.get(pkg, {}).get("version")
             if version:
@@ -88,6 +96,22 @@ def _process_extra_specs(extra_specs, no_local=False):
     new_extra_specs = [k + "".join(s) for k, s in specs.items() if s]
 
     return new_extra_specs, specs.get("spyder")[1]
+
+
+def _cleanup_build(debug=False):
+    if debug or not BUILD.exists():
+        # Do not clean the build directory
+        return
+
+    logger.info("Cleaning build directory...")
+
+    exts = (
+        ".exe", ".json", ".lock", ".pkg", ".png",
+        ".rtf", ".sh", ".tmpl", ".yml",
+    )
+    for f in BUILD.glob("*"):
+        if f.suffix in exts:
+            f.unlink()
 
 
 def _generate_background_images(install_type, spy_ver):
@@ -135,6 +159,12 @@ def _generate_background_images(install_type, spy_ver):
 
 def _uninstall_shortcut(spy_ver):
     """Modify the uninstall shortcut specification file."""
+    if WINDOWS:
+        return
+
+    logger.info("Updating uninstall menu file...")
+
+    BUILD.mkdir(exist_ok=True)
     menu_file = RESOURCES / "uninstall-menu.json"
     menu_text = menu_file.read_text()
     menu_file = BUILD / "uninstall-menu.json"
@@ -143,8 +173,35 @@ def _uninstall_shortcut(spy_ver):
     )
 
 
+def _patch_nsi_template(spy_ver):
+    """Patch constructor's default nsis template"""
+    if not WINDOWS:
+        return
+
+    logger.info("Patching nsis template...")
+
+    BUILD.mkdir(exist_ok=True)
+    default_template = files("constructor") / "nsis" / "main.nsi.tmpl"
+    patch = RESOURCES / "nsi.patch"
+    spyder_template = BUILD / "spyder.nsi.tmpl"
+
+    # Copy default nsis template
+    spyder_template.write_bytes(default_template.read_bytes())
+
+    cmd = [
+        "patch",
+        "--batch",
+        "--forward",
+        str(spyder_template),
+        "-i",
+        str(patch),
+    ]
+    run(cmd, check=True)
+
+
 def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     env_file = RESOURCES / f"{env_type}_env.yml"
+    BUILD.mkdir(exist_ok=True)
 
     if env_type == "runtime" and (extra_specs or not no_local):
         rt_specs = yaml.load(env_file.read_text())
@@ -158,7 +215,6 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
             rt_specs["dependencies"].extend(extra_specs)
 
         # Write to BUILD directory
-        BUILD.mkdir(exist_ok=True)
         env_file = BUILD / env_file.name
         yaml.dump(rt_specs, env_file)
 
@@ -178,6 +234,26 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
         "--platform", PLATFORM
     ]
 
+    if MACOS:
+        # conda-lock solves against its own default virtual packages
+        # (__osx 11.0) rather than the build machine's, so target the
+        # installer's minimum macOS version explicitly. The spec file
+        # replaces conda-lock's defaults for this platform entirely.
+        vpkg_file = BUILD / "virtual-packages.yml"
+        vpkg_spec = {
+            "subdirs": {
+                PLATFORM: {
+                    "packages": {
+                        "__unix": "0",
+                        "__archspec": f"1 {ARCH}",
+                        "__osx": MACOS_MIN,
+                    }
+                }
+            }
+        }
+        yaml.dump(vpkg_spec, vpkg_file)
+        cmd_args.extend(["--virtual-package-spec", str(vpkg_file)])
+
     logger.info(f"Building {lock_file.name}...")
     logger.info(f"Conda lock configuration:\n{env_file.read_text()}\n")
     run(cmd_args, check=True, env=env)
@@ -189,12 +265,10 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     (DIST / lock_file.name).write_text(lock_file.read_text())
 
 
-def _output_file(install_type):
-    return DIST / f"Spyder-{OS}-{ARCH}.{install_type}"
-
-
 def _constructor(install_type, spy_ver, debug=False):
     """Build installer from construct.yaml"""
+    logger.info("Building installer...")
+
     DIST.mkdir(exist_ok=True)
 
     cmd_args = [
@@ -214,6 +288,7 @@ def _constructor(install_type, spy_ver, debug=False):
             "INSTALL_TYPE": install_type,
             "INSTALL_VER": spy_ver,
             "REPO_PATH": str(SPYREPO),
+            "MACOS_MIN": MACOS_MIN,
             "CONDA_SHORTCUTS": "false", # Don't create shortcuts while building
         }
     )
@@ -224,26 +299,18 @@ def _constructor(install_type, spy_ver, debug=False):
     logger.info(f"Created {_output_file(install_type)}")
 
 
-def _cleanup_build(debug=False):
-    if debug or not BUILD.exists():
-        # Do not clean the build directory
-        return
-
-    exts = (".exe", ".json", ".lock", ".pkg", ".png", ".rtf", ".sh", ".yml")
-    for f in BUILD.glob("*"):
-        if f.suffix in exts:
-            f.unlink()
+def _output_file(install_type):
+    return DIST / f"Spyder-{OS}-{ARCH}.{install_type}"
 
 
 def main(spy_ver, extra_specs, install_type, no_local, debug):
-    BUILD.mkdir(exist_ok=True)
-    DIST.mkdir(exist_ok=True)
-
     _cleanup_build()
 
     _generate_background_images(install_type, spy_ver)
 
     _uninstall_shortcut(spy_ver)
+
+    _patch_nsi_template(spy_ver)
 
     t0 = time()
     try:
@@ -282,21 +349,9 @@ if __name__ == "__main__":
                     This should be the same as the Spyder version.
                 REPO_PATH
                     Full path to the Spyder repository.
-                CERT_ID
-                    Apple developer certificate identifier.
-                WIN_SIGN_CERT
-                    Path to the PFX signing certificate for Windows.
             """
         ),
         formatter_class=DocFormatter
-    )
-    parser.add_argument(
-        "--clean", action="store_true",
-        help="Clean up the build directory."
-    )
-    parser.add_argument(
-        "--conda-lock", action="store_true",
-        help="Create conda-lock files."
     )
     parser.add_argument(
         "--debug", action="store_true",
@@ -307,20 +362,46 @@ if __name__ == "__main__":
         help="One or more extra conda specs to add to the installer.",
     )
     parser.add_argument(
-        "--build-images", action="store_true",
-        help="Generate background images.",
-    )
-    parser.add_argument(
         "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
         help=f"Installer type. Default is {INSTALL_CHOICES[0]}."
     )
     parser.add_argument(
-        "--installer-path", action="store_true",
-        help="Print artifact name.",
-    )
-    parser.add_argument(
         "--no-local", action="store_true",
         help="Do not use packages from the local conda channel."
+    )
+
+    parser.add_argument(
+        "--clean", action="store_true",
+        help="Clean up the build directory."
+    )
+    parser.add_argument(
+        "--build-images", action="store_true",
+        help="Generate background images.",
+    )
+    parser.add_argument(
+        "--uninstall-shortcut", action="store_true",
+        help="Process the uninstall shortcut menu.json file for macOS and Linux."
+    )
+    parser.add_argument(
+        "--patch-nsi", action="store_true",
+        help="Create the patched nsis template for Windows."
+    )
+    parser.add_argument(
+        "--conda-lock", action="store_true",
+        help="Create conda-lock files."
+    )
+    parser.add_argument(
+        "--build", action="store_true",
+        help=(
+            "Build the installer. "
+            "Assumes that images and lock files have been created. "
+            "Assumes uninstall menu.json file has been updated (unix)."
+        )
+    )
+
+    parser.add_argument(
+        "--installer-path", action="store_true",
+        help="Print artifact name.",
     )
     parser.add_argument(
         "--version", action="store_true",
@@ -333,15 +414,21 @@ if __name__ == "__main__":
         args.extra_specs, args.no_local
     )
 
-    if args.installer_path:
-        print(_output_file(args.install_type))
-    elif args.clean:
+    if args.clean:
         _cleanup_build()
+    elif args.build_images:
+        _generate_background_images(args.install_type, spy_ver)
+    elif args.uninstall_shortcut:
+        _uninstall_shortcut(spy_ver)
+    elif args.patch_nsi:
+        _patch_nsi_template(spy_ver)
     elif args.conda_lock:
         _create_conda_lock('base', no_local=args.no_local)
         _create_conda_lock('runtime', extra_specs, args.no_local)
-    elif args.build_images:
-        _generate_background_images(args.install_type)
+    elif args.build:
+        _constructor(args.install_type, spy_ver, args.debug)
+    elif args.installer_path:
+        print(_output_file(args.install_type))
     elif args.version:
         print(spy_ver)
     else:

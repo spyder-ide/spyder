@@ -138,5 +138,58 @@ def test_file_gid(tmpdir):
     assert gid_file.read() == "Some random log text and more"
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Only on Windows")
+def test_file_inherited_acl(tmpdir):
+    """
+    Saving a file must not strip the NTFS permissions it inherits from the
+    directory it lives in.
+
+    This is the Windows counterpart of test_file_gid above.
+    See spyder-ide/spyder#26315.
+    """
+    import ntsecuritycon
+    import win32security
+
+    base_dir = str(tmpdir.mkdir("acl"))
+    acl_file = os.path.join(base_dir, "random_log.log")
+
+    # Give the directory an access rule the system temporary directory does not
+    # have: read access for the well-known Everyone SID, inheritable by the
+    # files created inside it. Without it this test could pass by accident,
+    # because the permissions of the temporary file used to save could already
+    # match the ones of the file being saved.
+    everyone = win32security.ConvertStringSidToSid("S-1-1-0")
+    descriptor = win32security.GetFileSecurity(
+        base_dir, win32security.DACL_SECURITY_INFORMATION
+    )
+    dacl = descriptor.GetSecurityDescriptorDacl()
+    dacl.AddAccessAllowedAceEx(
+        win32security.ACL_REVISION_DS,
+        ntsecuritycon.OBJECT_INHERIT_ACE,
+        ntsecuritycon.FILE_GENERIC_READ,
+        everyone,
+    )
+    descriptor.SetSecurityDescriptorDacl(1, dacl, 0)
+    win32security.SetFileSecurity(
+        base_dir, win32security.DACL_SECURITY_INFORMATION, descriptor
+    )
+
+    def sids_of(path):
+        descriptor = win32security.GetFileSecurity(
+            path, win32security.DACL_SECURITY_INFORMATION
+        )
+        dacl = descriptor.GetSecurityDescriptorDacl()
+        return [dacl.GetAce(i)[2] for i in range(dacl.GetAceCount())]
+
+    write("Some random text", acl_file)
+    assert everyone in sids_of(acl_file)
+
+    write("Some random log text and more", acl_file)
+
+    assert everyone in sids_of(acl_file)
+    with open(acl_file) as textfile:
+        assert textfile.read() == "Some random log text and more"
+
+
 if __name__ == '__main__':
     pytest.main()

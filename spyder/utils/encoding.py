@@ -243,6 +243,16 @@ def to_unicode(string):
 @contextlib.contextmanager
 def atomic_write(dest, overwrite, dir, mode):
     """Atomically write a file"""
+    if dir is None:
+        # Create the temporary file in the destination's own directory. That
+        # way the temp file inherits the permissions of the directory the
+        # destination lives in. On Windows that preserves the inheritable NTFS
+        # ACEs, which are otherwise replaced by the ones of the system
+        # temp directory when we rename over the destination below. It also
+        # keeps the rename on a single filesystem.
+        # Fixes spyder-ide/spyder#26315.
+        dir = osp.dirname(dest) or osp.curdir
+
     fd, src = tempfile.mkstemp(prefix=os.path.basename(dest), dir=dir)
     file = os.fdopen(fd, mode=mode)
 

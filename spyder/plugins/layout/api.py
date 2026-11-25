@@ -429,9 +429,9 @@ class BaseGridLayoutType:
 
         # Find dock splits in the horizontal direction
         direction = Qt.Horizontal
-        for row in range(0, self._rows + 1):
+        for row in range(self._rows + 1):
             dock = None
-            for col in range(0, self._cols + 1):
+            for col in range(self._cols + 1):
                 key = (row, col)
                 if key in docks:
                     if dock is None:
@@ -450,9 +450,9 @@ class BaseGridLayoutType:
 
         # Find dock splits in the vertical direction
         direction = Qt.Vertical
-        for col in range(0, self._cols + 1):
+        for col in range(self._cols + 1):
             dock = None
-            for row in range(0, self._rows + 1):
+            for row in range(self._rows + 1):
                 key = (row, col)
                 if key in docks:
                     if dock is None:

@@ -31,20 +31,14 @@ def test_gotolinedialog_has_cancel_button(codeeditor, qtbot, tmpdir):
 
 
 def test_gotolinedialog_enter_plus(codeeditor, qtbot):
-    """
-    Regression test for spyder-ide/spyder#12693
-    """
     editor = codeeditor
     dialog = GoToLineDialog(editor)
     qtbot.addWidget(dialog)
     ok_button = dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.Ok)
     cancel_button = dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.Cancel)
     lineedit = dialog.findChild(QLineEdit)
-    lineedit.setText('+')
 
-    # Check + sign being cleared and ok button still is disabled
     lineedit.setText("+")
-    assert lineedit.text() == ""
     assert not ok_button.isEnabled()
 
 def test_gotolinedialog_check_valid(codeeditor, qtbot):

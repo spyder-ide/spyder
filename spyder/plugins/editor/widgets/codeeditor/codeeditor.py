@@ -43,6 +43,7 @@ from qtpy.QtGui import (
     QDesktopServices,
     QFont,
     QKeyEvent,
+    QKeySequence,
     QMouseEvent,
     QPaintEvent,
     QPainter,
@@ -79,7 +80,7 @@ from spyder.plugins.editor.panels import (
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 get_file_language)
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
-from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.widgets.codeeditor.inline_completions_mixin import (
@@ -88,6 +89,9 @@ from spyder.plugins.editor.widgets.codeeditor.inline_completions_mixin import (
 from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
     MultiCursorMixin
+)
+from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
+    EditsStackMixin,
 )
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
@@ -141,34 +145,43 @@ class DocstringContext(TypedDict):
 
 
 class CodeEditor(
-    LSPMixin, MultiCursorMixin, InlineCompletionsMixin, TextEditBaseWidget
+    LSPMixin,
+    MultiCursorMixin,
+    InlineCompletionsMixin,
+    EditsStackMixin,
+    TextEditBaseWidget
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
     CONF_SECTION = 'editor'
 
     LANGUAGES = {
-        'Python': (sh.PythonSH, '#'),
-        'IPython': (sh.IPythonSH, '#'),
-        'Cython': (sh.CythonSH, '#'),
-        'Fortran77': (sh.Fortran77SH, 'c'),
-        'Fortran': (sh.FortranSH, '!'),
-        'Idl': (sh.IdlSH, ';'),
-        'Diff': (sh.DiffSH, ''),
-        'GetText': (sh.GetTextSH, '#'),
-        'Nsis': (sh.NsisSH, '#'),
-        'Html': (sh.HtmlSH, ''),
-        'Yaml': (sh.YamlSH, '#'),
-        'Cpp': (sh.CppSH, '//'),
-        'OpenCL': (sh.OpenCLSH, '//'),
-        'Enaml': (sh.EnamlSH, '#'),
-        'Markdown': (sh.MarkdownSH, '#'),
-        # Every other language
-        'None': (sh.TextSH, ''),
+        Language.PYTHON.name: (sh.PythonSH, '#'),
+        Language.IPYTHON.name: (sh.IPythonSH, '#'),
+        Language.CYTHON.name: (sh.CythonSH, '#'),
+        Language.FORTRAN77.name: (sh.Fortran77SH, 'c'),
+        Language.FORTRAN.name: (sh.FortranSH, '!'),
+        Language.IDL.name: (sh.IdlSH, ';'),
+        Language.DIFF.name: (sh.DiffSH, ''),
+        Language.GETTEXT.name: (sh.GetTextSH, '#'),
+        Language.NSIS.name: (sh.NsisSH, '#'),
+        Language.HTML.name: (sh.HtmlSH, ''),
+        Language.YAML.name: (sh.YamlSH, '#'),
+        Language.CPP.name: (sh.CppSH, '//'),
+        Language.OPENCL.name: (sh.OpenCLSH, '//'),
+        Language.ENAML.name: (sh.EnamlSH, '#'),
+        Language.MARKDOWN.name: (sh.MarkdownSH, '#'),
     }
 
+    # Languages whose highlighter recognizes code cells.
+    CELL_LANGUAGES = (Language.PYTHON, Language.IPYTHON)
+
     TAB_ALWAYS_INDENTS = (
-        'py', 'pyw', 'python', 'ipy', 'c', 'cpp', 'cl', 'h', 'pyt', 'pyi'
+        Language.PYTHON,
+        Language.IPYTHON,
+        Language.CYTHON,
+        Language.CPP,
+        Language.OPENCL,
     )
 
     # Timeout to update decorations (through a QTimer) when a position
@@ -287,6 +300,7 @@ class CodeEditor(
         ) = None,
     ):
         TextEditBaseWidget.__init__(self, parent, class_parent=parent)
+        EditsStackMixin.__init__(self)  # load after text edit (requires document)
         InlineCompletionsMixin.__init__(self)
         LSPMixin.__init__(self)
 
@@ -441,7 +455,8 @@ class CodeEditor(
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
         self.timer_syntax_highlight.timeout.connect(
-            self.run_pygments_highlighter)
+            self.run_pygments_highlighter
+        )
 
         # Mark occurrences timer
         self.occurrence_highlighting = None
@@ -466,9 +481,6 @@ class CodeEditor(
         self.verticalScrollBar().valueChanged.connect(
             lambda value: self.hide_calltip()
         )
-
-        # QTextEdit + LSPMixin
-        self.textChanged.connect(self._schedule_document_did_change)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -1170,41 +1182,55 @@ class CodeEditor(
 
     def set_language(self, language, filename=None):
         extra_supported_languages = {'stil': 'STIL'}
-        self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         self.language = 'Text'
         self.supported_language = False
+        self.tab_indents = False
         sh_class = sh.TextSH
-        language = 'None' if language is None else language
+        spyder_language = None
+
         if language is not None:
-            for (key, value) in ALL_LANGUAGES.items():
-                if language.lower() in value:
+            spyder_language = (
+                Language.find(name=language)
+                or Language.find(extension=language)
+            )
+            if spyder_language is not None:
+                self.language = (
+                    'Python'
+                    if spyder_language is Language.IPYTHON
+                    else spyder_language.name
+                )
+
+                if spyder_language.name in self.LANGUAGES:
                     self.supported_language = True
-                    sh_class, comment_string = self.LANGUAGES[key]
-                    if key == 'IPython':
-                        self.language = 'Python'
-                    else:
-                        self.language = key
-                    self.comment_string = comment_string
-                    if key in CELL_LANGUAGES:
+                    sh_class, self.comment_string = self.LANGUAGES[
+                        spyder_language.name
+                    ]
+
+                    if spyder_language in self.CELL_LANGUAGES:
                         self.supported_cell_language = True
                         self.has_cell_separators = True
-                    break
+
+            self.tab_indents = spyder_language in self.TAB_ALWAYS_INDENTS
 
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
-            if self.support_language:
-                # Pygments report S for the lexer name of R files
-                if sh_class._lexer.name == 'S':
-                    self.language = 'R'
+
+            # Language services look languages up by the registry name, so
+            # it must win over Pygments lexer names ("TSX", "JSX", ...).
+            if spyder_language is None:
+                if self.support_language:
+                    # Pygments report S for the lexer name of R files
+                    if sh_class._lexer.name == 'S':
+                        self.language = 'R'
+                    else:
+                        self.language = sh_class._lexer.name
                 else:
-                    self.language = sh_class._lexer.name
-            else:
-                _, ext = osp.splitext(filename)
-                ext = ext.lower()
-                if ext in extra_supported_languages:
-                    self.language = extra_supported_languages[ext]
+                    _, ext = osp.splitext(filename)
+                    ext = ext.lower()
+                    if ext in extra_supported_languages:
+                        self.language = extra_supported_languages[ext]
 
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)
@@ -1349,10 +1375,12 @@ class CodeEditor(
         """Rehighlight the whole document."""
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
             self.unhighlight_current_cell()
+
         if self.highlight_current_line_enabled:
             self.highlight_current_line()
         else:
@@ -1426,7 +1454,13 @@ class CodeEditor(
     def fix_indentation(self):
         """Replace tabs by spaces."""
         text_before = str(self.toPlainText())
-        text_after = sourcecode.fix_indentation(text_before, self.indent_chars)
+
+        if self.indent_chars == '\t':
+            indent_chars = ' ' * self.tab_stop_width_spaces
+        else:
+            indent_chars = self.indent_chars
+
+        text_after = sourcecode.fix_indentation(text_before, indent_chars)
         if text_before != text_after:
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
@@ -1886,15 +1920,20 @@ class CodeEditor(
         """Toggle blanks visibility"""
         self.blanks_enabled = state
         option = self.document().defaultTextOption()
-        option.setFlags(option.flags() | \
-                        QTextOption.AddSpaceForLineAndParagraphSeparators)
+        option.setFlags(
+            option.flags() | QTextOption.AddSpaceForLineAndParagraphSeparators
+        )
+
         if self.blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
         else:
             option.setFlags(option.flags() & ~QTextOption.ShowTabsAndSpaces)
+
         self.document().setDefaultTextOption(option)
+
         # Rehighlight to make the spaces less apparent.
-        self.rehighlight()
+        if self.blanks_enabled:
+            self.rehighlight()
 
     def set_scrollpastend_enabled(self, state):
         """
@@ -2179,22 +2218,19 @@ class CodeEditor(
         """
         Reimplementation of undo with additional functionality.
 
-        For instance, this decreases the ``text_version`` number and emits some
-        required signals.
-
         Parameters
         ----------
         delete_inline_completion: bool, optional
             Whether this is called to delete an inline completion.
         """
-        if self.document().isUndoAvailable():
+        # Flush pending edits to undo immediately
+        self._commit_pending_edit()
+        if self.undo_stack.can_undo():
             if not delete_inline_completions:
                 self.reject_inline_completions()
-
-            self.text_version -= 1
             self.skip_rstrip = True
             self.is_undoing = True
-            TextEditBaseWidget.undo(self)
+            super().undo()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.is_undoing = False
@@ -2203,11 +2239,11 @@ class CodeEditor(
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
-        if self.document().isRedoAvailable():
-            self.text_version += 1
+        self._commit_pending_edit()
+        if self.undo_stack.can_redo():
             self.skip_rstrip = True
             self.is_redoing = True
-            TextEditBaseWidget.redo(self)
+            super().redo()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.is_redoing = False
@@ -3571,8 +3607,6 @@ class CodeEditor(
         self.sig_key_released.emit(event)
         key = event.key()
         direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
-        if key in direction_keys:
-            self.request_cursor_event()
 
         # Update decorations after releasing these keys because they don't
         # trigger the emission of the valueChanged signal in
@@ -3695,6 +3729,18 @@ class CodeEditor(
                 if self._handle_goto_definition_event(pos):
                     event.accept()
                     return
+            return
+
+        # Explicitly handle undo/redo for custom undo stack
+        if event.matches(QKeySequence.Undo):
+            self.undo()
+            event.accept()
+            self.setOverwriteMode(False)
+            return
+        elif event.matches(QKeySequence.Redo):
+            self.redo()
+            event.accept()
+            self.setOverwriteMode(False)
             return
 
         # ---- Handle hard coded and builtin actions
@@ -3965,7 +4011,7 @@ class CodeEditor(
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
-            self.highlighter.make_charlist()
+            self.highlighter.rehighlight()
 
     def get_pattern_at(self, coordinates):
         """
@@ -4405,7 +4451,9 @@ class CodeEditor(
                           pygments lexer.
         :param encoding: text encoding
         """
-        super().setPlainText(txt)
+        with self.suspend_undo_recording():
+            super().setPlainText(txt)
+        self.clear_undo_stack()
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
@@ -4473,7 +4521,6 @@ class CodeEditor(
         if event.button() == Qt.LeftButton:
             self._mouse_left_button_pressed = False
 
-        self.request_cursor_event()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
 
     def contextMenuEvent(self, event):

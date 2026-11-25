@@ -1,12 +1,4 @@
 on:
-  push:
-    branches:
-      - 'master'
-      - '6.x'
-    paths:
-      - '**.gitrepo'
-      - '.github/workflows/build-subrepos.yml'
-
   workflow_call:
     inputs:
       branch:
@@ -27,6 +19,9 @@ concurrency:
 
 name: Create Subrepo Conda Packages
 
+env:
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+
 jobs:
   build-pkgs:
     name: Build ${{ matrix.pkg }} ${{ matrix.cache-arch }} Python-${{ matrix.python-version }}
@@ -37,14 +32,14 @@ jobs:
         os: [ubuntu-latest]
         pkg: [python-lsp-server, qtconsole, spyder-kernels]
         include:
-          - python-version: '3.12'
+          - python-version: '3.13'
           - cache-arch: noarch
           - os: ubuntu-latest
             pkg: spyder-kernels
             cache-arch: unix
           - os: windows-2022
             pkg: spyder-kernels
-            python-version: '3.12'
+            python-version: '3.13'
             cache-arch: win-64
     defaults:
       run:
@@ -54,13 +49,6 @@ jobs:
       pkg: ${{ matrix.pkg }}
 
     steps:
-      - name: Setup Remote SSH Connection
-        if: env.ENABLE_SSH == 'true'
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 60
-        with:
-          detached: true
-
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
@@ -81,6 +69,8 @@ jobs:
         uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
+            channels:
+              - conda-forge
             conda_build:
               pkg_format: '2'
               zstd_compression_level: '19'
@@ -92,9 +82,16 @@ jobs:
           cache-downloads: true
           cache-environment: true
 
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+        with:
+          detached: true
+
       - name: Build ${{ matrix.pkg }} Conda Package
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
-          python_min: '3.9'
-        run: python build_conda_pkgs.py --build $pkg
+        run: |
+          python build_conda_pkgs.py --build $pkg

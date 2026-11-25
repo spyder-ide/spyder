@@ -9,7 +9,7 @@ Variable Explorer Main Plugin Widget.
 """
 
 # Third party imports
-from qtpy.QtCore import QTimer, Slot, Signal
+from qtpy.QtCore import Qt, QTimer, Slot, Signal
 from qtpy.QtWidgets import QAction
 
 # Local imports
@@ -20,6 +20,7 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import is_module_installed
+from spyder.utils.qthelpers import mimedata2url
 
 
 # =============================================================================
@@ -103,6 +104,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         "Run code in the Editor or IPython console to see any global "
         "variables listed here for exploration and editing."
     )
+    HELP_URL = "https://docs.spyder-ide.org/current/panes/variableexplorer"
 
     # Other class constants
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
@@ -129,6 +131,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
+        self.setAcceptDrops(True)
 
         # Widgets
         self.context_menu = None
@@ -138,6 +141,33 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         # Attributes
         self._is_filter_button_checked = True
         self.plots_plugin_enabled = False
+
+    # ---- Qt overrides
+    # ------------------------------------------------------------------------
+    def dragEnterEvent(self, event):
+        """Allow user to drag files"""
+        if mimedata2url(event.mimeData()):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        """Allow user to move files"""
+        if mimedata2url(event.mimeData()):
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        """Allow user to drop supported files"""
+        urls = mimedata2url(event.mimeData())
+        if urls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            self.import_data(urls)
+        else:
+            event.ignore()
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------

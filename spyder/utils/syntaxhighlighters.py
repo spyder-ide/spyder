@@ -27,7 +27,6 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
@@ -342,7 +341,14 @@ class BaseSH(QSyntaxHighlighter):
 
     def rehighlight(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QSyntaxHighlighter.rehighlight(self)
+
+        # We need to do this because when Qt's undo/redo is disabled,
+        # rehighlights make the file be flagged as modified (seems like a bug
+        # in Qt).
+        if self.editor is not None:
+            with self.editor.enable_qt_undo_redo():
+                QSyntaxHighlighter.rehighlight(self)
+
         QApplication.restoreOverrideCursor()
 
 
@@ -470,6 +476,9 @@ def get_code_cell_name(text):
 
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
+
+    CELL_SEPARATORS = ('#%%', '# %%', '# <codecell>', '# In[')
+
     # Syntax highlighting rules:
     add_kw = ['async', 'await']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
@@ -488,7 +497,7 @@ class PythonSH(BaseSH):
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.cell_separators = CELL_LANGUAGES['Python']
+        self.cell_separators = self.CELL_SEPARATORS
         # Avoid updating the outline explorer with every single letter typed
         self.outline_explorer_data_update_timer = QTimer()
         self.outline_explorer_data_update_timer.setSingleShot(True)
@@ -1331,7 +1340,7 @@ class PygmentsSH(BaseSH):
             self._charlist = output
             if error is None and output:
                 self._allow_highlight = True
-                self.rehighlight()
+                BaseSH.rehighlight(self)
             self._allow_highlight = False
 
         text = str(self.document().toPlainText())
@@ -1393,6 +1402,9 @@ class PygmentsSH(BaseSH):
                 self.setFormat(i, 1, fmt)
             self.setCurrentBlockState(end)
             self.highlight_extras(text)
+
+    def rehighlight(self):
+        self.make_charlist()
 
 
 class PythonLoggingLexer(RegexLexer):

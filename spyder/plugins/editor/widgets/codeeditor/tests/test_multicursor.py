@@ -201,6 +201,26 @@ def test_overwrite_mode(codeeditor, qtbot):
     qtbot.keyClick(codeeditor, Qt.Key.Key_C)
     assert codeeditor.toPlainText() == "0123abc6789\n01234bc6789\n"
 
+def test_multi_cursor_typing_undo_stack(codeeditor, qtbot):
+    """Typing with multiple cursors should produce one undoable edit."""
+
+    codeeditor.set_text("0123456789\n0123456789\n")
+    click_at(codeeditor, qtbot, 4)
+    click_at(codeeditor, qtbot, 16, ctrl=True, alt=True)
+
+    qtbot.keyClick(codeeditor, Qt.Key.Key_A)
+
+    codeeditor._commit_pending_edit()
+
+    assert codeeditor.toPlainText() == "0123a456789\n01234a56789\n"
+    assert codeeditor.undo_stack.can_undo()
+
+    codeeditor.undo()
+    assert codeeditor.toPlainText() == "0123456789\n0123456789\n"
+
+    codeeditor.redo()
+    assert codeeditor.toPlainText() == "0123a456789\n01234a56789\n"
+
 # TODO test folded code
 #    extra cursor movement (skip past hidden blocks)
 #    typing on a folded line (should be read-only)

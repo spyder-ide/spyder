@@ -184,7 +184,7 @@ class BuildCondaPkg:
         file.rename(file.parent / ("_" + file.name))  # copy of original
 
         pyver = sys.version_info
-        contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
+        contents['python'] = [f"{pyver.major}.{pyver.minor}"]
         yaml.dump(contents, file)
 
         self.logger.info(
@@ -346,15 +346,10 @@ class SpyderCondaPkg(BuildCondaPkg):
         spyder_reqs = [f"spyder-base =={self.version}"]
         for req in spyder_base_reqs.copy():
             if req.startswith(
-                ('pyqt ', 'pyqtwebengine ', 'qtconsole ', 'fcitx-qt5 ')
+                ('pyqt6 ', 'pyqt6-webengine ')
             ):
                 spyder_reqs.append(req)
                 spyder_base_reqs.remove(req)
-
-            if req.startswith('qtconsole '):
-                spyder_base_reqs.append(
-                    req.replace('qtconsole', 'qtconsole-base')
-                )
 
         if sys.platform == "darwin":
             spyder_base_reqs.append("__osx")

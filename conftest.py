@@ -15,6 +15,7 @@ import concurrent.futures
 import os
 import os.path as osp
 import re
+import stat
 import sys
 from unittest.mock import patch
 
@@ -206,6 +207,11 @@ def pytest_runtest_logreport(report):
     passed = report.when == "call" and report.passed
     xfailed = report.skipped and hasattr(report, "wasxfail")
     if passed or xfailed:
+        # Prevent `PermissionError` between tests runs if
+        # file already exists
+        if osp.isfile(PASSED_TESTS_FILE):
+            os.chmod(PASSED_TESTS_FILE, stat.S_IRUSR | stat.S_IWUSR)
+
         with open(PASSED_TESTS_FILE, "a") as f:
             f.write(report.nodeid + "\n")
 
@@ -248,29 +254,24 @@ def reset_conf_before_test(request):
     from spyder.config.manager import CONF
     CONF.reset_to_defaults(notification=False)
 
-    from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
-    from spyder.plugins.completion.plugin import CompletionPlugin
-
     from importlib.metadata import entry_points
 
-    # Restore completion clients default settings, since they
+    # Restore language services providers default settings, since they
     # don't have default values on the configuration.
-    provider_configurations = {}
-    for entry_point in entry_points(group=COMPLETION_ENTRYPOINT):
-        Provider = entry_point.load()
-        provider_name = Provider.COMPLETION_PROVIDER_NAME
+    from spyder.plugins.languageservices.api.provider import (
+        PROVIDERS_ENTRYPOINT,
+    )
+    from spyder.plugins.languageservices.plugin import LanguageServices
 
-        (provider_conf_version,
-         current_conf_values,
-         provider_defaults) = CompletionPlugin._merge_default_configurations(
-            Provider, provider_name, provider_configurations)
+    language_services_providers = {}
+    for entry_point in entry_points(group=PROVIDERS_ENTRYPOINT):
+        LanguageServices._merge_default_configurations(
+            entry_point.load(), language_services_providers
+        )
 
-        new_provider_config = {
-            'version': provider_conf_version,
-            'values': current_conf_values,
-            'defaults': provider_defaults
-        }
-        provider_configurations[provider_name] = new_provider_config
-
-    CONF.set('completions', 'provider_configuration', provider_configurations,
-             notification=False)
+    CONF.set(
+        "language_services",
+        "providers",
+        language_services_providers,
+        notification=False,
+    )

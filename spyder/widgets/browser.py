@@ -95,11 +95,18 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
     This signal is emitted when the widget loses focus.
     """
 
-    def __init__(self, parent, handle_links=True, class_parent=None):
+    def __init__(
+        self,
+        parent,
+        handle_links=True,
+        class_parent=None,
+        disable_zoom_with_mouse=False,
+    ):
         class_parent = parent if class_parent is None else class_parent
         QWebEngineView.__init__(self, parent)
         SpyderWidgetMixin.__init__(self, class_parent=class_parent)
 
+        self._disable_zoom_with_mouse = disable_zoom_with_mouse
         self.zoom_factor = 1.
         self.context_menu = None
 
@@ -173,7 +180,7 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
         original_inspect_action = self.pageAction(
             QWebEnginePage.WebAction.InspectElement
         )
-        inspect_action = self.create_action(
+        self.inspect_action = self.create_action(
             name=WebViewActions.Inspect,
             text=_("Inspect"),
             triggered=original_inspect_action.trigger,
@@ -224,18 +231,19 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
             )
 
         self.add_item_to_menu(
-            inspect_action,
+            self.inspect_action,
             menu=menu,
             section=WebViewMenuSections.Extras,
         )
 
-        if DEV and not WEBENGINE:
-            settings = self.page().settings()
-            settings.setAttribute(QWebEngineSettings.DeveloperExtrasEnabled,
-                                  True)
-            inspect_action.setVisible(True)
-        else:
-            inspect_action.setVisible(False)
+        if DEV:
+            self.inspect_action.setVisible(True)
+
+            if not WEBENGINE:
+                settings = self.page().settings()
+                settings.setAttribute(
+                    QWebEngineSettings.DeveloperExtrasEnabled, True
+                )
 
     def find_text(self, text, changed=True, forward=True, case=False,
                   word=False, regexp=False):
@@ -414,7 +422,10 @@ class WebView(SpyderWidgetMixin, QWebEngineView):
         if (
             event.type() == QEvent.Wheel
             and event.modifiers() & Qt.ControlModifier
-            and self.get_conf("disable_zoom_mouse", section="main")
+            and (
+                self.get_conf("disable_zoom_mouse", section="main")
+                or self._disable_zoom_with_mouse
+            )
         ):
             return True
 
@@ -564,18 +575,22 @@ class FrameWebView(QFrame):
     """
     linkClicked = Signal(QUrl)
 
-    def __init__(self, parent, handle_links=True):
+    def __init__(
+        self,
+        parent,
+        handle_links=True,
+        show_border=True,
+        disable_zoom_with_mouse=False,
+    ):
         super().__init__(parent)
 
         self._webview = WebView(
             self,
             handle_links=handle_links,
-            class_parent=parent
+            class_parent=parent,
+            disable_zoom_with_mouse=disable_zoom_with_mouse,
         )
-        self._webview.sig_focus_in_event.connect(
-            lambda: self._apply_stylesheet(focus=True))
-        self._webview.sig_focus_out_event.connect(
-            lambda: self._apply_stylesheet(focus=False))
+        self._devtools_view = None
 
         layout = QHBoxLayout()
         layout.addWidget(self._webview)
@@ -589,8 +604,16 @@ class FrameWebView(QFrame):
             else:
                 self._webview.linkClicked.connect(self.linkClicked)
 
+        if show_border:
+            self._webview.sig_focus_in_event.connect(
+                lambda: self._apply_stylesheet(focus=True)
+            )
+            self._webview.sig_focus_out_event.connect(
+                lambda: self._apply_stylesheet(focus=False)
+            )
+
     def __getattr__(self, name):
-        if name == '_webview':
+        if name in ["_webview", "setup"]:
             return super().__getattr__(name)
 
         if hasattr(self._webview, name):
@@ -601,6 +624,10 @@ class FrameWebView(QFrame):
     @property
     def web_widget(self):
         return self._webview
+
+    def setup(self):
+        self._webview.setup()
+        self._webview.inspect_action.triggered.connect(self._show_devtools)
 
     def _apply_stylesheet(self, focus=False):
         """Apply stylesheet according to the current focus."""
@@ -618,6 +645,30 @@ class FrameWebView(QFrame):
         )
 
         self.setStyleSheet(css.toString())
+
+    def _show_devtools(self):
+        """
+        Show Chromium developer tools.
+
+        This only works in development mode, i.e. when starting Spyder from
+        bootstrap.py
+        """
+        if WEBENGINE and self._devtools_view is None:
+            self._devtools_view = QWebEngineView(self)
+            self._webview.page().setDevToolsPage(self._devtools_view.page())
+            self._devtools_view.setMinimumWidth(450)
+            self._devtools_view.page().windowCloseRequested.connect(
+                self._hide_devtools
+            )
+            self.layout().addWidget(self._devtools_view)
+            self._devtools_view.show()
+
+    def _hide_devtools(self):
+        """Show Chromium developer tools."""
+        if self._devtools_view is not None:
+            self._devtools_view.hide()
+            self._devtools_view.deleteLater()
+            self._devtools_view = None
 
 
 def test():

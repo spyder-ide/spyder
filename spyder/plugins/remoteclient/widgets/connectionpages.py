@@ -478,6 +478,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             validate_reason=_(
                 "The address is not a valid IP, domain name or host identifier"
             ),
+            word_wrap=False,
         )
 
         port = self.create_spinbox(

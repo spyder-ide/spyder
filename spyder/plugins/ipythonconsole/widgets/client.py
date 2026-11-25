@@ -72,7 +72,6 @@ logger = logging.getLogger(__name__)
 # later it'll be a good idea to create a new one.
 PLUGINS_PATH = get_module_source_path('spyder', 'plugins')
 
-CSS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils', 'static', 'css')
 TEMPLATES_PATH = osp.join(
     PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 
@@ -154,11 +153,7 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
         self.kernel_id = None
         self.__on_close = lambda: None
 
-        css_path = self.get_conf('css_path', section='appearance')
-        if css_path is None:
-            self.css_path = CSS_PATH
-        else:
-            self.css_path = css_path
+        self.css_path = self.get_conf('css_path', section='appearance')
 
         # --- Widgets
         self.shellwidget = self.SHELL_WIDGET_CLASS(
@@ -678,6 +673,11 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
             # Numexpr unknown error, see spyder-ide/spyder#25815
             'nthreads cannot be larger than environment variable '
             '"NUMEXPR_MAX_THREADS"',
+            # Window class already registered warning shown while running tests
+            'qt.qpa.windowclass',
+            # Warning about directory without SSL certificates, see
+            # spyder-ide/spyder#26434
+            "WARN ignoring `SSL_CERT_DIR`: no certificates found",
         ]
 
         return any([err in error for err in benign_errors])
@@ -808,7 +808,6 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
         shutdown_kernel = (
             is_last_client
             and (not self.shellwidget.is_external_kernel or self.is_remote())
-            and not self.error_text
         )
 
         self.shellwidget.shutdown(shutdown_kernel)
@@ -1161,7 +1160,7 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def shutdown_remote_kernel(self):
-        if not self._jupyter_api.closed:
+        if self.kernel_id is not None and not self._jupyter_api.closed:
             return await self._jupyter_api.terminate_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)

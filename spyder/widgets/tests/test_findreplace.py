@@ -12,6 +12,7 @@ import os
 
 # Test library imports
 import pytest
+from qtpy import PYSIDE6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import QVBoxLayout, QWidget
@@ -20,6 +21,17 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.findreplace import FindReplace
 from spyder.utils.stylesheet import APP_STYLESHEET
+
+
+def get_text_changed_receivers(editor):
+    """Number of slots connected to the textChanged signal of editor."""
+    if PYSIDE6:
+        # The SIGNAL macro is only available in PySide
+        from qtpy.QtCore import SIGNAL
+        return editor.receivers(SIGNAL("textChanged()"))
+
+    # PyQt has a different method signature
+    return editor.receivers(editor.textChanged)
 
 
 @pytest.fixture
@@ -328,6 +340,81 @@ def test_replace_all_backslash(findreplace_editor, qtbot):
     qtbot.wait(100)
     findreplace.replace_find_all()
     assert editor.toPlainText() == "\\Psi\n\\beta\n\\beta\n\\beta"
+
+
+def test_unset_editor(findreplace_editor, qtbot):
+    """
+    Test that unsetting the editor also disconnects from it.
+
+    Regression test for issue #25298
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+    n_connections = get_text_changed_receivers(editor)
+
+    findreplace.set_editor(None)
+
+    assert get_text_changed_receivers(editor) == n_connections - 1
+
+
+def test_reset_editor(findreplace_editor, qtbot):
+    """
+    Test that setting an editor again after unsetting it doesn't connect to it
+    twice.
+
+    Regression test for issue #25298
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+    n_connections = get_text_changed_receivers(editor)
+
+    findreplace.set_editor(None)
+    findreplace.set_editor(editor)
+
+    assert get_text_changed_receivers(editor) == n_connections
+
+
+def test_update_matches_without_editor(findreplace_editor, qtbot):
+    """
+    Test that updating matches without an editor is a no-op instead of an error.
+
+    Regression test for issue #25298
+    """
+    findreplace = findreplace_editor.findreplace
+
+    findreplace.set_editor(None, refresh=False)
+
+    # Should not raise
+    findreplace.highlight_matches()
+    findreplace.update_matches()
+
+
+def test_set_editor_after_previous_was_deleted(findreplace_editor, qtbot):
+    """
+    Test that setting an editor works when the previous one was deleted.
+
+    This happens when the Editor closes a file because it was moved or
+    removed outside Spyder and then loads another one.
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+
+    # Set an editor and delete it, as closing its file does
+    old_editor = CodeEditor(parent=None)
+    old_editor.setup_editor(
+        color_scheme='spyder_themes.spyder/dark',
+        font=QFont("Courier New", 10)
+    )
+    findreplace.set_editor(old_editor)
+    n_connections = get_text_changed_receivers(editor)
+    with qtbot.waitSignal(old_editor.destroyed):
+        old_editor.deleteLater()
+
+    # Should not raise
+    findreplace.set_editor(editor)
+
+    assert findreplace.editor is editor
+    assert get_text_changed_receivers(editor) == n_connections + 1
 
 
 if __name__ == "__main__":

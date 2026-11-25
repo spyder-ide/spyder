@@ -1,31 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.5 is released!
+**Subject**: [ANN] Spyder 6.1.8 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.5** has been released and is available for
+I'm pleased to announce that Spyder **6.1.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes eleven weeks after version 6.1.4 and with the following interesting new features, fixes and API changes:
-
-- New features
-    * Add support to use Ruff as code formatter in
-        `Preferences > Completion and linting > Code formatting`.
+This release comes eight weeks after version 6.1.7 and with the following interesting fixes:
 
 - Important fixes
-    * Make the IPython console work for Pixi global environments.
-    * Increase max number of plots in the Plots pane to 10,000. Also, show message
-      when that number is reached.
-    * Correctly show signatures with type annotations in the Help pane.
-    * Fix hard crash when restarting the kernel of related IPython consoles.
-    * Several fixes to the update process of the standalone installers.
-
-- API changes
-    * Add `SHOW_INFO_MESSAGE` and `set_info_message` to `PluginMainWidget` to show
-      informative messages in dockable plugins.
+    * Fix error that didn't allow Spyder to start on Windows environments that block
+      loading user fonts.
+    * Restore preserving permissions when saving files on Windows (that was broken
+      since version 6.1.4).
+    * Fix tabs to spaces conversion in the Editor.
+    * Make drag and drop of files to the Variable Explorer work when it's empty.
+    * Change shortcuts to switch between IPython consoles to `Ctrl/Cmd+Alt+Right/Left`
+      because the previous ones didn't work on macOS.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
@@ -165,15 +159,15 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.2.0a1 is released!
+**Subject**: [ANN] Spyder 6.2.0a4 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the first alpha of our next minor version: Spyder **6.2**.
+I'm pleased to announce the fourth alpha of our next minor version: Spyder **6.2**.
 
-We've been working on this version for more than nine months and we encourage all people
+We've been working on this version for more than ten months and we encourage all people
 who like the bleeding edge to give it a try.
 
 Spyder 6.2 comes with the following interesting new features and fixes:
@@ -182,13 +176,42 @@ Spyder 6.2 comes with the following interesting new features and fixes:
     * Add a new set of interface themes for the entire application, including popular
       ones from other IDEs such as Dracula, Miami Nights and Grubvox. They can be
       set in `Preferences > Appearance`.
+    * Add a button to export Pandas dataframes to Excel, CSV or Json to the dataframe
+      viewer.
     * Support Polars series in the Variable Explorer.
+    * Add submenu `File > Export` to export the current file in the Editor to HTML or
+      RTF.
+    * Make copy/paste text in the Editor to Microsoft Word or similar programs grab
+      the syntax highlighting theme too.
+    * Add `Ctrl+Alt+Up/Down` shortcuts to move to the next/previous prompt in the
+      IPython console.
     * Add button to close all open viewers to the Variable Explorer and its viewers.
     * Add shortcuts and menu entries to expand/collapse all foldable regions in the
       Editor to the `Source` menu.
+    * Allow Editor and IPython console tabs to be reordered from the browse tabs menu
+      (i.e. the one to the left of tabs) by keeping `Shift` pressed and dragging its
+      entries with the left mouse button.
+    * The position for the close button in tabs (left, right or automatic) can be
+      configured in `Preferences > Application > Panes`.
+    * Add `--reset-hdpi-settings` command line option to reset incorrect high
+      resolution screen settings without altering other options.
     * Add support to introduce inline (or ghost) completions to the Editor.
+    * Add a `LanguageServices` plugin that merges completions, hover, linting,
+      formatting and the other language features from several providers per
+      language, with per-feature request policies configurable in
+      `Preferences > Completion and linting`. Its LSP client provider runs any
+      number of language servers described only by configuration and detects the
+      languages a server registers.
 
 - Important fixes
+    * Add support for PyQt6 and drop it for PyQt5.
+    * Base the standalone installers in Python 3.13.
+    * Sign the Windows standalone installer so it's not flagged as untrusted.
+    * Greatly improve support to work with Windows network share folders in the
+      Files pane.
+    * Make Spyder projects automatically ignore files in `.gitignore` when tracking
+      changes.
+    * Add support for PySide6 6.9+.
     * Automatically disable plugins when users disable the ones they depend on (e.g.
       the Variable Explorer, Debugger and Plots will be auto-disabled if the
       IPython Console is disabled because they can't do anything without it).
@@ -198,13 +221,25 @@ Spyder 6.2 comes with the following interesting new features and fixes:
     - Editor
         * Add `add_extension`, `add_panel` and `add_shortcut` methods to register
   extensions, panels and shortcuts.
+    - Language services
+        * Add the `LanguageServices` plugin (`Plugins.LanguageServices`) with a typed,
+          asynchronous API based on `lsprotocol` (`completion`, `hover`,
+          `document_symbol`, `formatting`, ...). Providers subclass
+          `spyder.plugins.languageservices.api.LanguageServicesProvider` and register
+          through the `spyder.language_services` entry point. New languages are
+          registered with `Language.register`.
+        * The Editor, Outline Explorer and Projects plugins use `LanguageServices`
+          instead of `Completions`.
+        * Deprecate the `Completions` plugin, `SpyderCompletionProvider` and the
+          `spyder.completions` entry point. Third-party providers registered there
+          keep working through an adapter, but they cannot report diagnostics.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_dev -c conda-forge spyder=6.2.0a1
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_dev -c conda-forge spyder=6.2.0a4
 
 Or you can use pip with this command:
 

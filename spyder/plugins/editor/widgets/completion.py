@@ -135,8 +135,26 @@ class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
         if not self.completion_list:
             return
 
-        # If only one, must be chosen if not automatic
         single_match = self.count() == 1
+
+        # If the only displayed item after client-side filtering exactly
+        # matches the current word, there's nothing to complete — hide.
+        if (
+            single_match
+            and self.automatic
+            and self.display_index
+        ):
+            completion = self.completion_list[self.display_index[0]]
+            if isinstance(completion, lsp.CompletionItem):
+                check_text = completion.filter_text or completion.label
+                current_word = self.textedit.get_current_word(completion=True)
+                if check_text == current_word and not (
+                    completion.text_edit and completion.text_edit.new_text
+                ):
+                    self.hide()
+                    return
+
+        # If only one, must be chosen if not automatic
         if single_match and not self.automatic:
             self.item_selected(self.item(0))
             # signal used for testing
@@ -364,7 +382,7 @@ class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
             # otherwise timing issues
             item = self.currentItem()
             if not self.get_conf(
-                'use_enter_for_completions', section='completions'
+                'use_enter_for_completions', section='language_services'
             ) and not key == Qt.Key_Tab:
                 self.hide()
                 self.textedit.keyPressEvent(event)

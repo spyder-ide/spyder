@@ -40,7 +40,7 @@ class ClipboardHelper:
     def remaining_lines_adjustment(self, preceding_text):
         """
         Get remaining lines adjustments needed to keep multiline
-        pasted text consistant.
+        pasted text consistent.
         """
         if self.get_current_hash() == self.metadata_hash:
             return (

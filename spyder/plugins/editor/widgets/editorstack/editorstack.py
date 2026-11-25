@@ -18,6 +18,7 @@ import functools
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import sys
 import unicodedata
 
@@ -25,7 +26,7 @@ import unicodedata
 import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QFontMetrics, QTextCursor
+from qtpy.QtGui import QFontMetrics, QKeySequence, QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
                             QToolBar, QToolButton)
@@ -35,6 +36,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import Plugins
 from spyder.api.translations import _
+from spyder.api.widgets import PluginMainWidgetActions
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.config.utils import (
@@ -46,6 +48,10 @@ from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
+from spyder.plugins.editor.utils.rich_text import (
+    selection_to_html,
+    selection_to_rtf,
+)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack.helpers import (
     ThreadManager, FileInfo, StackHistory)
@@ -94,6 +100,7 @@ class EditorStackMenuSections:
     SwitcherSection = "switcher_path_section"
     CloseOrderSection = "close_order_section"
     SplitCloseSection = "split_close_section"
+    SwitchTabsSection = "switch_tabs_section"
     WindowSection = "window_section"
     MainWidgetSection = "main_widget_section"
 
@@ -140,7 +147,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
-    sig_perform_completion_request = Signal(str, str, dict)
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
@@ -292,6 +298,20 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             triggered=self.sort_file_tabs_alphabetically,
             register_action=False
         )
+        self.next_tab_action = self.create_action(
+            PluginMainWidgetActions.GoToNextTab,
+            text=_("Go to next tab"),
+            icon=self.create_icon("next_wng"),
+            triggered=lambda: self.tabs.tab_navigate(1),
+            register_action=False
+        )
+        self.previous_tab_action = self.create_action(
+            PluginMainWidgetActions.GoToPreviousTab,
+            text=_("Go to previous tab"),
+            icon=self.create_icon("prev_wng"),
+            triggered=lambda: self.tabs.tab_navigate(-1),
+            register_action=False
+        )
 
         if sys.platform == 'darwin':
             text = _("Show in Finder")
@@ -350,6 +370,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.tabmode_enabled = False
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
+        self.language_services = None
         self.automatic_completions_enabled = True
         self.automatic_completion_chars = 3
         self.automatic_completion_ms = 300
@@ -498,10 +519,29 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 "show in external file explorer",
                 self.show_in_external_file_explorer,
             ),
+            (
+                "wrap lines",
+                functools.partial(
+                    self.sig_trigger_action.emit,
+                    EditorWidgetActions.WrapLines,
+                    Plugins.Editor,
+                ),
+            ),
         )
 
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
+
+        self.register_shortcut_for_widget(
+            name=PluginMainWidgetActions.GoToNextTab,
+            triggered=lambda: self.tabs.tab_navigate(1),
+            context="main",
+        )
+        self.register_shortcut_for_widget(
+            name=PluginMainWidgetActions.GoToPreviousTab,
+            triggered=lambda: self.tabs.tab_navigate(-1),
+            context="main",
+        )
 
         # Register shortcuts for run actions
         for action_id in [
@@ -804,8 +844,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
     # ---- Editor Widget Settings
     @on_conf_change(
-        option=("provider_configuration", "lsp", "values", "pyflakes"),
-        section='completions',
+        option=("providers", "pylsp", "values", "pyflakes"),
+        section='language_services',
     )
     def on_pyflakes_enabled_change(self, value):
         if self.data:
@@ -891,9 +931,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 finfo.editor.edge_line.set_enabled(state)
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values',
+        option=('providers', 'pylsp', 'values',
                 'flake8/max_line_length'),
-        section='completions'
+        section='language_services'
     )
     def set_edgeline_columns(self, columns):
         logger.debug(f"Set edge line columns to {columns}")
@@ -1011,7 +1051,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
-    @on_conf_change(option='enable_code_snippets', section='completions')
+    @on_conf_change(option='enable_code_snippets', section='language_services')
     def set_code_snippets_enabled(self, state):
         logger.debug(f"Set code snippets to {state}")
         self.code_snippets_enabled = state
@@ -1059,9 +1099,9 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 finfo.editor.set_completions_hint_after_ms(ms)
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values',
+        option=('providers', 'pylsp', 'values',
                 'enable_hover_hints'),
-        section='completions'
+        section='language_services'
     )
     def set_hover_hints_enabled(self, state):
         logger.debug(f"Set hover hints to {state}")
@@ -1071,8 +1111,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 finfo.editor.toggle_hover_hints(state)
 
     @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
-        section='completions'
+        option=('providers', 'pylsp', 'values', 'format_on_save'),
+        section='language_services'
     )
     def set_format_on_save(self, state):
         logger.debug(f"Set format on save to {state}")
@@ -1294,7 +1334,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             # need to emit sig_open_file to see if we can start a
             # language server for it.
             options = {
-                'language': language,
+                'language': finfo.editor.language,
                 'filename': new_filename,
                 'codeeditor': finfo.editor
             }
@@ -1390,6 +1430,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 window_action, section=EditorStackMenuSections.WindowSection
             )
 
+        if self.data:
+            for action in [self.next_tab_action, self.previous_tab_action]:
+                keystr = self.get_shortcut(action.name, context="main")
+                action.setShortcut(QKeySequence(keystr))
+                self.menu.add_action(
+                    action,
+                    section=EditorStackMenuSections.SwitchTabsSection
+                )
+
         for split_actions in self.__get_split_actions():
             self.menu.add_action(
                 split_actions,
@@ -1481,7 +1530,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             if main_widget.windowwidget is not None:
                 actions += [main_widget.dock_action]
             else:
-                actions += [
+                actions += [                    
+                    main_widget.help_action,
                     main_widget.lock_unlock_action,
                     main_widget.undock_action,
                     main_widget.close_action
@@ -1502,7 +1552,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.horsplit_action.setEnabled(state)
         self.versplit_action.setEnabled(state)
 
-    # ------ Accessors
+    # ---- Accessors
     def get_current_filename(self):
         if self.data:
             return self.data[self.get_stack_index()].filename
@@ -1713,37 +1763,49 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.__modify_stack_title()
         return is_ok
 
-    def register_completion_capabilities(self, capabilities, language):
-        """
-        Register completion server capabilities across all editors.
+    def set_language_services(self, plugin):
+        """Set the LanguageServices plugin used by the editors."""
+        self.language_services = plugin
+        for finfo in self.data:
+            finfo.editor.language_services = plugin
+
+    def editors_for_language(self, language):
+        """Editors whose language is ``language``.
 
         Parameters
         ----------
-        capabilities: dict
-            Capabilities supported by a language server.
-        language: str
-            Programming language for the language server (it has to be
-            in small caps).
+        language: spyder.plugins.languageservices.api.languages.Language
         """
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.register_completion_capabilities(capabilities)
+        name = language.name.lower()
+        return [
+            self.tabs.widget(index)
+            for index in range(self.get_stack_count())
+            if self.tabs.widget(index).language.lower() == name
+        ]
+
+    def register_completion_capabilities(self, language, capabilities):
+        """
+        Register language server capabilities across all editors.
+
+        Parameters
+        ----------
+        language: spyder.plugins.languageservices.api.languages.Language
+        capabilities: lsprotocol.types.ServerCapabilities | None
+            Merged capabilities of the providers serving ``language``.
+        """
+        for editor in self.editors_for_language(language):
+            editor.register_completion_capabilities(capabilities)
 
     def start_completion_services(self, language):
         """Notify language server availability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.start_completion_services()
+        for editor in self.editors_for_language(language):
+            editor.start_completion_services()
 
     def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""
         try:
-            for index in range(self.get_stack_count()):
-                editor = self.tabs.widget(index)
-                if editor.language.lower() == language:
-                    editor.stop_completion_services()
+            for editor in self.editors_for_language(language):
+                editor.stop_completion_services()
         except RuntimeError:
             pass
 
@@ -1768,20 +1830,20 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     def on_close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
-        for __ in range(0, self.get_stack_count() - 1):
+        for __ in range(self.get_stack_count() - 1):
             self.close_file(0)
 
     def sort_file_tabs_alphabetically(self):
         """Sort open tabs alphabetically."""
         while self.sorted() is False:
-            for i in range(0, self.tabs.tabBar().count()):
+            for i in range(self.tabs.tabBar().count()):
                 if (self.tabs.tabBar().tabText(i) >
                         self.tabs.tabBar().tabText(i + 1)):
                     self.tabs.tabBar().moveTab(i, i + 1)
 
     def sorted(self):
         """Utility function for sort_file_tabs_alphabetically()."""
-        for i in range(0, self.tabs.tabBar().count() - 1):
+        for i in range(self.tabs.tabBar().count() - 1):
             if (self.tabs.tabBar().tabText(i) >
                     self.tabs.tabBar().tabText(i + 1)):
                 return False
@@ -2220,12 +2282,85 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         Iterate through self.data and call save() on any modified files.
         """
         all_saved = True
-        for index in range(self.get_stack_count()):
+        n_files_changed = False
+
+        n_files = self.get_stack_count()
+        for index in range(n_files):
+            # If the initial number of files changes while trying to save them
+            # all (e.g. when saving a new file with the same name of another
+            # one that is already open), we must end this `for` cycle. That's
+            # because the length of the `data` list changed, so we'd get an
+            # IndexError if we don't it.
+            # Fixes spyder-ide/spyder#26382
+            if n_files != self.get_stack_count():
+                n_files_changed = True
+                break
+
             if self.data[index].editor.document().isModified():
                 all_saved &= self.save(index, save_new_files=save_new_files)
+
+        # Call this method recursively because the current number of files
+        # changed.
+        # Fixes spyder-ide/spyder#26382
+        if n_files_changed:
+            all_saved &= self.save_all(save_new_files=save_new_files)
+
         return all_saved
 
-    # ------ Update UI
+    def export_with_formatting(self, suffix):
+        """Save file with syntax highlighting."""
+        if not self.data:
+            return
+
+        finfo = self.data[self.get_stack_index()]
+        original_filename = str(Path(finfo.filename).with_suffix(suffix))
+        
+        filters = {".html": "HTML (*.html)", ".rtf": "RTF (*.rtf)"}
+        selectedfilter = filters[suffix]
+
+        self.redirect_stdio.emit(False)
+        filename, _selfilter = getsavefilename(
+            self, _("Export file"),
+            original_filename,
+            filters=";;".join(filters.values()),
+            selectedfilter=selectedfilter,
+            options=QFileDialog.HideNameFilterDetails
+        )
+        self.redirect_stdio.emit(True)
+
+        if filename:
+            file_path = Path(filename)
+            with file_path.open("wb") as f:
+                file_suffix = file_path.suffix.lower()
+                cursor: QTextCursor = finfo.editor.textCursor()
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.Start,
+                    QTextCursor.MoveMode.MoveAnchor
+                )
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.End,
+                    QTextCursor.MoveMode.KeepAnchor
+                )
+
+                bg_color = ""
+                if finfo.editor.highlighter is not None:
+                    bg_color = finfo.editor.highlighter.background_color
+
+                if file_suffix == ".html":
+                    _html = selection_to_html(cursor, bg_color)
+                    f.write(_html.encode("utf-8"))
+                elif file_suffix == ".rtf":
+                    f.write(selection_to_rtf(cursor, bg_color))
+
+    def export_html(self):
+        """Export the current file as HTML."""
+        self.export_with_formatting(".html")
+
+    def export_rtf(self):
+        """Export the current file as RTF."""
+        self.export_with_formatting(".rtf")
+
+    # ---- Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
         self.analysis_timer.stop()
@@ -2720,11 +2855,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
-        def perform_completion_request(lang, method, params):
-            self.sig_perform_completion_request.emit(lang, method, params)
-
-        editor.sig_perform_completion_request.connect(
-            perform_completion_request)
+        editor.language_services = self.language_services
         editor.sig_start_operation_in_progress.connect(self.spinner.start)
         editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(

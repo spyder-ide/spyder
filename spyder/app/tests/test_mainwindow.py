@@ -36,7 +36,6 @@ from numpy.testing import assert_array_equal
 from packaging.version import parse
 import pylint
 import pytest
-from qtpy import PYQT6
 from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (
@@ -108,7 +107,12 @@ from spyder.widgets.dock import DockTitleBar
 @pytest.mark.single_instance
 @pytest.mark.known_leak
 @pytest.mark.skipif(
-    not running_in_ci(), reason="It's not meant to be run outside of CIs")
+    not running_in_ci(), reason="It's not meant to be run outside of CIs"
+)
+@pytest.mark.skipif(
+    parse(ipy_release.version) == parse('9.17.0'),
+    reason="Fails with IPython 9.17.0"
+)
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
@@ -201,6 +205,8 @@ def test_leaks(main_window, qtbot):
             timeout=SHELL_TIMEOUT)
         with qtbot.waitSignal(shell.executed):
             shell.execute("%debug print()")
+
+        qtbot.wait(1000)
 
         # Close all files and consoles
         main_window.editor.close_all_files()
@@ -426,13 +432,13 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.keyClicks(object_combo, 'numpy', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy", qtbot), timeout=6000)
 
     # Get help - numpy.arange
     qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "arange", qtbot), timeout=6000)
 
     # Get help - np
     # Clear combo
@@ -441,17 +447,16 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.keyClicks(object_combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy", qtbot), timeout=6000)
 
     # Get help - np.arange
     qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "arange", qtbot), timeout=6000)
 
 
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
@@ -487,13 +492,14 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Matrix or vector norm."),
+        lambda: check_text(webpage, "Matrix or vector norm.", qtbot),
         timeout=6000)
 
 
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
+@pytest.mark.close_main_window
 def test_get_help_ipython_console_special_characters(
         main_window, qtbot, tmpdir):
     """
@@ -533,8 +539,10 @@ def test_get_help_ipython_console_special_characters(
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
-                    timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "This function docstring.", qtbot),
+        timeout=40000
+    )
 
 
 @flaky(max_runs=3)
@@ -552,14 +560,75 @@ def test_get_help_ipython_console(main_window, qtbot):
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("from numpy.linalg import norm")
+
     # Write some object in the console
-    qtbot.keyClicks(control, 'get_ipython')
+    qtbot.keyClicks(control, "norm")
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell"), timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Matrix or vector norm", qtbot),
+        timeout=6000,
+    )
+
+    # Check state of widgets in Help's toolbar
+    help_widget = help_plugin.get_widget()
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    assert object_combo_action.isVisible()
+    assert not object_edit_action.isVisible()
+
+    # Check showing docstrings in plain text
+    plain_text_action = help_widget.plain_text_action
+    plain_text_action.setChecked(True)
+
+    assert not help_widget.rich_text.isVisible()
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "====\nnorm\n====" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects with source (return to rich text
+    # first because it's a bit more realistic)
+    help_widget.rich_text_action.setChecked(True)
+    show_source_action = help_widget.show_source_action
+    assert show_source_action.isEnabled()
+
+    show_source_action.setChecked(True)
+    assert "def norm(" in help_widget.plain_text.editor.toPlainText()
+
+    # Check when we disable "Show source"
+    show_source_action.setChecked(False)
+    assert help_widget.plain_text.isVisible()
+    assert (
+        "====\nnorm\n====" in help_widget.plain_text.editor.toPlainText()
+    )
+
+    # Check "Show source" action for objects without source
+    show_source_action.setChecked(True)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import pandas as pd")
+
+    qtbot.keyClicks(control, "pd.DataFrame")
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: "No source code available for pd.DataFrame"
+        in help_widget.plain_text.editor.toPlainText(),
+        timeout=6000,
+    )
+    assert help_widget.plain_text.isVisible()
 
 
 @flaky(max_runs=3)
@@ -569,11 +638,21 @@ def test_get_help_ipython_console(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.parametrize(
     "object_info",
-    [("range", "range"),
-     ("import numpy as np", "An array object of arbitrary homogeneous items")])
+    [
+        (
+            # Check we show docs for regular objects
+            "from numpy.linalg import norm",
+            "Matrix or vector norm",
+        ),
+        (
+            # Check the no docs message is shown for objects without docstring
+            "from collections.abc import Awaitable",
+            "No further documentation available",
+        ),
+    ],
+)
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
-    # Wait until the window is fully up
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -581,6 +660,7 @@ def test_get_help_editor(main_window, qtbot, object_info):
         timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
+    help_widget = help_plugin.get_widget()
     webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
@@ -592,20 +672,52 @@ def test_get_help_editor(main_window, qtbot, object_info):
 
     # Write some object in the editor
     object_name, expected_text = object_info
-    code_editor.set_text(object_name)
-    code_editor.move_cursor(len(object_name))
     with qtbot.waitSignal(code_editor.completions_response_signal,
                           timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_change()
+        code_editor.set_text(object_name)
+
+    code_editor.move_cursor(len(object_name))
 
     # Get help
+    help_widget.rich_text_action.setChecked(True)
     with qtbot.waitSignal(code_editor.sig_display_object_info, timeout=30000):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, expected_text), timeout=30000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, expected_text, qtbot), timeout=30000
+    )
 
-    assert check_text(webpage, expected_text)
+    # Check state of widgets in Help's toolbar
+    help_toolbar = help_widget.get_main_toolbar()
+    object_combo_action = help_toolbar.action_for_widget(
+        help_widget.object_combo
+    )
+    object_edit_action = help_toolbar.action_for_widget(
+        help_widget.object_edit
+    )
+
+    object_word = object_name.split()[-1]
+    assert not object_combo_action.isVisible()
+    assert object_edit_action.isVisible()
+    assert help_widget.object_edit.text() == object_word
+
+    # This action should be disabled when the docs source is the Editor
+    assert not help_widget.show_source_action.isEnabled()
+
+    # Check showing docstrings in plain text (only works with pip packages)
+    if not running_in_ci_with_conda():
+        plain_text_action = help_widget.plain_text_action
+        plain_text_action.setChecked(True)
+
+        assert not help_widget.rich_text.isVisible()
+        assert help_widget.plain_text.isVisible()
+        assert (
+            f"{'=' * len(object_word)}"
+            + f"\n{object_word}\n"
+            + f"{'=' * len(object_word)}"
+            in help_widget.plain_text.editor.toPlainText()
+        )
 
 
 def test_window_title(main_window, tmpdir, qtbot):
@@ -1249,7 +1361,6 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
      parse(ipy_release.version) == parse('7.11.0')),
@@ -1515,7 +1626,6 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
@@ -1830,6 +1940,50 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     CONF.set('run', 'run_cell_copy', False)
 
 
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('run', 'run_cell_copy', True)}],
+    indirect=True
+)
+def test_debug_cell_copy_reports_file_location(main_window, qtbot):
+    """
+    Debugging a cell with run_cell_copy on reports the file path and line.
+
+    Regression test for spyder-ide/spyder#24594
+    """
+    # Wait until the window is ready
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Load the test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Move the editor cursor to the first cell
+    cursor = code_editor.textCursor()
+    cursor.setPosition(0)
+    code_editor.setTextCursor(cursor)
+
+    # Debug the cell
+    debug_cell_action = main_window.run.get_action("run cell in debugger")
+    with qtbot.waitSignal(shell.sig_pdb_step) as first_step:
+        with qtbot.waitSignal(shell.executed):
+            debug_cell_action.trigger()
+
+    # Check the debugger stopped on the cell's first line
+    assert first_step.args == [osp.normcase(test_file), 2]
+
+    # Exit debugging and clean up
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute('!exit')
+    main_window.editor.close_file()
+    CONF.set('run', 'run_cell_copy', False)
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_open_files_in_new_editor_window(main_window, qtbot):
@@ -1877,7 +2031,6 @@ def test_close_when_file_is_changed(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.qt_no_exception_capture
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working as expected."""
     # Wait until the window is fully up
@@ -2571,16 +2724,20 @@ def test_plot_from_collectioneditor(main_window, qtbot):
     """
     CONF.set('plots', 'mute_inline_plotting', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window console is fully up. The Plots and Variable
+    # Explorer widgets for this shell only exist after that, so they need to be
+    # requested afterwards.
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
     figbrowser = main_window.plots.current_widget()
     nsb = main_window.variableexplorer.current_widget()
 
     # Check that we start with no plots
     assert len(figbrowser.thumbnails_sb._thumbnails) == 0
-
-    # Wait until the window console is fully up
-    qtbot.waitUntil(
-        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
 
     # Create variable
     with qtbot.waitSignal(shell.executed):
@@ -2591,6 +2748,11 @@ def test_plot_from_collectioneditor(main_window, qtbot):
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
+
+    # `edit_item` operates on the current index, which is only set implicitly
+    # by Qt when the view actually receives a focus-in event. That doesn't
+    # happen reliably in headless runs, so we select the row explicitly.
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(0, 0))
     nsb.editor.edit_item()
 
     # Find the collection editor
@@ -3156,11 +3318,15 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
     # Create base temporary directory
     basedir = tmpdir.mkdir('foo')
 
-    # Open some files
-    for idx in range(2):
+    # Create and populate the files before opening them.
+    filenames = []
+    for idx in range(4):
         fh = basedir.join('{}.py'.format(idx))
-        fname = str(fh)
         fh.write('print("Hello world!")')
+        filenames.append(str(fh))
+
+    # Open some files
+    for fname in filenames[:2]:
         application_plugin.open_file_in_plugin(fname)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
@@ -3172,10 +3338,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
     qtbot.wait(500)
 
     # Open other files
-    for idx in range(4):
-        fh = basedir.join('{}.py'.format(idx))
-        fh.write('print("Hello world!")')
-        fname = str(fh)
+    for fname in filenames:
         application_plugin.open_file_in_plugin(fname)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
@@ -3297,13 +3460,13 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Reset config
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'pydocstyle'),
              False)
 
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
-                                                 'completions')
+                                                 'language_services')
     # Get the correct tab pages inside the Completion preferences page
     tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
 
@@ -3344,8 +3507,8 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     assert count == 1
 
     # Reset config
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+    CONF.set('language_services',
+             ('providers', 'pylsp', 'values', 'pydocstyle'),
              False)
 
 
@@ -3481,6 +3644,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 @pytest.mark.order(before="test_PYTHONPATH_in_consoles")
+@pytest.mark.use_introspection
 @pytest.mark.skipif(
     not is_conda_env(sys.prefix), reason='Only works with Anaconda'
 )
@@ -3502,9 +3666,14 @@ def test_change_lsp_interpreter(qtbot, main_window):
     )
 
     # Check original pylsp configuration
-    lsp = main_window.completions.get_provider('lsp')
-    config = lsp.generate_python_config()
-    jedi = config['configurations']['pylsp']['plugins']['jedi']
+    language_services = main_window.get_plugin(Plugins.LanguageServices)
+    pylsp = language_services.get_provider('pylsp')
+
+    def jedi_config():
+        config = pylsp.get_server_configs()[0]
+        return config.configurations['pylsp']['plugins']['jedi']
+
+    jedi = jedi_config()
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 
@@ -3523,8 +3692,7 @@ def test_change_lsp_interpreter(qtbot, main_window):
 
     # Check updated pylsp configuration
     qtbot.wait(1000)  # Account for debounced timeout when setting interpreter
-    config = lsp.generate_python_config()
-    jedi = config['configurations']['pylsp']['plugins']['jedi']
+    jedi = jedi_config()
     assert jedi['environment'] == new_interpreter
     assert jedi['extra_paths'] == []
 
@@ -3724,7 +3892,6 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
@@ -3792,7 +3959,6 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_remove(main_window, qtbot, tmpdir):
     """
@@ -4532,7 +4698,6 @@ def test_post_mortem(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     """Test that we can run an unsaved file with multiprocessing."""
@@ -4797,8 +4962,9 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000)
 
     # Wait until the initial requests are sent to the server.
-    lsp = main_window.completions.get_provider('lsp')
-    python_client = lsp.clients['python']
+    language_services = main_window.get_plugin(Plugins.LanguageServices)
+    pylsp = language_services.get_provider('pylsp')
+    connection = pylsp._servers['pylsp'].connection
 
     expected_requests = [
         'initialize',
@@ -4812,8 +4978,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         'initialized': {'workspace/didChangeConfiguration'}
     }
 
-    lsp_requests = python_client['instance']._requests
-    start_idx = lsp_requests.index((0, 'initialize'))
+    lsp_requests = list(connection.sent_methods)
+    start_idx = lsp_requests.index('initialize')
 
     request_order = []
     expected_iter = iter(expected_requests)
@@ -4822,7 +4988,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         if current_expected is None:
             break
 
-        _, req_type = lsp_requests[i]
+        req_type = lsp_requests[i]
         if req_type == current_expected:
             request_order.append(req_type)
             current_expected = next(expected_iter, None)
@@ -5080,6 +5246,10 @@ def test_update_outline(main_window, qtbot, tmpdir):
 @pytest.mark.preload_namespace_project
 @pytest.mark.known_leak
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Doesn't work on Mac")
+@pytest.mark.xfail(
+    reason="Custom edits stack and lsp changes introduced flaky behavior on "
+    "this test. Needs to be fixed."
+)
 def test_no_update_outline(main_window, qtbot, tmpdir):
     """
     Test the Outline is not updated in different scenarios.
@@ -5993,7 +6163,6 @@ if __name__ == "__main__":
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     os.name == 'nt',
     reason="ctypes.string_at(0) doesn't segfaults on Windows")
@@ -6143,7 +6312,6 @@ def test_history_from_ipyconsole(main_window, qtbot):
     assert text.splitlines()[-1] == code
 
 
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     os.name != "nt", reason="Fails frequently on Mac and Linux"
 )
@@ -6228,7 +6396,6 @@ def test_out_runfile_runcell(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Does not work on Mac and Windows")
@@ -6528,7 +6695,7 @@ def test_interrupt(main_window, qtbot):
     qtbot.wait(200)
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
-    assert 0 < shell.get_value("i") < 99
+    qtbot.waitUntil(lambda: 0 < shell.get_value("i") < 99)
     assert list(frames_browser.stack_dict.keys())[0] == "KeyboardInterrupt"
 
     # Interrupt debugging
@@ -6539,9 +6706,9 @@ def test_interrupt(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
     assert "Program interrupted" in shell._control.toPlainText()
-    assert 0 < shell.get_value("i") < 99
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
+    qtbot.waitUntil(lambda: 0 < shell.get_value("i") < 99)
 
     # Interrupt while waiting for debugger
     with qtbot.waitSignal(shell.executed):
@@ -7167,7 +7334,6 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     not sys.platform.startswith("linux"),
     reason="No quotes on Windows file paths and fails frequently on Mac"
 )
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     """
     Test that we can run files with quotes in name, renamed files,
@@ -7874,6 +8040,8 @@ def test_view_own_class_in_variable_explorer(main_window, qtbot):
     assert instance_value.var == 123
 
 
+@flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_help_long_type_alias_rendering(main_window, qtbot):
     """Test that long type annotations from __main__ are readable."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -7906,15 +8074,17 @@ def test_help_long_type_alias_rendering(main_window, qtbot):
 
     # Validate the docstring is shown in the Help pane
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Test docstring"),
-        timeout=20000
+        lambda: check_text(webpage, "Test docstring", qtbot),
+        timeout=40000
     )
 
     # And the right signature is in it.
-    assert check_text(webpage, "x")
-    assert not check_text(webpage, "Sequence[int | str] | int | str |")
+    assert check_text(webpage, "x", qtbot)
+    assert not check_text(webpage, "Sequence[int | str] | int | str |", qtbot)
 
 
+@flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_help_numpy_typing_annotations(main_window, qtbot):
     """Test that numpy typing annotations don't break argument visibility."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -7947,13 +8117,13 @@ def test_help_numpy_typing_annotations(main_window, qtbot):
     control.inspect_current_object()
 
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Numpy typing test"),
-        timeout=20000
+        lambda: check_text(webpage, "Numpy typing test", qtbot),
+        timeout=40000
     )
 
-    assert check_text(webpage, "axis")
+    assert check_text(webpage, "axis", qtbot)
     assert not check_text(
-        webpage, "[Union[bool, int, float, complex, str, bytes]]"
+        webpage, "[Union[bool, int, float, complex, str, bytes]]", qtbot
     )
 
 

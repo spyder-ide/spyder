@@ -23,12 +23,6 @@ fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
-    if [ -n "$SPYDER_QT_BINDING" ]; then
-        # conda has no PyQt6 package
-        echo "Cannot use Qt 6 with Conda" 1>&2
-        exit 1
-    fi
-
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
         micromamba install --file requirements/windows.yml
@@ -85,7 +79,7 @@ fi
 python -bb -X dev install_dev_repos.py --not-editable --no-install spyder spyder-remote-services
 
 # Install Spyder to test it as if it was properly installed.
-python -bb -X dev -m build
+python -bb -X dev setup.py bdist_wheel
 python -bb -X dev -m pip install --no-deps dist/spyder*.whl
 
 if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then
@@ -121,7 +115,7 @@ else
     if [ "$RUN_SLOW" = "false" ]; then
         if [ "$OS" = "linux" ]; then
             curl https://pyenv.run | bash
-            $HOME/.pyenv/bin/pyenv install 3.12.8
+            $HOME/.pyenv/bin/pyenv install 3.13.18
         fi
     fi
 fi

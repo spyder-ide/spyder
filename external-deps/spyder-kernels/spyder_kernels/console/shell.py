@@ -30,7 +30,7 @@ from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
 from spyder_kernels.comms.commbase import stacksummary_to_json
-from spyder_kernels.comms.decorators import comm_handler
+from spyder_kernels.comms.decorators import comm_handler, kernel_config
 from spyder_kernels.utils.mpl import automatic_backend
 
 
@@ -56,10 +56,15 @@ class SpyderShell(ZMQInteractiveShell):
         self.special = None
         self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
+
         self._allow_kbdint = False
         self.register_debugger_sigint()
         self.update_gui_frontend = False
         self._spyder_theme = 'dark'
+
+        self.umr_enabled: bool = True
+        self.umr_verbose: bool = True
+        self.umr_namelist: list[str] = []
 
         # Substrings of the directory where Spyder-kernels is installed
         self._package_locations = [
@@ -138,6 +143,8 @@ class SpyderShell(ZMQInteractiveShell):
 
         super()._showtraceback(etype, evalue, spyder_stb)
 
+    # ---- For Spyder's UI theme
+    # -------------------------------------------------------------------------
     def set_spyder_theme(self, theme):
         """Set the theme for the console."""
         self._spyder_theme = theme
@@ -146,6 +153,8 @@ class SpyderShell(ZMQInteractiveShell):
         """Get the theme for the console."""
         return self._spyder_theme
 
+    # ---- For Matplotlib integration
+    # -------------------------------------------------------------------------
     def enable_matplotlib(self, gui=None):
         """Enable matplotlib."""
         if gui is None or gui.lower() == "auto":
@@ -204,7 +213,23 @@ class SpyderShell(ZMQInteractiveShell):
 
         return gui, backend
 
-    # --- For Pdb namespace integration
+    # ---- For the User Module Reloader
+    # -------------------------------------------------------------------------
+    @kernel_config("umr_enabled")
+    def set_umr_enabled(self, value: bool):
+        self.umr_enabled = value
+
+    @kernel_config("umr_verbose")
+    def set_umr_verbose(self, value: bool):
+        self.umr_verbose = value
+
+    @kernel_config("umr_namelist")
+    def set_umr_namelist(self, value: list[str]):
+        self.umr_namelist = value
+
+    # ---- For Pdb integration
+    # -------------------------------------------------------------------------
+    @kernel_config("pdb")
     def set_pdb_configuration(self, pdb_conf):
         """
         Set Pdb configuration.

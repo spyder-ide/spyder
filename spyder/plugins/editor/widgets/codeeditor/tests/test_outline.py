@@ -12,6 +12,7 @@ Tests syncing between the EditorStack and OutlineExplorerWidget.
 import os
 import json
 import os.path as osp
+import sys
 
 # Qt imports
 from qtpy.QtCore import Qt
@@ -41,7 +42,25 @@ def get_tree_elements(treewidget):
     return root_tree
 
 
+def wait_for_tree(qtbot, treewidget, expected):
+    """
+    Wait and check that the Outline tree is as `expected`.
+    """
+    tree_elements = None
+
+    def check_tree():
+        nonlocal tree_elements
+        tree_elements = get_tree_elements(treewidget)
+        return tree_elements == expected
+
+    try:
+        qtbot.waitUntil(check_tree, timeout=30000)
+    except Exception:
+        assert tree_elements == expected
+
+
 @pytest.mark.order(2)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
     code_editor, outlineexplorer = completions_codeeditor_outline
@@ -67,12 +86,10 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     # Put example text in editor
     code_editor.set_text(lines)
-    qtbot.wait(3000)
 
     # Check that the outline tree was initialized successfully
     tree = trees[0]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Remove "d" symbol
     code_editor.go_to_line(14)
@@ -83,11 +100,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     cursor.setPosition(end, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     code_editor.cut()
-    qtbot.wait(3000)
 
     tree = trees[1]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Add "d" symbol elsewhere
     code_editor.go_to_line(36)
@@ -100,11 +115,8 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     qtbot.keyPress(code_editor, Qt.Key_Up)
     code_editor.paste()
 
-    qtbot.wait(3000)
-
     tree = trees[2]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Move method1
     code_editor.go_to_line(56)
@@ -115,11 +127,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     cursor.setPosition(end, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     code_editor.cut()
-    qtbot.wait(3000)
 
     tree = trees[3]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Add method1
     code_editor.go_to_line(49)
@@ -131,11 +141,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     qtbot.keyPress(code_editor, Qt.Key_Up)
     code_editor.paste()
-    qtbot.wait(3000)
 
     tree = trees[4]
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Add attribute "y"
     code_editor.go_to_line(48)
@@ -153,8 +161,64 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
         code_editor.request_symbols()
 
     tree = trees[5]
+    wait_for_tree(qtbot, treewidget, tree)
+
+
+@pytest.mark.order(2)
+def test_outline_ignores_superseded_symbols(
+    qtbot, completions_codeeditor_outline
+):
+    """
+    Test that the tree is not updated with symbols of a partially typed
+    statement.
+
+    Typing `=` requests a signature, which sends the text typed so far to the
+    server. If symbols are requested for that text (i.e. while the statement is
+    still incomplete), its response must not overwrite the tree because a newer
+    request was sent in the meantime.
+    """
+    code_editor, outlineexplorer = completions_codeeditor_outline
+    treewidget = outlineexplorer.treewidget
+    treewidget.is_visible = True
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text(
+        "class Class1:\n"
+        "    def __init__(self):\n"
+        "        self.x = 2\n"
+    )
+    qtbot.wait(3000)
+
+    # Set cursor at the end of `self.x = 2`
+    code_editor.go_to_line(3)
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.EndOfBlock)
+    code_editor.setTextCursor(cursor)
+
+    with qtbot.waitSignal(
+        code_editor.completions_response_signal, timeout=30000
+    ):
+        qtbot.keyPress(code_editor, Qt.Key_Return)
+        qtbot.keyClicks(code_editor, 'self.y =')
+
+        # Request symbols for the incomplete statement, which is what the
+        # timer to sync symbols and folding does when it times out here.
+        code_editor.sync_symbols_and_folding()
+
+        qtbot.keyClicks(code_editor, ' None')
+        qtbot.keyPress(code_editor, Qt.Key_Return)
+
+    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
+        code_editor.request_symbols()
+
     root_tree = get_tree_elements(treewidget)
-    assert root_tree == tree
+    assert root_tree == {
+        'test.py': [
+            {'Class1': [{'__init__': [{'x': []}, {'y': []}]}]}
+        ]
+    }
 
 
 @pytest.mark.order(2)
@@ -184,24 +248,18 @@ def foo():
     a = 10
     return a
 """)
-    qtbot.wait(3000)
 
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == {'test.py': [{'foo': [{'a': []}]}]}
+    tree = {'test.py': [{'foo': [{'a': []}]}]}
+    wait_for_tree(qtbot, treewidget, tree)
 
     # Remove content
     code_editor.selectAll()
+
     qtbot.keyPress(code_editor, Qt.Key_Delete)
 
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    qtbot.wait(3000)
-
     # Assert the tree is empty and the spinner is not shown.
-    root_tree = get_tree_elements(treewidget)
-    assert root_tree == {'test.py': []}
+    tree = {'test.py': []}
+    wait_for_tree(qtbot, treewidget, tree)
     assert not outlineexplorer._spinner.isSpinning()
 
 

@@ -3,13 +3,13 @@
 set -eo pipefail
 
 echo "which spyder: $(which spyder)"
-pip show pyqtwebengine
+pip show pyqt6-webengine
 TO=10s
 for i in 1 2; do
     echo "::group::Iteration $i"
     if [[ "$i" == "2" ]]; then
         echo "Removing pyqtwebengine"
-        pip uninstall -y pyqtwebengine
+        pip uninstall -y pyqt6-webengine
         echo
     fi
     echo "Running Spyder with a timeout of $TO:"

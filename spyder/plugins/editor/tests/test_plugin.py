@@ -11,6 +11,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import pathlib
 import shutil
 import sys
 
@@ -559,6 +560,64 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
     assert get_eol_chars(text) == os.linesep
 
 
+def test_export_with_formatting(editor_plugin, mocker, qtbot, tmp_path):
+    """Check that exporting with formatting works as expected."""
+    editorstack = editor_plugin.get_current_editorstack()
+
+    fname_full_path = tmp_path / "rich_text_test.py"
+    
+    with open(fname_full_path, "w", encoding="utf-8") as f:
+        f.write(
+            "# -*- coding: utf-8 -*-\n"
+            "print('string with non ascii: μ Δ ⇇')\n"
+            "x = {'value requiring html escape': '& / \\'}"
+        )
+
+    rtf_fname = str(fname_full_path.with_suffix(".rtf"))
+    html_fname = str(fname_full_path.with_suffix(".html"))
+    
+    mocker.patch.object(editor_module, 'getsavefilename')
+
+    # Load a test file
+    editor_plugin.load(str(fname_full_path))
+    qtbot.wait(500)
+    
+    #export to rtf
+    editor_module.getsavefilename.return_value = (rtf_fname, '')
+    editorstack.export_rtf()
+    qtbot.wait(500)
+    
+    # check generated file
+    assert pathlib.Path(rtf_fname).is_file()
+    with open(rtf_fname, mode='rb') as f:
+        text = f.read()
+    # assert rtf file has some colors used
+    assert b"{\\colortbl;" in text and b"\\cf3 " in text
+    # assert rtf encoding of non ascii
+    assert b"string with non ascii: \\u956? \\u916?" in text
+    
+    #export to html
+    editor_module.getsavefilename.return_value = (html_fname, '')
+    editorstack.export_html()
+    
+    # check generated file
+    assert pathlib.Path(html_fname).is_file()
+    with open(html_fname, mode='r', encoding="utf-8") as f:
+        text = f.read()
+    # assert html file has some colors used
+    assert 'style="color:#' in text and 'style="background-color:#' in text
+    # assert html encoding
+    assert '&#x27;' in text and '&amp;' in text and '⇇' in text
+    
+    # test rich text and plain text are being placed on clipboard
+    codeeditor = editor_plugin.get_current_editor()
+    codeeditor.selectAll()
+    codeeditor.copy()
+    cb = QApplication.clipboard()
+    data = cb.mimeData()
+    assert data.hasHtml() and data.hasText()
+
+
 @pytest.mark.skipif(
     sys.platform.startswith("linux") and running_in_ci(),
     reason="Segfaults on Linux and CIs"
@@ -586,8 +645,11 @@ def test_editorstacks_and_windows(editor_plugin, qtbot):
 
     # Close split in window and check focus is given to the current editor
     # in the main stack of the window
-    editor_window.editorwidget.editorstacks[1].close_split_action.trigger()
-    qtbot.waitUntil(lambda: len(editor_window.editorwidget.editorstacks) == 1)
+    editor_window.editorwidget.editorstacks[1].close_split()
+    qtbot.waitUntil(
+        lambda: len(editor_window.editorwidget.editorstacks) == 1,
+        timeout=20000
+    )
     assert len(editor_plugin.get_widget().editorstacks) == 2
     assert (
         editor_window.editorwidget.editorstacks[0].get_current_editor()
@@ -710,8 +772,8 @@ def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith("linux") and running_in_ci(),
-    reason="Segfaults on Linux and CIs"
+    sys.platform.startswith("linux") or os.name == 'nt' and running_in_ci(),
+    reason="Segfaults on Linux/Windows and CIs"
 )
 def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
     """Check that the outline is shown/hidden as expected in editor windows."""
@@ -721,7 +783,7 @@ def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
 
     # Create editor window
     editor_window = widget.create_new_window()
-    qtbot.wait(500)  # To check visually that the window was created
+    qtbot.wait(1000)  # To check visually that the window was created
 
     # Check Outline is visible (the default)
     assert editor_window.editorwidget.outlineexplorer.width() > 0

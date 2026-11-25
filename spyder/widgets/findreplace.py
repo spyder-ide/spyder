@@ -460,11 +460,17 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
 
         self.words_button.setVisible(not isinstance(editor, QWebEngineView))
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
-        self.is_code_editor = isinstance(editor, CodeEditor)
 
         # Disconnect previous connection to highlight matches
         if self.editor is not None and self.is_code_editor:
-            self.editor.textChanged.disconnect(self.update_matches)
+            try:
+                self.editor.textChanged.disconnect(self.update_matches)
+            except RuntimeError:
+                # The previous editor was already deleted, e.g. because its
+                # file was closed after being moved or removed outside Spyder
+                pass
+
+        self.is_code_editor = isinstance(editor, CodeEditor)
 
         # Set current editor
         self.editor = editor
@@ -774,7 +780,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
 
     def update_matches(self):
         """Update total number of matches if text has changed in the editor."""
-        if self.isVisible():
+        if self.editor is not None and self.isVisible():
             number_matches = self.editor.get_number_matches(
                 self.search_text.lineEdit().text(),
                 case=self.case_button.isChecked(),

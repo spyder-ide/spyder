@@ -17,9 +17,17 @@ import sys
 
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QMessageBox, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QButtonGroup,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget
+)
 
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
@@ -28,6 +36,12 @@ from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 is_conda_based_app, save_lang_conf)
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
+
+# Maximum value allowed for each custom high DPI scale factor, because larger
+# ones make the interface unusable. See spyder-ide/spyder#26495.
+# Note: This must be an integer between 2 and 9 for the regex used to validate
+# the scale factors to work.
+MAX_CUSTOM_SCALE_FACTOR = 5
 
 
 class ApplicationConfigPage(PluginConfigPage):
@@ -120,6 +134,23 @@ class ApplicationConfigPage(PluginConfigPage):
         )
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs', restart=True)
+
+        tab_close_choices = [
+            (_("Automatic"), "automatic"),
+            (_("Left"), "left"),
+            (_("Right"), "right")
+        ]
+        tab_close_combo = self.create_combobox(
+            _("Close button position for tabs:"),
+            tab_close_choices,
+            "tab_close_position",
+            tip=(
+                "Decide where you want to locate the button to close tabs "
+                "(e.g. files in the Editor)"
+            ),
+            restart=True,
+        )
+
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -143,20 +174,26 @@ class ApplicationConfigPage(PluginConfigPage):
         cursor_spin.slabel.setEnabled(
             self.get_option('use_custom_cursor_blinking'))
 
-        margins_cursor_layout = QGridLayout()
-        margins_cursor_layout.addWidget(margin_box, 0, 0)
-        margins_cursor_layout.addWidget(margin_spin.spinbox, 0, 1)
-        margins_cursor_layout.addWidget(margin_spin.slabel, 0, 2)
-        margins_cursor_layout.addWidget(cursor_box, 1, 0)
-        margins_cursor_layout.addWidget(cursor_spin.spinbox, 1, 1)
-        margins_cursor_layout.addWidget(cursor_spin.slabel, 1, 2)
-        margins_cursor_layout.setColumnStretch(2, 100)
+        glayout = QGridLayout()
+        glayout.addWidget(tab_close_combo.label, 0, 0)
+        glayout.addWidget(tab_close_combo.combobox, 0, 1)
+        glayout.addWidget(tab_close_combo.help_label, 0, 2)
+        glayout.addWidget(margin_box, 1, 0)
+        glayout.addWidget(margin_spin.spinbox, 1, 1)
+        glayout.addWidget(margin_spin.slabel, 1, 2)
+        glayout.addWidget(cursor_box, 2, 0)
+        glayout.addWidget(cursor_spin.spinbox, 2, 1)
+        glayout.addWidget(cursor_spin.slabel, 2, 2)
+
+        hg_layout = QHBoxLayout()
+        hg_layout.addLayout(glayout)
+        hg_layout.addStretch()
 
         # Layout interface
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(empty_messages_box)
         interface_layout.addWidget(verttabs_box)
-        interface_layout.addLayout(margins_cursor_layout)
+        interface_layout.addLayout(hg_layout)
         interface_group.setLayout(interface_layout)
 
         if sys.platform == "darwin" and not is_conda_based_app():
@@ -223,13 +260,24 @@ class ApplicationConfigPage(PluginConfigPage):
             restart=True
         )
 
+        # A scale factor is a number between 1 and MAX_CUSTOM_SCALE_FACTOR,
+        # with or without decimals. The maximum itself can only be followed
+        # by zeros after the decimal point (e.g. 5.0 but not 5.01).
+        scale_factor_regex = (
+            rf"(?:[1-{MAX_CUSTOM_SCALE_FACTOR - 1}](?:\.[0-9]*)?"
+            rf"|{MAX_CUSTOM_SCALE_FACTOR}(?:\.0*)?)"
+        )
+
         self.custom_scaling_edit = self.create_lineedit(
             "",
             'high_dpi_custom_scale_factors',
-            tip=_("Enter values for different screens separated by semicolons "
-                  "';'. Float values are supported"),
+            tip=_(
+                "Enter values between 1 and {max_factor} for different "
+                "screens separated by semicolons ';'. Float values are "
+                "supported"
+            ).format(max_factor=MAX_CUSTOM_SCALE_FACTOR),
             alignment=Qt.Horizontal,
-            regex=r"[1-9]+(?:\.[0-9]*)(;[1-9]+(?:\.[0-9]*))*",
+            regex=rf"{scale_factor_regex}(?:;{scale_factor_regex})*",
             restart=True
         )
 
