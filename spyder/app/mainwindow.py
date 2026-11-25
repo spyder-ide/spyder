@@ -498,11 +498,11 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
                 self.register_shortcut(sc, context, name)
                 self.register_shortcut(
-                    plugin.toggle_view_action, context, name)
+                                    plugin.close_action, context, name)
             else:
                 self.shortcut_queue.append((sc, context, name))
                 self.shortcut_queue.append(
-                    (plugin.toggle_view_action, context, name))
+                    (plugin.close_action, context, name))
 
     def unregister_plugin(self, plugin):
         """
@@ -548,6 +548,26 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 plugin._switch_to_shortcut,
                 context,
                 "Switch to {}".format(plugin.CONF_SECTION),
+            )
+
+        # Unregister close shortcut
+        shortcut = None
+        try:
+            context = '_'
+            name = 'close {}'.format(plugin.CONF_SECTION)
+            shortcut = self.get_shortcut(
+                name,
+                context,
+                plugin_name=plugin.CONF_SECTION
+            )
+        except Exception:
+            pass
+        
+        if shortcut is not None:
+            self.shortcuts.unregister_shortcut(
+                plugin._close_shortcut,
+                context,
+                "Close {}".format(plugin.CONF_SECTION),
             )
 
         # Remove dockwidget

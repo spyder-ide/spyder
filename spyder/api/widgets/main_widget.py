@@ -586,13 +586,14 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             self.update_close_menu
         )
         
-        #self.create_action(
-        #    name=PluginMainWidgetActions.ClosePane,
-        #    text=_("Close"),
-        #    tip=_("Close the pane"),
-        #    icon=self.create_icon("close_pane"),
-        #    triggered=self.close_dock,
-        #)
+        self.close_action = self.create_action(
+            name=PluginMainWidgetActions.ClosePane,
+            text=_("Close"),
+            tip=_("Close the pane"),
+            icon=self.create_icon("close_pane"),
+            triggered=self.close_dock,
+        )
+
         self.help_action = self.create_action(
             name=PluginMainWidgetActions.HelpPage,
             text=_("Help"),
@@ -642,7 +643,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
         # Update title
         self.setWindowTitle(self.get_title())
 
-    def create_close_menu(self):
+    def update_close_menu(self):
         """
         Populate close menu with the close action of each visible pane.
         """
