@@ -227,6 +227,15 @@ In this release 20 pull requests were closed.
 
 ## Version 6.1.9 (unreleased)
 
+### Important fixes
+
+* Improve performance of Spyder projects with thousands of files.
+* Prevent setting a high DPI scaling factor greater than 5.0
+* Fix debugging cells when `Copy full cell contents` option is enabled.
+* Fix showing plain text docstrings in the Help pane and other user experience
+  errors in it.
+* Add support for IPython 9.18+.
+
 ### API changes
 
 * Add `action_for_widget` method to `SpyderToolbar`.
