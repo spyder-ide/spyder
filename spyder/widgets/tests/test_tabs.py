@@ -2,9 +2,11 @@
 
 from pathlib import Path
 
+import pytest
 from qtpy.QtCore import QEvent, QPoint, QPointF, QRect, Qt
 from qtpy.QtGui import QMouseEvent
-from qtpy.QtWidgets import QWidget
+from qtpy.QtTest import QTest
+from qtpy.QtWidgets import QApplication, QTabBar, QToolButton, QWidget
 
 from spyder.widgets.tabs import BaseTabs, Tabs
 
@@ -21,6 +23,103 @@ def make_tabs(qtbot, names):
         tabs.setTabToolTip(index, name)
     tabs.update_browse_tabs_menu()
     return tabs, pages
+
+
+@pytest.mark.parametrize('keyboard', [False, True])
+def test_tab_navigation_skips_hidden_views(qtbot, keyboard):
+    tabs, pages = make_tabs(qtbot, ['first.py', 'hidden.py', 'last.py'])
+    tabs.setTabVisible(1, False)
+    for direction, expected in ((1, pages[2]), (1, pages[0]), (-1, pages[2])):
+        if keyboard:
+            key = Qt.Key_PageDown if direction > 0 else Qt.Key_PageUp
+            QTest.keyClick(tabs, key, Qt.ControlModifier)
+        else:
+            tabs.tab_navigate(direction)
+        assert tabs.currentWidget() is expected
+    for index in range(3):
+        tabs.setTabVisible(index, False)
+    current = tabs.currentIndex()
+    tabs.tab_navigate(1)
+    tabs.tab_navigate(-1)
+    assert tabs.currentIndex() == current
+
+
+@pytest.mark.parametrize('hidden', [[], [39], list(range(30, 40)), [0, 7, 12, 39]])
+def test_hidden_tabs_keep_native_scroll_and_selection(qtbot, hidden):
+    """Hidden entries must not truncate scrolling or alter selection/history."""
+    tabs, pages = make_tabs(qtbot, [f'file_{index:02d}_example.py' for index in range(40)])
+    tabs.setAttribute(Qt.WA_DontShowOnScreen)
+    tabs.resize(600, 300)
+    tabs.setCurrentIndex(11)
+    tabs.show()
+    bar = tabs.tabBar()
+    bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
+    tabs.setCurrentIndex(10)
+    tabs.setCurrentIndex(11)
+    changed, moved = [], []
+    bar.currentChanged.connect(changed.append)
+    bar.tabMoved.connect(lambda old, new: moved.append((old, new)))
+    for index in hidden:
+        tabs.setTabVisible(index, False)
+    QApplication.processEvents()
+    buttons = {button.arrowType(): button for button in bar.findChildren(QToolButton)}
+    for width in (600, 320, 900):
+        tabs.resize(width, 300)
+        QApplication.processEvents()
+        for direction in (Qt.RightArrow, Qt.LeftArrow):
+            button = buttons[direction]
+            for _ in range(100):
+                if not button.isEnabled():
+                    break
+                current = bar.tabRect(11).left()
+                QTest.mouseClick(button, Qt.LeftButton)
+                QApplication.processEvents()
+                distance = abs(bar.tabRect(11).left() - current)
+                maximum = max(bar.tabRect(index).width() for index in range(40)) + 32
+                assert 0 < distance <= maximum, 'Scroll stalled or skipped intermediate tabs'
+            else:
+                pytest.fail('Scroll button never reached its boundary')
+            visible = [index for index in range(40) if index not in hidden]
+            if direction == Qt.RightArrow:
+                assert bar.tabRect(visible[-1]).right() < button.geometry().left()
+            else:
+                assert 0 <= bar.tabRect(visible[0]).left() < 32
+    assert tabs.currentWidget() is pages[11]
+    assert bar.currentIndex() == 11
+    assert [tabs.widget(index) for index in range(40)] == pages
+    assert [tabs.isTabVisible(index) for index in range(40)] == [index not in hidden for index in range(40)]
+    assert not changed and not moved
+    tabs.removeTab(11)
+    assert tabs.currentWidget() is pages[10]
+
+
+def test_hidden_tabs_survive_reorder_close_and_reveal(qtbot):
+    tabs, _pages = make_tabs(qtbot, [f'file_{index:02d}_example.py' for index in range(20)])
+    tabs.setAttribute(Qt.WA_DontShowOnScreen)
+    tabs.resize(500, 300)
+    tabs.show()
+    tabs.setTabVisible(19, False)
+    tabs.setTabVisible(6, False)
+    bar = tabs.tabBar()
+    bar.moveTab(2, 8)
+    tabs.removeTab(18)
+    tabs.setTabText(1, 'renamed_long_file_name.py')
+    tabs.setCurrentIndex(0)
+    QApplication.processEvents()
+    right = next(button for button in bar.findChildren(QToolButton) if button.arrowType() == Qt.RightArrow)
+    assert right.isEnabled()
+    assert bar.tabRect(0).left() == 0
+    tabs.setTabVisible(tabs.count() - 1, True)
+    QApplication.processEvents()
+    assert right.isEnabled()
+    for index in range(tabs.count()):
+        tabs.setTabVisible(index, False)
+    QApplication.processEvents()
+    tabs.setTabVisible(0, True)
+    tabs.resize(1600, 300)
+    QApplication.processEvents()
+    assert not right.isVisible()
+    assert bar.tabRect(0).left() == 0
 
 
 def mouse_event(event_type, position, modifiers):

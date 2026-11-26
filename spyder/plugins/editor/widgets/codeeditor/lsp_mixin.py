@@ -660,6 +660,9 @@ class LSPMixin:
     )
     def request_symbols(self):
         """Request document symbols."""
+        if self.language.lower() == 'markdown' and self.oe_proxy is not None:
+            self.oe_proxy.request_symbols()
+            return
         if not self.document_symbols_enabled:
             return
 
@@ -815,6 +818,9 @@ class LSPMixin:
         """Process code analysis results in a thread."""
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
+        if self.is_cloned:
+            self.finish_code_analysis()
+            return
 
         # Process diagnostics in a thread to improve performance.
         self.update_diagnostics_thread.start()
@@ -824,8 +830,10 @@ class LSPMixin:
         self.setUpdatesEnabled(False)
         self.clear_extra_selections("code_analysis_highlight")
         self.clear_extra_selections("code_analysis_underline")
-        for data in self.blockuserdata_list():
-            data.code_analysis = []
+        # Clones share block data; only the canonical editor replaces it.
+        if not self.is_cloned:
+            for data in self.blockuserdata_list():
+                data.code_analysis = []
 
         self.setUpdatesEnabled(True)
         # When the new code analysis results are empty, it is necessary
@@ -863,6 +871,8 @@ class LSPMixin:
 
     def finish_code_analysis(self):
         """Finish processing code analysis results."""
+        if self.is_cloned:
+            self._diagnostics = self._undo_owner._diagnostics
         self.linenumberarea.update()
         if self.underline_errors_enabled:
             self.underline_errors()
@@ -1697,6 +1707,8 @@ class LSPMixin:
 
     def notify_close(self):
         """Abort pending LSP work and send a close request when applicable."""
+        if self.oe_proxy is not None:
+            self.oe_proxy.stop_requests()
         self._pending_server_requests = []
         self._cancel_pending_futures()
 

@@ -334,7 +334,7 @@ class EditorMainWidget(PluginMainWidget):
 
         This happens when plugin's dockwidget is raised on top-level.
         """
-        return self.get_current_editor()
+        return self.get_current_view()
 
     def setup(self):
         # ---- File operations
@@ -900,6 +900,12 @@ class EditorMainWidget(PluginMainWidget):
         pass
 
     def on_close(self):
+        self._closing = True
+        for stack in self.editorstacks:
+            for info in stack.data:
+                info.editor.release_undo_view()
+                info.editor.scrollflagarea.close()
+                info.editor.decorations.close()
         state = self.splitter.saveState()
         self.set_conf('splitter_state', qbytearray_to_str(state))
         self.set_conf(
@@ -1109,7 +1115,7 @@ class EditorMainWidget(PluginMainWidget):
             if index is None:
                 continue
 
-            editor = editorstack.tabs.widget(index)
+            editor = editorstack.data[index].editor
             editor.handle_response(
                 lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, params.diagnostics
             )
@@ -1132,7 +1138,7 @@ class EditorMainWidget(PluginMainWidget):
         copy_action_enabled = False
         paste_action_enabled = False
 
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         not_readonly = False
         has_selection = False
 
@@ -1156,6 +1162,8 @@ class EditorMainWidget(PluginMainWidget):
         copy_action_enabled = has_selection
         cut_action_enabled = has_selection and not_readonly
         paste_action_enabled = not_readonly
+        for action in self.edit_menu_actions:
+            action.setEnabled(not_readonly)
 
         self.sig_edit_action_enabled.emit(
             ApplicationActions.Undo, undo_action_enabled
@@ -1263,7 +1271,11 @@ class EditorMainWidget(PluginMainWidget):
                 for editorstack in self.editorstacks:
                     try:
                         method = getattr(editorstack, method_name)
-                        method(checked)
+                        owner = editorstack.editor_owner
+                        value = (owner.get_editor_option(conf_name, checked)
+                                 if owner is not None and conf_name in owner.editor_options
+                                 else checked)
+                        method(value)
                     except AttributeError as e:
                         logger.error(e, exc_info=True)
             self.set_conf(conf_name, checked)
@@ -1295,7 +1307,8 @@ class EditorMainWidget(PluginMainWidget):
         # TODO: Is there another way to do this?
         self.outlineexplorer = outlineexplorer_widget
         for editorstack in self.editorstacks:
-            editorstack.set_outlineexplorer(self.outlineexplorer)
+            if editorstack.editor_owner is None:
+                editorstack.set_outlineexplorer(self.outlineexplorer)
 
     def set_switcher(self, switcher):
         # TODO: Is there another way to do this?
@@ -1332,7 +1345,8 @@ class EditorMainWidget(PluginMainWidget):
     def save_focused_editorstack(self):
         editorstack = self.__get_focused_editorstack()
         if editorstack is not None:
-            for win in [self]+self.editorwindows:
+            owner = editorstack.editor_owner
+            for win in ([owner] if owner is not None else [self]+self.editorwindows):
                 if win.isAncestorOf(editorstack):
                     self.set_last_focused_editorstack(win, editorstack)
 
@@ -1371,20 +1385,23 @@ class EditorMainWidget(PluginMainWidget):
             )
             editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
 
-    def register_editorstack(self, editorstack):
+    def register_editorstack(self, editorstack, owner=None):
+        """Register an editor stack, optionally owned by another docked view."""
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
+        editorstack.editor_owner = owner
         editorstack.set_language_services(self.language_services)
 
-        if self.isAncestorOf(editorstack):
-            # editorstack is a child of the Editor plugin
-            self.set_last_focused_editorstack(self, editorstack)
+        if self.isAncestorOf(editorstack) or owner is not None:
+            # A docked view can own a stack outside the primary Editor pane.
+            self.set_last_focused_editorstack(owner or self, editorstack)
             editorstack.set_closable(len(self.editorstacks) > 1)
 
-            if self.outlineexplorer is not None:
-                editorstack.set_outlineexplorer(self.outlineexplorer)
+            editorstack.set_outlineexplorer(
+                owner.outlineexplorer if owner is not None else self.outlineexplorer)
 
-            editorstack.set_find_widget(self.find_widget)
+            editorstack.set_find_widget(
+                owner.find_widget if owner is not None else self.find_widget)
             editorstack.sig_editor_cursor_position_changed.connect(
                 self.current_editor_cursor_changed
             )
@@ -1490,7 +1507,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
         editorstack.sig_open_file.connect(self.report_open_file)
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
-        editorstack.sig_new_file[()].connect(self.new)
+        editorstack.sig_new_file[()].connect(lambda: self.new(editorstack=editorstack))
         editorstack.sig_open_last_closed.connect(self.open_last_closed)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.sig_close_file.connect(self.remove_file_cursor_history)
@@ -1544,17 +1561,44 @@ class EditorMainWidget(PluginMainWidget):
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
-            self.find_widget.set_editor(self.get_current_editor())
+            owner = editorstack.editor_owner
+            controller = getattr(self, 'reference_editor', None)
+            if controller is not None:
+                for info in editorstack.data:
+                    controller.recover_primary_view(info.filename)
+            if owner is not None:
+                owner.find_widget.set_editor(None)
+                remaining = next((stack for stack in self.editorstacks
+                                  if stack.editor_owner is owner), None)
+                if remaining is not None:
+                    self.set_last_focused_editorstack(owner, remaining)
+                    remaining._bind_current_view()
+                else:
+                    self.last_focused_editorstack.pop(owner, None)
+            primary = self.get_last_focused_editorstack(self)
+            if primary is not None:
+                primary._bind_current_view()
             return True
         else:
             # editorstack was not removed!
             return False
 
     def clone_editorstack(self, editorstack):
-        editorstack.clone_from(self.editorstacks[0])
+        owner = editorstack.editor_owner
+        source = next((stack for stack in self.editorstacks
+                       if stack is not editorstack
+                       and stack.editor_owner is owner), None)
+        if source is not None:
+            editorstack.clone_from(source)
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
+        source = next((stack for stack in self.editorstacks
+                       if str(id(stack)) == editorstack_id_str), None)
+        # Closing a reference tab removes its view, not the managed document.
+        if source is not None and source.editor_owner is not None:
+            source.editor_owner.recover_primary_view(filename)
+            return
         if filename in self.id_per_file:
             self.deregister_file_run_metadata(filename)
         else:
@@ -1566,8 +1610,9 @@ class EditorMainWidget(PluginMainWidget):
             for editorstack in self.editorstacks:
                 if str(id(editorstack)) != editorstack_id_str:
                     editorstack.blockSignals(True)
-                    index = editorstack.get_index_from_filename(filename)
-                    editorstack.close_file(index, force=True)
+                    index = editorstack.has_filename(filename)
+                    if index is not None:
+                        editorstack.close_file(index, force=True)
                     editorstack.blockSignals(False)
         except RuntimeError:
             pass
@@ -1652,6 +1697,11 @@ class EditorMainWidget(PluginMainWidget):
         if editorstack is not None:
             return editorstack.get_current_editor()
 
+    def get_current_view(self):
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            return editorstack.get_current_view()
+
     def get_current_finfo(self):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
@@ -1710,7 +1760,7 @@ class EditorMainWidget(PluginMainWidget):
 
         state = any(
             finfo.editor.document().isModified() or finfo.newly_created
-            for finfo in editorstack.data
+            for finfo in self.editorstacks[0].data
         )
         self.sig_file_action_enabled.emit(ApplicationActions.SaveAll, state)
 
@@ -1873,7 +1923,8 @@ class EditorMainWidget(PluginMainWidget):
         is created (when loading or creating a new file).
         """
         for editorstack in self.editorstacks[1:]:
-            editorstack.clone_editor_from(finfo, set_current=False)
+            if editorstack.editor_owner is None:
+                editorstack.clone_editor_from(finfo, set_current=False)
 
     def new(
         self,
@@ -1940,8 +1991,9 @@ class EditorMainWidget(PluginMainWidget):
         else:
             # QString when triggered by a Qt signal
             fname = osp.abspath(str(fname))
-            index = current_es.has_filename(fname)
-            if index is not None and not current_es.close_file(index):
+            source_stack = self.editorstacks[0]
+            index = source_stack.has_filename(fname)
+            if index is not None and not source_stack.close_file(index, close_document=True):
                 return
 
         # Creating the editor widget in the first editorstack (the one that
@@ -1967,6 +2019,8 @@ class EditorMainWidget(PluginMainWidget):
         except RuntimeError:
             pass
 
+        if current_es.has_filename(finfo.filename) is None:
+            current_es.clone_editor_from(finfo, set_current=False)
         current_es.set_current_filename(finfo.filename)
 
         # Prevent KeyError when closing all files and not giving focus to
@@ -1993,6 +2047,7 @@ class EditorMainWidget(PluginMainWidget):
         end_column: int | None = None,
         set_focus: bool = True,
         add_where: str = "end",
+        from_outline: bool = False,
     ):
         """
         Load a text file.
@@ -2006,15 +2061,23 @@ class EditorMainWidget(PluginMainWidget):
         the start position in this line and end_column the length
         (So that the end position is start_column + end_column)
         Alternatively, the first match of word is used as a position.
+        from_outline preserves an active Markdown preview for heading navigation.
         """
         cursor_history_state = self.__ignore_cursor_history
         self.__ignore_cursor_history = True
+
+        if editorwindow is None:
+            editorwindow = getattr(self.get_current_editorstack(),
+                                   'editor_owner', None)
+        docked_view = (editorwindow is not None and editorwindow is not self
+                       and editorwindow not in self.editorwindows)
 
         # Switch to editor before trying to load a file.
         # Here we catch RuntimeError to avoid an issue when loading files.
         # Fixes spyder-ide/spyder#20055
         try:
-            self.switch_to_plugin()
+            if not docked_view:
+                self.switch_to_plugin()
         except (AttributeError, RuntimeError):
             pass
 
@@ -2026,7 +2089,8 @@ class EditorMainWidget(PluginMainWidget):
 
         focus_widget = QApplication.focusWidget()
         if (
-            self.editorwindows
+            not docked_view
+            and self.editorwindows
             and self.dockwidget
             and not self.dockwidget.isVisible()
         ):
@@ -2038,7 +2102,8 @@ class EditorMainWidget(PluginMainWidget):
             editorwindow.setFocus()
             editorwindow.raise_()
         elif (
-            self.dockwidget
+            not docked_view
+            and self.dockwidget
             and not self._is_maximized
             and not self.dockwidget.isAncestorOf(focus_widget)
             and not isinstance(focus_widget, CodeEditor)
@@ -2076,58 +2141,78 @@ class EditorMainWidget(PluginMainWidget):
         elif goto is not None and len(goto) != len(filenames):
             goto = None
 
-        for index, filename in enumerate(filenames):
-            # -- Do not open an already opened file
-            focus = set_focus and index == 0
-            current_editor = self.set_current_filename(filename,
-                                                       editorwindow,
-                                                       focus=focus)
-            if current_editor is None:
-                # Not a valid filename, we need to continue.
-                if not osp.isfile(filename):
-                    continue
-
+        loading_started = False
+        try:
+            for index, filename in enumerate(filenames):
+                # -- Do not open an already opened file
+                focus = set_focus and index == 0
+                if (processevents and not loading_started
+                        and self.is_file_opened(filename) is None and osp.isfile(filename)):
+                    loading_started = True
+                    self.starting_long_process.emit(_("Loading %s...") % filename)
                 current_es = self.get_current_editorstack(editorwindow)
+                if (current_es.editor_owner is not None
+                        and current_es.has_filename(filename) is None):
+                    source_index = self.editorstacks[0].has_filename(filename)
+                    if source_index is not None:
+                        current_es.clone_editor_from(
+                            self.editorstacks[0].data[source_index], set_current=False)
+                current_editor = self.set_current_filename(filename,
+                                                           editorwindow,
+                                                           focus=focus)
+                if current_editor is None:
+                    # Not a valid filename, we need to continue.
+                    if not osp.isfile(filename):
+                        continue
 
-                # Creating the editor widget in the first editorstack
-                # (the one that can't be destroyed), then cloning this
-                # editor widget in all other editorstacks:
-                finfo = self.editorstacks[0].load(
-                    filename,
-                    set_current=False,
-                    add_where=add_where,
-                    processevents=processevents,
-                    extensions=self._plugin.extensions,
-                    panels=self._plugin.panels,
-                    shortcuts=self._plugin.shortcuts,
-                )
+                    current_es = self.get_current_editorstack(editorwindow)
 
-                # This can happen when it was not possible to load filename
-                # from disk.
-                # Fixes spyder-ide/spyder#20670
-                if finfo is None:
-                    continue
+                    # Creating the editor widget in the first editorstack
+                    # (the one that can't be destroyed), then cloning this
+                    # editor widget in all other editorstacks:
+                    finfo = self.editorstacks[0].load(
+                        filename, set_current=False, add_where=add_where,
+                        processevents=False,
+                        extensions=self._plugin.extensions,
+                        panels=self._plugin.panels,
+                        shortcuts=self._plugin.shortcuts)
 
-                self._clone_file_everywhere(finfo)
-                current_editor = current_es.set_current_filename(filename,
-                                                                 focus=focus)
-                slots = self.get_conf('bookmarks', default={})
-                current_editor.set_bookmarks(load_bookmarks(filename, slots))
-                current_es.analyze_script()
-                self.sig_new_recent_file.emit(filename)
+                    # This can happen when it was not possible to load filename
+                    # from disk.
+                    # Fixes spyder-ide/spyder#20670
+                    if finfo is None:
+                        continue
 
-            if goto is not None:  # 'word' is assumed to be None as well
-                current_editor.go_to_line(goto[index], word=word,
-                                          start_column=start_column,
-                                          end_column=end_column)
-            current_editor.clearFocus()
-            current_editor.setFocus()
-            current_editor.window().raise_()
+                    self._clone_file_everywhere(finfo)
+                    if (current_es.editor_owner is not None
+                            and current_es.has_filename(filename) is None):
+                        current_es.clone_editor_from(finfo, set_current=False)
+                    current_editor = current_es.set_current_filename(filename,
+                                                                     focus=focus)
+                    slots = self.get_conf('bookmarks', default={})
+                    current_editor.set_bookmarks(load_bookmarks(filename, slots))
+                    current_es.analyze_script()
+                    self.sig_new_recent_file.emit(filename)
 
-            if processevents:
-                QApplication.processEvents()
+                if goto is not None:  # 'word' is assumed to be None as well
+                    page = getattr(current_editor, 'markdown_page', None)
+                    if not (from_outline and page is not None and page.currentIndex()
+                            and page.go_to_heading(goto[index])):
+                        current_es.set_markdown_preview(False)
+                        current_editor.go_to_line(goto[index], word=word,
+                                                 start_column=start_column,
+                                                 end_column=end_column)
+                if focus:
+                    current_es.get_current_view().clearFocus()
+                    current_es.get_current_view().setFocus()
+                    current_editor.window().raise_()
 
-        self.__ignore_cursor_history = cursor_history_state
+                if processevents:
+                    QApplication.processEvents()
+        finally:
+            self.__ignore_cursor_history = cursor_history_state
+            if loading_started:
+                self.ending_long_process.emit("")
         self.add_cursor_to_history()
 
     def _create_print_editor(self):
@@ -2228,7 +2313,7 @@ class EditorMainWidget(PluginMainWidget):
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
-        self.editorstacks[0].close_all_files()
+        self.editorstacks[0].close_all_files(close_document=True)
 
     @Slot()
     def save(self, index=None, force=False):
@@ -2331,7 +2416,7 @@ class EditorMainWidget(PluginMainWidget):
         filename = osp.abspath(str(filename))
         index = self.get_filename_index(filename)
         if index is not None:
-            self.editorstacks[0].close_file(index)
+            self.editorstacks[0].close_file(index, close_document=True)
 
     def removed(self, filename):
         """File was removed in file explorer widget or in project explorer"""
@@ -2386,32 +2471,32 @@ class EditorMainWidget(PluginMainWidget):
     # ---- Edit
     # -------------------------------------------------------------------------
     def undo(self) -> None:
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         if editor is not None:
             editor.undo()
 
     def redo(self) -> None:
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         if editor is not None:
             editor.redo()
 
     def cut(self) -> None:
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         if editor is not None:
             editor.cut()
 
     def copy(self) -> None:
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         if editor is not None:
             editor.copy()
 
     def paste(self) -> None:
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         if editor is not None:
             editor.paste()
 
     def select_all(self) -> None:
-        editor = self.get_current_editor()
+        editor = self.get_current_view()
         if editor is not None:
             editor.selectAll()
 
@@ -2421,49 +2506,49 @@ class EditorMainWidget(PluginMainWidget):
     def indent(self):
         """Indent current line or selection"""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.indent()
 
     @Slot()
     def unindent(self):
         """Unindent current line or selection"""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.unindent()
 
     @Slot()
     def text_uppercase(self):
         """Change current line or selection to uppercase."""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.transform_to_uppercase()
 
     @Slot()
     def text_lowercase(self):
         """Change current line or selection to lowercase."""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.transform_to_lowercase()
 
     @Slot()
     def toggle_comment(self):
         """Comment current line or selection"""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.toggle_comment()
 
     @Slot()
     def blockcomment(self):
         """Block comment current line or selection"""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.blockcomment()
 
     @Slot()
     def unblockcomment(self):
         """Un-block comment current line or selection"""
         editor = self.get_current_editor()
-        if editor is not None:
+        if editor is not None and self.get_current_view() is editor:
             editor.unblockcomment()
 
     @Slot()
@@ -2641,6 +2726,7 @@ class EditorMainWidget(PluginMainWidget):
             self.last_edit_cursor_pos = None
             return
 
+        self.get_current_editorstack().set_markdown_preview(False)
         character_count = editor.document().characterCount()
         if positions[-1] < character_count:
             editor.set_cursor_position(positions[-1])
@@ -2725,6 +2811,7 @@ class EditorMainWidget(PluginMainWidget):
             self.cursor_undo_history.pop()
         else:
             self.load(current_filename)
+            self.get_current_editorstack().set_markdown_preview(False)
             editor = self.get_current_editor()
             editor.clear_extra_cursors()
             editor.setTextCursor(current_cursors[-1])
@@ -2786,7 +2873,10 @@ class EditorMainWidget(PluginMainWidget):
 
         index = editorstack.has_filename(filename)
         if index is None:
-            return None
+            editorstack = self.editorstacks[0]
+            index = editorstack.has_filename(filename)
+            if index is None:
+                return None
 
         return editorstack.data[index].editor
 
@@ -3055,7 +3145,7 @@ class EditorMainWidget(PluginMainWidget):
             if osp.isfile(filename):
                 index = editorstack.has_filename(filename)
                 if index is not None:
-                    block = (editorstack.tabs.widget(index).document()
+                    block = (editorstack.data[index].editor.document()
                              .findBlockByNumber(line_num))
                     block.userData().bookmarks.remove((slot_num, column))
         if editorstack is not None:
@@ -3074,6 +3164,7 @@ class EditorMainWidget(PluginMainWidget):
             self.last_edit_cursor_pos = None
             return
         self.load(filename)
+        self.get_current_editorstack().set_markdown_preview(False)
         editor = self.get_current_editor()
         if line_num < editor.document().lineCount():
             linelength = len(editor.document()
@@ -3144,8 +3235,12 @@ class EditorMainWidget(PluginMainWidget):
         finfo = self.get_current_finfo()
         if self.editorstacks is not None:
             for editorstack in self.editorstacks:
+                owner = editorstack.editor_owner
+                current_value = (owner.get_editor_option(option, value)
+                                 if owner is not None and option in owner.editor_options
+                                 else value)
                 getattr(editorstack, option_to_method[option])(
-                    value, current_finfo=finfo
+                    current_value, current_finfo=finfo
                 )
         # We must update the current editor after the others:
         # (otherwise, code analysis buttons state would correspond to the
@@ -3263,7 +3358,8 @@ class EditorMainWidget(PluginMainWidget):
     def set_create_new_file_if_empty(self, value):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
-            editorstack.create_new_file_if_empty = value
+            editorstack.create_new_file_if_empty = (
+                value and editorstack.editor_owner is None)
 
     # ---- File Menu actions (Mac only)
     # -------------------------------------------------------------------------

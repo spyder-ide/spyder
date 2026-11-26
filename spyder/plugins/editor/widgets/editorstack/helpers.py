@@ -231,8 +231,7 @@ class StackHistory(MutableSequence):
 
     def _update_id_list(self):
         """Update list of corresponding ids and tabs."""
-        self.id_list = [id(self.editor.tabs.widget(_i))
-                        for _i in range(self.editor.tabs.count())]
+        self.id_list = [id(info.editor) for info in self.editor.data]
 
     def refresh(self):
         """Remove editors that are not longer open."""
@@ -260,7 +259,7 @@ class StackHistory(MutableSequence):
 
     def __setitem__(self, i, v):
         """Set the ith element of the history."""
-        _id = id(self.editor.tabs.widget(v))
+        _id = id(self.editor.data[v].editor)
         self.history[i] = _id
 
     def __str__(self):
@@ -269,12 +268,12 @@ class StackHistory(MutableSequence):
 
     def insert(self, i, tab_index):
         """Insert the widget (at tab index) in the position i (index)."""
-        _id = id(self.editor.tabs.widget(tab_index))
+        _id = id(self.editor.data[tab_index].editor)
         self.history.insert(i, _id)
 
     def remove(self, tab_index):
         """Remove the widget at the corresponding tab_index."""
-        _id = id(self.editor.tabs.widget(tab_index))
+        _id = id(self.editor.data[tab_index].editor)
         if _id in self.history:
             self.history.remove(_id)
 

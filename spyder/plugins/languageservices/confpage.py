@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
+from spyder.plugins.editor.confpage import create_editor_view_checkbox
 from spyder.widgets.config import BaseConfigTab
 from spyder.plugins.languageservices.api.provider import (
     ProviderConfigAccessor,
@@ -114,9 +115,8 @@ class LanguageServicesConfigPage(PluginConfigPage):
         completions_layout.addWidget(
             newcb(_("Enable code snippets"), "enable_code_snippets"), 1, 0
         )
-        automatic = newcb(
-            _("Show completions on the fly"),
-            "automatic_completions",
+        automatic = create_editor_view_checkbox(
+            self, "automatic_completions",
             section="editor",
         )
         completions_layout.addWidget(automatic, 2, 0)

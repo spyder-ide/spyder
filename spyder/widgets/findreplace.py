@@ -425,7 +425,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
 
     def show_replace(self):
         """Show replace widgets"""
-        if self.enable_replace:
+        if self.enable_replace and self.editor is not None and not self.editor.isReadOnly():
             self.show(hide_replace=False)
             for widget in self.replace_widgets:
                 widget.show()
@@ -462,9 +462,11 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
 
         # Disconnect previous connection to highlight matches
-        if self.editor is not None and self.is_code_editor:
+        if self.editor is not None:
             try:
-                self.editor.textChanged.disconnect(self.update_matches)
+                self.editor.destroyed.disconnect(self._editor_destroyed)
+                if self.is_code_editor:
+                    self.editor.textChanged.disconnect(self.update_matches)
             except RuntimeError:
                 # The previous editor was already deleted, e.g. because its
                 # file was closed after being moved or removed outside Spyder
@@ -474,6 +476,8 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
 
         # Set current editor
         self.editor = editor
+        if editor is not None:
+            editor.destroyed.connect(self._editor_destroyed)
 
         # Keep number of matches updated if editor text has changed
         if self.is_code_editor:
@@ -483,6 +487,12 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
             self.refresh()
         if self.isHidden() and editor is not None:
             self.clear_matches()
+
+    @Slot()
+    def _editor_destroyed(self):
+        """Release a search target before Qt deletes its view."""
+        self.editor = None
+        self.is_code_editor = False
 
     @Slot()
     def find_next(self, set_focus=True):
@@ -593,7 +603,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
     @Slot()
     def replace_find(self, focus_replace_text=False):
         """Replace and find."""
-        if self.editor is None:
+        if self.editor is None or self.editor.isReadOnly():
             return
         replace_text = str(self.replace_text.currentText())
         search_text = str(self.search_text.currentText())
@@ -670,7 +680,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
     @Slot()
     def replace_find_all(self):
         """Replace and find all matching occurrences"""
-        if self.editor is None:
+        if self.editor is None or self.editor.isReadOnly():
             return
 
         replace_text = str(self.replace_text.currentText())
@@ -715,7 +725,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
     @Slot()
     def replace_find_selection(self, focus_replace_text=False):
         """Replace and find in the current selection"""
-        if self.editor is not None:
+        if self.editor is not None and not self.editor.isReadOnly():
             replace_text = str(self.replace_text.currentText())
             search_text = str(self.search_text.currentText())
             case = self.case_button.isChecked()
