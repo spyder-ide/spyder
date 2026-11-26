@@ -908,3 +908,22 @@ class Tabs(SpyderShortcutsMixin, BaseTabs):
             self.register_shortcut_for_widget(
                 name=name, triggered=callback, widget=parent, context=context
             )
+
+
+def test():  # pragma: no cover
+    from spyder.utils.qthelpers import qapplication
+    from spyder.utils.stylesheet import APP_STYLESHEET
+
+    app = qapplication()
+    app.setStyleSheet(str(APP_STYLESHEET))
+
+    tabs = Tabs(None)
+    tabs.show()
+    tabs.addTab(QWidget(None), "Tab 1")
+    tabs.addTab(QWidget(None), "Tab 2")
+
+    app.exec_()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    test()
