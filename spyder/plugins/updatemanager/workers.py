@@ -247,17 +247,16 @@ def _check_asset_available(
     return asset_info
 
 
-def _read_updater_log(log_path: str) -> tuple[str, str | None]:
-    """Read a Spyder-updater log file and report OS errors separately."""
+def _read_updater_log(log_path: str) -> str | None:
+    """Read a Spyder-updater log file and disregard OSErrors."""
     try:
         with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-            return f.read(), None
-    except OSError as err:
-        logger.warning(
-            "Unable to read Spyder-updater log file %s", log_path,
-            exc_info=err
-        )
-        return "", f"Unable to read {log_path}: {err}"
+            return f.read()
+    except OSError:
+        # Catch errors when reading the file because they don't represent
+        # problems with the updater.
+        # Fixes spyder-ide/spyder#26140 and similar issues.
+        return None
 
 
 def validate_download(file: str, checksum: str) -> bool:
@@ -648,18 +647,10 @@ class WorkerUpdateUpdater(BaseWorker):
             # Check for errors there by reading the logs
             updater_stdout = osp.join(installer_dir, "updater_stdout.log")
             updater_stderr = osp.join(installer_dir, "updater_stderr.log")
-            stdout, __ = _read_updater_log(updater_stdout)
-            stderr, stderr_error = _read_updater_log(updater_stderr)
+            stdout = _read_updater_log(updater_stdout)
+            stderr = _read_updater_log(updater_stderr)
 
-            if stderr_error is not None:
-                raise subprocess.CalledProcessError(
-                    1,
-                    " ".join(cmd),
-                    output=stdout,
-                    stderr=stderr_error,
-                )
-
-            if stderr:
+            if stderr is not None:
                 raise subprocess.CalledProcessError(
                     1, " ".join(cmd), output=stdout, stderr=stderr
                 )

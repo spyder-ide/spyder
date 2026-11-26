@@ -156,14 +156,14 @@ def test_get_asset_info(qtbot, mocker, app, version, release, update_type):
         assert info['filename'].endswith(".zip")
 
 
-def test_update_updater_missing_windows_stderr_log(tmp_path, mocker):
-    """Test missing updater stderr logs are reported as handled errors."""
+def test_updater_missing_windows_stderr_log(tmp_path, mocker):
+    """Test missing updater stderr logs are not reported."""
     worker = WorkerUpdateUpdater(False)
     worker.updater_version = parse("0.2.0")
     worker.installer_path = str(tmp_path / "spyder-conda-lock.zip")
 
-    (tmp_path / "spyder-updater-0.2.0.conda").write_text("")
-    (tmp_path / "updater_stdout.log").write_text("")
+    (tmp_path / "spyder-updater-0.2.0.conda").touch()
+    (tmp_path / "updater_stdout.log").touch()
 
     mocker.patch.object(workers, "find_conda", return_value="conda")
     mocker.patch.object(workers, "find_program", return_value="powershell")
@@ -177,10 +177,15 @@ def test_update_updater_missing_windows_stderr_log(tmp_path, mocker):
         ),
     )
 
-    with pytest.raises(subprocess.CalledProcessError) as error:
+    class MissingStderrLogError(Exception):
+        pass
+
+    with pytest.raises(MissingStderrLogError):
+        # This should raise subprocess.CalledProcessError if it failed
         worker._install_update()
 
-    assert "updater_stderr.log" in error.value.stderr
+        # No other exception should be raised but this one
+        raise MissingStderrLogError
 
 
 # ---- Test WorkerDownloadInstaller
