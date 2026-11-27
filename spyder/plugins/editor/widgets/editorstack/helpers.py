@@ -190,7 +190,11 @@ class FileInfo(QObject):
     def run_todo_finder(self):
         """Run TODO finder."""
         if self.editor.is_python_or_ipython():
-            self.threadmanager.add_thread(find_tasks,
+            from spyder.config.manager import CONF
+            custom_annotations = CONF.get('editor', 'custom_annotations', '')
+            def find_with_custom(source_code): # Closure to pass custom patterns
+                return find_tasks(source_code, custom_annotations)
+            self.threadmanager.add_thread(find_with_custom,
                                           self.todo_finished,
                                           self.get_source_code(), self)
 
