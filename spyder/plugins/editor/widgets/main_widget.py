@@ -1922,12 +1922,6 @@ class EditorMainWidget(PluginMainWidget):
                             # Please see spyder-ide/spyder#12892
                             self.untitled_num = 0
 
-            while True:
-                fname = create_fname(self.untitled_num)
-                self.untitled_num += 1
-                if not osp.isfile(fname):
-                    break
-
             basedir = getcwd_or_home()
             active_project_path = self.get_active_project_path()
             if active_project_path is not None:
@@ -1936,7 +1930,17 @@ class EditorMainWidget(PluginMainWidget):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
-            fname = osp.abspath(osp.join(basedir, fname))
+
+            # Check for existing files in basedir, which is where the new file
+            # will be saved, to avoid overwriting them.
+            # See spyder-ide/spyder#5037
+            while True:
+                fname = osp.abspath(
+                    osp.join(basedir, create_fname(self.untitled_num))
+                )
+                self.untitled_num += 1
+                if not osp.isfile(fname):
+                    break
         else:
             # QString when triggered by a Qt signal
             fname = osp.abspath(str(fname))
