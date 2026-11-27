@@ -528,7 +528,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
         self.matches_string = ""
         self.messages_action.setVisible(False)
         self.number_matches_text.hide()
-        if self.is_code_editor:
+        if hasattr(self.editor, "clear_found_results"):
             self.editor.clear_found_results()
 
     def find(self, changed=True, forward=True, rehighlight=True,
@@ -553,8 +553,25 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
-            found = self.editor.find_text(text, changed, forward, case=case,
-                                          word=word, regexp=regexp)
+
+            number_matches = None
+            if self.is_code_editor:
+                found = self.editor.find_text(
+                    text, changed, forward, case=case, word=word, regexp=regexp
+                )
+            else:
+                self.editor.find_text(
+                    text, changed, forward, case=case, word=word, regexp=regexp
+                )
+
+                # It's not possible to check synchronously if text was found
+                # for web widgets. So we check for number of matches instead in
+                # that case
+                number_matches = self.editor.get_number_matches(
+                    text, case=case, regexp=regexp, word=word
+                )
+
+                found = bool(number_matches)
 
             error_msg = False
             if not found and regexp:
@@ -567,30 +584,36 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
             if error_msg:
                 return
 
-            if self.is_code_editor and found:
-                cursor = QTextCursor(self.editor.textCursor())
-                TextHelper(self.editor).unfold_if_colapsed(cursor)
+            if found:
+                if self.is_code_editor:
+                    cursor = QTextCursor(self.editor.textCursor())
+                    TextHelper(self.editor).unfold_if_colapsed(cursor)
 
-                if rehighlight or not self.editor.found_results:
-                    self.highlight_timer.stop()
-                    if start_highlight_timer:
-                        self.highlight_timer.start()
-                    else:
-                        self.highlight_matches()
+                    if rehighlight or not self.editor.found_results:
+                        self.highlight_timer.stop()
+                        if start_highlight_timer:
+                            self.highlight_timer.start()
+                        else:
+                            self.highlight_matches()
             else:
                 self.clear_matches()
 
-            number_matches = self.editor.get_number_matches(text, case=case,
-                                                            regexp=regexp,
-                                                            word=word)
+            # To not recompute number_matches twice
+            if number_matches is None:
+                number_matches = self.editor.get_number_matches(
+                    text, case=case, regexp=regexp, word=word
+                )
+
             if hasattr(self.editor, 'get_match_number'):
                 match_number = self.editor.get_match_number(text, case=case,
                                                             regexp=regexp,
                                                             word=word)
             else:
                 match_number = 0
+
             self.change_number_matches(current_match=match_number,
                                        total_matches=number_matches)
+
             return found
 
     @Slot()

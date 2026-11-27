@@ -11,14 +11,17 @@ Tests for pathmanager.py
 import os
 
 # Test library imports
+from flaky import flaky
 import pytest
 from qtpy import PYSIDE6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor
+from qtpy.QtWebEngineCore import QWebEngineFindTextResult
 from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.widgets.browser import WebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.utils.stylesheet import APP_STYLESHEET
 
@@ -36,7 +39,7 @@ def get_text_changed_receivers(editor):
 
 @pytest.fixture
 def findreplace_editor(qtbot, request):
-    """Set up editor with FindReplace widget."""
+    """Set up CodeEditor with FindReplace widget."""
     # Widget to show together the two other below
     widget = QWidget()
     qtbot.addWidget(widget)
@@ -58,6 +61,36 @@ def findreplace_editor(qtbot, request):
     # Find replace
     findreplace = FindReplace(editor, enable_replace=True)
     findreplace.set_editor(editor)
+    widget.findreplace = findreplace
+    layout.addWidget(findreplace)
+
+    # Resize widget and show
+    widget.resize(900, 360)
+    widget.show()
+
+    return widget
+
+
+@pytest.fixture
+def findreplace_webview(qtbot, request):
+    """Set up WebView with FindReplace widget."""
+    # Widget to show together the two other below
+    widget = QWidget()
+    qtbot.addWidget(widget)
+    widget.setStyleSheet(str(APP_STYLESHEET))
+
+    # Widget's layout
+    layout = QVBoxLayout()
+    widget.setLayout(layout)
+
+    # WebView
+    webview = WebView(parent=widget)
+    widget.webview = webview
+    layout.addWidget(webview)
+
+    # Find replace
+    findreplace = FindReplace(webview, enable_replace=False)
+    findreplace.set_editor(webview)
     widget.findreplace = findreplace
     layout.addWidget(findreplace)
 
@@ -415,6 +448,108 @@ def test_set_editor_after_previous_was_deleted(findreplace_editor, qtbot):
 
     assert findreplace.editor is editor
     assert get_text_changed_receivers(editor) == n_connections + 1
+
+
+@flaky(max_runs=5)
+def test_search_in_webview(findreplace_webview, qtbot):
+    webview = findreplace_webview.webview
+    findreplace = findreplace_webview.findreplace
+
+    # To get number of matches found in the page
+    findreplace_webview.results = 0
+
+    def set_find_results(result: QWebEngineFindTextResult):
+        findreplace_webview.results = result.numberOfMatches()
+
+    webview.page().findTextFinished.connect(set_find_results)
+
+    # To get active search match
+    findreplace_webview.active_match = None
+
+    def set_active_match(result: QWebEngineFindTextResult):
+        findreplace_webview.active_match = result.activeMatch()
+        print(result.activeMatch())
+
+    webview.page().findTextFinished.connect(set_active_match)
+
+    # To get selected text
+    findreplace_webview.selection = None
+
+    def on_selection(text):
+        findreplace_webview.selection = text or ""
+
+    # Set simple content
+    webview.setHtml(
+        """
+        <html lang="en">
+        <body>
+            <p>data</p>
+            <p>Data</p>
+            <p>data</p>
+            <p>data</p>
+        </body>
+        </html>
+        """
+    )
+
+    # Set text to search
+    edit = findreplace.search_text.lineEdit()
+    edit.setFocus()
+    qtbot.keyClicks(edit, "Data", delay=80)
+    qtbot.wait(100)  # Needed for the search to be performed
+
+    # Check number of results
+    qtbot.waitUntil(lambda: findreplace_webview.results == 4)
+    assert findreplace.number_matches_text.isVisible()
+    assert findreplace.number_matches_text.text() == "4 matches"
+
+    # Find next/previous result
+    qtbot.mouseClick(findreplace.next_button, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: findreplace_webview.active_match == 2)
+
+    qtbot.mouseClick(findreplace.previous_button, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: findreplace_webview.active_match == 1)
+
+    # Enable/disable case sensitive search
+    qtbot.mouseClick(findreplace.case_button, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: findreplace_webview.results == 1)
+    assert findreplace.number_matches_text.isVisible()
+    assert findreplace.number_matches_text.text() == "1 matches"
+
+    qtbot.mouseClick(findreplace.case_button, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: findreplace_webview.results == 4)
+
+    # Clear search text with the lineedit button
+    edit.clear_action.trigger()
+    assert not edit.clear_action.isVisible()
+    assert not findreplace.number_matches_text.isVisible()
+
+    webview.page().runJavaScript(
+        "window.getSelection().toString()",
+        on_selection,
+    )
+
+    qtbot.waitUntil(lambda: findreplace_webview.selection == "")
+
+    # Search for unexisting text
+    edit.setFocus()
+    qtbot.keyClicks(edit, 'datax', delay=80)
+    qtbot.wait(100)  # Needed for the search to be performed
+    assert findreplace.messages_action.isVisible()
+
+    # Check there's no selected text
+    findreplace_webview.selection = None
+
+    webview.page().runJavaScript(
+        "window.getSelection().toString()",
+        on_selection,
+    )
+
+    qtbot.waitUntil(lambda: findreplace_webview.selection == "")
+
+    # Trigger clear_action and assert messages_action is hidden
+    edit.clear_action.trigger()
+    qtbot.waitUntil(lambda: not findreplace.messages_action.isVisible())
 
 
 if __name__ == "__main__":
