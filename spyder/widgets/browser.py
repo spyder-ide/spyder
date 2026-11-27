@@ -18,6 +18,7 @@ from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
                                      QWebEngineSettings, QWebEngineView)
 from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.translations import _
@@ -241,20 +242,33 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         else:
             inspect_action.setVisible(False)
 
+    @qdebounced(timeout=200)
     def find_text(self, text, changed=True, forward=True, case=False,
                   word=False, regexp=False):
         """Find text."""
+        # Highlighted results are not cleared by Qt before a new search, so we
+        # need to do this manually
+        if changed:
+            self.clear_found_results()
+
         if not WEBENGINE:
             findflag = QWebEnginePage.FindWrapsAroundDocument
         else:
             findflag = QWebEnginePage.FindFlag(0)
 
         if not forward:
-            findflag = findflag | QWebEnginePage.FindBackward
+            findflag = findflag | QWebEnginePage.FindFlag.FindBackward
         if case:
-            findflag = findflag | QWebEnginePage.FindCaseSensitively
+            findflag = findflag | QWebEnginePage.FindFlag.FindCaseSensitively
 
         return self.findText(text, findflag)
+
+    def clear_found_results(self):
+        # Clear found results
+        self.findText("")
+
+        # Clear selected text
+        self.page().runJavaScript("window.getSelection()?.removeAllRanges();")
 
     def get_selected_text(self):
         """Return text selected by current text cursor"""
