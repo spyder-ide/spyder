@@ -48,8 +48,7 @@ class ConfigurationManager(object):
         Configuration manager to provide access to user/site/project config.
         """
         path = conf_path if conf_path else self.get_user_config_path()
-        if not osp.isdir(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
 
         # Site configuration defines the system defaults if a file
         # is found in the site location
@@ -205,8 +204,7 @@ class ConfigurationManager(object):
         """Return the user configuration path."""
         base_path = get_conf_path()
         path = osp.join(base_path, 'config')
-        if not osp.isdir(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
 
         return path
 
@@ -217,8 +215,7 @@ class ConfigurationManager(object):
         if plugin_folder is None:
             raise RuntimeError('Plugin needs to define `CONF_SECTION`!')
         path = osp.join(base_path, 'plugins', plugin_folder)
-        if not osp.isdir(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
 
         return path
 
@@ -491,8 +488,7 @@ class ConfigurationManager(object):
     def get_project_config_path(self, project_root):
         """Return the project configuration path."""
         path = osp.join(project_root, '.spyproj', 'config')
-        if not osp.isdir(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
 
     # MultiUserConf/UserConf interface
     # ------------------------------------------------------------------------
