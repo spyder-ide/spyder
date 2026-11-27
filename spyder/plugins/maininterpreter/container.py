@@ -110,7 +110,9 @@ class MainInterpreterContainer(PluginMainContainer):
             if self.get_conf("custom"):
                 custom_interpreter = self.get_conf('custom_interpreter')
                 if custom_interpreter:
-                    executable = osp.normpath(custom_interpreter)
+                    # Remove surrounding whitespace before normalizing it.
+                    # Fixes spyder-ide/spyder#24955
+                    executable = osp.normpath(custom_interpreter.strip())
                     if osp.isfile(executable):
                         self.add_to_custom_interpreters(executable)
 

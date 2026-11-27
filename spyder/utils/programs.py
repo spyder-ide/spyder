@@ -1074,6 +1074,12 @@ def is_module_installed(module_name, version=None, interpreter=None,
     for pylsp_black that name is python_lsp_black.
     """
     if interpreter is not None:
+        # Remove surrounding whitespace so that the interpreter that is
+        # validated below is the same one used to get the module version.
+        # Fixes spyder-ide/spyder#24955
+        if isinstance(interpreter, str):
+            interpreter = interpreter.strip()
+
         if is_python_interpreter(interpreter):
             try:
                 module_version = get_module_version(module_name, interpreter)
@@ -1122,6 +1128,11 @@ def is_python_interpreter_valid_name(filename):
 
 def is_python_interpreter(filename):
     """Evaluate whether a file is a python interpreter or not."""
+    # Remove surrounding whitespace, e.g. the trailing newline left by
+    # copying the output of `which python`.
+    # Fixes spyder-ide/spyder#24955
+    if isinstance(filename, str):
+        filename = filename.strip()
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
 
     if (not osp.isfile(real_filename) or

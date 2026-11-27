@@ -7,6 +7,7 @@
 # Standard library imports
 import os
 import os.path as osp
+from pathlib import Path
 import sys
 
 # Third party impors
@@ -164,6 +165,25 @@ def test_is_valid_interpreter_name():
     assert all([is_python_interpreter_valid_name(n) for n in names])
 
 
+@pytest.mark.parametrize(
+    "whitespace", ["\n", "\r\n", " ", "\t", " \n"]
+)
+def test_is_python_interpreter_surrounding_whitespace(whitespace):
+    """
+    Check that whitespace around a valid interpreter path is ignored.
+
+    This is a regression test for spyder-ide/spyder#24955
+    """
+    assert is_python_interpreter(sys.executable + whitespace)
+    assert is_python_interpreter(whitespace + sys.executable)
+    assert not is_python_interpreter(whitespace)
+
+
+def test_is_python_interpreter_path_object():
+    """Check that pathlib.Path objects are still accepted."""
+    assert is_python_interpreter(Path(sys.executable))
+
+
 def test_find_program():
     """Test if can find the program."""
     assert find_program('git')
@@ -199,6 +219,20 @@ def test_is_module_installed_with_custom_interpreter():
     assert is_module_installed('qtconsole', '>=4.5', interpreter=current)
     assert not is_module_installed('IPython', '>=1.0,<3.0', interpreter=current)
     assert is_module_installed('cloudpickle', '>=0.5.0', interpreter=current)
+
+
+def test_is_module_installed_interpreter_surrounding_whitespace():
+    """
+    Check that whitespace around the interpreter path is ignored.
+
+    This is a regression test for spyder-ide/spyder#24955
+    """
+    interpreter = sys.executable + '\n'
+    assert is_module_installed('spyder_kernels', interpreter=interpreter)
+    assert not is_module_installed(
+        'not_an_installed_module',
+        interpreter=interpreter,
+    )
 
 
 def test_get_temp_dir_ensure_dir_exists():
