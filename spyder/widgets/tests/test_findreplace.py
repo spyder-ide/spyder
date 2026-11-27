@@ -9,6 +9,7 @@ Tests for pathmanager.py
 """
 # Standard library imports
 import os
+import sys
 
 # Test library imports
 from flaky import flaky
@@ -451,6 +452,9 @@ def test_set_editor_after_previous_was_deleted(findreplace_editor, qtbot):
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux"), reason="Segfaults on Linux"
+)
 def test_search_in_webview(findreplace_webview, qtbot):
     webview = findreplace_webview.webview
     findreplace = findreplace_webview.findreplace
