@@ -23,6 +23,23 @@ from spyder.api.translations import _
 from spyder.plugins.ipythonconsole import SpyderKernelError
 
 
+def _close_channel_streams(client):
+    """Close existing channels while their I/O loop can unregister streams."""
+    # TODO: Remove this helper and its call in stop_channels once we require
+    # jupyter-client >=8.8.0. PR #1089 closes channel streams before stopping
+    # the I/O loop, preventing unregistration against already-closed sockets:
+    # https://github.com/jupyter/jupyter_client/pull/1089
+    if client.ioloop_thread and client.ioloop_thread.is_alive():
+        for channel in (
+            client._shell_channel,
+            client._iopub_channel,
+            client._stdin_channel,
+            client._control_channel,
+        ):
+            if channel is not None:
+                channel.close()
+
+
 class KernelClientTunneler:
     """Class to handle SSH tunneling for a kernel connection."""
 
@@ -86,6 +103,12 @@ class SpyderKernelClient(QtKernelClient):
     # Useful for pdb completion
     control_channel_class = Type(QtZMQSocketChannel)
     sig_spyder_kernel_info = Signal(object)
+
+    def stop_channels(self):
+        """Close channel streams before stopping their I/O loop."""
+        _close_channel_streams(self)
+
+        super().stop_channels()
 
     def _handle_kernel_info_reply(self, rep):
         """Check spyder-kernels version."""
