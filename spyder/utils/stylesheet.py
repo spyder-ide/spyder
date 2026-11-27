@@ -509,16 +509,25 @@ class PanesTabBarStyleSheet(
             or (MAC and close_btn_option == "automatic")
         )
 
-        # QTabBar forces the corner widgets to be smaller than they should.
-        # be. The added top margin allows the toolbuttons to expand to their
-        # normal size.
-        # See: spyder-ide/spyder#13600
-        css['QTabBar::tab'].setValues(
+        # This rule controls the style of the QLabel in each tab
+        css["QTabBar::tab"].setValues(
+            # QTabBar forces the corner widgets to be smaller than they should.
+            # be. The added top margin allows the toolbuttons to expand to their
+            # normal size.
+            # See: spyder-ide/spyder#13600
             marginTop=self.TOP_MARGIN,
-            paddingTop='4px',
-            paddingBottom='4px',
-            paddingLeft='4px' if close_btn_left else '10px',
-            paddingRight='10px' if close_btn_left else '4px'
+            paddingTop=f"{AppStyle.MarginSize + 1}px",
+            paddingBottom=f"{AppStyle.MarginSize + 1}px",
+            paddingLeft=(
+                f"{-(AppStyle.MarginSize - 1)}px"
+                if close_btn_left
+                else f"{3 * AppStyle.MarginSize + 1}px"
+            ),
+            paddingRight=(
+                f"{3 * AppStyle.MarginSize}px"
+                if close_btn_left
+                else f"{AppStyle.MarginSize - 2}px"
+            ),
         )
 
         if MAC:
@@ -538,22 +547,23 @@ class PanesTabBarStyleSheet(
                 marginLeft='-3px' if WIN else ("0px" if MAC else '-4px')
             )
 
+        # XXX Check if this is still needed on Windows
         # Fix minor visual glitch when hovering tabs
         # See spyder-ide/spyder#15398
-        css['QTabBar::tab:hover'].setValues(
-            paddingTop='3px',
-            paddingBottom='3px',
-            paddingLeft='3px' if close_btn_left else '9px',
-            paddingRight='9px' if close_btn_left else '3px'
-        )
+        # css['QTabBar::tab:hover'].setValues(
+        #     paddingTop='3px',
+        #     paddingBottom='3px',
+        #     paddingLeft='3px' if close_btn_left else '9px',
+        #     paddingRight='9px' if close_btn_left else '3px'
+        # )
 
-        for state in ['selected', 'selected:hover']:
-            css[f'QTabBar::tab:{state}'].setValues(
-                paddingTop='4px',
-                paddingBottom='3px',
-                paddingLeft='4px' if close_btn_left else '10px',
-                paddingRight='10px' if close_btn_left else '4px'
-            )
+        # for state in ['selected', 'selected:hover']:
+        #     css[f'QTabBar::tab:{state}'].setValues(
+        #         paddingTop='4px',
+        #         paddingBottom='3px',
+        #         paddingLeft='4px' if close_btn_left else '10px',
+        #         paddingRight='10px' if close_btn_left else '4px'
+        #     )
 
         # Remove border between selected tab and pane below
         css['QTabWidget::pane'].setValues(
