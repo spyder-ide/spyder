@@ -17,6 +17,8 @@ Adapted from binaryornot/helpers.py of
 `BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
+__lazy_modules__ = ["chardet"]
+
 import chardet
 import logging
 

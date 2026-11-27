@@ -29,6 +29,8 @@ from typing import TypedDict
 import textwrap
 from unicodedata import category
 
+from spyder.utils.lazy import LAZY_IMPORTS as __lazy_modules__
+
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
 import nbformat as nbformat

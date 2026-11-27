@@ -31,6 +31,8 @@ import sys
 from tempfile import mkdtemp
 from xml.sax.saxutils import escape
 
+from spyder.utils.lazy import LAZY_IMPORTS as __lazy_modules__
+
 # Third party imports
 from docutils.utils import SystemMessage as SystemMessage
 from jinja2 import Environment, FileSystemLoader
