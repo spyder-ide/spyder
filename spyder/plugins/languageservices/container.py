@@ -8,12 +8,18 @@
 
 from __future__ import annotations
 
+# Standard library imports
+import logging
+
 # Third-party imports
 from lsprotocol import types as lsp
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.widgets.main_container import PluginMainContainer
+
+logger = logging.getLogger(__name__)
 
 
 class LanguageServicesContainer(PluginMainContainer):
@@ -40,7 +46,12 @@ class LanguageServicesContainer(PluginMainContainer):
             widget.exec_()
 
     def show_message(self, params: lsp.ShowMessageParams):
-        """Show a ``window/showMessage`` notification in a message box."""
+        """Show a ``window/showMessage`` notification in a message box.
+
+        The box is not modal: servers send these at any time and blocking
+        the event loop would stall every other request and the tests.
+        """
+        logger.info("Message from a provider: %s", params.message)
         icons = {
             lsp.MessageType.Error: QMessageBox.Critical,
             lsp.MessageType.Warning: QMessageBox.Warning,
@@ -51,7 +62,9 @@ class LanguageServicesContainer(PluginMainContainer):
         box.setIcon(icons.get(params.type, QMessageBox.NoIcon))
         box.setWindowTitle("Spyder")
         box.setText(params.message)
-        box.exec_()
+        box.setAttribute(Qt.WA_DeleteOnClose)
+        box.setModal(False)
+        box.show()
 
     def register_statusbar_widgets(self, statusbar_classes, provider):
         """

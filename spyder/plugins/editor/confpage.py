@@ -244,12 +244,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         # Disable the fix-on-save options if autoformatting is enabled
-        format_on_save = CONF.get(
-            'language_services',
-            ('providers', 'pylsp', 'values', 'format_on_save'),
-            False,
-        )
-        self.on_format_save_state(format_on_save)
+        self.on_format_save_state(self.get_option('format_on_save'))
 
         whitespace_layout = QVBoxLayout()
         whitespace_layout.addWidget(self.removetrail_box)
@@ -497,6 +492,69 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         mouse_shortcuts_layout.addWidget(mouse_shortcuts_button)
         mouse_shortcuts_group.setLayout(mouse_shortcuts_layout)
 
+        # ---- Code formatting tab
+        # -- Code formatting group
+        pep_url = (
+            '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>'
+        )
+        autopep8_url = (
+            "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
+        )
+        black_url = (
+            "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
+        )
+        ruff_url = "<a href='https://docs.astral.sh/ruff/formatter/'>Ruff</a>"
+        code_fmt_label = QLabel(
+            _(
+                "Spyder can use one of the following formatters to format "
+                "your Python code for conformance to the {0} convention: {1}."
+            ).format(pep_url, ", ".join((black_url, ruff_url, autopep8_url)))
+        )
+        code_fmt_label.setOpenExternalLinks(True)
+        code_fmt_label.setWordWrap(True)
+
+        # Each value is the name of the language services provider that
+        # formats with that tool.
+        self.formatter_combobox = self.create_combobox(
+            _("Choose the code formatter: "),
+            (("autopep8", "autopep8"), ("black", "black"), ("ruff", "ruff")),
+            'formatter',
+        )
+        format_on_save_box = newcb(
+            _("Autoformat files on save"),
+            'format_on_save',
+            tip=_(
+                "If enabled, autoformatting will take place when saving a file"
+            ),
+        )
+
+        code_fmt_group = QGroupBox(_("Code formatting"))
+        code_fmt_layout = QVBoxLayout()
+        code_fmt_layout.addWidget(code_fmt_label)
+        code_fmt_layout.addWidget(self.formatter_combobox)
+        code_fmt_layout.addWidget(format_on_save_box)
+        code_fmt_group.setLayout(code_fmt_layout)
+
+        # -- Line length group
+        self.line_length_spinbox = self.create_spinbox(
+            _("Maximum allowed line length:"),
+            None,
+            'line_length',
+            min_=10,
+            max_=500,
+            step=1,
+            tip=_("Default is 79"),
+        )
+        vertical_line_box = newcb(
+            _("Show vertical line at that length"), 'edge_line'
+        )
+
+        line_length_group = QGroupBox(_("Line length"))
+        line_length_layout = QVBoxLayout()
+        line_length_layout.addWidget(self.line_length_spinbox)
+        line_length_layout.addWidget(vertical_line_box)
+        line_length_group.setLayout(line_length_layout)
+
         # --- Tabs ---
         self.create_tab(
             _("Display"),
@@ -518,6 +576,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         self.create_tab(
+            _("Code formatting"),
+            [code_fmt_group, line_length_group],
+        )
+
+        self.create_tab(
             _("Advanced"),
             [
                 template_group,
@@ -529,18 +592,15 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             ],
         )
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'format_on_save'),
-        section='language_services',
-    )
+    @on_conf_change(option='format_on_save', section='editor')
     def on_format_save_state(self, value):
         """
-        Change options following the `format_on_save` completion option.
+        Change options following the `format_on_save` option.
 
         Parameters
         ----------
         value : bool
-            If the completion `format_on_save` option is enabled or disabled.
+            If the `format_on_save` option is enabled or disabled.
 
         Returns
         -------

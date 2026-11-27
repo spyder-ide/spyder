@@ -37,17 +37,7 @@ def test_closing_document_formatting(
 
     # Set formatter
     editorstack.set_format_on_save(True)
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
-    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'ruff'),
-        formatter == 'ruff'
-    )
+    CONF.set('editor', 'formatter', formatter)
 
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
@@ -88,17 +78,7 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
 
     # Set formatter
     editorstack.set_format_on_save(True)
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'formatting'),
-        formatter
-    )
-    # Enable `ruff` plugin/linting in case the formatter being tested is `ruff`
-    CONF.set(
-        'language_services',
-        ('providers', 'pylsp', 'values', 'ruff'),
-        formatter == 'ruff'
-    )
+    CONF.set('editor', 'formatter', formatter)
 
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)

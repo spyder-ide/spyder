@@ -6,9 +6,9 @@
 
 """Tests for the generic language server client provider.
 
-The tests talk to real ``pylsp`` processes described purely by
-configuration, and to a small pygls server that registers a document
-selector to exercise language auto-detection.
+The tests talk to real ``pyrefly`` processes described purely by
+configuration, and to small pygls servers exercising the TCP transport and
+language auto-detection through registered document selectors.
 """
 
 import asyncio
@@ -20,38 +20,31 @@ import pytest
 from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.languageservices.api.provider import ProviderStatus
 from spyder.plugins.languageservices.api.uri import path_as_uri
+from spyder.plugins.languageservices.providers.lsp import (
+    provider as provider_module,
+)
 from spyder.plugins.languageservices.providers.lsp.config import ServerConfig
 from spyder.plugins.languageservices.providers.lsp.provider import (
     LanguageServerClientProvider,
     _ServerState,
 )
 from spyder.plugins.languageservices.services import LanguageServicesAPI
+from spyder.utils.programs import get_binary_path
 
 
 pytestmark = pytest.mark.order(3)
 
-PYLSP_SETTINGS = {
-    "pylsp": {
-        "plugins": {
-            "pyflakes": {"enabled": True},
-            "jedi_completion": {"enabled": True},
-            "jedi_hover": {"enabled": True},
-        }
-    }
-}
+PYREFLY_SETTINGS = {"python": {"pythonPath": sys.executable}}
 
 
-def pylsp_config(name, stdio):
+def pyrefly_config(name):
     return ServerConfig(
         name=name,
-        cmd="pylsp",
-        args="" if stdio else "--host {host} --port {port} --tcp",
-        host="127.0.0.1",
-        port=2087,
-        stdio=stdio,
+        cmd=get_binary_path("pyrefly"),
+        args="lsp",
+        stdio=True,
         languages=("python",),
-        configurations=PYLSP_SETTINGS,
-        python_module=True,
+        configurations=PYREFLY_SETTINGS,
     )
 
 
@@ -98,9 +91,8 @@ async def wait_until(predicate, timeout=30):
     raise TimeoutError("Condition not met")
 
 
-@pytest.mark.parametrize("stdio", [False, True], ids=["tcp", "stdio"])
-def test_pylsp_from_config(stdio, tmp_path):
-    api, provider = make_api([pylsp_config("py", stdio)])
+def test_pyrefly_from_config(tmp_path):
+    api, provider = make_api([pyrefly_config("py")])
     diagnostics = Recorder(api.sig_diagnostics)
     statuses = Recorder(provider.sig_server_status_changed)
     filename = str(tmp_path / "test.py")
@@ -121,7 +113,7 @@ def test_pylsp_from_config(stdio, tmp_path):
         assert capabilities.completion_provider is not None
         assert "." in capabilities.completion_provider.trigger_characters
 
-        await api.open_document(did_open(uri, "import os\nos.walk(\n"))
+        await api.open_document(did_open(uri, "import os\nos.walk(top='.')\n"))
 
         signature = await api.signature_help(
             lsp.SignatureHelpParams(
@@ -129,7 +121,7 @@ def test_pylsp_from_config(stdio, tmp_path):
                 position=lsp.Position(1, 8),
             )
         )
-        assert signature.signatures[0].label.startswith("walk")
+        assert "walk" in signature.signatures[0].label
 
         await api.change_document(
             lsp.DidChangeTextDocumentParams(
@@ -192,11 +184,9 @@ def test_pylsp_from_config(stdio, tmp_path):
 
 
 def test_two_servers_for_one_language(tmp_path):
-    """Two pylsp instances configured under different names both serve
+    """Two pyrefly instances configured under different names both serve
     Python. Their answers are merged."""
-    api, provider = make_api(
-        [pylsp_config("first", stdio=True), pylsp_config("second", stdio=True)]
-    )
+    api, provider = make_api([pyrefly_config("first"), pyrefly_config("second")])
     uri = path_as_uri(str(tmp_path / "two.py"))
 
     async def scenario():
@@ -222,6 +212,55 @@ def test_two_servers_for_one_language(tmp_path):
         await provider.restart_server("second")
         assert provider.server_status("second") is ProviderStatus.READY
         await api.stop_provider(provider.NAME)
+
+    asyncio.run(scenario())
+
+
+TCP_SERVER = '''
+import sys
+from lsprotocol import types
+from pygls.lsp.server import LanguageServer
+
+server = LanguageServer("tcp-fake", "0.1")
+
+
+@server.feature(types.TEXT_DOCUMENT_HOVER)
+def on_hover(params):
+    return types.Hover(contents="tcp hover")
+
+
+server.start_tcp(sys.argv[1], int(sys.argv[2]))
+'''
+
+
+def test_tcp_server(tmp_path):
+    script = tmp_path / "tcp_server.py"
+    script.write_text(TCP_SERVER)
+    config = ServerConfig(
+        name="tcp",
+        cmd=sys.executable,
+        args=str(script) + " {host} {port}",
+        host="127.0.0.1",
+        port=2087,
+        languages=("python",),
+    )
+    api, provider = make_api([config])
+    uri = path_as_uri(str(tmp_path / "main.py"))
+
+    async def scenario():
+        await api.start_provider(provider.NAME)
+        await api.start_language(Language.PYTHON)
+        assert provider.server_status("tcp") is ProviderStatus.READY
+        await api.open_document(did_open(uri, "x = 1\n"))
+        hover = await api.hover(
+            lsp.HoverParams(
+                text_document=lsp.TextDocumentIdentifier(uri),
+                position=lsp.Position(0, 0),
+            )
+        )
+        assert hover.contents == "tcp hover"
+        await api.stop_provider(provider.NAME)
+        assert provider.server_status("tcp") is ProviderStatus.STOPPED
 
     asyncio.run(scenario())
 
@@ -306,6 +345,83 @@ def test_language_detection_from_registrations(tmp_path):
     asyncio.run(scenario())
 
 
+DYNAMIC_FORMATTING_SERVER = '''
+from lsprotocol import types
+from pygls.lsp.server import LanguageServer
+
+server = LanguageServer("dynamic", "0.1")
+
+
+def on_formatting(params):
+    return [
+        types.TextEdit(
+            range=types.Range(types.Position(0, 0), types.Position(0, 0)),
+            new_text="# formatted\\n",
+        )
+    ]
+
+
+@server.feature(types.INITIALIZED)
+async def on_initialized(params):
+    # The initialize result is already sent, so formatting is announced
+    # only through the registration below.
+    server.feature(types.TEXT_DOCUMENT_FORMATTING)(on_formatting)
+    await server.client_register_capability_async(
+        types.RegistrationParams(
+            registrations=[
+                types.Registration(
+                    id="format",
+                    method=types.TEXT_DOCUMENT_FORMATTING,
+                    register_options=types.DocumentFormattingRegistrationOptions(
+                        document_selector=[
+                            types.TextDocumentFilterLanguage(language="python")
+                        ],
+                    ),
+                )
+            ]
+        )
+    )
+
+
+server.start_io()
+'''
+
+
+def test_dynamically_registered_formatting(tmp_path):
+    script = tmp_path / "dynamic_server.py"
+    script.write_text(DYNAMIC_FORMATTING_SERVER)
+    config = ServerConfig(
+        name="dynamic",
+        cmd=sys.executable,
+        args=str(script),
+        stdio=True,
+        languages=("python",),
+    )
+    api, provider = make_api([config])
+    uri = path_as_uri(str(tmp_path / "main.py"))
+
+    async def scenario():
+        await api.start_provider(provider.NAME)
+        await api.start_language(Language.PYTHON)
+        await wait_until(
+            lambda: api.capabilities(
+                Language.PYTHON
+            ).document_formatting_provider
+        )
+
+        await api.open_document(did_open(uri, "x = 1\n"))
+        edits = await api.formatting(
+            lsp.DocumentFormattingParams(
+                text_document=lsp.TextDocumentIdentifier(uri),
+                options=lsp.FormattingOptions(tab_size=4, insert_spaces=True),
+            )
+        )
+        assert [edit.new_text for edit in edits] == ["# formatted\n"]
+        await api.stop_provider(provider.NAME)
+
+    asyncio.run(scenario())
+
+
 class _FakeConnection:
 
     def __init__(self):
@@ -327,7 +443,7 @@ class _FakeConnection:
 
 def _ready_state(name, connection):
     return _ServerState(
-        config=pylsp_config(name, True),
+        config=ServerConfig(name=name, cmd="server", stdio=True, languages=("python",)),
         connection=connection,
         status=ProviderStatus.READY,
     )
@@ -399,6 +515,47 @@ def test_folder_broadcast_restarts_once_per_actual_change():
     )
     asyncio.run(provider.did_change_workspace_folders(removal))
     assert restarts == ["a", "a"]
+
+
+def test_ready_server_requests_documents_after_capabilities(monkeypatch):
+    # The provider keeps no document text: a server that becomes ready asks
+    # the document owners for the open documents instead.
+    _, provider = make_api([])
+    provider._servers["a"] = _ready_state("a", _FakeConnection())
+    provider._servers["b"] = _ServerState(
+        config=ServerConfig(
+            name="b", cmd="server", stdio=True, languages=("python",)
+        )
+    )
+    connections = []
+
+    class Connection(_FakeConnection):
+        def __init__(self, *args, **kwargs):
+            super().__init__()
+            connections.append(self)
+
+        async def start(self):
+            pass
+
+    monkeypatch.setattr(
+        provider_module, "LanguageServerConnection", Connection
+    )
+    events = []
+    provider.sig_capabilities_changed.connect(
+        lambda language: events.append(("capabilities", language))
+    )
+    provider.sig_documents_requested.connect(
+        lambda language: events.append(("documents", language))
+    )
+
+    asyncio.run(provider._start_server("b"))
+
+    assert provider.server_status("b") is ProviderStatus.READY
+    assert events == [
+        ("capabilities", Language.PYTHON),
+        ("documents", Language.PYTHON),
+    ]
+    assert connections[0].notified == []
 
 
 def test_did_open_dedups_per_server_and_reaches_late_server():

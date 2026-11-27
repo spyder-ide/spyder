@@ -30,6 +30,7 @@ from qtpy.QtCore import QCoreApplication, QEventLoop, Signal, Slot
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher, DispatcherFuture
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
@@ -37,6 +38,7 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.plugins.languageservices.api.languages import Language
+from spyder.plugins.languageservices.api.policies import feature_name
 from spyder.plugins.languageservices.api.provider import (
     PROVIDERS_ENTRYPOINT,
     LanguageServicesProvider,
@@ -57,6 +59,12 @@ dispatch = AsyncDispatcher(loop=LANGUAGE_SERVICES_LOOP)
 
 FALLBACK_PROVIDERS = frozenset({"fallback", "snippets"})
 """Providers that serve every language without a language server."""
+
+FORMATTING_FEATURES = (
+    feature_name(lsp.TEXT_DOCUMENT_FORMATTING),
+    feature_name(lsp.TEXT_DOCUMENT_RANGE_FORMATTING),
+)
+"""Request policies routed to the editor's ``formatter``."""
 
 
 def wait_for(future: DispatcherFuture, timeout: float = 10.0):
@@ -129,6 +137,16 @@ class LanguageServices(SpyderPluginV2):
     capabilities: lsprotocol.types.ServerCapabilities | None
     """
 
+    sig_documents_requested = Signal(object)
+    """A provider needs the open documents of a language.
+
+    Document owners send ``didOpen`` for each of them.
+
+    Parameters
+    ----------
+    language: Language
+    """
+
     sig_language_stopped = Signal(object)
     """No provider serves a language any more.
 
@@ -175,6 +193,7 @@ class LanguageServices(SpyderPluginV2):
         api.sig_diagnostics.connect(self.sig_diagnostics)
         api.sig_apply_edit.connect(self.sig_apply_edit)
         api.sig_capabilities_changed.connect(self.sig_capabilities_changed)
+        api.sig_documents_requested.connect(self.sig_documents_requested)
         api.sig_language_stopped.connect(self.sig_language_stopped)
         api.sig_provider_status_changed.connect(
             self.sig_provider_status_changed
@@ -205,6 +224,7 @@ class LanguageServices(SpyderPluginV2):
         return cls.create_icon("completions")
 
     def on_initialize(self):
+        self._select_formatter(self.get_conf("formatter", section="editor"))
         for name in self.provider_names():
             if self.is_provider_enabled(name):
                 self.start_provider(name)
@@ -336,7 +356,8 @@ class LanguageServices(SpyderPluginV2):
         return self.services_api.provider_names()
 
     def is_provider_enabled(self, name: str) -> bool:
-        return bool(self.get_conf(("providers", name, "enable"), True))
+        default = self.get_provider(name).ENABLED_BY_DEFAULT
+        return bool(self.get_conf(("providers", name, "enable"), default))
 
     def is_provider_started(self, name: str) -> bool:
         return self.services_api.is_started(name)
@@ -513,6 +534,20 @@ class LanguageServices(SpyderPluginV2):
     def _api_conf(self, option, default):
         return self.get_conf(option, default)
 
+    @on_conf_change(section="editor", option="formatter")
+    def _select_formatter(self, name: str):
+        """Restrict the formatting request policies to the provider
+        ``name``, keeping their other fields."""
+        policies = self.get_conf("request_policies")
+        updated = dict(policies)
+        for feature in FORMATTING_FEATURES:
+            updated[feature] = {
+                **updated.get(feature, {}),
+                "providers": [name],
+            }
+        if updated != policies:
+            self.set_conf("request_policies", updated)
+
     @Slot(str)
     def _on_interpreter_changed(self, interpreter: str):
         dispatch(self.services_api.notify_interpreter_changed)(interpreter)
@@ -574,8 +609,10 @@ class LanguageServices(SpyderPluginV2):
 
         New options are added with their defaults. A minor version bump
         overwrites values whose default changed. A major version bump also
-        drops options no longer declared. The stored entry has the keys
-        ``version``, ``values``, ``defaults`` and ``enable``.
+        drops options no longer declared. A change of
+        ``Provider.ENABLED_BY_DEFAULT`` overwrites ``enable`` once. The stored
+        entry has the keys ``version``, ``values``, ``defaults``, ``enable``
+        and ``enable_default``.
         """
         defaults = dict(Provider.CONF_DEFAULTS)
         entry = provider_configurations.get(Provider.NAME)
@@ -584,12 +621,20 @@ class LanguageServices(SpyderPluginV2):
                 "version": Provider.CONF_VERSION,
                 "values": dict(defaults),
                 "defaults": dict(defaults),
-                "enable": True,
+                "enable": Provider.ENABLED_BY_DEFAULT,
+                "enable_default": Provider.ENABLED_BY_DEFAULT,
             }
             provider_configurations[Provider.NAME] = entry
             return entry
 
-        entry.setdefault("enable", True)
+        entry.setdefault("enable", Provider.ENABLED_BY_DEFAULT)
+
+        # Entries written before "enable_default" was stored were created
+        # enabled.
+        if entry.get("enable_default", True) != Provider.ENABLED_BY_DEFAULT:
+            entry["enable"] = Provider.ENABLED_BY_DEFAULT
+        entry["enable_default"] = Provider.ENABLED_BY_DEFAULT
+
         values = entry.setdefault("values", {})
         current_defaults = entry.setdefault("defaults", {})
         for key in defaults.keys() - values.keys():

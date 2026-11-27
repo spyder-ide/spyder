@@ -35,14 +35,18 @@ class PylspProvider(LanguageServerClientProvider):
     """pylsp (with ``pyls_spyder``) preconfigured from Spyder's Python
     preferences.
 
+    Deprecated in favor of the pyrefly, ruff, black, autopep8 and
+    cells
+    providers, so it is disabled by default.
+
     The single server is named ``"pylsp"``. The ``advanced/*`` options
     replace the generic servers table.
     """
 
     NAME = "pylsp"
-    PRIORITY = 0
+    PRIORITY = 1
+    ENABLED_BY_DEFAULT = False
     CONF_DEFAULTS = [
-        ("enable_hover_hints", True),
         ("show_lsp_down_warning", True),
         ("code_completion", True),
         ("jedi_definition", True),
@@ -55,12 +59,10 @@ class PylspProvider(LanguageServerClientProvider):
         ("ruff", False),
         ("no_linting", False),
         ("formatting", "black"),
-        ("format_on_save", False),
         ("flake8/filename", ""),
         ("flake8/exclude", ""),
         ("flake8/extendSelect", ""),
         ("flake8/extendIgnore", "E,W,C90"),
-        ("flake8/max_line_length", 79),
         ("ruff/exclude", ""),
         ("ruff/extendSelect", ""),
         ("ruff/extendIgnore", "E"),
@@ -77,7 +79,7 @@ class PylspProvider(LanguageServerClientProvider):
         ("advanced/external", False),
         ("advanced/stdio", False),
     ]
-    CONF_VERSION = "1.1.0"
+    CONF_VERSION = "2.0.0"
     CONF_TABS = TABS
 
     def get_server_configs(self):
@@ -104,6 +106,10 @@ class PylspProvider(LanguageServerClientProvider):
 
     @on_conf_change(option="__section")
     def _on_options_changed(self, options):
+        self._reconfigure()
+
+    @on_conf_change(section="editor", option="line_length")
+    def _on_line_length_changed(self, value):
         self._reconfigure()
 
     @on_conf_change(

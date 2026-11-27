@@ -12,7 +12,7 @@ from lsprotocol.types import SymbolKind
 
 
 class SpyderSymbolKind(IntEnum):
-    """Symbol kinds ``pyls_spyder`` reports beyond the LSP specification."""
+    """Symbol kinds the cells provider reports beyond the LSP specification."""
 
     #: Block comments shown in the outline explorer.
     BlockComment = 224

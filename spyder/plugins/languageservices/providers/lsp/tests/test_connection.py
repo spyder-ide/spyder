@@ -40,6 +40,64 @@ def test_auto_languages_serve_everything_until_registration():
     assert connection.languages() == Language.from_language_id("rust")
 
 
+def register(connection, id, method, options=None):
+    connection.on_register_capability(
+        lsp.RegistrationParams(
+            registrations=[
+                lsp.Registration(id=id, method=method, register_options=options)
+            ]
+        )
+    )
+
+
+def test_registrations_extend_initialize_capabilities():
+    connection = make_connection()
+    connection.set_initialize_capabilities(
+        lsp.ServerCapabilities(hover_provider=True)
+    )
+
+    register(
+        connection,
+        "fmt",
+        lsp.TEXT_DOCUMENT_FORMATTING,
+        {"documentSelector": [{"language": "python"}]},
+    )
+    register(
+        connection,
+        "completion",
+        lsp.TEXT_DOCUMENT_COMPLETION,
+        {"documentSelector": None, "triggerCharacters": ["."]},
+    )
+    register(connection, "rename", lsp.TEXT_DOCUMENT_RENAME)
+
+    capabilities = connection.capabilities
+    assert capabilities.hover_provider
+    assert capabilities.document_formatting_provider
+    assert capabilities.completion_provider.trigger_characters == (".",)
+    assert capabilities.rename_provider is True
+
+    connection.on_unregister_capability(
+        lsp.UnregistrationParams(
+            unregisterations=[
+                lsp.Unregistration(
+                    id="fmt", method=lsp.TEXT_DOCUMENT_FORMATTING
+                )
+            ]
+        )
+    )
+    assert connection.capabilities.document_formatting_provider is None
+    assert connection.capabilities.hover_provider
+
+
+def test_registration_before_initialize_result_is_kept():
+    connection = make_connection()
+    register(connection, "fmt", lsp.TEXT_DOCUMENT_FORMATTING)
+    assert connection.capabilities is None
+
+    connection.set_initialize_capabilities(lsp.ServerCapabilities())
+    assert connection.capabilities.document_formatting_provider is True
+
+
 def test_initialize_sends_workspace_folders(monkeypatch):
     connection = make_connection()
     folder = lsp.WorkspaceFolder(uri="file:///proj", name="proj")

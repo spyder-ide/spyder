@@ -247,6 +247,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
         self._capabilities[language] = capabilities
         self._languages.add(language)
         self.sig_capabilities_changed.emit(language)
+        self.sig_documents_requested.emit(language)
 
     @Slot(str)
     def _on_language_stopped(self, name: str):
@@ -288,6 +289,7 @@ class LegacyCompletionsProvider(LanguageServicesProvider):
                     if capabilities is not None:
                         self._capabilities[language] = capabilities
                         self.sig_capabilities_changed.emit(language)
+                        self.sig_documents_requested.emit(language)
 
             return started
 

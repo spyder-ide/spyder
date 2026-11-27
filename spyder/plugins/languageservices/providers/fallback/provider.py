@@ -22,10 +22,7 @@ from lsprotocol import types as lsp
 from pygments.lexers import get_lexer_by_name
 
 # Local imports
-from spyder.plugins.languageservices.api.documents import (
-    apply_content_change,
-    utf16_len,
-)
+from spyder.plugins.languageservices.api.documents import TextStore, utf16_len
 from spyder.plugins.languageservices.api.languages import Language
 from spyder.plugins.languageservices.api.provider import (
     LanguageServicesProvider,
@@ -110,7 +107,7 @@ class FallbackProvider(LanguageServicesProvider):
 
     def __init__(self, plugin, config=None):
         super().__init__(plugin, config)
-        self._documents: dict[str, TokenIndex] = {}
+        self._documents = TextStore()
 
     def supported_languages(self) -> frozenset[Language]:
         return Language.all()
@@ -125,33 +122,26 @@ class FallbackProvider(LanguageServicesProvider):
 
     # ---- Document sync ---------------------------------------------------
     async def did_open(self, params: lsp.DidOpenTextDocumentParams) -> None:
-        item = params.text_document
-        self._documents[item.uri] = TokenIndex(item.text, item.language_id)
+        self._documents.open(params)
 
     async def did_change(
         self, params: lsp.DidChangeTextDocumentParams
     ) -> None:
-        index = self._documents.get(params.text_document.uri)
-        if index is None:
-            return
-
-        text = index.text
-        for change in params.content_changes:
-            text = apply_content_change(text, change)
-
-        index.text = text
+        self._documents.change(params)
 
     async def did_close(self, params: lsp.DidCloseTextDocumentParams) -> None:
-        self._documents.pop(params.text_document.uri, None)
+        self._documents.close(params)
 
     # ---- Completion ------------------------------------------------------
     async def completion(self, params: lsp.CompletionParams):
-        index = self._documents.get(params.text_document.uri)
-        if index is None:
+        uri = params.text_document.uri
+        text = self._documents.text(uri)
+        if text is None:
             return None
 
-        offset = _offset_in_utf16(index.text, params.position)
-        current_word = _word_before(index.text, params.position)
+        index = TokenIndex(text, self._documents.language_id(uri))
+        offset = _offset_in_utf16(text, params.position)
+        current_word = _word_before(text, params.position)
 
         return await asyncio.to_thread(index.completions, offset, current_word)
 

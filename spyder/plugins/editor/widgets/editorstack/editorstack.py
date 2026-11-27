@@ -843,16 +843,6 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
-    @on_conf_change(
-        option=("providers", "pylsp", "values", "pyflakes"),
-        section='language_services',
-    )
-    def on_pyflakes_enabled_change(self, value):
-        if self.data:
-            for finfo in self.data:
-                if finfo.editor.is_python_like():
-                    finfo.editor.pyflakes_linting_enabled = value
-
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)
@@ -930,11 +920,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.edge_line.set_enabled(state)
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values',
-                'flake8/max_line_length'),
-        section='language_services'
-    )
+    @on_conf_change(option='line_length')
     def set_edgeline_columns(self, columns):
         logger.debug(f"Set edge line columns to {columns}")
         self.edgeline_columns = columns
@@ -1098,11 +1084,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.set_completions_hint_after_ms(ms)
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values',
-                'enable_hover_hints'),
-        section='language_services'
-    )
+    @on_conf_change(option='enable_hover_hints')
     def set_hover_hints_enabled(self, state):
         logger.debug(f"Set hover hints to {state}")
         self.hover_hints_enabled = state
@@ -1110,10 +1092,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_hover_hints(state)
 
-    @on_conf_change(
-        option=('providers', 'pylsp', 'values', 'format_on_save'),
-        section='language_services'
-    )
+    @on_conf_change(option='format_on_save')
     def set_format_on_save(self, state):
         logger.debug(f"Set format on save to {state}")
         self.format_on_save = state
@@ -1796,10 +1775,11 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         for editor in self.editors_for_language(language):
             editor.register_completion_capabilities(capabilities)
 
-    def start_completion_services(self, language):
-        """Notify language server availability to code editors."""
+    def send_open_documents(self, language):
+        """Send ``didOpen`` for the open documents of ``language``."""
         for editor in self.editors_for_language(language):
-            editor.start_completion_services()
+            if not editor.is_cloned:
+                editor.document_did_open()
 
     def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""

@@ -9,7 +9,7 @@
 from unittest.mock import Mock
 
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QMainWindow, QVBoxLayout
+from qtpy.QtWidgets import QCheckBox, QMainWindow, QVBoxLayout
 import pytest
 
 from spyder.api.preferences import SpyderPreferencesTab
@@ -115,7 +115,7 @@ def test_config_dialog(tabbed_entry_point, config_dialog):
         "formatting": {
             "enabled": True,
             "providers": ["tabbed"],
-            "timeout_ms": None,
+            "timeout_ms": 30000,
         }
     }
 
@@ -187,3 +187,48 @@ def test_request_policy_table_merge_roundtrips(qtbot):
 
     table._enabled_box(row).setChecked(False)
     assert table.policies()["completion"]["enabled"] is False
+
+
+@pytest.fixture
+def pylsp_entry_point(mocker):
+    from spyder.plugins.languageservices.providers.pylsp import PylspProvider
+
+    entry_point = Mock()
+    entry_point.load.return_value = PylspProvider
+    mocker.patch(
+        "spyder.plugins.languageservices.plugin.entry_points",
+        return_value=[entry_point],
+    )
+
+
+@pytest.mark.parametrize(
+    "config_dialog",
+    [[MainWindowMock, [], [LanguageServices]]],
+    indirect=True,
+)
+def test_pylsp_tabs(pylsp_entry_point, config_dialog):
+    from spyder.plugins.languageservices.providers.pylsp.conftabs import (
+        FormattingConfigTab,
+    )
+
+    configpage = config_dialog.get_page()
+    titles = [
+        configpage.tabs.tabText(i) for i in range(configpage.tabs.count())
+    ]
+    assert titles == [
+        "General", "Linting", "Introspection", "Code formatting",
+        "Python server", "Advanced",
+    ]
+
+    enable_box = configpage.providers_group.findChildren(QCheckBox)[0]
+    assert not enable_box.isChecked()
+    assert not configpage.plugin.is_provider_started("pylsp")
+
+    tab = next(
+        t for t in configpage.provider_tabs
+        if isinstance(t, FormattingConfigTab)
+    )
+    tab.code_style_max_line_length.spinbox.setValue(100)
+    configpage.save_to_conf()
+    configpage.apply_callback()
+    assert CONF.get("editor", "line_length") == 100
