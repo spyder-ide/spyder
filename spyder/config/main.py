@@ -227,6 +227,13 @@ DEFAULTS = [
               'save_all_before_run': True,
               'run_cell_copy': False,
              }),
+            ('mcp_server',
+             {
+              'enabled': False,
+              'host': '127.0.0.1',
+              'port': 8768,
+              'token': '',
+             }),
             ('plots',
              {
               'mute_inline_plotting': True,

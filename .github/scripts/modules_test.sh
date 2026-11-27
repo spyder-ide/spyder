@@ -91,6 +91,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/pylint/main_widget.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/mcpserver/server.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
