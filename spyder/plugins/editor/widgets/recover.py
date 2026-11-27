@@ -67,7 +67,8 @@ class RecoveryDialog(QDialog):
         # See https://bugreports.qt.io/browse/QTBUG-49576
         if parent and hasattr(parent, 'splash'):
             self.splash = parent.splash
-            self.splash.hide()
+            if self.splash is not None:
+                self.splash.hide()
         else:
             self.splash = None
 
