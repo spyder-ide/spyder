@@ -441,6 +441,9 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
     # Position for the scroll buttons additional border
     SCROLL_BUTTONS_BORDER_POS = ''
 
+    # To adjust the size of icons in scroll buttons
+    SCROLL_BUTTONS_PADDING = 0
+
     def set_stylesheet(self):
         css = self.get_stylesheet()
         buttons_color = SpyderPalette.COLOR_BACKGROUND_2
@@ -514,6 +517,7 @@ class PanesTabBarStyleSheet(
     OBJECT_NAME = '#pane-tabbar'
     SCROLL_BUTTONS_BORDER_WIDTH = '2px'
     SCROLL_BUTTONS_BORDER_POS = 'right'
+    SCROLL_BUTTONS_PADDING = 9
 
     def set_stylesheet(self):
         # Calling super().set_stylesheet() here doesn't work.
@@ -612,7 +616,7 @@ class PanesTabBarStyleSheet(
 
         # Make scroll button icons smaller
         css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
-            padding='7px',
+            padding=f'{self.SCROLL_BUTTONS_PADDING}px',
         )
 
         # Make scroll buttons have rounded borders
@@ -633,7 +637,7 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
     """Base style for dockwidget tabbars."""
 
     SCROLL_BUTTONS_BORDER_WIDTH = '2px'
-    SCROLL_BUTTONS_PADDING = 7 if WIN else 9
+    SCROLL_BUTTONS_PADDING = 7 if WIN else 6
 
     def set_stylesheet(self):
         super().set_stylesheet()
@@ -783,7 +787,7 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # effect on Linux).
         if WIN or MAC:
             css['QTabBar QToolButton'].setValues(
-                padding=f'{self.SCROLL_BUTTONS_PADDING - 1}px',
+                padding=f'{self.SCROLL_BUTTONS_PADDING + 1}px',
             )
 
         # Increase padding around text because we're using a larger font.
