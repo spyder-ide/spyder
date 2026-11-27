@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (
     QCommonStyle,
     QHBoxLayout,
     QLineEdit,
+    QPushButton,
     QStyle,
     QTabBar,
     QTabWidget,
@@ -42,7 +43,10 @@ from spyder.utils.misc import get_common_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
+from spyder.utils.stylesheet import AppStyle, MAC, PANES_TABBAR_STYLESHEET
+
+
+TABBAR_TOP_MARGIN = int(PANES_TABBAR_STYLESHEET.TOP_MARGIN.split('px')[0])
 
 
 class EditTabNamePopup(QLineEdit):
@@ -119,8 +123,7 @@ class EditTabNamePopup(QLineEdit):
 
         # Gets tab size and adjust top margin
         rect = self.main.tabRect(index)
-        top_margin = PANES_TABBAR_STYLESHEET.TOP_MARGIN.split('px')[0]
-        rect.adjust(2, int(top_margin), 0, 0)
+        rect.adjust(2, TABBAR_TOP_MARGIN, 0, 0)
 
         # Sets size
         self.setFixedSize(rect.size())
@@ -191,7 +194,7 @@ class CloseButtonTabBarStyle(QCommonStyle, SpyderConfigurationAccessor):
 CLOSE_BUTTON_TABBAR_STYLE = CloseButtonTabBarStyle()
 
 
-class CloseTabButton(QToolButton):
+class CloseTabButton(QPushButton):
     """Close button for our tabs."""
 
     SIZE = 16  # in pixels
@@ -205,9 +208,23 @@ class CloseTabButton(QToolButton):
         self.setIcon(ima.icon('fileclose'))
         self._tab_tooltip = ''
 
+        # Get if the close tabs button is set to the left
+        close_btn_left = (
+            CLOSE_BUTTON_TABBAR_STYLE.close_btn_side
+            == QTabBar.ButtonPosition.LeftSide
+        )
+
         # Size
         size = self.SIZE
-        self.resize(size + 2, size + 6)
+        self.resize(
+            size
+            + (
+                2 * AppStyle.MarginSize
+                if close_btn_left
+                else (2 * AppStyle.MarginSize - 1)
+            ),
+            size + 2 * AppStyle.MarginSize,
+        )
         self.setIconSize(QSize(size, size))
 
         # Colors for different states
@@ -223,22 +240,17 @@ class CloseTabButton(QToolButton):
         # To keep track of the tab's current color
         self._tab_color = self._selected_tab_color
 
-        # Get if the close tabs button is to the left from Preferences
-        close_btn_left = (
-            CLOSE_BUTTON_TABBAR_STYLE.close_btn_side
-            == QTabBar.ButtonPosition.LeftSide
-        )
-
         # Stylesheet
         self.css = qstylizer.style.StyleSheet()
-        self.css.QToolButton.setValues(
-            marginTop='9px',
-            marginBottom='-7px',
-            marginLeft='3px' if close_btn_left else '2px',
-            marginRight='-7px' if close_btn_left else '-6px',
-            padding='0px',
-            paddingTop='-5px' if (MAC or WIN) else '-8px',
-            borderRadius='3px'
+        self.css.QPushButton.setValues(
+            marginTop=f"{TABBAR_TOP_MARGIN - AppStyle.MarginSize}px",
+            marginBottom="-1px",
+            marginLeft=(
+                f"{3 * AppStyle.MarginSize}px" if close_btn_left else "0px"
+            ),
+            marginRight=(
+                "0px" if close_btn_left else f"{2 * AppStyle.MarginSize}px"
+            ),
         )
 
         self._set_background_color(self._selected_tab_color)
@@ -908,3 +920,22 @@ class Tabs(SpyderShortcutsMixin, BaseTabs):
             self.register_shortcut_for_widget(
                 name=name, triggered=callback, widget=parent, context=context
             )
+
+
+def test():  # pragma: no cover
+    from spyder.utils.qthelpers import qapplication
+    from spyder.utils.stylesheet import APP_STYLESHEET
+
+    app = qapplication()
+    app.setStyleSheet(str(APP_STYLESHEET))
+
+    tabs = Tabs(None)
+    tabs.show()
+    tabs.addTab(QWidget(None), "Tab 1")
+    tabs.addTab(QWidget(None), "Tab 2")
+
+    app.exec_()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    test()

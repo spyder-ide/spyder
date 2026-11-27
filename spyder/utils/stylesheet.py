@@ -441,9 +441,12 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
     # Position for the scroll buttons additional border
     SCROLL_BUTTONS_BORDER_POS = ''
 
+    # To adjust the size of icons in scroll buttons
+    SCROLL_BUTTONS_PADDING = 0
+
     def set_stylesheet(self):
         css = self.get_stylesheet()
-        buttons_color = SpyderPalette.COLOR_BACKGROUND_1
+        buttons_color = SpyderPalette.COLOR_BACKGROUND_2
 
         # Set style for scroll buttons
         css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
@@ -452,24 +455,49 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
         )
 
         if self.SCROLL_BUTTONS_BORDER_POS == 'right':
-            css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+            css[
+                f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollLeftButton"
+            ].setValues(
+                borderLeft=(
+                    f"{self.SCROLL_BUTTONS_BORDER_WIDTH} solid "
+                    f"{SpyderPalette.COLOR_BACKGROUND_1}"
+                ),
+            )
+
+            css[
+                f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollRightButton"
+            ].setValues(
                 borderRight=(
-                    f'{self.SCROLL_BUTTONS_BORDER_WIDTH} solid {buttons_color}'
-                )
+                    f"{self.SCROLL_BUTTONS_BORDER_WIDTH} solid "
+                    f"{SpyderPalette.COLOR_BACKGROUND_1}"
+                ),
             )
         else:
-            css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+            css[
+                f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollLeftButton"
+            ].setValues(
+                borderTop=(
+                    f"{self.SCROLL_BUTTONS_BORDER_WIDTH} solid "
+                    f"{SpyderPalette.COLOR_BACKGROUND_1}"
+                ),
+            )
+
+            css[
+                f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollRightButton"
+            ].setValues(
                 borderBottom=(
-                    f'{self.SCROLL_BUTTONS_BORDER_WIDTH} solid {buttons_color}'
-                )
+                    f"{self.SCROLL_BUTTONS_BORDER_WIDTH} solid "
+                    f"{SpyderPalette.COLOR_BACKGROUND_1}"
+                ),
             )
 
         # Hover and pressed state for scroll buttons
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
             if state == 'hover':
-                color = SpyderPalette.COLOR_BACKGROUND_2
-            else:
                 color = SpyderPalette.COLOR_BACKGROUND_3
+            else:
+                color = SpyderPalette.COLOR_BACKGROUND_4
+
             css[f'QTabBar{self.OBJECT_NAME} QToolButton:{state}'].setValues(
                 background=color
             )
@@ -487,8 +515,9 @@ class PanesTabBarStyleSheet(
 
     TOP_MARGIN = '12px'
     OBJECT_NAME = '#pane-tabbar'
-    SCROLL_BUTTONS_BORDER_WIDTH = '5px'
+    SCROLL_BUTTONS_BORDER_WIDTH = '2px'
     SCROLL_BUTTONS_BORDER_POS = 'right'
+    SCROLL_BUTTONS_PADDING = 9
 
     def set_stylesheet(self):
         # Calling super().set_stylesheet() here doesn't work.
@@ -509,16 +538,25 @@ class PanesTabBarStyleSheet(
             or (MAC and close_btn_option == "automatic")
         )
 
-        # QTabBar forces the corner widgets to be smaller than they should.
-        # be. The added top margin allows the toolbuttons to expand to their
-        # normal size.
-        # See: spyder-ide/spyder#13600
-        css['QTabBar::tab'].setValues(
+        # This rule controls the style of the QLabel in each tab
+        css["QTabBar::tab"].setValues(
+            # QTabBar forces the corner widgets to be smaller than they should.
+            # be. The added top margin allows the toolbuttons to expand to their
+            # normal size.
+            # See: spyder-ide/spyder#13600
             marginTop=self.TOP_MARGIN,
-            paddingTop='4px',
-            paddingBottom='4px',
-            paddingLeft='4px' if close_btn_left else '10px',
-            paddingRight='10px' if close_btn_left else '4px'
+            paddingTop=f"{AppStyle.MarginSize + 1}px",
+            paddingBottom=f"{AppStyle.MarginSize + 1}px",
+            paddingLeft=(
+                f"{-(AppStyle.MarginSize - 1)}px"
+                if close_btn_left
+                else f"{3 * AppStyle.MarginSize + 1}px"
+            ),
+            paddingRight=(
+                f"{3 * AppStyle.MarginSize}px"
+                if close_btn_left
+                else f"{AppStyle.MarginSize - 2}px"
+            ),
         )
 
         if MAC:
@@ -538,22 +576,23 @@ class PanesTabBarStyleSheet(
                 marginLeft='-3px' if WIN else ("0px" if MAC else '-4px')
             )
 
+        # XXX Check if this is still needed on Windows
         # Fix minor visual glitch when hovering tabs
         # See spyder-ide/spyder#15398
-        css['QTabBar::tab:hover'].setValues(
-            paddingTop='3px',
-            paddingBottom='3px',
-            paddingLeft='3px' if close_btn_left else '9px',
-            paddingRight='9px' if close_btn_left else '3px'
-        )
+        # css['QTabBar::tab:hover'].setValues(
+        #     paddingTop='3px',
+        #     paddingBottom='3px',
+        #     paddingLeft='3px' if close_btn_left else '9px',
+        #     paddingRight='9px' if close_btn_left else '3px'
+        # )
 
-        for state in ['selected', 'selected:hover']:
-            css[f'QTabBar::tab:{state}'].setValues(
-                paddingTop='4px',
-                paddingBottom='3px',
-                paddingLeft='4px' if close_btn_left else '10px',
-                paddingRight='10px' if close_btn_left else '4px'
-            )
+        # for state in ['selected', 'selected:hover']:
+        #     css[f'QTabBar::tab:{state}'].setValues(
+        #         paddingTop='4px',
+        #         paddingBottom='3px',
+        #         paddingLeft='4px' if close_btn_left else '10px',
+        #         paddingRight='10px' if close_btn_left else '4px'
+        #     )
 
         # Remove border between selected tab and pane below
         css['QTabWidget::pane'].setValues(
@@ -577,7 +616,20 @@ class PanesTabBarStyleSheet(
 
         # Make scroll button icons smaller
         css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
-            padding='7px',
+            padding=f'{self.SCROLL_BUTTONS_PADDING}px',
+        )
+
+        # Make scroll buttons have rounded borders
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollLeftButton"
+        ].setValues(
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollRightButton"
+        ].setValues(
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
 
@@ -585,7 +637,7 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
     """Base style for dockwidget tabbars."""
 
     SCROLL_BUTTONS_BORDER_WIDTH = '2px'
-    SCROLL_BUTTONS_PADDING = 7 if WIN else 9
+    SCROLL_BUTTONS_PADDING = 7 if WIN else 6
 
     def set_stylesheet(self):
         super().set_stylesheet()
@@ -735,7 +787,7 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # effect on Linux).
         if WIN or MAC:
             css['QTabBar QToolButton'].setValues(
-                padding=f'{self.SCROLL_BUTTONS_PADDING - 1}px',
+                padding=f'{self.SCROLL_BUTTONS_PADDING + 1}px',
             )
 
         # Increase padding around text because we're using a larger font.
@@ -749,6 +801,21 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
             paddingTop=f'{AppStyle.InnerContentPadding}px',
             paddingLeft=f'{3 * AppStyle.MarginSize}px',
             paddingRight=f'{3 * AppStyle.MarginSize}px',
+        )
+
+        # Make scroll buttons have rounded borders
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollLeftButton"
+        ].setValues(
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollRightButton"
+        ].setValues(
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
 
@@ -790,8 +857,23 @@ class HorizontalDockTabBarStyleSheet(SpecialTabBarStyleSheet):
         # This is necessary since the tabbar top margin is half the one at the
         # bottom (see the notes in the 'QTabBar::tab' style above).
         css['QTabBar QToolButton'].setValues(
-            marginTop='0px',
-            marginBottom=f'{margin_size}px',
+            marginTop=f'{margin_size}px',
+            marginBottom=f'{2 * margin_size}px',
+        )
+
+        # Make scroll buttons have rounded borders
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollLeftButton"
+        ].setValues(
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollRightButton"
+        ].setValues(
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
 
@@ -880,8 +962,23 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # -- Make style for scroll buttons match the horizontal one
         css['QTabBar QToolButton'].setValues(
-            marginLeft=f'{margin_size}px',
-            marginRight=f'{margin_size}px',
+            marginLeft=f'{2 * margin_size}px',
+            marginRight=f'{2 * margin_size}px',
+        )
+
+        # -- Make scroll buttons have rounded borders
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollLeftButton"
+        ].setValues(
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        css[
+            f"QTabBar{self.OBJECT_NAME} QToolButton#ScrollRightButton"
+        ].setValues(
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
 
