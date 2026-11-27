@@ -97,6 +97,7 @@ class EditMenuSections:
 class SearchMenuSections:
     FindInText = 'find_text_section'
     Cursor = 'cursor_section'
+    Occurrences = 'occurrences'
     FindInFiles = 'find_files_section'
 
 

@@ -491,7 +491,22 @@ class Editor(SpyderDockablePlugin):
                 cursor_item,
                 menu_id=ApplicationMenus.Search,
                 section=SearchMenuSections.Cursor,
-                before_section=SearchMenuSections.FindInFiles,
+                before_section=SearchMenuSections.Occurrences,
+            )
+
+        # Occurrences section
+        occurrences_actions = [
+            widget.goto_next_occurrnece_action,
+            widget.goto_previous_occurrnece_action,
+            widget.add_cursor_next_occurrnece_action,
+            widget.add_cursor_previous_occurrnece_action
+        ]
+        for occurrences_item in occurrences_actions:
+            mainmenu.add_item_to_application_menu(
+                occurrences_item,
+                menu_id=ApplicationMenus.Search,
+                section=SearchMenuSections.Occurrences,
+                before_section=SearchMenuSections.FindInFiles
             )
 
         # Options section
@@ -618,6 +633,19 @@ class Editor(SpyderDockablePlugin):
         for cursor_item in cursor_actions:
             mainmenu.remove_item_from_application_menu(
                 cursor_item,
+                menu_id=ApplicationMenus.Search
+            )
+
+        # Occurrences section
+        occurrences_actions = [
+            widget.goto_next_occurrnece_action,
+            widget.goto_previous_occurrnece_action,
+            widget.add_cursor_next_occurrnece_action,
+            widget.add_cursor_previous_occurrnece_action
+        ]
+        for occurrences_item in occurrences_actions:
+            mainmenu.remove_item_from_application_menu(
+                occurrences_item,
                 menu_id=ApplicationMenus.Search
             )
 
