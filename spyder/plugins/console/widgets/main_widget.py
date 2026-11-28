@@ -22,7 +22,13 @@ import sys
 # Third party imports
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QAction, QInputDialog, QLineEdit, QVBoxLayout
+from qtpy.QtWidgets import (
+    QAction,
+    QInputDialog,
+    QLineEdit,
+    QMessageBox,
+    QVBoxLayout,
+)
 from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
@@ -32,7 +38,8 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerInternalError
-from spyder.config.base import DEV, get_debug_level
+from spyder.config.base import DEV, get_debug_level, running_under_pytest
+from spyder.config.manager import CONF
 from spyder.plugins.console.widgets.internalshell import InternalShell
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, getcwd_or_home,
@@ -63,6 +70,7 @@ class ConsoleWidgetActions:
     # Toggles
     ToggleCodeCompletion = 'toggle_code_completion_action'
     ToggleWrap = 'toggle_wrap_action'
+    ToggleStandardStreams = 'toggle_standard_streams_action'
 
 
 class ConsoleWidgetMenus:
@@ -224,6 +232,12 @@ class ConsoleWidget(PluginMainWidget):
             toggled=lambda val: self.set_conf('wrap', val),
             initial=self.get_conf('wrap'),
         )
+        standard_streams_action = self.create_action(
+            ConsoleWidgetActions.ToggleStandardStreams,
+            text=_("Redirect standard streams"),
+            toggled=lambda val: self.update_standard_streams(val),
+            initial=self.get_conf("redirect_standard_streams"),
+        )
         codecompletion_action = self.create_action(
             ConsoleWidgetActions.ToggleCodeCompletion,
             text=_("Automatic code completion"),
@@ -237,8 +251,14 @@ class ConsoleWidget(PluginMainWidget):
             _('Internal console settings'),
             icon=self.create_icon('tooloptions'),
         )
-        for item in [buffer_action, wrap_action, codecompletion_action,
-                     exteditor_action]:
+
+        for item in [
+            buffer_action,
+            wrap_action,
+            standard_streams_action,
+            codecompletion_action,
+            exteditor_action
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=internal_settings_menu,
@@ -263,6 +283,26 @@ class ConsoleWidget(PluginMainWidget):
 
         self.shell.set_external_editor(
             self.get_conf('external_editor/path'), '')
+
+    def update_standard_streams(self, value):
+        if not CONF.all_observers_notified or running_under_pytest():
+            return
+
+        buttons = QMessageBox.Yes | QMessageBox.No
+        result = QMessageBox.question(
+            self,
+            _("Restart Spyder"),
+            _(
+                "A change to this option requires a restart."
+                "<br><br>"
+                "Do you want to proceed?"
+            ),
+            buttons,
+        )
+        do_restart = result == QMessageBox.Yes
+        if do_restart:
+            self.set_conf("redirect_standard_streams", value)
+            self.sig_restart_requested.emit()
 
     @on_conf_change(option='max_line_count')
     def max_line_count_update(self, value):

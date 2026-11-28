@@ -20,7 +20,7 @@ import threading
 from time import time
 
 # Third party imports
-from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
+from qtpy.QtCore import QEventLoop, QObject, Qt, Signal, Slot
 from qtpy.QtWidgets import QMessageBox
 from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
                                              getsource)
@@ -28,6 +28,7 @@ from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
 # Local imports
 from spyder import get_versions
 from spyder.api.translations import _
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.plugins.console.utils.interpreter import Interpreter
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
@@ -126,7 +127,7 @@ class WidgetProxy(QObject):
         self.input_condition.release()
 
 
-class InternalShell(PythonShellWidget):
+class InternalShell(PythonShellWidget, SpyderConfigurationAccessor):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
 
     # --- Signals
@@ -192,8 +193,19 @@ class InternalShell(PythonShellWidget):
         self.interpreter = Interpreter(namespace, self.exitfunc,
                                        SysOutput, WidgetProxy,
                                        get_debug_level())
-        self.interpreter.stdout_write.data_avail.connect(self.stdout_avail)
-        self.interpreter.stderr_write.data_avail.connect(self.stderr_avail)
+
+        connection_type = (
+            Qt.QueuedConnection if self.get_conf("redirect_standard_streams")
+            else Qt.AutoConnection
+        )
+        self.interpreter.stdout_write.data_avail.connect(
+            self.stdout_avail,
+            connection_type
+        )
+        self.interpreter.stderr_write.data_avail.connect(
+            self.stderr_avail,
+            connection_type
+        )
         self.interpreter.widget_proxy.sig_set_readonly.connect(self.setReadOnly)
         self.interpreter.widget_proxy.sig_new_prompt.connect(self.new_prompt)
         self.interpreter.widget_proxy.sig_edit.connect(self.edit_script)
