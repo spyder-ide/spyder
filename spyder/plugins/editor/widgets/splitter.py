@@ -16,7 +16,7 @@ import logging
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtCore import QByteArray, Qt, Slot
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtWidgets import QSplitter
 
 # Local imports
@@ -34,6 +34,8 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
     """QSplitter for editor windows."""
 
     CONF_SECTION = "editor"
+
+    sig_move_to_editorstack_requested = Signal(object, str)
 
     def __init__(self, parent, main_widget, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None,
@@ -77,6 +79,12 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         self.menu_actions = menu_actions
         self.editorstack = EditorStack(self, menu_actions, use_switcher)
         self.register_editorstack_cb(self.editorstack)
+
+        if first:
+            self.sig_move_to_editorstack_requested.connect(
+                self.move_to_editorstack
+            )
+
         if not first:
             self.main_widget.clone_editorstack(editorstack=self.editorstack)
         self.editorstack.destroyed.connect(self.editorstack_closed)
@@ -84,6 +92,12 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
             lambda: self.split(orientation=Qt.Horizontal))
+        self.editorstack.sig_move_to_editorstack_requested.connect(
+            lambda direction: self.sig_move_to_editorstack_requested.emit(
+                self.editorstack,
+                direction,
+            )
+        )
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
@@ -163,6 +177,9 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
             self.menu_actions,
             register_editorstack_cb=self.register_editorstack_cb,
             unregister_editorstack_cb=self.unregister_editorstack_cb
+        )
+        editorsplitter.sig_move_to_editorstack_requested.connect(
+            self.sig_move_to_editorstack_requested
         )
         self.addWidget(editorsplitter)
         editorsplitter.destroyed.connect(self.editorsplitter_closed)
@@ -277,6 +294,95 @@ class EditorSplitter(SpyderWidgetMixin, QSplitter):
         if editor is not None:
             editor.clearFocus()
             editor.setFocus()
+
+    def move_to_editorstack(self, editorstack, direction):
+        target = self.get_editorstack_in_direction(
+            editorstack,
+            direction,
+        )
+
+        if target is not None:
+            editor = target.get_current_editor()
+            if editor is not None:
+                editor.setFocus()
+
+    def get_editorstacks(self):
+        """Return all EditorStacks recursively."""
+        editorstacks = []
+
+        for index in range(self.count()):
+            widget = self.widget(index)
+
+            if isinstance(widget, EditorStack):
+                editorstacks.append(widget)
+            elif isinstance(widget, EditorSplitter):
+                editorstacks.extend(widget.get_editorstacks())
+
+        return editorstacks
+
+    def get_editorstack_in_direction(self, editorstack, direction):
+        """Return the EditorStack in the given direction."""
+        directions = {
+            'left': (Qt.Horizontal, -1),
+            'right': (Qt.Horizontal, 1),
+            'up': (Qt.Vertical, -1),
+            'down': (Qt.Vertical, 1),
+        }
+    
+        if direction not in directions:
+            return None
+    
+        orientation, offset = directions[direction]
+        splitter = editorstack.parentWidget()
+        child = editorstack
+    
+        # Find the closest ancestor splitter with a sibling in that direction.
+        while isinstance(splitter, EditorSplitter):
+            if splitter.orientation() == orientation:
+                index = splitter.indexOf(child)
+                target_index = index + offset
+    
+                if 0 <= target_index < splitter.count():
+                    target = splitter.widget(target_index)
+    
+                    # Enter the destination branch from its nearest edge.
+                    edge = {
+                        'right': 'left',
+                        'left': 'right',
+                        'down': 'top',
+                        'up': 'bottom',
+                    }[direction]
+    
+                    return self._get_editorstack_at_edge(target, edge)
+    
+            child = splitter
+            splitter = splitter.parentWidget()
+    
+        return None
+
+
+    def _get_editorstack_at_edge(self, widget, edge):
+        """Return the EditorStack closest to the specified edge."""
+        if isinstance(widget, EditorStack):
+            return widget
+
+        if not isinstance(widget, EditorSplitter):
+            return None
+
+        horizontal = widget.orientation() == Qt.Horizontal
+
+        if edge == 'left':
+            index = 0
+        elif edge == 'right':
+            index = widget.count() - 1 if horizontal else 0
+        elif edge == 'top':
+            index = 0
+        elif edge == 'bottom':
+            index = widget.count() - 1 if not horizontal else 0
+        else:
+            return None
+
+        return self._get_editorstack_at_edge(widget.widget(index), edge)
 
     @property
     def _stylesheet(self):
