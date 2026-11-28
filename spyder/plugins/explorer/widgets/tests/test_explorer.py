@@ -200,10 +200,12 @@ def test_delete_file(explorer_with_files, mocker):
 
 
 @pytest.mark.parametrize("permanently", [True, False])
-def test_delete_folder_without_trash(explorer_with_files, mocker, permanently):
+def test_delete_folder_in_network_share(
+    explorer_with_files, mocker, permanently
+):
     """
-    Test that folders that can't be moved to the trash are deleted
-    permanently only if users agree.
+    Test that folders in network shares are deleted permanently only if users
+    agree, and that they're asked only once.
 
     This is a regression test for spyder-ide/spyder#26432
     """
@@ -212,59 +214,106 @@ def test_delete_folder_without_trash(explorer_with_files, mocker, permanently):
 
     # Simulate a network share, which doesn't have a trash
     mocker.patch.object(explorer, "is_network_path", return_value=True)
-    mocker.patch.object(QFile, "moveToTrash", return_value=(False, ""))
-
-    # The first dialog asks to delete the folder and the second one to do it
-    # permanently
+    move_to_trash = mocker.patch.object(QFile, "moveToTrash")
     warning = mocker.patch.object(
         QMessageBox,
         "warning",
-        side_effect=[
-            QMessageBox.Yes,
-            QMessageBox.Yes if permanently else QMessageBox.No,
-        ],
+        return_value=QMessageBox.Yes if permanently else QMessageBox.No,
     )
     tree_removed = mocker.Mock()
     treewidget.sig_tree_removed.connect(tree_removed)
 
     treewidget.delete(fnames=[top_folder])
 
-    assert warning.call_count == 2
+    assert warning.call_count == 1
+    assert "permanently" in warning.call_args[0][2]
+    assert not move_to_trash.called
     assert osp.exists(top_folder) is not permanently
     assert tree_removed.called is permanently
 
 
-def test_delete_files_without_trash(explorer_with_files, mocker):
+def _create_files(folder, names):
+    """Create files with the given names in folder and return their paths."""
+    fnames = []
+    for name in names:
+        fname = osp.join(folder, name)
+        with open(fname, "w") as f:
+            f.write(name)
+        fnames.append(fname)
+    return fnames
+
+
+def test_delete_files_in_network_share(explorer_with_files, mocker):
     """
-    Test that selecting Yes to All when deleting several files that can't be
-    moved to the trash only asks once to delete them permanently.
+    Test that selecting Yes to All when deleting several files in a network
+    share asks only once to delete them permanently.
 
     This is a regression test for spyder-ide/spyder#26432
     """
     project, __, __, top_folder, __ = explorer_with_files
     treewidget = project.explorer.treewidget
-    fnames = []
-    for name in ["a.txt", "b.txt", "c.txt"]:
-        fname = osp.join(top_folder, name)
-        with open(fname, "w") as f:
-            f.write(name)
-        fnames.append(fname)
+    fnames = _create_files(top_folder, ["a.txt", "b.txt", "c.txt"])
 
     mocker.patch.object(explorer, "is_network_path", return_value=True)
-    mocker.patch.object(QFile, "moveToTrash", return_value=(False, ""))
+    move_to_trash = mocker.patch.object(QFile, "moveToTrash")
     warning = mocker.patch.object(
-        QMessageBox,
-        "warning",
-        side_effect=[QMessageBox.YesToAll, QMessageBox.YesToAll],
+        QMessageBox, "warning", return_value=QMessageBox.YesToAll
     )
     removed = mocker.Mock()
     treewidget.sig_removed.connect(removed)
 
     treewidget.delete(fnames=fnames)
 
-    assert warning.call_count == 2
+    assert warning.call_count == 1
+    assert not move_to_trash.called
     assert not any(osp.exists(fname) for fname in fnames)
     assert removed.call_count == 3
+
+
+def test_delete_files_in_and_out_of_network_share(
+    explorer_with_files, mocker
+):
+    """
+    Test that selecting Yes to All to move files to the trash doesn't delete
+    files in network shares permanently without asking, and vice versa.
+
+    This is a regression test for spyder-ide/spyder#26432
+    """
+    project, __, __, top_folder, __ = explorer_with_files
+    treewidget = project.explorer.treewidget
+    local_1, network_1, local_2, network_2 = _create_files(
+        top_folder,
+        ["local_1.txt", "network_1.txt", "local_2.txt", "network_2.txt"],
+    )
+
+    mocker.patch.object(
+        explorer,
+        "is_network_path",
+        side_effect=lambda path: "network" in osp.basename(path),
+    )
+    move_to_trash = mocker.patch.object(
+        explorer.misc, "move_to_trash", return_value=True
+    )
+    remove_permanently = mocker.spy(os, "remove")
+    warning = mocker.patch.object(
+        QMessageBox, "warning", return_value=QMessageBox.YesToAll
+    )
+
+    treewidget.delete(fnames=[local_1, network_1, local_2, network_2])
+
+    # One dialog for the files moved to the trash and another one for those
+    # deleted permanently
+    assert warning.call_count == 2
+    assert "trash" in warning.call_args_list[0][0][2]
+    assert "permanently" in warning.call_args_list[1][0][2]
+    assert [c[0][0] for c in move_to_trash.call_args_list] == [
+        local_1,
+        local_2,
+    ]
+    assert [c[0][0] for c in remove_permanently.call_args_list] == [
+        network_1,
+        network_2,
+    ]
 
 
 def test_delete_without_trash_outside_network(explorer_with_files, mocker):

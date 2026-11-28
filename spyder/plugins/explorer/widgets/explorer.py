@@ -1178,6 +1178,34 @@ class DirView(SpyderWidgetMixin, QTreeView):
 
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
+        is_file = osp.isfile(fname)
+
+        # Network shares don't have a trash, so ask users only once if they
+        # want to delete files permanently there, as Windows Explorer does.
+        # Note: We check is_network_path instead of is_unc_path (used for
+        # refreshing) because drive letters mapped to a network share
+        # (e.g. Z: -> \\server\share) don't have a trash either, although
+        # Qt watches them for changes.
+        # Fixes spyder-ide/spyder#26432
+        if is_network_path(fname):
+            answer = self._ask_to_delete_permanently(fname, multiple)
+            if answer == QMessageBox.Cancel:
+                return False
+            elif answer == QMessageBox.No:
+                return yes_to_all
+
+            try:
+                if is_file:
+                    misc.remove_file(fname, permanently=True)
+                else:
+                    self.remove_tree(fname, permanently=True)
+            except EnvironmentError as error:
+                self._show_delete_error(fname, error)
+                return False
+
+            self._emit_removed(fname, is_file)
+            return yes_to_all
+
         if multiple:
             buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
                        QMessageBox.No | QMessageBox.Cancel)
@@ -1198,60 +1226,48 @@ class DirView(SpyderWidgetMixin, QTreeView):
             elif answer == QMessageBox.YesToAll:
                 yes_to_all = True
         try:
-            is_file = osp.isfile(fname)
             if is_file:
                 removed = misc.remove_file(fname)
             else:
                 removed = self.remove_tree(fname)
-
-            # Network shares don't have a trash, so let users delete files
-            # permanently there, as Windows Explorer does.
-            # Note: We check is_network_path instead of is_unc_path (used for
-            # refreshing) because drive letters mapped to a network share
-            # (e.g. Z: -> \\server\share) don't have a trash either, although
-            # Qt watches them for changes.
-            # Fixes spyder-ide/spyder#26432
-            if not removed:
-                if not is_network_path(fname):
-                    QMessageBox.critical(
-                        self,
-                        _("Delete"),
-                        _(
-                            "It was not possible to remove the selected file "
-                            "or directory. Please use your operating system "
-                            "facilities to do it."
-                        ),
-                    )
-                    return False
-
-                answer = self._ask_to_delete_permanently(fname, multiple)
-                if answer == QMessageBox.Cancel:
-                    return False
-                elif answer == QMessageBox.No:
-                    return yes_to_all
-
-                if is_file:
-                    misc.remove_file(fname, permanently=True)
-                else:
-                    self.remove_tree(fname, permanently=True)
-
-            if is_file:
-                self.sig_removed.emit(fname)
-            else:
-                self.sig_tree_removed.emit(fname)
-            return yes_to_all
         except EnvironmentError as error:
-            action_str = _('delete')
+            self._show_delete_error(fname, error)
+            return False
+
+        if not removed:
             QMessageBox.critical(
-                self, _("Project Explorer"),
-                _("<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
-                  ) % (action_str, fname, str(error)))
-        return False
+                self,
+                _("Delete"),
+                _(
+                    "It was not possible to remove the selected file "
+                    "or directory. Please use your operating system "
+                    "facilities to do it."
+                ),
+            )
+            return False
+
+        self._emit_removed(fname, is_file)
+        return yes_to_all
+
+    def _emit_removed(self, fname, is_file):
+        """Emit the signal that corresponds to the removal of fname."""
+        if is_file:
+            self.sig_removed.emit(fname)
+        else:
+            self.sig_tree_removed.emit(fname)
+
+    def _show_delete_error(self, fname, error):
+        """Show an error message because fname couldn't be deleted."""
+        action_str = _('delete')
+        QMessageBox.critical(
+            self, _("Project Explorer"),
+            _("<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
+              ) % (action_str, fname, str(error)))
 
     def _ask_to_delete_permanently(self, fname, multiple):
         """
-        Ask users if they want to delete fname permanently because it couldn't
-        be moved to the trash.
+        Ask users if they want to delete fname permanently because it's in a
+        network share, which doesn't have a trash.
 
         Returns the button clicked by them.
         """
