@@ -38,15 +38,40 @@ def rename_file(source, dest):
     __remove_pyc_pyo(source)
 
 
-def remove_file(fname):
+def move_to_trash(path):
     """
-    Remove file *fname*
-    If file is a Python script, also rename .pyc and .pyo files if any
+    Move file or directory *path* to the trash.
+
+    Returns True if successful and False otherwise (e.g. for filesystems
+    without a trash, like Windows network shares).
     """
     from qtpy.QtCore import QFile
 
-    QFile.moveToTrash(fname)
+    result = QFile.moveToTrash(path)
+
+    # Some Qt bindings return a (success, path_in_trash) tuple, which is
+    # always truthy.
+    if isinstance(result, tuple):
+        result = result[0]
+
+    return bool(result)
+
+
+def remove_file(fname, permanently=False):
+    """
+    Remove file *fname* by moving it to the trash or permanently.
+    If file is a Python script, also remove .pyc and .pyo files if any
+
+    Returns True if successful and False if it couldn't be moved to the
+    trash.
+    """
+    if permanently:
+        os.remove(fname)
+    elif not move_to_trash(fname):
+        return False
+
     __remove_pyc_pyo(fname)
+    return True
 
 
 def move_file(source, dest):
