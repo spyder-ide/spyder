@@ -36,6 +36,7 @@ from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
 from spyder.widgets.helperwidgets import MessageLabel
+from spyder.utils.conda import find_local_venv_interpreter
 
 
 # =============================================================================
@@ -66,6 +67,7 @@ class ValidationReasons(TypedDict):
     location_not_writable: bool | None
     spyder_project_exists: bool | None
     wrong_name: bool | None
+    invalid_interpreter: bool | None
 
 
 # =============================================================================
@@ -96,6 +98,20 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
+        self._interpreter = self.create_browsefile(
+            text=_("Interpreter (optional)"),
+            option=None,
+            alignment=Qt.Vertical,
+            tip=_(
+                "Interpreter to use with this project. If you leave this "
+                "empty, the one set in Preferences will be used"
+            ),
+            status_icon=ima.icon("error"),
+        )
+
+        # Interpreter found by Spyder in the project directory, if any
+        self._detected_interpreter = None
+
         self._validation_label = MessageLabel(self)
         self._validation_label.setVisible(False)
 
@@ -119,6 +135,12 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
     def project_type(self):
         """Project type associated to this page."""
         return EmptyProject
+
+    @property
+    def interpreter(self):
+        """Interpreter selected for the project (empty if not set)."""
+        interpreter = self._interpreter.textbox.text().strip()
+        return osp.normpath(interpreter) if interpreter else ""
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -216,6 +238,13 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 + _("The directory name you selected is not valid.")
             )
 
+        if reasons.get("invalid_interpreter"):
+            text += (
+                prefix
+                + _("The Python interpreter you selected doesn't exist.")
+                + suffix
+            )
+
         if reasons.get("missing_info"):
             text += (
                 prefix
@@ -223,6 +252,37 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
             )
 
         return text
+
+    def _validate_interpreter(self, reasons: ValidationReasons):
+        """Check the interpreter, which is optional, but must exist if set."""
+        self._interpreter.status_action.setVisible(False)
+
+        interpreter = self.interpreter
+        if interpreter and not osp.isfile(interpreter):
+            self._interpreter.status_action.setVisible(True)
+            self._interpreter.status_action.setToolTip(
+                _("This file doesn't exist")
+            )
+            reasons["invalid_interpreter"] = True
+
+        return reasons
+
+    def _detect_interpreter(self, location):
+        """
+        Fill the interpreter field with the one found in the given directory.
+
+        Only a value filled in by this method is replaced, so something typed
+        or selected by the user is never overwritten.
+        """
+        detected = None
+        if location and osp.isdir(location):
+            detected = find_local_venv_interpreter(location)
+
+        current = self._interpreter.textbox.text()
+        if not current or current == self._detected_interpreter:
+            self._interpreter.textbox.setText(detected or "")
+
+        self._detected_interpreter = detected
 
 
 class NewDirectoryPage(BaseProjectPage):
@@ -271,6 +331,8 @@ class NewDirectoryPage(BaseProjectPage):
         layout.addWidget(self._name)
         layout.addSpacing(5 * AppStyle.MarginSize)
         layout.addWidget(self._location)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._interpreter)
         layout.addSpacing(7 * AppStyle.MarginSize)
         layout.addWidget(self._validation_label)
         layout.addStretch()
@@ -302,6 +364,7 @@ class NewDirectoryPage(BaseProjectPage):
             reasons["missing_info"] = True
 
         reasons = self._validate_location(location, reasons, name)
+        reasons = self._validate_interpreter(reasons)
         if reasons:
             if reasons.get("location_exists"):
                 self._name.status_action.setVisible(True)
@@ -344,10 +407,14 @@ class ExistingDirectoryPage(BaseProjectPage):
         layout.addWidget(description)
         layout.addSpacing(5 * AppStyle.MarginSize)
         layout.addWidget(self._location)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._interpreter)
         layout.addSpacing(7 * AppStyle.MarginSize)
         layout.addWidget(self._validation_label)
         layout.addStretch()
         self.setLayout(layout)
+        # Look for an interpreter in the directory the user selects
+        self._location.textbox.textChanged.connect(self._detect_interpreter)
 
     @property
     def project_location(self):
@@ -364,6 +431,8 @@ class ExistingDirectoryPage(BaseProjectPage):
 
         # Perform validation
         reasons = self._validate_location(location)
+        reasons = self._validate_interpreter(reasons)
+
         if reasons:
             self._validation_label.set_text(
                 self._compose_failed_validation_text(reasons)
@@ -435,6 +504,7 @@ class ProjectDialog(SidebarDialog):
         self.project_data = {
             "root_path": osp.normpath(page.project_location),
             "project_type": page.project_type.ID,
+            "interpreter": page.interpreter,
         }
         self.sig_project_creation_requested.emit(
             page.project_location,

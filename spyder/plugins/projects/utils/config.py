@@ -26,6 +26,7 @@ PROJECT_DEFAULTS = [
       'save_data_on_exit': True,
       'save_history': True,
       'save_non_project_files': False,
+      'interpreter': '',
       # None means using the value from Spyder's config
       'follow_gitignore': None,
       # Names the watcher skips on top of the built-in ones
@@ -63,6 +64,7 @@ PROJECT_NAME_MAP = {
             'save_data_on_exit',
             'save_history',
             'save_non_project_files',
+            'interpreter',
             'follow_gitignore',
             'folders_to_ignore',
             ],

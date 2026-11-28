@@ -298,3 +298,37 @@ def validate_conda(conda_executable):
     except Exception:
         return False
     return valid
+
+
+def find_local_venv_interpreter(project_path):
+    """
+    Look for a Python interpreter in an environment inside a project.
+
+    Checks common folders (``.venv``, ``venv``, ``env`` and the default pixi
+    environment) and returns the path to the first interpreter found.
+    """
+    if not project_path or not osp.isdir(project_path):
+        return None
+
+    # Common locations of environments in a project, in priority order
+    env_folders = [
+        '.venv',
+        'venv',
+        'env',
+        osp.join('.pixi', 'envs', 'default'),
+    ]
+
+    if WINDOWS:
+        # venv-style layout first, then the conda/pixi one
+        candidates = [('Scripts', 'python.exe'), ('python.exe',)]
+    else:
+        candidates = [('bin', 'python')]
+
+    for env_folder in env_folders:
+        env_dir = osp.join(project_path, env_folder)
+        for parts in candidates:
+            interpreter = osp.join(env_dir, *parts)
+            if osp.isfile(interpreter):
+                return interpreter
+
+    return None
