@@ -885,7 +885,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         else:
             plugin.change_visibility(True, force_focus=force_focus)
             self.main.activateWindow()
-    
+
     # ---- Menus and actions
     # -------------------------------------------------------------------------
     @Slot()

@@ -484,26 +484,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 self.shortcut_queue.append(
                     (plugin.toggle_view_action, context, name))
 
-        # Register shortcut to close plugin
-        if isinstance(plugin, SpyderDockablePlugin):
-            context = '_'
-            name = 'close {}'.format(plugin.CONF_SECTION)
-
-            sc = QShortcut(
-                QKeySequence(), self, lambda: self.close_plugin(plugin)
-            )
-            sc.setContext(Qt.ApplicationShortcut)
-            plugin._close_shortcut = sc
-
-            if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                self.register_shortcut(sc, context, name)
-                self.register_shortcut(
-                                    plugin.get_widget().close_action, context, name)
-            else:
-                self.shortcut_queue.append((sc, context, name))
-                self.shortcut_queue.append(
-                    (plugin.get_widget().close_action, context, name))
-
     def unregister_plugin(self, plugin):
         """
         Unregister a plugin from the Spyder Main Window.
@@ -550,26 +530,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 "Switch to {}".format(plugin.CONF_SECTION),
             )
 
-        # Unregister close shortcut
-        shortcut = None
-        try:
-            context = '_'
-            name = 'close {}'.format(plugin.CONF_SECTION)
-            shortcut = self.get_shortcut(
-                name,
-                context,
-                plugin_name=plugin.CONF_SECTION
-            )
-        except Exception:
-            pass
-        
-        if shortcut is not None:
-            self.shortcuts.unregister_shortcut(
-                plugin._close_shortcut,
-                context,
-                "Close {}".format(plugin.CONF_SECTION),
-            )
-
         # Remove dockwidget
         logger.info("Removing {} dockwidget...".format(plugin.NAME))
         self.remove_dockwidget(plugin)
@@ -601,22 +561,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         logger.debug(f"Switch to {plugin} while Layouts plugin is {self.layouts}")
         if self.layouts is not None:
             self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
-
-    def close_plugin(self, plugin):
-        """
-        Close `plugin`.
-
-        Notes
-        -----
-        This operation unmaximizes the current plugin (if any), raises
-        this plugin to view (if it's hidden) and gives it focus (if
-        possible).
-        """
-        # This is necessary to avoid an error when layouts is not ready.
-        # Fixes spyder-ide/spyder#22639
-        logger.debug(f"Close {plugin} while Layouts plugin is {self.layouts}")
-        if self.layouts is not None:
-            self.layouts.close_plugin(plugin)
 
     def unmaximize_plugin(self, not_this_plugin=None):
         """
