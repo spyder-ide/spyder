@@ -498,11 +498,11 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
                 self.register_shortcut(sc, context, name)
                 self.register_shortcut(
-                                    plugin.close_action, context, name)
+                                    plugin.get_widget().close_action, context, name)
             else:
                 self.shortcut_queue.append((sc, context, name))
                 self.shortcut_queue.append(
-                    (plugin.close_action, context, name))
+                    (plugin.get_widget().close_action, context, name))
 
     def unregister_plugin(self, plugin):
         """

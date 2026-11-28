@@ -580,11 +580,6 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("undock"),
             triggered=self.create_window,
         )
-        self.close_menu = self.create_menu("close_menu", title=_("Close"))
-
-        self.close_menu.aboutToShow.connect(
-            self.update_close_menu
-        )
         
         self.close_action = self.create_action(
             name=PluginMainWidgetActions.ClosePane,
@@ -593,6 +588,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("close_pane"),
             triggered=self.close_dock,
         )
+        self.close_action.setShortcut(self.get_shortcut("close "+ self._name, context="_"))
 
         self.help_action = self.create_action(
             name=PluginMainWidgetActions.HelpPage,
@@ -642,57 +638,6 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
 
         # Update title
         self.setWindowTitle(self.get_title())
-
-    def update_close_menu(self):
-        """
-        Populate close menu with the close action of each visible pane.
-        """
-        self.close_menu.clear()
-
-        order = [
-            "editor",
-            "ipython_console",
-            "variable_explorer",
-            "debugger",
-            "help",
-            "plots",
-            "explorer",
-            "outline_explorer",
-            "project_explorer",
-            "find_in_files",
-            "historylog",
-            "profiler",
-            "pylint",
-            "onlinehelp",
-            "internal_console",
-        ]
-
-        actions = {}
-
-        for plugin in self.get_dockable_plugins():
-            dockwidget = plugin.dockwidget
-
-            if dockwidget is None or not dockwidget.isVisible():
-                continue
-
-            action = plugin.close_action
-
-            if action is None:
-                continue
-
-            name = plugin.CONF_SECTION
-            actions[name] = action
-
-        for name in order:
-            action = actions.get(name)
-
-            if action is not None:
-                self.close_menu.add_action(action)
-
-        # Add plugins not included in the predefined order
-        for name, action in actions.items():
-            if name not in order:
-                self.close_menu.add_action(action)
 
     def _add_switch_tabs_actions(self, tabs: Tabs) -> None:
         """
