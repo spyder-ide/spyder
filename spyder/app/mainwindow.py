@@ -445,7 +445,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             if self.get_conf('use_custom_margin'):
                 margin = self.get_conf('custom_margin')
             plugin.update_margins(margin)
-
         if plugin_name == Plugins.Shortcuts:
             for action, context, action_name in self.shortcut_queue:
                 self.register_shortcut(action, context, action_name)
@@ -464,8 +463,22 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 else:
                     self.shortcut_queue.append((action, context, action_name))
 
-        # Register shortcut to switch to plugin
+        # Register shortcut to switch to plugin and close plugin
         if isinstance(plugin, SpyderDockablePlugin):
+            close_action = plugin.get_widget().close_action
+            close_action.setShortcutContext(Qt.ApplicationShortcut)
+            close_shortcut = QShortcut(QKeySequence(), self)
+            close_shortcut.setContext(Qt.ApplicationShortcut)
+            close_shortcut.activated.connect(close_action.trigger)
+            plugin._close_shortcut = close_shortcut
+
+            close_name = "close {}".format(plugin.CONF_SECTION)
+
+            if Plugins.Shortcuts in PLUGIN_REGISTRY:
+                self.register_shortcut(close_action, "_", close_name)
+            else:
+                self.shortcut_queue.append((close_action, "_", close_name))
+
             context = '_'
             name = 'switch to {}'.format(plugin.CONF_SECTION)
 
@@ -509,6 +522,24 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             context = (getattr(action, 'shortcut_context', plugin.NAME)
                        or plugin.NAME)
             self.shortcuts.unregister_shortcut(action, context, action_name)
+
+        shortcut = None
+        try:
+            context = '_'
+            name = 'close {}'.format(plugin.CONF_SECTION)
+            shortcut = self.get_shortcut(
+                name,
+                context,
+                plugin_name=plugin.CONF_SECTION
+            )
+        except Exception:
+            pass
+        if shortcut is not None:
+            self.shortcuts.unregister_shortcut(
+                plugin._close_shortcut,
+                "_",
+                "close {}".format(plugin.CONF_SECTION),
+            )
 
         # Unregister switch to shortcut
         shortcut = None
