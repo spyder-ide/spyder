@@ -225,11 +225,64 @@ In this release 20 pull requests were closed.
 
 ----
 
-## Version 6.1.9 (unreleased)
+## Version 6.1.9 (2026-11-26)
+
+### Important fixes
+
+* Improve performance of Spyder projects with thousands of files.
+* Prevent setting a high DPI scaling factor greater than 5.0
+* Fix debugging cells when `Copy full cell contents` option is enabled.
+* Fix showing plain text docstrings in the Help pane and other user experience
+  errors in it.
+* Add support for IPython 9.18+.
 
 ### API changes
 
 * Add `action_for_widget` method to `SpyderToolbar`.
+
+### Issues Closed
+
+* [Issue 26495](https://github.com/spyder-ide/spyder/issues/26495) - Limit the custom high DPI scale factor to a sane maximum ([PR 26532](https://github.com/spyder-ide/spyder/pull/26532) by [@abhiagx](https://github.com/abhiagx))
+* [Issue 26491](https://github.com/spyder-ide/spyder/issues/26491) - Go to Line item missing from main menus ([PR 26499](https://github.com/spyder-ide/spyder/pull/26499) by [@SrkianFardin25](https://github.com/SrkianFardin25))
+* [Issue 26477](https://github.com/spyder-ide/spyder/issues/26477) - IPython 9.18 changes cause exception at startup ([PR 26479](https://github.com/spyder-ide/spyder/pull/26479) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26462](https://github.com/spyder-ide/spyder/issues/26462) - Empty `Help Spyder` and `Changelog` dialogs ([PR 26475](https://github.com/spyder-ide/spyder/pull/26475) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26434](https://github.com/spyder-ide/spyder/issues/26434) - Console crashes when installing spyder with pixi ([PR 26548](https://github.com/spyder-ide/spyder/pull/26548) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26140](https://github.com/spyder-ide/spyder/issues/26140) - Error about missing `updater_stderr.log` still affecting users ([PR 26556](https://github.com/spyder-ide/spyder/pull/26556) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 24594](https://github.com/spyder-ide/spyder/issues/24594) - "Debug cell" button fails when "Copy full cell code to console" option is enabled ([PR 26443](https://github.com/spyder-ide/spyder/pull/26443) by [@aws-sde](https://github.com/aws-sde))
+* [Issue 13660](https://github.com/spyder-ide/spyder/issues/13660) - Improve clarity of the dialog used by the Plot pane to save all the plots ([PR 26416](https://github.com/spyder-ide/spyder/pull/26416) by [@blair49](https://github.com/blair49))
+* [Issue 9022](https://github.com/spyder-ide/spyder/issues/9022) - Confusing Tutorial  documentation re Ctrl-Enter ([PR 26505](https://github.com/spyder-ide/spyder/pull/26505) by [@shubham069](https://github.com/shubham069))
+
+In this release 9 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26556](https://github.com/spyder-ide/spyder/pull/26556) - PR: Don't raise errors related to reading the updater logs (Update manager), by [@ccordoba12](https://github.com/ccordoba12) ([26140](https://github.com/spyder-ide/spyder/issues/26140))
+* [PR 26554](https://github.com/spyder-ide/spyder/pull/26554) - PR: Update user facing changelog for 6.1.9, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26548](https://github.com/spyder-ide/spyder/pull/26548) - PR: Ignore kernel warning about missing SSL certificates (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([26434](https://github.com/spyder-ide/spyder/issues/26434))
+* [PR 26546](https://github.com/spyder-ide/spyder/pull/26546) - PR: Update spyder-kernels to 3.1.7 (for Spyder 6.1.9), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26542](https://github.com/spyder-ide/spyder/pull/26542) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 26541](https://github.com/spyder-ide/spyder/pull/26541) - PR: Update translations for 6.1.9, by [@dalthviz](https://github.com/dalthviz)
+* [PR 26537](https://github.com/spyder-ide/spyder/pull/26537) - PR: Use `format` instead of `f-string` for translatable text (Help), by [@dalthviz](https://github.com/dalthviz)
+* [PR 26532](https://github.com/spyder-ide/spyder/pull/26532) - PR: Limit custom high DPI scale factor to 5 and accept whole numbers (Application), by [@abhiagx](https://github.com/abhiagx) ([26495](https://github.com/spyder-ide/spyder/issues/26495), [26495](https://github.com/spyder-ide/spyder/issues/26495))
+* [PR 26528](https://github.com/spyder-ide/spyder/pull/26528) - PR: Add placeholder to lineedit used when the Editor is set as source (Help), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26520](https://github.com/spyder-ide/spyder/pull/26520) - PR: Use `micromamba` to show env info in file tests (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26518](https://github.com/spyder-ide/spyder/pull/26518) - PR: Fix showing docstrings in plain text (Help), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26506](https://github.com/spyder-ide/spyder/pull/26506) - PR: Fix several issues in the Help pane, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26505](https://github.com/spyder-ide/spyder/pull/26505) - PR: Clarify the definition of cells in the Spyder tutorial (Help), by [@shubham069](https://github.com/shubham069) ([9022](https://github.com/spyder-ide/spyder/issues/9022))
+* [PR 26499](https://github.com/spyder-ide/spyder/pull/26499) - PR: Restore Go to line item in the Search menu (Editor), by [@SrkianFardin25](https://github.com/SrkianFardin25) ([26491](https://github.com/spyder-ide/spyder/issues/26491))
+* [PR 26490](https://github.com/spyder-ide/spyder/pull/26490) - PR: Shut down kernel when closing a console that warned at startup (IPython console), by [@aws-sde](https://github.com/aws-sde)
+* [PR 26479](https://github.com/spyder-ide/spyder/pull/26479) - PR: Fix tracebacks syntax highlighting for IPython 9.18+ and watcher file patterns for Watchdog 7+ (IPython console/Projects), by [@ccordoba12](https://github.com/ccordoba12) ([26477](https://github.com/spyder-ide/spyder/issues/26477))
+* [PR 26476](https://github.com/spyder-ide/spyder/pull/26476) - PR: Check that in-app appeal dialog is correctly rendered (Testing), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26475](https://github.com/spyder-ide/spyder/pull/26475) - PR: Fix rendering user-facing changelog (Application), by [@ccordoba12](https://github.com/ccordoba12) ([26462](https://github.com/spyder-ide/spyder/issues/26462))
+* [PR 26472](https://github.com/spyder-ide/spyder/pull/26472) - PR: Prevent error when `CodeEditor` is removed while updating scrollflags (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26451](https://github.com/spyder-ide/spyder/pull/26451) - PR: Use native Windows memory query for status updates (Utils), by [@SimpleZion](https://github.com/SimpleZion)
+* [PR 26443](https://github.com/spyder-ide/spyder/pull/26443) - PR: Fix debugging cells when "Copy full cell contents" is enabled, by [@aws-sde](https://github.com/aws-sde) ([24594](https://github.com/spyder-ide/spyder/issues/24594))
+* [PR 26442](https://github.com/spyder-ide/spyder/pull/26442) - PR: Pass line number to external editor of Internal console, by [@kayaal34](https://github.com/kayaal34)
+* [PR 26438](https://github.com/spyder-ide/spyder/pull/26438) - PR: Fix error with Find/Replace widget after its editor is deleted, by [@andfoy](https://github.com/andfoy)
+* [PR 26436](https://github.com/spyder-ide/spyder/pull/26436) - PR: Make watcher's scandir filter less expensive (Projects), by [@eendebakpt](https://github.com/eendebakpt)
+* [PR 26416](https://github.com/spyder-ide/spyder/pull/26416) - PR: Change accept button label of 'Save all figures' dialog to be clearer (Plots), by [@blair49](https://github.com/blair49) ([13660](https://github.com/spyder-ide/spyder/issues/13660))
+
+In this release 25 pull requests were closed.
 
 ----
 

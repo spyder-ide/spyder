@@ -37,6 +37,12 @@ from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
+# Maximum value allowed for each custom high DPI scale factor, because larger
+# ones make the interface unusable. See spyder-ide/spyder#26495.
+# Note: This must be an integer between 2 and 9 for the regex used to validate
+# the scale factors to work.
+MAX_CUSTOM_SCALE_FACTOR = 5
+
 
 class ApplicationConfigPage(PluginConfigPage):
 
@@ -254,13 +260,24 @@ class ApplicationConfigPage(PluginConfigPage):
             restart=True
         )
 
+        # A scale factor is a number between 1 and MAX_CUSTOM_SCALE_FACTOR,
+        # with or without decimals. The maximum itself can only be followed
+        # by zeros after the decimal point (e.g. 5.0 but not 5.01).
+        scale_factor_regex = (
+            rf"(?:[1-{MAX_CUSTOM_SCALE_FACTOR - 1}](?:\.[0-9]*)?"
+            rf"|{MAX_CUSTOM_SCALE_FACTOR}(?:\.0*)?)"
+        )
+
         self.custom_scaling_edit = self.create_lineedit(
             "",
             'high_dpi_custom_scale_factors',
-            tip=_("Enter values for different screens separated by semicolons "
-                  "';'. Float values are supported"),
+            tip=_(
+                "Enter values between 1 and {max_factor} for different "
+                "screens separated by semicolons ';'. Float values are "
+                "supported"
+            ).format(max_factor=MAX_CUSTOM_SCALE_FACTOR),
             alignment=Qt.Horizontal,
-            regex=r"[1-9]+(?:\.[0-9]*)(;[1-9]+(?:\.[0-9]*))*",
+            regex=rf"{scale_factor_regex}(?:;{scale_factor_regex})*",
             restart=True
         )
 
