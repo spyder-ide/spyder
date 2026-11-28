@@ -580,6 +580,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("undock"),
             triggered=self.create_window,
         )
+        
         self.close_action = self.create_action(
             name=PluginMainWidgetActions.ClosePane,
             text=_("Close"),
@@ -587,6 +588,8 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
             icon=self.create_icon("close_pane"),
             triggered=self.close_dock,
         )
+        #self.close_action.setShortcut(self.get_shortcut("close "+ self._name, context="_"))
+
         self.help_action = self.create_action(
             name=PluginMainWidgetActions.HelpPage,
             text=_("Help"),
