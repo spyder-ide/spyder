@@ -1636,9 +1636,6 @@ class SpyderDockablePlugin(SpyderPluginV2):
         self._switch_to_shortcut = None
         """Shortcut to switch to the plugin, defined on the main window."""
 
-        self._close_shortcut = None
-        """Shortcut to close the plugin, defined on the main window."""
-
         # Widget setup
         # --------------------------------------------------------------------
         self._widget = self._container
